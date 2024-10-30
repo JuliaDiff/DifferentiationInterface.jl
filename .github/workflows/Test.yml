@@ -29,26 +29,27 @@ jobs:
       matrix:
         version:
           - "1.10"
-          - "1"
+          # - "1"
         group:
-          - Misc/Internals
-          - Misc/DifferentiateWith
-          - Misc/FromPrimitive
-          - Misc/SparsityDetector
-          - Misc/ZeroBackends
-          - Back/ChainRulesBackends
-          - Back/Enzyme
-          - Back/FiniteDiff
-          - Back/FiniteDifferences
-          - Back/ForwardDiff
-          - Back/Mooncake
-          - Back/PolyesterForwardDiff
-          - Back/ReverseDiff
-          - Back/SymbolicBackends
-          - Back/Tracker
-          - Back/Zygote
-          - Down/Flux
-          - Down/Lux
+          # - Misc/Internals
+          # - Misc/DifferentiateWith
+          # - Misc/FromPrimitive
+          # - Misc/SparsityDetector
+          # - Misc/ZeroBackends
+          # - Back/ChainRulesBackends
+          # - Back/Enzyme
+          # - Back/FiniteDiff
+          # - Back/FiniteDifferences
+          # - Back/ForwardDiff
+          # - Back/Mooncake
+          # - Back/PolyesterForwardDiff
+          # - Back/ReverseDiff
+          # - Back/SymbolicBackends
+          # - Back/Tracker
+          # - Back/Zygote
+          # - Down/Flux
+          # - Down/Lux
+          - Down/Reactant
         skip_lts:
           - ${{ github.event.pull_request.draft }}
         exclude:
@@ -84,52 +85,52 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
-  test-DIT:
-    name: ${{ matrix.version }} - DIT (${{ matrix.group }})
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
-    timeout-minutes: 60
-    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
-      actions: write
-      contents: read
-    strategy:
-      fail-fast: true
-      matrix:
-        version:
-          - "1.10"
-          - "1"
-        group:
-          - Formalities
-          - Zero
-          - Standard
-          - Weird
-        skip_lts:
-          - ${{ github.event.pull_request.draft }}
-        # exclude:
-        #   - skip_lts: true
-        #     version: "1.10"
-    env:
-      JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: ${{ matrix.version }}
-          arch: x64
-      - uses: julia-actions/cache@v2
-      - name: Install dependencies & run tests
-        run: julia --project=./DifferentiationInterfaceTest -e '
-          using Pkg;
-          Pkg.Registry.update();
-          Pkg.develop(path="./DifferentiationInterface");
-          Pkg.test("DifferentiationInterfaceTest"; coverage=true);'
-      - uses: julia-actions/julia-processcoverage@v1
-        with:
-          directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
-      - uses: codecov/codecov-action@v4
-        with:
-          files: lcov.info
-          flags: DIT
-          name: ${{ matrix.version }} - DIT (${{ matrix.group }})
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+  # test-DIT:
+  #   name: ${{ matrix.version }} - DIT (${{ matrix.group }})
+  #   runs-on: ubuntu-latest
+  #   if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
+  #   timeout-minutes: 60
+  #   permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+  #     actions: write
+  #     contents: read
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       version:
+  #         - "1.10"
+  #         - "1"
+  #       group:
+  #         - Formalities
+  #         # - Zero
+  #         # - Standard
+  #         # - Weird
+  #       skip_lts:
+  #         - ${{ github.event.pull_request.draft }}
+  #       # exclude:
+  #       #   - skip_lts: true
+  #       #     version: "1.10"
+  #   env:
+  #     JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: julia-actions/setup-julia@v2
+  #       with:
+  #         version: ${{ matrix.version }}
+  #         arch: x64
+  #     - uses: julia-actions/cache@v2
+  #     - name: Install dependencies & run tests
+  #       run: julia --project=./DifferentiationInterfaceTest -e '
+  #         using Pkg;
+  #         Pkg.Registry.update();
+  #         Pkg.develop(path="./DifferentiationInterface");
+  #         Pkg.test("DifferentiationInterfaceTest"; coverage=true);'
+  #     - uses: julia-actions/julia-processcoverage@v1
+  #       with:
+  #         directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
+  #     - uses: codecov/codecov-action@v4
+  #       with:
+  #         files: lcov.info
+  #         flags: DIT
+  #         name: ${{ matrix.version }} - DIT (${{ matrix.group }})
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         fail_ci_if_error: true

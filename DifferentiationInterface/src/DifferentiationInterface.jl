@@ -63,6 +63,10 @@ include("misc/from_primitive.jl")
 include("misc/sparsity_detector.jl")
 include("misc/zero_backends.jl")
 
+struct ReactantBackend{B} <: ADTypes.AbstractADType
+    backend::B
+end
+
 ## Exported
 
 export Context, Constant, Cache
