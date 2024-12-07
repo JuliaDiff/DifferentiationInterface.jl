@@ -15,7 +15,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
 test_differentiation(
     [
         AutoZygote(),
-        # AutoEnzyme()  # TODO: fix
+        AutoEnzyme(),
     ],
     DIT.flux_scenarios(Random.MersenneTwister(0));
     isapprox=DIT.flux_isapprox,

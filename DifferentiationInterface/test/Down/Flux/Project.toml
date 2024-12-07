@@ -1,0 +1,7 @@
+[deps]
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
+DifferentiationInterfaceTest = "a82114a7-5aa3-49a8-9643-716bb13727a3"
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
