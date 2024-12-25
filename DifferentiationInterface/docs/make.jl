@@ -32,6 +32,7 @@ makedocs(;
             "explanation/advanced.md",
             "explanation/faq.md",
         ],
+        "FAQ" => ["faq/limitations.md", "faq/differentiability.md"],
         "api.md",
         "dev_guide.md",
     ],

@@ -1,4 +1,9 @@
-# FAQ
+# Limitations
+
+## Multiple active arguments
+
+At the moment, most backends cannot work with multiple active (differentiated) arguments.
+As a result, DifferentiationInterface only supports a single active argument, called `x` in the documentation.
 
 ## Complex numbers
 
