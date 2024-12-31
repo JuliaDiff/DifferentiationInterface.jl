@@ -44,31 +44,22 @@ end
 
 function DIT.flux_isapprox(a, b; atol, rtol)
     isapprox_results = fmapstructure_with_path(a, b) do kp, x, y
-        if :state in kp  # ignore RNN and LSTM state
+        if x isa AbstractArray{<:Number}
+            return isapprox(x, y; atol, rtol)
+        else  # ignore non-arrays
             return true
-        else
-            if x isa AbstractArray{<:Number}
-                return isapprox(x, y; atol, rtol)
-            else  # ignore non-arrays
-                return true
-            end
         end
     end
     return all(fleaves(isapprox_results))
 end
 
-function square_loss(model, x)
-    y = model(x)
-    y = y isa Tuple ? y[1] : y # handle LSTM
-    return mean(abs2, y)
-end
+square_loss(model, x) = mean(abs2, model(x))
 
 function square_loss_iterated(cell, x)
-    st = cell(x) # uses default initial state
+    y, st = cell(x) # uses default initial state
     for _ in 1:2
-        st = cell(x, st)
+        y, st = cell(x, st)
     end
-    y = st isa Tuple ? st[1] : st # handle LSTM
     return mean(abs2, y)
 end
 
@@ -156,6 +147,10 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
         ),
         (
             GRU(3 => 4; init_kernel=init, init_recurrent_kernel=init),
+            randn(rng, Float32, 3, 2, 1)
+        ),
+        (
+            Chain(LSTM(3 => 4), RNN(4 => 5), Dense(5 => 2)),
             randn(rng, Float32, 3, 2, 1)
         ),
     #! format: on
