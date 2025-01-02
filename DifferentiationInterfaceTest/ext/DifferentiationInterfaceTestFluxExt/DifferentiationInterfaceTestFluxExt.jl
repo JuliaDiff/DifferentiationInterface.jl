@@ -11,10 +11,13 @@ using Flux:
     ConvTranspose,
     Dense,
     GRU,
+    GRUCell,
     LSTM,
+    LSTMCell,
     Maxout,
     MeanPool,
     RNN,
+    RNNCell,
     SamePad,
     Scale,
     SkipConnection,
@@ -24,6 +27,7 @@ using Flux:
     relu
 using Functors: @functor, fmapstructure_with_path, fleaves
 using LinearAlgebra
+using Statistics: mean
 using Random: AbstractRNG, default_rng
 
 #=
@@ -43,31 +47,23 @@ end
 
 function DIT.flux_isapprox(a, b; atol, rtol)
     isapprox_results = fmapstructure_with_path(a, b) do kp, x, y
-        if :state in kp  # ignore RNN and LSTM state
+        if x isa AbstractArray{<:Number}
+            return isapprox(x, y; atol, rtol)
+        else  # ignore non-arrays
             return true
-        else
-            if x isa AbstractArray{<:Number}
-                return isapprox(x, y; atol, rtol)
-            else  # ignore non-arrays
-                return true
-            end
         end
     end
     return all(fleaves(isapprox_results))
 end
 
-function square_loss(model, x)
-    Flux.reset!(model)
-    return sum(abs2, model(x))
-end
+square_loss(model, x) = mean(abs2, model(x))
 
-function square_loss_iterated(model, x)
-    Flux.reset!(model)
-    y = copy(x)
-    for _ in 1:3
-        y = model(y)
+function square_loss_iterated(cell, x)
+    y, st = cell(x) # uses default initial state
+    for _ in 1:2
+        y, st = cell(x, st)
     end
-    return sum(abs2, y)
+    return mean(abs2, y)
 end
 
 struct SimpleDense{W,B,F}
@@ -132,23 +128,7 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
             Maxout(() -> Dense(5 => 4, tanh; init), 3),
             randn(rng, Float32, 5, 1)
         ),
-        (
-            RNN(3 => 2; init),
-            randn(rng, Float32, 3, 2)
-        ),
-        (
-            Chain(RNN(3 => 4; init), RNN(4 => 3; init)),
-            randn(rng, Float32, 3, 2)
-        ),
-        (
-            LSTM(3 => 5; init),
-            randn(rng, Float32, 3, 2)
-        ),
-        (
-            Chain(LSTM(3 => 5; init), LSTM(5 => 3; init)),
-            randn(rng, Float32, 3, 2)
-        ),
-        (
+       (
             SkipConnection(Dense(2 => 2; init), vcat),
             randn(rng, Float32, 2, 3)
         ),
@@ -157,12 +137,24 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
             randn(rng, Float32, 2, 1)
         ),
         (
-            GRU(3 => 5; init),
-            randn(rng, Float32, 3, 10)
-        ),
-        (
             ConvTranspose((3, 3), 3 => 2; stride=2, init),
             rand(rng, Float32, 5, 5, 3, 1)
+        ),
+        (
+            RNN(3 => 4; init_kernel=init, init_recurrent_kernel=init),
+            randn(rng, Float32, 3, 2, 1)
+        ),
+        (
+            LSTM(3 => 4; init_kernel=init, init_recurrent_kernel=init),
+            randn(rng, Float32, 3, 2, 1)
+        ),
+        (
+            GRU(3 => 4; init_kernel=init, init_recurrent_kernel=init),
+            randn(rng, Float32, 3, 2, 1)
+        ),
+        (
+            Chain(LSTM(3 => 4), RNN(4 => 5), Dense(5 => 2)),
+            randn(rng, Float32, 3, 2, 1)
         ),
     #! format: on
     ]
@@ -176,16 +168,20 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
         push!(scens, scen)
     end
 
-    # Recurrence
+    # Recurrent Cells
 
     recurrent_models_and_xs = [
         #! format: off
         (
-            RNN(3 => 3; init),
+            RNNCell(3 => 3; init_kernel=init, init_recurrent_kernel=init),
             randn(rng, Float32, 3, 2)
         ),
         (
-            LSTM(3 => 3; init),
+            LSTMCell(3 => 3; init_kernel=init, init_recurrent_kernel=init),
+            randn(rng, Float32, 3, 2)
+        ),
+        (
+            GRUCell(3 => 3; init_kernel=init, init_recurrent_kernel=init),
             randn(rng, Float32, 3, 2)
         ),
         #! format: on
@@ -193,12 +189,11 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
 
     for (model, x) in recurrent_models_and_xs
         Flux.trainmode!(model)
-        g = gradient_finite_differences(square_loss, model, x)
+        g = gradient_finite_differences(square_loss_iterated, model, x)
         scen = DIT.Scenario{:gradient,:out}(
             square_loss_iterated, model; contexts=(DI.Constant(x),), res1=g
         )
-        # TODO: figure out why these tests are broken
-        # push!(scens, scen)
+        push!(scens, scen)
     end
 
     return scens
