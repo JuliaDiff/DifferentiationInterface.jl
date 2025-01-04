@@ -57,5 +57,5 @@ end
 
 @testset "Errors" begin
     safe_log(x) = x > zero(x) ? log(x) : convert(typeof(x), NaN)
-    @test_throws Exception derivative(safe_log, AutoZygote(), 0.0)
+    @test_throws "Zygote failed to differentiate" derivative(safe_log, AutoZygote(), 0.0)
 end
