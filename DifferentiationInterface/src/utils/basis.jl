@@ -46,7 +46,7 @@ Construct the `i`-th standard basis array in the vector space of `a` with elemen
 If an AD backend benefits from a more specialized basis array implementation,
 this function can be extended on the backend type.
 """
-basis(::AbstractADType, a::AbstractArray, i) = basis(a, i)
+basis(::AbstractADType, a::AbstractArray{<:Real}, i) = basis(a, i)
 
 """
     multibasis(backend, a::AbstractArray, inds::AbstractVector)
@@ -58,16 +58,18 @@ Construct the sum of the `i`-th standard basis arrays in the vector space of `a`
 If an AD backend benefits from a more specialized basis array implementation,
 this function can be extended on the backend type.
 """
-multibasis(::AbstractADType, a::AbstractArray, inds) = multibasis(a, inds)
+multibasis(::AbstractADType, a::AbstractArray{<:Real}, inds) = multibasis(a, inds)
 
-function basis(a::AbstractArray{T,N}, i) where {T,N}
+function basis(a::AbstractArray{T,N}, i) where {T<:Real,N}
     return zero(a) + OneElement(i, one(T), a)
 end
 
-function multibasis(a::AbstractArray{T,N}, inds::AbstractVector) where {T,N}
+function multibasis(a::AbstractArray{T,N}, inds::AbstractVector) where {T<:Real,N}
     seed = zero(a)
     for i in inds
         seed += OneElement(i, one(T), a)
     end
     return seed
 end
+
+realone(x::Real) = one(x)
