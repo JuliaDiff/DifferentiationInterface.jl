@@ -68,7 +68,7 @@ SparseMatrixColorings = "0.4.9"
 StaticArrays = "1.9.7"
 Symbolics = "5.27.1, 6"
 Tracker = "0.2.33"
-Zygote = "0.6.69"
+Zygote = "0.6.69, 0.7"
 julia = "1.10"
 
 [extras]
@@ -103,21 +103,4 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
-test = [
-    "ADTypes",
-    "Aqua",
-    "ComponentArrays",
-    "DataFrames",
-    "ExplicitImports",
-    "JET",
-    "JLArrays",
-    "JuliaFormatter",
-    "Pkg",
-    "Random",
-    "SparseArrays",
-    "SparseConnectivityTracer",
-    "SparseMatrixColorings",
-    "StableRNGs",
-    "StaticArrays",
-    "Test",
-]
+test = ["ADTypes", "Aqua", "ComponentArrays", "DataFrames", "ExplicitImports", "JET", "JLArrays", "JuliaFormatter", "Pkg", "Random", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings", "StableRNGs", "StaticArrays", "Test"]
