@@ -64,7 +64,7 @@ SparseMatrixColorings = "0.4.9"
 StaticArrays = "1.9"
 Statistics = "1"
 Test = "<0.0.1,1"
-Zygote = "0.6"
+Zygote = "0.6, 0.7"
 julia = "1.10"
 
 [extras]
