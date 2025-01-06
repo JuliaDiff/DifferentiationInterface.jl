@@ -27,7 +27,7 @@ These operators are computed using only the input `x`.
 | :-------------------------- | :---- | :-------------- | :-------------- | :------------------- | :----------------------- |
 | [`derivative`](@ref)        | 1     | `Number`        | `Any`           | similar to `y`       | `size(y)`                |
 | [`second_derivative`](@ref) | 2     | `Number`        | `Any`           | similar to `y`       | `size(y)`                |
-| [`gradient`](@ref)          | 1     | `Any`           | `Number`        | similar to `x`       | `size(x)`                |
+| [`gradient`](@ref)          | 1     | `AbstractArray` | `Number`        | similar to `x`       | `size(x)`                |
 | [`jacobian`](@ref)          | 1     | `AbstractArray` | `AbstractArray` | `AbstractMatrix`     | `(length(y), length(x))` |
 | [`hessian`](@ref)           | 2     | `AbstractArray` | `Number`        | `AbstractMatrix`     | `(length(x), length(x))` |
 
