@@ -169,3 +169,12 @@ Base.Bool(::PushforwardSlow) = false
 
 Base.Bool(::PullbackFast) = true
 Base.Bool(::PullbackSlow) = false
+
+## Overload inputs
+
+"""
+    overload_inputs(prep)
+
+Return the Dual number types for operator-overloading preparation `prep`.
+"""
+function overloaded_inputs end

@@ -329,3 +329,7 @@ function _sparse_jacobian_aux!(
     decompress!(jac, compressed_matrix, coloring_result)
     return jac
 end
+
+## Overloaded inputs utils
+
+DI.overloaded_inputs(prep::PushforwardSparseJacobianPrep) = eltype(prep.pushforward_prep.xdual_tmp)

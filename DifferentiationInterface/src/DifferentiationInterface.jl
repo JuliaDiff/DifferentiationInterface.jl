@@ -100,6 +100,8 @@ export DenseSparsityDetector
 
 export check_available, check_inplace
 
+export overloaded_inputs
+
 ## Re-exported from ADTypes
 
 export AutoChainRules

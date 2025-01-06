@@ -104,3 +104,11 @@ test_differentiation(AutoForwardDiff(), static_scenarios(); logging=LOGGING)
         end
     end
 end;
+
+## Overloaded inputs
+@testset verbose = true "Overload inputs" begin
+    backend = AutoForwardDiff()
+    u0 = [1.0; 0.0; 0.0]
+    prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
+    @test overloaded_inputs(prep) == ForwardDiff.Dual{Nothing,Float64,3}
+end;
