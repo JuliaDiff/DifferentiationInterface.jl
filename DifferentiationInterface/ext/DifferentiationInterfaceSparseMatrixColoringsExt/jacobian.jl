@@ -332,4 +332,6 @@ end
 
 ## Overloaded inputs utils
 
-DI.overloaded_inputs(prep::PushforwardSparseJacobianPrep) = eltype(prep.pushforward_prep.xdual_tmp)
+function DI.overloaded_inputs(prep::PushforwardSparseJacobianPrep)
+    return eltype(prep.pushforward_prep.xdual_tmp)
+end
