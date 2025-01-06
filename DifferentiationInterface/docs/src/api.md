@@ -13,7 +13,7 @@ DifferentiationInterface
 ```@docs
 Context
 Constant
-Tangents
+Cache
 ```
 
 ## First order
@@ -68,6 +68,7 @@ jacobian
 jacobian!
 value_and_jacobian
 value_and_jacobian!
+MixedMode
 ```
 
 ## Second order
@@ -93,6 +94,8 @@ prepare_hvp
 prepare_hvp_same_point
 hvp
 hvp!
+gradient_and_hvp
+gradient_and_hvp!
 ```
 
 ### Hessian

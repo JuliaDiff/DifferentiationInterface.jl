@@ -2,20 +2,6 @@ module DifferentiationInterfaceFiniteDiffExt
 
 using ADTypes: AutoFiniteDiff
 import DifferentiationInterface as DI
-using DifferentiationInterface:
-    DerivativeExtras,
-    GradientExtras,
-    HessianExtras,
-    JacobianExtras,
-    PullbackExtras,
-    PushforwardExtras,
-    NoDerivativeExtras,
-    NoGradientExtras,
-    NoHessianExtras,
-    NoJacobianExtras,
-    NoPullbackExtras,
-    NoPushforwardExtras,
-    Tangents
 using FiniteDiff:
     DerivativeCache,
     GradientCache,

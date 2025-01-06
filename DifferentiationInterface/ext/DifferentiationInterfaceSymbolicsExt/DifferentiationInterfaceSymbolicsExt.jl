@@ -2,17 +2,6 @@ module DifferentiationInterfaceSymbolicsExt
 
 using ADTypes: ADTypes, AutoSymbolics, AutoSparse
 import DifferentiationInterface as DI
-using DifferentiationInterface:
-    DerivativeExtras,
-    GradientExtras,
-    HessianExtras,
-    HVPExtras,
-    JacobianExtras,
-    PullbackExtras,
-    PushforwardExtras,
-    SecondDerivativeExtras,
-    Tangents,
-    maybe_dense_ad
 using LinearAlgebra: dot
 using Symbolics:
     build_function,
@@ -36,6 +25,9 @@ monovec(x::Number) = [x]
 
 myvec(x::Number) = monovec(x)
 myvec(x::AbstractArray) = vec(x)
+
+dense_ad(backend::AutoSymbolics) = backend
+dense_ad(backend::AutoSparse{<:AutoSymbolics}) = ADTypes.dense_ad(backend)
 
 include("onearg.jl")
 include("twoarg.jl")

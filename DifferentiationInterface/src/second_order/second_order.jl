@@ -34,17 +34,25 @@ end
 
 """
     inner(backend::SecondOrder)
+    inner(backend::AbstractADType)
 
 Return the inner backend of a [`SecondOrder`](@ref) object, tasked with differentiation at the first order.
+
+For any other backend type, this function acts like the identity.
 """
 inner(backend::SecondOrder) = backend.inner
+inner(backend::AbstractADType) = backend
 
 """
     outer(backend::SecondOrder)
+    outer(backend::AbstractADType)
 
 Return the outer backend of a [`SecondOrder`](@ref) object, tasked with differentiation at the second order.
+
+For any other backend type, this function acts like the identity.
 """
 outer(backend::SecondOrder) = backend.outer
+outer(backend::AbstractADType) = backend
 
 """
     mode(backend::SecondOrder)
@@ -52,12 +60,3 @@ outer(backend::SecondOrder) = backend.outer
 Return the _outer_ mode of the second-order backend.
 """
 ADTypes.mode(backend::SecondOrder) = mode(outer(backend))
-
-"""
-    nested(backend)
-
-Return a possibly modified `backend` that can work while nested inside another differentiation procedure.
-
-At the moment, this is only useful for Enzyme, which needs `autodiff_deferred` to be compatible with higher-order differentiation.
-"""
-nested(backend::AbstractADType) = backend

@@ -1,11 +1,8 @@
 module DifferentiationInterfaceTestComponentArraysExt
 
 using ComponentArrays: ComponentVector
-using DifferentiationInterface
-using DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
 using LinearAlgebra: dot
-using Random: AbstractRNG, default_rng
 
 ## Vector to scalar
 
@@ -25,34 +22,25 @@ function comp_to_num_pullback(x, dy)
 end
 
 function comp_to_num_scenarios_onearg(x::ComponentVector; dx::AbstractVector, dy::Number)
-    nb_args = 1
     f = comp_to_num
-    y = f(x)
     dy_from_dx = comp_to_num_pushforward(x, dx)
     dx_from_dy = comp_to_num_pullback(x, dy)
     grad = comp_to_num_gradient(x)
 
     # pushforward stays out of place
-    scens = Scenario[]
-    for place in (:outofplace, :inplace)
+    scens = DIT.Scenario[]
+    for pl_op in (:out, :in)
         append!(
             scens,
             [
-                PullbackScenario(
-                    f; x, y, ty=Tangents(dy), tx=Tangents(dx_from_dy), nb_args, place
-                ),
-                GradientScenario(f; x, y, grad, nb_args, place),
+                DIT.Scenario{:pullback,pl_op}(f, x; tang=(dy,), res1=(dx_from_dy,)),
+                DIT.Scenario{:gradient,pl_op}(f, x; res1=grad),
             ],
         )
     end
-    for place in (:outofplace,)
+    for pl_op in (:out,)
         append!(
-            scens,
-            [
-                PushforwardScenario(
-                    f; x, y, tx=Tangents(dx), ty=Tangents(dy_from_dx), nb_args, place
-                ),
-            ],
+            scens, [DIT.Scenario{:pushforward,pl_op}(f, x; tang=(dx,), res1=(dy_from_dx,))]
         )
     end
     return scens
@@ -60,11 +48,11 @@ end
 
 ## Gather
 
-function DIT.component_scenarios(rng::AbstractRNG=default_rng())
-    dy_ = rand(rng)
+function DIT.component_scenarios()
+    dy_ = -1 / 12
 
-    x_comp = ComponentVector(; a=randn(rng, 4), b=randn(rng, 2))
-    dx_comp = ComponentVector(; a=randn(rng, 4), b=randn(rng, 2))
+    x_comp = ComponentVector(; a=float.(1:4), b=float.(5:6))
+    dx_comp = ComponentVector(; a=float.(4:-1:1), b=float.(6:-1:5))
 
     scens = vcat(
         # one argument

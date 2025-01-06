@@ -12,22 +12,12 @@ We support the following dense backend choices from [ADTypes.jl](https://github.
 - [`AutoFiniteDifferences`](@extref ADTypes.AutoFiniteDifferences)
 - [`AutoForwardDiff`](@extref ADTypes.AutoForwardDiff)
 - [`AutoGTPSA`](@extref ADTypes.AutoGTPSA)
+- [`AutoMooncake`](@extref ADTypes.AutoMooncake)
 - [`AutoPolyesterForwardDiff`](@extref ADTypes.AutoPolyesterForwardDiff)
 - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff)
 - [`AutoSymbolics`](@extref ADTypes.AutoSymbolics)
-- [`AutoTapir`](@extref ADTypes.AutoTapir)
 - [`AutoTracker`](@extref ADTypes.AutoTracker)
 - [`AutoZygote`](@extref ADTypes.AutoZygote)
-
-!!! note
-    DifferentiationInterface.jl itself is compatible with Julia 1.6, the Long Term Support (LTS) version of the language.
-    However, we were only able to test the following backends on Julia 1.6:
-    - `AutoFiniteDifferences`
-    - `AutoForwardDiff`
-    - `AutoReverseDiff`
-    - `AutoTracker`
-    - `AutoZygote`
-    We strongly recommend that users upgrade to Julia 1.10 or above, where all backends are tested.
 
 ## Features
 
@@ -57,12 +47,32 @@ In practice, many AD backends have custom implementations for high-level operato
     | `AutoFiniteDifferences`    | 🔀    | ❌    | ❌     | ✅      | ✅     | ❌      | ❌     | ❌      |
     | `AutoForwardDiff`          | ✅    | ❌    | ✅     | ✅      | ✅     | ✅      | ✅     | ✅      |
     | `AutoGTPSA`                | ✅    | ❌    | ❌     | ✅      | ✅     | ✅      | ✅     | ✅      |
+    | `AutoMooncake`             | ❌    | ✅    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
     | `AutoPolyesterForwardDiff` | 🔀    | ❌    | 🔀     | ✅      | ✅     | 🔀      | 🔀     | 🔀      |
     | `AutoReverseDiff`          | ❌    | 🔀    | ❌     | ✅      | ✅     | ✅      | ❌     | ❌      |
-    | `AutoSymbolics`            | ✅    | ❌    | ✅     | ✅      | ✅     | ✅      | ❌     | ❌      |
-    | `AutoTapir`                | ❌    | ✅    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
+    | `AutoSymbolics`            | ✅    | ❌    | ✅     | ✅      | ✅     | ✅      | ✅     | ✅      |
     | `AutoTracker`              | ❌    | ✅    | ❌     | ✅      | ❌     | ❌      | ❌     | ❌      |
     | `AutoZygote`               | ❌    | ✅    | ❌     | ✅      | ✅     | ✅      | 🔀     | ❌      |
+
+Moreover, each context type is supported by a specific subset of backends:
+
+|                            | [`Constant`](@ref) |
+| -------------------------- | ------------------ |
+| `AutoChainRules`           | ✅                  |
+| `AutoDiffractor`           | ❌                  |
+| `AutoEnzyme` (forward)     | ✅                  |
+| `AutoEnzyme` (reverse)     | ✅                  |
+| `AutoFastDifferentiation`  | ❌                  |
+| `AutoFiniteDiff`           | ✅                  |
+| `AutoFiniteDifferences`    | ✅                  |
+| `AutoForwardDiff`          | ✅                  |
+| `AutoGTPSA`                | ✅                  |
+| `AutoMooncake`             | ✅                  |
+| `AutoPolyesterForwardDiff` | ✅                  |
+| `AutoReverseDiff`          | ✅                  |
+| `AutoSymbolics`            | ❌                  |
+| `AutoTracker`              | ✅                  |
+| `AutoZygote`               | ✅                  |
 
 ## Second order
 
@@ -83,9 +93,9 @@ In general, using a forward outer backend over a reverse inner backend will yiel
 ## Backend switch
 
 The wrapper [`DifferentiateWith`](@ref) allows you to switch between backends.
-It takes a function `f` and specifies that `f` should be differentiated with the backend of your choice, instead of whatever other backend the code is trying to use.
-In other words, when someone tries to differentiate `dw = DifferentiateWith(f, backend1)` with `backend2`, then `backend1` steps in and `backend2` does nothing.
-At the moment, `DifferentiateWith` only works when `backend2` supports [ChainRules.jl](https://github.com/JuliaDiff/ChainRules.jl).
+It takes a function `f` and specifies that `f` should be differentiated with the substitute backend of your choice, instead of whatever true backend the surrounding code is trying to use.
+In other words, when someone tries to differentiate `dw = DifferentiateWith(f, substitute_backend)` with `true_backend`, then `substitute_backend` steps in and `true_backend` does not dive into the function `f` itself.
+At the moment, `DifferentiateWith` only works when `true_backend` is either [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl) or a [ChainRules.jl](https://github.com/JuliaDiff/ChainRules.jl)-compatible backend.
 
 ## Implementations
 
@@ -120,13 +130,20 @@ For every operator, preparation generates an [executable function](https://brian
 ### FiniteDiff
 
 Whenever possible, preparation creates a cache object.
+Pushforward is implemented rather slowly using a closure.
 
 ### FiniteDifferences
+
+Nothing specific to mention.
 
 ### ForwardDiff
 
 We implement [`pushforward`](@ref) directly using [`Dual` numbers](https://juliadiff.org/ForwardDiff.jl/stable/dev/how_it_works/), and preparation allocates the necessary space.
 For higher level operators, preparation creates a [config object](https://juliadiff.org/ForwardDiff.jl/stable/user/api/#Preallocating/Configuring-Work-Buffers), which can be type-unstable.
+
+### GTPSA
+
+TO-DO
 
 ### PolyesterForwardDiff
 
@@ -134,10 +151,17 @@ Most operators fall back on `AutoForwardDiff`.
 
 ### ReverseDiff
 
-Wherever possible, preparation records a [tape](https://juliadiff.org/ReverseDiff.jl/dev/api/#The-AbstractTape-API) of the function's execution.
+With `AutoReverseDiff(compile=false)`, preparation preallocates a [config](https://juliadiff.org/ReverseDiff.jl/dev/api/#The-AbstractConfig-API).
 
-!!! warning
-    This tape is specific to the control flow inside the function, and cannot be reused if the control flow is value-dependent (like `if x[1] > 0`).
+With `AutoReverseDiff(compile=true)`, preparation records a [tape](https://juliadiff.org/ReverseDiff.jl/dev/api/#The-AbstractTape-API) of the function's execution.
+This tape is computed from the input `x` provided at preparation time.
+It is control-flow dependent, so only one branch is recorded at each `if` statement.
+
+!!! danger
+    If your function has value-specific control flow (like `if x[1] > 0` or `if c == 1`), you may get silently wrong results whenever it takes new branches that were not taken during preparation.
+    You must make sure to run preparation with an input and contexts whose values trigger the correct control flow for future executions.
+
+Whenever contexts are provided, tape recording is deactivated in all cases, because otherwise the context values would be hardcoded into a tape.
 
 ### Symbolics
 
@@ -146,9 +170,9 @@ For all operators, preparation generates an [executable function](https://docs.s
 !!! warning
     Preparation can be very slow for symbolic AD.
 
-### Tapir
+### Mooncake
 
-For `pullback`, preparation [builds the reverse rule](https://github.com/withbayes/Tapir.jl?tab=readme-ov-file#how-it-works) of the function.
+For `pullback`, preparation [builds the reverse rule](https://github.com/compintell/Mooncake.jl?tab=readme-ov-file#how-it-works) of the function.
 
 ### Tracker
 
@@ -159,4 +183,3 @@ Same-point preparation runs the forward sweep and returns the pullback closure a
 
 We implement `pullback` based on `Zygote.pullback`.
 Same-point preparation runs the forward sweep and returns the pullback closure at `x`.
-

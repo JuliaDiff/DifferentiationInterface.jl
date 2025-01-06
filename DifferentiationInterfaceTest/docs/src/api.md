@@ -12,9 +12,17 @@ DifferentiationInterfaceTest
 ## Entry points
 
 ```@docs
+Scenario
 test_differentiation
 benchmark_differentiation
-DifferentiationBenchmarkDataRow
+FIRST_ORDER
+SECOND_ORDER
+```
+
+## Utilities
+
+```@docs
+DifferentiationInterfaceTest.DifferentiationBenchmarkDataRow
 ```
 
 ## Pre-made scenario lists
@@ -27,20 +35,6 @@ sparse_scenarios
 component_scenarios
 gpu_scenarios
 static_scenarios
-```
-
-## Scenario types
-
-```@docs
-Scenario
-PushforwardScenario
-PullbackScenario
-DerivativeScenario
-GradientScenario
-JacobianScenario
-SecondDerivativeScenario
-HVPScenario
-HessianScenario
 ```
 
 ## Internals

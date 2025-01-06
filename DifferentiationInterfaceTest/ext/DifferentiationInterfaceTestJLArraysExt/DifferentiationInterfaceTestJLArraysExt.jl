@@ -1,54 +1,49 @@
 module DifferentiationInterfaceTestJLArraysExt
 
-using DifferentiationInterfaceTest
+import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
-using JLArrays: JLArray, jl
-using Random: AbstractRNG, default_rng
+using JLArrays: JLArray, JLVector, JLMatrix, jl
 
-num_to_arr_jlvector(x) = DIT.num_to_arr(x, JLArray{Float64,1})
-num_to_arr_jlmatrix(x) = DIT.num_to_arr(x, JLArray{Float64,2})
+myjl(f::Function) = f
+function myjl(::DIT.NumToArr{A}) where {T,N,A<:AbstractArray{T,N}}
+    return DIT.NumToArr(JLArray{T,N})
+end
 
-DIT.pick_num_to_arr(::Type{<:JLArray{<:Real,1}}) = num_to_arr_jlvector
-DIT.pick_num_to_arr(::Type{<:JLArray{<:Real,2}}) = num_to_arr_jlmatrix
+function (f::DIT.NumToArr{JLVector{T}})(x::Number) where {T}
+    a = JLVector{T}(Vector(1:6))  # avoid mutation
+    return sin.(x .* a)
+end
 
-function DIT.gpu_scenarios(rng::AbstractRNG=default_rng(); linalg=true)
-    x_ = rand(rng)
-    dx_ = rand(rng)
-    dy_ = rand(rng)
+function (f::DIT.NumToArr{JLMatrix{T}})(x::Number) where {T}
+    a = JLMatrix{T}(Matrix(reshape(1:6, 2, 3)))  # avoid mutation
+    return sin.(x .* a)
+end
 
-    x_6 = jl(rand(rng, 6))
-    dx_6 = jl(rand(rng, 6))
+myjl(f::DIT.FunctionModifier) = f
 
-    x_2_3 = jl(rand(rng, 2, 3))
-    dx_2_3 = jl(rand(rng, 2, 3))
+myjl(x::Number) = x
+myjl(x::AbstractArray) = jl(x)
+myjl(x::Tuple) = map(myjl, x)
+myjl(x::DI.Constant) = DI.Constant(myjl(DI.unwrap(x)))
+myjl(x::DI.Cache) = DI.Cache(myjl(DI.unwrap(x)))
+myjl(::Nothing) = nothing
 
-    dy_12 = jl(rand(rng, 12))
-    dy_6_2 = jl(rand(rng, 6, 2))
-    dy_6 = jl(rand(rng, 6))
-    dy_2_3 = jl(rand(rng, 2, 3))
-
-    V = typeof(dy_6)
-    M = typeof(dy_2_3)
-
-    scens = vcat(
-        # one argument
-        DIT.num_to_arr_scenarios_onearg(x_, V; dx=dx_, dy=dy_6),
-        DIT.num_to_arr_scenarios_onearg(x_, M; dx=dx_, dy=dy_2_3),
-        DIT.arr_to_num_scenarios_onearg(x_6; dx=dx_6, dy=dy_, linalg),
-        DIT.arr_to_num_scenarios_onearg(x_2_3; dx=dx_2_3, dy=dy_, linalg),
-        DIT.vec_to_vec_scenarios_onearg(x_6; dx=dx_6, dy=dy_12),
-        DIT.vec_to_mat_scenarios_onearg(x_6; dx=dx_6, dy=dy_6_2),
-        DIT.mat_to_vec_scenarios_onearg(x_2_3; dx=dx_2_3, dy=dy_12),
-        DIT.mat_to_mat_scenarios_onearg(x_2_3; dx=dx_2_3, dy=dy_6_2),
-        # two arguments
-        DIT.num_to_arr_scenarios_twoarg(x_, V; dx=dx_, dy=dy_6),
-        DIT.num_to_arr_scenarios_twoarg(x_, M; dx=dx_, dy=dy_2_3),
-        DIT.vec_to_vec_scenarios_twoarg(x_6; dx=dx_6, dy=dy_12),
-        DIT.vec_to_mat_scenarios_twoarg(x_6; dx=dx_6, dy=dy_6_2),
-        DIT.mat_to_vec_scenarios_twoarg(x_2_3; dx=dx_2_3, dy=dy_12),
-        DIT.mat_to_mat_scenarios_twoarg(x_2_3; dx=dx_2_3, dy=dy_6_2),
+function myjl(scen::DIT.Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+    (; f, x, y, tang, contexts, res1, res2) = scen
+    return DIT.Scenario{op,pl_op,pl_fun}(
+        myjl(f);
+        x=myjl(x),
+        y=myjl(y),
+        tang=myjl(tang),
+        contexts=myjl(contexts),
+        res1=myjl(res1),
+        res2=myjl(res2),
     )
-    return scens
+end
+
+function DIT.gpu_scenarios(args...; kwargs...)
+    scens = DIT.default_scenarios(args...; kwargs...)
+    return myjl.(scens)
 end
 
 end

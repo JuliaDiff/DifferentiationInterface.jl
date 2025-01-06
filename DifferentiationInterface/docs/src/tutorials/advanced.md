@@ -7,7 +7,7 @@ using BenchmarkTools
 using DifferentiationInterface
 import ForwardDiff, Zygote
 using SparseConnectivityTracer: TracerSparsityDetector
-using SparseMatrixColorings: GreedyColoringAlgorithm
+using SparseMatrixColorings
 ```
 
 ## Contexts
@@ -45,13 +45,11 @@ gradient(f_multiarg, backend, x, Constant(10))
 Preparation also works in this case, even if the constant changes before execution:
 
 ```@example tuto_advanced
-extras_other_constant = prepare_gradient(f_multiarg, backend, x, Constant(-1))
-gradient(f_multiarg, extras_other_constant, backend, x, Constant(10))
+prep_other_constant = prepare_gradient(f_multiarg, backend, x, Constant(-1))
+gradient(f_multiarg, prep_other_constant, backend, x, Constant(10))
 ```
 
-!!! warning
-    At the moment, contexts only work with ForwardDiff, but we will add compatibility with other backends soon.
-    This trick will be especially important to leverage Enzyme's annotations for increased performance. 
+For additional arguments which act as mutated buffers, the [`Cache`](@ref) wrapper is the appropriate choice instead of [`Constant`](@ref).
 
 ## Sparsity
 
@@ -92,13 +90,13 @@ The following are reasonable defaults:
 
 ```@example tuto_advanced
 sparse_first_order_backend = AutoSparse(
-    AutoForwardDiff();
+    dense_first_order_backend;
     sparsity_detector=TracerSparsityDetector(),
     coloring_algorithm=GreedyColoringAlgorithm(),
 )
 
 sparse_second_order_backend = AutoSparse(
-    SecondOrder(AutoForwardDiff(), AutoZygote());
+    dense_second_order_backend;
     sparsity_detector=TracerSparsityDetector(),
     coloring_algorithm=GreedyColoringAlgorithm(),
 )
@@ -120,19 +118,73 @@ hessian(f_sparse_scalar, sparse_second_order_backend, x)
 In the examples above, we didn't use preparation.
 Sparse preparation is more costly than dense preparation, but it is even more essential.
 Indeed, once preparation is done, sparse differentiation is much faster than dense differentiation, because it makes fewer calls to the underlying function.
-The speedup becomes very visible in large dimensions.
+
+Some result analysis functions from [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl) can help you figure out what the preparation contains.
+First, it records the sparsity pattern itself (the one returned by the detector).
 
 ```@example tuto_advanced
-n = 1000
-jac_extras_dense = prepare_jacobian(f_sparse_vector, dense_first_order_backend, zeros(n))
-jac_extras_sparse = prepare_jacobian(f_sparse_vector, sparse_first_order_backend, zeros(n))
+jac_prep = prepare_jacobian(f_sparse_vector, sparse_first_order_backend, x)
+sparsity_pattern(jac_prep)
+```
+
+In forward mode, each column of the sparsity pattern gets a color.
+
+```@example tuto_advanced
+column_colors(jac_prep)
+```
+
+And the colors in turn define non-overlapping groups (for Jacobians at least, Hessians are a bit more complicated).
+
+```@example tuto_advanced
+column_groups(jac_prep)
+```
+
+### Sparsity speedup
+
+When preparation is used, the speedup due to sparsity becomes very visible in large dimensions.
+
+```@example tuto_advanced
+xbig = rand(1000)
 nothing  # hide
 ```
 
 ```@example tuto_advanced
-@benchmark jacobian($f_sparse_vector, $jac_extras_dense, $dense_first_order_backend, $(randn(n)))
+jac_prep_dense = prepare_jacobian(f_sparse_vector, dense_first_order_backend, zero(xbig))
+@benchmark jacobian($f_sparse_vector, $jac_prep_dense, $dense_first_order_backend, $xbig)
 ```
 
 ```@example tuto_advanced
-@benchmark jacobian($f_sparse_vector, $jac_extras_sparse, $sparse_first_order_backend, $(randn(n)))
+jac_prep_sparse = prepare_jacobian(f_sparse_vector, sparse_first_order_backend, zero(xbig))
+@benchmark jacobian($f_sparse_vector, $jac_prep_sparse, $sparse_first_order_backend, $xbig)
+```
+
+Better memory use can be achieved by pre-allocating the matrix from the preparation result (so that it has the correct structure).
+
+```@example tuto_advanced
+jac_buffer = similar(sparsity_pattern(jac_prep_sparse), eltype(xbig))
+@benchmark jacobian!($f_sparse_vector, $jac_buffer, $jac_prep_sparse, $sparse_first_order_backend, $xbig)
+```
+
+And for optimal speed, one should write non-allocating and type-stable functions.
+
+```@example tuto_advanced
+function f_sparse_vector!(y::AbstractVector, x::AbstractVector)
+    n = length(x)
+    for i in eachindex(y)
+        y[i] = abs2(x[i + 1]) - abs2(x[i]) + abs2(x[n - i]) - abs2(x[n - i + 1])
+    end
+    return nothing
+end
+
+ybig = zeros(length(xbig) - 1)
+f_sparse_vector!(ybig, xbig)
+ybig ≈ f_sparse_vector(xbig)
+```
+
+In this case, the sparse Jacobian should also become non-allocating (for our specific choice of backend).
+
+```@example tuto_advanced
+jac_prep_sparse_nonallocating = prepare_jacobian(f_sparse_vector!, zero(ybig), sparse_first_order_backend, zero(xbig))
+jac_buffer = similar(sparsity_pattern(jac_prep_sparse_nonallocating), eltype(xbig))
+@benchmark jacobian!($f_sparse_vector!, $ybig, $jac_buffer, $jac_prep_sparse_nonallocating, $sparse_first_order_backend, $xbig)
 ```

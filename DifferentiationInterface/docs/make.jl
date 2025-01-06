@@ -6,7 +6,6 @@ using DocumenterMermaid
 using DocumenterInterLinks
 
 using ADTypes: ADTypes
-using Enzyme: Enzyme
 using ForwardDiff: ForwardDiff
 using Zygote: Zygote
 
@@ -32,6 +31,7 @@ makedocs(;
             "explanation/backends.md",
             "explanation/advanced.md",
         ],
+        "FAQ" => ["faq/limitations.md", "faq/differentiability.md"],
         "api.md",
         "dev_guide.md",
     ],
@@ -39,9 +39,9 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/gdalle/DifferentiationInterface.jl",
+    repo="github.com/JuliaDiff/DifferentiationInterface.jl",
     devbranch="main",
     dirname="DifferentiationInterface",
     tag_prefix="DifferentiationInterface-",
-    push_preview=true,
+    push_preview=false,
 )

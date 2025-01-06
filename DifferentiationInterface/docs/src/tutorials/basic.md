@@ -80,36 +80,36 @@ These objects can be reused between gradient computations, even on different inp
 We abstract away the preparation step behind a backend-agnostic syntax:
 
 ```@example tuto_basic
-extras = prepare_gradient(f, backend, zero(x))
+prep = prepare_gradient(f, backend, zero(x))
 ```
 
 You don't need to know what this object is, you just need to pass it to the gradient operator.
 Note that preparation does not depend on the actual components of the vector `x`, just on its type and size.
-You can thus reuse the `extras` for different values of the input.
+You can thus reuse the `prep` for different values of the input.
 
 ```@example tuto_basic
 grad = similar(x)
-gradient!(f, grad, extras, backend, x)
+gradient!(f, grad, prep, backend, x)
 grad  # has been mutated
 ```
 
 Preparation makes the gradient computation much faster, and (in this case) allocation-free.
 
 ```@example tuto_basic
-@benchmark gradient!($f, $grad, $extras, $backend, $x)
+@benchmark gradient!($f, $grad, $prep, $backend, $x)
 ```
 
-Beware that the `extras` object is nearly always mutated by differentiation operators, even though it is given as the last positional argument.
+Beware that the `prep` object is nearly always mutated by differentiation operators, even though it is given as the last positional argument.
 
 ## Switching backends
 
 The whole point of DifferentiationInterface.jl is that you can easily experiment with different AD solutions.
-Typically, for gradients, reverse mode AD might be a better fit, so let's try the state-of-the-art [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl)!
+Typically, for gradients, reverse mode AD might be a better fit, so let's try [Zygote.jl](https://github.com/FluxML/Zygote.jl)!
 
 ```@example tuto_basic
-import Enzyme
+import Zygote
 
-backend2 = AutoEnzyme()
+backend2 = AutoZygote()
 ```
 
 Once the backend is created, things run smoothly with exactly the same syntax as before:
@@ -121,11 +121,11 @@ gradient(f, backend2, x)
 And you can run the same benchmarks to see what you gained (although such a small input may not be realistic):
 
 ```@example tuto_basic
-extras2 = prepare_gradient(f, backend2, zero(x))
+prep2 = prepare_gradient(f, backend2, zero(x))
 
-@benchmark gradient!($f, $grad, $extras2, $backend2, $x)
+@benchmark gradient!($f, $grad, $prep2, $backend2, $x)
 ```
 
 In short, DifferentiationInterface.jl allows for easy testing and comparison of AD backends.
-If you want to go further, check out the [documentation of DifferentiationInterfaceTest.jl](https://gdalle.github.io/DifferentiationInterface.jl/DifferentiationInterfaceTest).
+If you want to go further, check out the [documentation of DifferentiationInterfaceTest.jl](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterfaceTest).
 This related package provides benchmarking utilities to compare backends and help you select the one that is best suited for your problem.

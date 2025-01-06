@@ -1,11 +1,13 @@
 # Contributing
 
-Thank you for wanting to contribute to [DifferentiationInterface.jl](https://github.com/gdalle/DifferentiationInterface.jl)!
-If you have a potential improvement in mind, please [open an issue](https://github.com/gdalle/DifferentiationInterface.jl/issues/new/choose) first to discuss it with the maintainers.
-Don't hesitate to ping said maintainers ([`@gdalle`](https://github.com/gdalle) and [`@adrhill`](https://github.com/adrhill)) if they don't answer within a week or so.
-Once your issue receives positive feedback, you're welcome to open a draft pull request.
-Draft pull requests have a lightened CI workflow, which only runs tests on the latest stable release of Julia (and not LTS or pre-release).
+Thank you for your willingness to contribute to [DifferentiationInterface.jl](https://github.com/JuliaDiff/DifferentiationInterface.jl).
+The maintainers of this package are Guillaume Dalle ([@gdalle](https://github.com/gdalle)) and Adrian Hill ([@adrhill](https://github.com/adrhill)).
 
-The repository follows the [ColPrac](https://github.com/SciML/ColPrac) best practices, and its code is formatted using [BlueStyle](https://github.com/JuliaDiff/BlueStyle).
-Please refer to the [dev guide](https://gdalle.github.io/DifferentiationInterface.jl/DifferentiationInterface/stable/dev_guide/) for details on the package structure and the testing pipeline.
+If you have a problem to report or an improvement to suggest, please [open an issue](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/new/choose) with a precise description (and a reproducible example whenever possible).
+Once your issue receives positive feedback, you can open a pull request to address it.
+_Only the two maintainers are allowed to approve and merge pull requests._
+Feel free to ping them if they do not answer within a week or so.
 
+Apart from the conditions above, this repository follows the [ColPrac](https://github.com/SciML/ColPrac) best practices and [Conventional Commits](https://www.conventionalcommits.org/en/).
+Its code is formatted using [JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl) with [BlueStyle](https://github.com/JuliaDiff/BlueStyle) -- please format any modified code before opening a pull request, otherwise CI will fail.
+You can refer to the [dev guide](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/dev/dev_guide/) for details on the package structure and the testing pipeline.

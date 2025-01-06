@@ -24,27 +24,27 @@ using ADTypes:
     AutoFiniteDifferences,
     AutoForwardDiff,
     AutoGTPSA,
+    AutoMooncake,
     AutoPolyesterForwardDiff,
     AutoReverseDiff,
     AutoSymbolics,
-    AutoTapir,
     AutoTracker,
     AutoZygote
-using Compat
-using LinearAlgebra: Symmetric, Transpose, dot, parent, transpose
-using PackageExtensionCompat: @require_extensions
+using LinearAlgebra: dot
 
+include("compat.jl")
+
+include("first_order/mixed_mode.jl")
 include("second_order/second_order.jl")
 
-include("utils/extras.jl")
+include("utils/prep.jl")
 include("utils/traits.jl")
 include("utils/basis.jl")
-include("utils/tangents.jl")
+include("utils/batchsize.jl")
 include("utils/check.jl")
-include("utils/exceptions.jl")
-include("utils/maybe.jl")
 include("utils/printing.jl")
 include("utils/context.jl")
+include("utils/linalg.jl")
 
 include("first_order/pushforward.jl")
 include("first_order/pullback.jl")
@@ -56,22 +56,19 @@ include("second_order/second_derivative.jl")
 include("second_order/hvp.jl")
 include("second_order/hessian.jl")
 
-include("fallbacks/no_extras.jl")
+include("fallbacks/no_prep.jl")
+include("fallbacks/change_prep.jl")
 
 include("misc/differentiate_with.jl")
 include("misc/from_primitive.jl")
 include("misc/sparsity_detector.jl")
+include("misc/simple_finite_diff.jl")
 include("misc/zero_backends.jl")
-
-function __init__()
-    @require_extensions
-end
 
 ## Exported
 
-export Tangents
-export Context, Constant
-export SecondOrder
+export Context, Constant, Cache
+export MixedMode, SecondOrder
 
 export value_and_pushforward!, value_and_pushforward
 export value_and_pullback!, value_and_pullback
@@ -89,7 +86,7 @@ export jacobian!, jacobian
 
 export second_derivative!, second_derivative
 export value_derivative_and_second_derivative, value_derivative_and_second_derivative!
-export hvp!, hvp
+export hvp!, hvp, gradient_and_hvp, gradient_and_hvp!
 export hessian!, hessian
 export value_gradient_and_hessian, value_gradient_and_hessian!
 
@@ -114,10 +111,10 @@ export AutoFiniteDiff
 export AutoFiniteDifferences
 export AutoForwardDiff
 export AutoGTPSA
+export AutoMooncake
 export AutoPolyesterForwardDiff
 export AutoReverseDiff
 export AutoSymbolics
-export AutoTapir
 export AutoTracker
 export AutoZygote
 
@@ -125,6 +122,8 @@ export AutoSparse
 
 ## Public but not exported
 
-@compat public inner, outer
+@public inner, outer
+
+include("init.jl")
 
 end # module

@@ -6,12 +6,11 @@ DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 DifferentiationInterfaceTest = "a82114a7-5aa3-49a8-9643-716bb13727a3"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterInterLinks = "d12716ef-a0f6-4df4-a9f1-a5a34e75c656"
-Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 Documenter = "1"

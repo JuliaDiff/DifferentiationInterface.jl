@@ -1,51 +1,61 @@
 using Pkg
-Pkg.add("Zygote")
+Pkg.add(["ForwardDiff", "Zygote"])
 
 using ComponentArrays: ComponentArrays
 using DifferentiationInterface, DifferentiationInterfaceTest
+using ForwardDiff: ForwardDiff
 using JLArrays: JLArrays
-using SparseConnectivityTracer, SparseMatrixColorings
 using StaticArrays: StaticArrays
 using Test
 using Zygote: Zygote
 
+using ExplicitImports
+check_no_implicit_imports(DifferentiationInterface)
+
 LOGGING = get(ENV, "CI", "false") == "false"
 
-dense_backends = [AutoZygote()]
+backends = [AutoZygote()]
+second_order_backends = [SecondOrder(AutoForwardDiff(), AutoZygote())]
 
-sparse_backends = [
-    AutoSparse(
-        AutoZygote();
-        sparsity_detector=TracerSparsityDetector(),
-        coloring_algorithm=GreedyColoringAlgorithm(),
-    ),
-]
-
-for backend in vcat(dense_backends, sparse_backends)
+for backend in vcat(backends, second_order_backends)
     @test check_available(backend)
     @test !check_inplace(backend)
 end
 
-## Dense backends
+## Dense
 
-test_differentiation(AutoZygote(); excluded=[:second_derivative], logging=LOGGING);
-
-if VERSION >= v"1.10"
+@testset "Dense" begin
     test_differentiation(
-        AutoZygote(),
-        vcat(component_scenarios(), gpu_scenarios(), static_scenarios());
-        second_order=false,
+        backends,
+        default_scenarios(; include_constantified=true);
+        excluded=[:second_derivative],
+        logging=LOGGING,
+    )
+
+    test_differentiation(second_order_backends; logging=LOGGING)
+
+    test_differentiation(
+        backends[1],
+        vcat(component_scenarios(), gpu_scenarios());
+        excluded=SECOND_ORDER,
         logging=LOGGING,
     )
 end
 
-## Sparse backends
+## Sparse
 
-test_differentiation(
-    sparse_backends,
-    default_scenarios();
-    excluded=[:derivative, :gradient, :hvp, :pullback, :pushforward, :second_derivative],
-    logging=LOGGING,
-);
+@testset "Sparse" begin
+    test_differentiation(
+        MyAutoSparse.(vcat(backends, second_order_backends)),
+        sparse_scenarios(; band_sizes=0:-1);
+        sparsity=true,
+        logging=LOGGING,
+    )
+end
 
-test_differentiation(sparse_backends, sparse_scenarios(); sparsity=true, logging=LOGGING)
+## Errors
+
+@testset "Errors" begin
+    safe_log(x) = x > zero(x) ? log(x) : convert(typeof(x), NaN)
+    @test_throws "Zygote failed to differentiate" derivative(safe_log, AutoZygote(), 0.0)
+end

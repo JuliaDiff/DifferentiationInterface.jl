@@ -1,11 +1,11 @@
 ## Pushforward
 
-struct SymbolicsTwoArgPushforwardExtras{E1,E1!} <: PushforwardExtras
+struct SymbolicsTwoArgPushforwardPrep{E1,E1!} <: DI.PushforwardPrep
     pushforward_exe::E1
     pushforward_exe!::E1!
 end
 
-function DI.prepare_pushforward(f!, y, ::AutoSymbolics, x, tx::Tangents)
+function DI.prepare_pushforward(f!, y, ::AutoSymbolics, x, tx::NTuple)
     dx = first(tx)
     x_var = if x isa Number
         variable(:x)
@@ -25,40 +25,34 @@ function DI.prepare_pushforward(f!, y, ::AutoSymbolics, x, tx::Tangents)
 
     res = build_function(pf_var, vcat(myvec(x_var), myvec(dx_var)); expression=Val(false))
     (pushforward_exe, pushforward_exe!) = res
-    return SymbolicsTwoArgPushforwardExtras(pushforward_exe, pushforward_exe!)
+    return SymbolicsTwoArgPushforwardPrep(pushforward_exe, pushforward_exe!)
 end
 
 function DI.pushforward(
-    f!, y, extras::SymbolicsTwoArgPushforwardExtras, ::AutoSymbolics, x, tx::Tangents
+    f!, y, prep::SymbolicsTwoArgPushforwardPrep, ::AutoSymbolics, x, tx::NTuple
 )
     ty = map(tx) do dx
         v_vec = vcat(myvec(x), myvec(dx))
-        dy = extras.pushforward_exe(v_vec)
+        dy = prep.pushforward_exe(v_vec)
     end
     return ty
 end
 
 function DI.pushforward!(
-    f!,
-    y,
-    ty::Tangents,
-    extras::SymbolicsTwoArgPushforwardExtras,
-    ::AutoSymbolics,
-    x,
-    tx::Tangents,
+    f!, y, ty::NTuple, prep::SymbolicsTwoArgPushforwardPrep, ::AutoSymbolics, x, tx::NTuple
 )
-    for b in eachindex(tx.d, ty.d)
-        dx, dy = tx.d[b], ty.d[b]
+    for b in eachindex(tx, ty)
+        dx, dy = tx[b], ty[b]
         v_vec = vcat(myvec(x), myvec(dx))
-        extras.pushforward_exe!(dy, v_vec)
+        prep.pushforward_exe!(dy, v_vec)
     end
     return ty
 end
 
 function DI.value_and_pushforward(
-    f!, y, extras::SymbolicsTwoArgPushforwardExtras, backend::AutoSymbolics, x, tx::Tangents
+    f!, y, prep::SymbolicsTwoArgPushforwardPrep, backend::AutoSymbolics, x, tx::NTuple
 )
-    ty = DI.pushforward(f!, y, extras, backend, x, tx)
+    ty = DI.pushforward(f!, y, prep, backend, x, tx)
     f!(y, x)
     return y, ty
 end
@@ -66,20 +60,20 @@ end
 function DI.value_and_pushforward!(
     f!,
     y,
-    ty::Tangents,
-    extras::SymbolicsTwoArgPushforwardExtras,
+    ty::NTuple,
+    prep::SymbolicsTwoArgPushforwardPrep,
     backend::AutoSymbolics,
     x,
-    tx::Tangents,
+    tx::NTuple,
 )
-    DI.pushforward!(f!, y, ty, extras, backend, x, tx)
+    DI.pushforward!(f!, y, ty, prep, backend, x, tx)
     f!(y, x)
     return y, ty
 end
 
 ## Derivative
 
-struct SymbolicsTwoArgDerivativeExtras{E1,E1!} <: DerivativeExtras
+struct SymbolicsTwoArgDerivativePrep{E1,E1!} <: DI.DerivativePrep
     der_exe::E1
     der_exe!::E1!
 end
@@ -92,39 +86,37 @@ function DI.prepare_derivative(f!, y, ::AutoSymbolics, x)
 
     res = build_function(der_var, x_var; expression=Val(false))
     (der_exe, der_exe!) = res
-    return SymbolicsTwoArgDerivativeExtras(der_exe, der_exe!)
+    return SymbolicsTwoArgDerivativePrep(der_exe, der_exe!)
 end
 
-function DI.derivative(f!, y, extras::SymbolicsTwoArgDerivativeExtras, ::AutoSymbolics, x)
-    return extras.der_exe(x)
+function DI.derivative(f!, y, prep::SymbolicsTwoArgDerivativePrep, ::AutoSymbolics, x)
+    return prep.der_exe(x)
 end
 
-function DI.derivative!(
-    f!, y, der, extras::SymbolicsTwoArgDerivativeExtras, ::AutoSymbolics, x
-)
-    extras.der_exe!(der, x)
+function DI.derivative!(f!, y, der, prep::SymbolicsTwoArgDerivativePrep, ::AutoSymbolics, x)
+    prep.der_exe!(der, x)
     return der
 end
 
 function DI.value_and_derivative(
-    f!, y, extras::SymbolicsTwoArgDerivativeExtras, backend::AutoSymbolics, x
+    f!, y, prep::SymbolicsTwoArgDerivativePrep, backend::AutoSymbolics, x
 )
-    der = DI.derivative(f!, y, extras, backend, x)
+    der = DI.derivative(f!, y, prep, backend, x)
     f!(y, x)
     return y, der
 end
 
 function DI.value_and_derivative!(
-    f!, y, der, extras::SymbolicsTwoArgDerivativeExtras, backend::AutoSymbolics, x
+    f!, y, der, prep::SymbolicsTwoArgDerivativePrep, backend::AutoSymbolics, x
 )
-    DI.derivative!(f!, y, der, extras, backend, x)
+    DI.derivative!(f!, y, der, prep, backend, x)
     f!(y, x)
     return y, der
 end
 
 ## Jacobian
 
-struct SymbolicsTwoArgJacobianExtras{E1,E1!} <: JacobianExtras
+struct SymbolicsTwoArgJacobianPrep{E1,E1!} <: DI.JacobianPrep
     jac_exe::E1
     jac_exe!::E1!
 end
@@ -143,39 +135,39 @@ function DI.prepare_jacobian(
 
     res = build_function(jac_var, x_var; expression=Val(false))
     (jac_exe, jac_exe!) = res
-    return SymbolicsTwoArgJacobianExtras(jac_exe, jac_exe!)
+    return SymbolicsTwoArgJacobianPrep(jac_exe, jac_exe!)
 end
 
 function DI.jacobian(
     f!,
     y,
-    extras::SymbolicsTwoArgJacobianExtras,
+    prep::SymbolicsTwoArgJacobianPrep,
     ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
 )
-    return extras.jac_exe(x)
+    return prep.jac_exe(x)
 end
 
 function DI.jacobian!(
     f!,
     y,
     jac,
-    extras::SymbolicsTwoArgJacobianExtras,
+    prep::SymbolicsTwoArgJacobianPrep,
     ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
 )
-    extras.jac_exe!(jac, x)
+    prep.jac_exe!(jac, x)
     return jac
 end
 
 function DI.value_and_jacobian(
     f!,
     y,
-    extras::SymbolicsTwoArgJacobianExtras,
+    prep::SymbolicsTwoArgJacobianPrep,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
 )
-    jac = DI.jacobian(f!, y, extras, backend, x)
+    jac = DI.jacobian(f!, y, prep, backend, x)
     f!(y, x)
     return y, jac
 end
@@ -184,11 +176,11 @@ function DI.value_and_jacobian!(
     f!,
     y,
     jac,
-    extras::SymbolicsTwoArgJacobianExtras,
+    prep::SymbolicsTwoArgJacobianPrep,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
 )
-    DI.jacobian!(f!, y, jac, extras, backend, x)
+    DI.jacobian!(f!, y, jac, prep, backend, x)
     f!(y, x)
     return y, jac
 end

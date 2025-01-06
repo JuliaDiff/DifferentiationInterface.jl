@@ -1,17 +1,13 @@
 module DifferentiationInterfaceReverseDiffExt
 
 using ADTypes: AutoReverseDiff
+using Base: Fix2
 import DifferentiationInterface as DI
-using DifferentiationInterface:
-    DerivativeExtras,
-    GradientExtras,
-    HessianExtras,
-    JacobianExtras,
-    NoPullbackExtras,
-    Tangents
-using ReverseDiff.DiffResults: DiffResults, DiffResult, GradientResult, MutableDiffResult
+import DiffResults as DR
+using DiffResults: DiffResults, DiffResult, GradientResult, HessianResult, MutableDiffResult
 using LinearAlgebra: dot, mul!
 using ReverseDiff:
+    ReverseDiff,
     CompiledGradient,
     CompiledHessian,
     CompiledJacobian,
@@ -21,7 +17,6 @@ using ReverseDiff:
     HessianTape,
     JacobianConfig,
     JacobianTape,
-    compile,
     gradient,
     gradient!,
     hessian,

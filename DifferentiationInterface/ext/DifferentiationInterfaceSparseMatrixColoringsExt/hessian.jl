@@ -1,131 +1,114 @@
-struct SparseHessianExtras{
-    B,
+struct SparseHessianPrep{
+    BS<:DI.BatchSizeSettings,
     C<:AbstractColoringResult{:symmetric,:column},
-    M<:AbstractMatrix{<:Real},
-    D,
-    R,
-    E2<:HVPExtras,
-    E1<:GradientExtras,
-} <: HessianExtras
+    M<:AbstractMatrix{<:Number},
+    S<:AbstractVector{<:NTuple},
+    R<:AbstractVector{<:NTuple},
+    E2<:DI.HVPPrep,
+    E1<:DI.GradientPrep,
+} <: DI.HessianPrep
+    batch_size_settings::BS
     coloring_result::C
     compressed_matrix::M
-    batched_seeds::Vector{Tangents{B,D}}
-    batched_results::Vector{Tangents{B,R}}
-    hvp_extras::E2
-    gradient_extras::E1
+    batched_seeds::S
+    batched_results::R
+    hvp_prep::E2
+    gradient_prep::E1
 end
 
-function SparseHessianExtras{B}(;
-    coloring_result::C,
-    compressed_matrix::M,
-    batched_seeds::Vector{Tangents{B,D}},
-    batched_results::Vector{Tangents{B,R}},
-    hvp_extras::E2,
-    gradient_extras::E1,
-) where {B,C,M,D,R,E2,E1}
-    return SparseHessianExtras{B,C,M,D,R,E2,E1}(
-        coloring_result,
-        compressed_matrix,
-        batched_seeds,
-        batched_results,
-        hvp_extras,
-        gradient_extras,
-    )
-end
+SMC.sparsity_pattern(prep::SparseHessianPrep) = sparsity_pattern(prep.coloring_result)
+SMC.column_colors(prep::SparseHessianPrep) = column_colors(prep.coloring_result)
+SMC.column_groups(prep::SparseHessianPrep) = column_groups(prep.coloring_result)
+SMC.ncolors(prep::SparseHessianPrep) = ncolors(prep.coloring_result)
 
 ## Hessian, one argument
 
 function DI.prepare_hessian(
-    f::F, backend::AutoSparse, x, contexts::Vararg{Context,C}
+    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     dense_backend = dense_ad(backend)
-    sparsity = hessian_sparsity(f, x, sparsity_detector(backend))
+    sparsity = hessian_sparsity(
+        DI.with_contexts(f, contexts...), x, sparsity_detector(backend)
+    )
     problem = ColoringProblem{:symmetric,:column}()
     coloring_result = coloring(
         sparsity, problem, coloring_algorithm(backend); decompression_eltype=eltype(x)
     )
+    N = length(column_groups(coloring_result))
+    batch_size_settings = DI.pick_batchsize(DI.outer(dense_backend), N)
+    return _prepare_sparse_hessian_aux(
+        batch_size_settings, coloring_result, f, backend, x, contexts...
+    )
+end
+
+function _prepare_sparse_hessian_aux(
+    batch_size_settings::DI.BatchSizeSettings{B},
+    coloring_result::AbstractColoringResult{:symmetric,:column},
+    f::F,
+    backend::AutoSparse,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {B,F,C}
+    (; N, A) = batch_size_settings
+    dense_backend = dense_ad(backend)
     groups = column_groups(coloring_result)
-    Ng = length(groups)
-    B = pick_batchsize(maybe_outer(dense_backend), Ng)
-    seeds = [multibasis(backend, x, eachindex(x)[group]) for group in groups]
+    seeds = [DI.multibasis(backend, x, eachindex(x)[group]) for group in groups]
     compressed_matrix = stack(_ -> vec(similar(x)), groups; dims=2)
     batched_seeds = [
-        Tangents(ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % Ng], Val(B))...) for
-        a in 1:div(Ng, B, RoundUp)
+        ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
-    batched_results = [Tangents(ntuple(b -> similar(x), Val(B))...) for _ in batched_seeds]
-    hvp_extras = prepare_hvp(f, dense_backend, x, batched_seeds[1], contexts...)
-    gradient_extras = prepare_gradient(f, maybe_inner(dense_backend), x, contexts...)
-    return SparseHessianExtras{B}(;
+    batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
+    hvp_prep = DI.prepare_hvp(f, dense_backend, x, batched_seeds[1], contexts...)
+    gradient_prep = DI.prepare_gradient(f, DI.inner(dense_backend), x, contexts...)
+    return SparseHessianPrep(
+        batch_size_settings,
         coloring_result,
         compressed_matrix,
         batched_seeds,
         batched_results,
-        hvp_extras,
-        gradient_extras,
+        hvp_prep,
+        gradient_prep,
     )
-end
-
-function DI.hessian(
-    f::F,
-    extras::SparseHessianExtras{B},
-    backend::AutoSparse,
-    x,
-    contexts::Vararg{Context,C},
-) where {F,B,C}
-    @compat (; coloring_result, batched_seeds, hvp_extras) = extras
-    dense_backend = dense_ad(backend)
-    Ng = length(column_groups(coloring_result))
-
-    hvp_extras_same = prepare_hvp_same_point(
-        f, hvp_extras, dense_backend, x, batched_seeds[1], contexts...
-    )
-
-    compressed_blocks = map(eachindex(batched_seeds)) do a
-        dg_batch = hvp(f, hvp_extras_same, dense_backend, x, batched_seeds[a], contexts...)
-        stack(vec, dg_batch.d; dims=2)
-    end
-
-    compressed_matrix = reduce(hcat, compressed_blocks)
-    if Ng < size(compressed_matrix, 2)
-        compressed_matrix = compressed_matrix[:, 1:Ng]
-    end
-    return decompress(compressed_matrix, coloring_result)
 end
 
 function DI.hessian!(
     f::F,
     hess,
-    extras::SparseHessianExtras{B},
+    prep::SparseHessianPrep{<:DI.BatchSizeSettings{B}},
     backend::AutoSparse,
     x,
-    contexts::Vararg{Context,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
-    @compat (;
-        coloring_result, compressed_matrix, batched_seeds, batched_results, hvp_extras
-    ) = extras
+    (;
+        batch_size_settings,
+        coloring_result,
+        compressed_matrix,
+        batched_seeds,
+        batched_results,
+        hvp_prep,
+    ) = prep
+    (; N) = batch_size_settings
     dense_backend = dense_ad(backend)
-    Ng = length(column_groups(coloring_result))
 
-    hvp_extras_same = prepare_hvp_same_point(
-        f, hvp_extras, dense_backend, x, batched_seeds[1], contexts...
+    hvp_prep_same = DI.prepare_hvp_same_point(
+        f, hvp_prep, dense_backend, x, batched_seeds[1], contexts...
     )
 
     for a in eachindex(batched_seeds, batched_results)
-        hvp!(
+        DI.hvp!(
             f,
             batched_results[a],
-            hvp_extras_same,
+            hvp_prep_same,
             dense_backend,
             x,
             batched_seeds[a],
             contexts...,
         )
 
-        for b in eachindex(batched_results[a].d)
+        for b in eachindex(batched_results[a])
             copyto!(
-                view(compressed_matrix, :, 1 + ((a - 1) * B + (b - 1)) % Ng),
-                vec(batched_results[a].d[b]),
+                view(compressed_matrix, :, 1 + ((a - 1) * B + (b - 1)) % N),
+                vec(batched_results[a][b]),
             )
         end
     end
@@ -134,28 +117,35 @@ function DI.hessian!(
     return hess
 end
 
+function DI.hessian(
+    f::F, prep::SparseHessianPrep{B}, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
+) where {F,B,C}
+    hess = similar(sparsity_pattern(prep), eltype(x))
+    return DI.hessian!(f, hess, prep, backend, x, contexts...)
+end
+
 function DI.value_gradient_and_hessian!(
     f::F,
     grad,
     hess,
-    extras::SparseHessianExtras,
+    prep::SparseHessianPrep,
     backend::AutoSparse,
     x,
-    contexts::Vararg{Context,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    y, _ = value_and_gradient!(
-        f, grad, extras.gradient_extras, maybe_inner(dense_ad(backend)), x, contexts...
+    y, _ = DI.value_and_gradient!(
+        f, grad, prep.gradient_prep, DI.inner(dense_ad(backend)), x, contexts...
     )
-    hessian!(f, hess, extras, backend, x, contexts...)
+    DI.hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess
 end
 
 function DI.value_gradient_and_hessian(
-    f::F, extras::SparseHessianExtras, backend::AutoSparse, x, contexts::Vararg{Context,C}
+    f::F, prep::SparseHessianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
-    y, grad = value_and_gradient(
-        f, extras.gradient_extras, maybe_inner(dense_ad(backend)), x, contexts...
+    y, grad = DI.value_and_gradient(
+        f, prep.gradient_prep, DI.inner(dense_ad(backend)), x, contexts...
     )
-    hess = hessian(f, extras, backend, x, contexts...)
+    hess = DI.hessian(f, prep, backend, x, contexts...)
     return y, grad, hess
 end

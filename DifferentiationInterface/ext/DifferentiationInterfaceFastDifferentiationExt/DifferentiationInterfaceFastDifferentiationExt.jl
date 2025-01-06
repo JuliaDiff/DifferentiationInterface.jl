@@ -2,17 +2,6 @@ module DifferentiationInterfaceFastDifferentiationExt
 
 using ADTypes: ADTypes, AutoFastDifferentiation, AutoSparse
 import DifferentiationInterface as DI
-using DifferentiationInterface:
-    DerivativeExtras,
-    GradientExtras,
-    HessianExtras,
-    HVPExtras,
-    JacobianExtras,
-    PullbackExtras,
-    PushforwardExtras,
-    SecondDerivativeExtras,
-    Tangents,
-    maybe_dense_ad
 using FastDifferentiation:
     derivative,
     hessian,
@@ -33,6 +22,9 @@ monovec(x::Number) = [x]
 
 myvec(x::Number) = monovec(x)
 myvec(x::AbstractArray) = vec(x)
+
+dense_ad(backend::AutoFastDifferentiation) = backend
+dense_ad(backend::AutoSparse{<:AutoFastDifferentiation}) = ADTypes.dense_ad(backend)
 
 include("onearg.jl")
 include("twoarg.jl")

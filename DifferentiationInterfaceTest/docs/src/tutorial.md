@@ -1,18 +1,18 @@
 # Tutorial
 
-We present a typical workflow with DifferentiationInterfaceTest.jl, building on the tutorial of the [DifferentiationInterface.jl documentation](https://gdalle.github.io/DifferentiationInterface.jl/DifferentiationInterface) (which we encourage you to read first).
+We present a typical workflow with DifferentiationInterfaceTest.jl, building on the tutorial of the [DifferentiationInterface.jl documentation](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface) (which we encourage you to read first).
 
 ```@repl tuto
 using DifferentiationInterface, DifferentiationInterfaceTest
-import ForwardDiff, Enzyme
+import ForwardDiff, Zygote
 ```
 
 ## Introduction
 
-The AD backends we want to compare are [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl) and [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl).
+The AD backends we want to compare are [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl) and [Zygote.jl](https://github.com/FluxML/Zygote.jl).
 
 ```@example tuto
-backends = [AutoForwardDiff(), AutoEnzyme(; mode=Enzyme.Reverse)]
+backends = [AutoForwardDiff(), AutoZygote()]
 ```
 
 To do that, we are going to take gradients of a simple function:
@@ -29,20 +29,18 @@ Of course we know the true gradient mapping:
 
 DifferentiationInterfaceTest.jl relies with so-called "scenarios", in which you encapsulate the information needed for your test:
 
+- the operator category (`:gradient`)
+- the behavior of the operator (either `:in` or `:out` of place)
 - the function `f`
-- the input `x` and output `y` of the function `f`
-- the reference output of the operator (here `grad`)
-- the number of arguments for `f` (either `1` or `2`)
-- the behavior of the operator (either `:inplace` or `:outofplace`)
-
-There is one scenario constructor per operator, and so here we will use [`GradientScenario`](@ref):
+- the input `x` of the function `f`
+- the reference first-order result `res1` of the operator
 
 ```@example tuto
 xv = rand(Float32, 3)
 xm = rand(Float64, 3, 2)
 scenarios = [
-    GradientScenario(f; x=xv, y=f(xv), grad=∇f(xv), nb_args=1, place=:inplace),
-    GradientScenario(f; x=xm, y=f(xm), grad=∇f(xm), nb_args=1, place=:inplace)
+    Scenario{:gradient,:out}(f, xv; res1=∇f(xv)),
+    Scenario{:gradient,:out}(f, xm; res1=∇f(xm))
 ];
 nothing  # hide
 ```
@@ -57,12 +55,10 @@ test_differentiation(
     backends,  # the backends you want to compare
     scenarios,  # the scenarios you defined,
     correctness=true,  # compares values against the reference
-    type_stability=false,  # checks type stability with JET.jl
+    type_stability=:none,  # checks type stability with JET.jl
     detailed=true,  # prints a detailed test set
 )
 ```
-
-If you are too lazy to manually specify the reference, you can also provide an AD backend as the `ref_backend` keyword argument, which will serve as the ground truth for comparison.
 
 ## Benchmarking
 

@@ -1,10 +1,10 @@
 ## Docstrings
 
 """
-    prepare_jacobian(f,     backend, x) -> extras
-    prepare_jacobian(f!, y, backend, x) -> extras
+    prepare_jacobian(f,     backend, x, [contexts...]) -> prep
+    prepare_jacobian(f!, y, backend, x, [contexts...]) -> prep
 
-Create an `extras` object that can be given to [`jacobian`](@ref) and its variants.
+Create a `prep` object that can be given to [`jacobian`](@ref) and its variants.
 
 !!! warning
     If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
@@ -13,8 +13,21 @@ Create an `extras` object that can be given to [`jacobian`](@ref) and its varian
 function prepare_jacobian end
 
 """
-    value_and_jacobian(f,     [extras,] backend, x) -> (y, jac)
-    value_and_jacobian(f!, y, [extras,] backend, x) -> (y, jac)
+    prepare!_jacobian(f,     prep, backend, x, [contexts...]) -> new_prep
+    prepare!_jacobian(f!, y, prep, backend, x, [contexts...]) -> new_prep
+
+Same behavior as [`prepare_jacobian`](@ref) but can modify an existing `prep` object to avoid some allocations.
+
+There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
+
+!!! danger
+    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+"""
+function prepare!_jacobian end
+
+"""
+    value_and_jacobian(f,     [prep,] backend, x, [contexts...]) -> (y, jac)
+    value_and_jacobian(f!, y, [prep,] backend, x, [contexts...]) -> (y, jac)
 
 Compute the value and the Jacobian matrix of the function `f` at point `x`.
 
@@ -23,8 +36,8 @@ $(document_preparation("jacobian"))
 function value_and_jacobian end
 
 """
-    value_and_jacobian!(f,     jac, [extras,] backend, x) -> (y, jac)
-    value_and_jacobian!(f!, y, jac, [extras,] backend, x) -> (y, jac)
+    value_and_jacobian!(f,     jac, [prep,] backend, x, [contexts...]) -> (y, jac)
+    value_and_jacobian!(f!, y, jac, [prep,] backend, x, [contexts...]) -> (y, jac)
 
 Compute the value and the Jacobian matrix of the function `f` at point `x`, overwriting `jac`.
     
@@ -33,8 +46,8 @@ $(document_preparation("jacobian"))
 function value_and_jacobian! end
 
 """
-    jacobian(f,     [extras,] backend, x) -> jac
-    jacobian(f!, y, [extras,] backend, x) -> jac
+    jacobian(f,     [prep,] backend, x, [contexts...]) -> jac
+    jacobian(f!, y, [prep,] backend, x, [contexts...]) -> jac
 
 Compute the Jacobian matrix of the function `f` at point `x`.
 
@@ -43,8 +56,8 @@ $(document_preparation("jacobian"))
 function jacobian end
 
 """
-    jacobian!(f,     jac, [extras,] backend, x) -> jac
-    jacobian!(f!, y, jac, [extras,] backend, x) -> jac
+    jacobian!(f,     jac, [prep,] backend, x, [contexts...]) -> jac
+    jacobian!(f!, y, jac, [prep,] backend, x, [contexts...]) -> jac
 
 Compute the Jacobian matrix of the function `f` at point `x`, overwriting `jac`.
 
@@ -54,126 +67,142 @@ function jacobian! end
 
 ## Preparation
 
-struct PushforwardJacobianExtras{B,D,R,E<:PushforwardExtras} <: JacobianExtras
-    batched_seeds::Vector{Tangents{B,D}}
-    batched_results::Vector{Tangents{B,R}}
-    pushforward_extras::E
-    N::Int
+abstract type StandardJacobianPrep <: JacobianPrep end
+
+struct PushforwardJacobianPrep{
+    BS<:BatchSizeSettings,
+    S<:AbstractVector{<:NTuple},
+    R<:AbstractVector{<:NTuple},
+    E<:PushforwardPrep,
+} <: StandardJacobianPrep
+    batch_size_settings::BS
+    batched_seeds::S
+    batched_results::R
+    pushforward_prep::E
 end
 
-struct PullbackJacobianExtras{B,D,R,E<:PullbackExtras} <: JacobianExtras
-    batched_seeds::Vector{Tangents{B,D}}
-    batched_results::Vector{Tangents{B,R}}
-    pullback_extras::E
-    M::Int
+struct PullbackJacobianPrep{
+    BS<:BatchSizeSettings,
+    S<:AbstractVector{<:NTuple},
+    R<:AbstractVector{<:NTuple},
+    E<:PullbackPrep,
+} <: StandardJacobianPrep
+    batch_size_settings::BS
+    batched_seeds::S
+    batched_results::R
+    pullback_prep::E
 end
 
 function prepare_jacobian(
     f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     y = f(x, map(unwrap, contexts)...)
+    perf = pushforward_performance(backend)
+    # type-unstable
+    if perf isa PushforwardFast
+        batch_size_settings = BatchSizeSettings(backend, x)
+    else
+        batch_size_settings = BatchSizeSettings(backend, y)
+    end
+    # function barrier
     return _prepare_jacobian_aux(
-        pushforward_performance(backend), y, (f,), backend, x, contexts...
+        perf, batch_size_settings, y, (f,), backend, x, contexts...
     )
 end
 
 function prepare_jacobian(
     f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
+    perf = pushforward_performance(backend)
+    # type-unstable
+    if perf isa PushforwardFast
+        batch_size_settings = BatchSizeSettings(backend, x)
+    else
+        batch_size_settings = BatchSizeSettings(backend, y)
+    end
+    # function barrier
     return _prepare_jacobian_aux(
-        pushforward_performance(backend), y, (f!, y), backend, x, contexts...
+        perf, batch_size_settings, y, (f!, y), backend, x, contexts...
     )
 end
 
 function _prepare_jacobian_aux(
     ::PushforwardFast,
+    batch_size_settings::BatchSizeSettings{B},
     y,
     f_or_f!y::FY,
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {FY,C}
-    N = length(x)
-    B = pick_batchsize(backend, N)
+) where {B,FY,C}
+    (; N, A) = batch_size_settings
     seeds = [basis(backend, x, ind) for ind in eachindex(x)]
     batched_seeds = [
-        Tangents(ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B))...) for
-        a in 1:div(N, B, RoundUp)
+        ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
-    batched_results = [Tangents(ntuple(b -> similar(y), Val(B))...) for _ in batched_seeds]
-    pushforward_extras = prepare_pushforward(
+    batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
+    pushforward_prep = prepare_pushforward(
         f_or_f!y..., backend, x, batched_seeds[1], contexts...
     )
-    D = eltype(batched_seeds[1])
-    R = eltype(batched_results[1])
-    E = typeof(pushforward_extras)
-    return PushforwardJacobianExtras{B,D,R,E}(
-        batched_seeds, batched_results, pushforward_extras, N
+    return PushforwardJacobianPrep(
+        batch_size_settings, batched_seeds, batched_results, pushforward_prep
     )
 end
 
 function _prepare_jacobian_aux(
     ::PushforwardSlow,
+    batch_size_settings::BatchSizeSettings{B},
     y,
     f_or_f!y::FY,
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {FY,C}
-    M = length(y)
-    B = pick_batchsize(backend, M)
+) where {B,FY,C}
+    (; N, A) = batch_size_settings
     seeds = [basis(backend, y, ind) for ind in eachindex(y)]
     batched_seeds = [
-        Tangents(ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % M], Val(B))...) for
-        a in 1:div(M, B, RoundUp)
+        ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
-    batched_results = [Tangents(ntuple(b -> similar(x), Val(B))...) for _ in batched_seeds]
-    pullback_extras = prepare_pullback(
-        f_or_f!y..., backend, x, batched_seeds[1], contexts...
-    )
-    D = eltype(batched_seeds[1])
-    R = eltype(batched_results[1])
-    E = typeof(pullback_extras)
-    return PullbackJacobianExtras{B,D,R,E}(
-        batched_seeds, batched_results, pullback_extras, M
+    batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
+    pullback_prep = prepare_pullback(f_or_f!y..., backend, x, batched_seeds[1], contexts...)
+    return PullbackJacobianPrep(
+        batch_size_settings, batched_seeds, batched_results, pullback_prep
     )
 end
 
 ## One argument
 
 function jacobian(
-    f::F, extras::JacobianExtras, backend::AbstractADType, x, contexts::Vararg{Context,C}
+    f::F,
+    prep::StandardJacobianPrep,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C},
 ) where {F,C}
-    return _jacobian_aux((f,), extras, backend, x, contexts...)
+    return _jacobian_aux((f,), prep, backend, x, contexts...)
 end
 
 function jacobian!(
     f::F,
     jac,
-    extras::JacobianExtras,
+    prep::StandardJacobianPrep,
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    return _jacobian_aux!((f,), jac, extras, backend, x, contexts...)
+    return _jacobian_aux!((f,), jac, prep, backend, x, contexts...)
 end
 
 function value_and_jacobian(
-    f::F, extras::JacobianExtras, backend::AbstractADType, x, contexts::Vararg{Context,C}
+    f::F, prep::JacobianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    return f(x, map(unwrap, contexts)...), jacobian(f, extras, backend, x, contexts...)
+    return f(x, map(unwrap, contexts)...), jacobian(f, prep, backend, x, contexts...)
 end
 
 function value_and_jacobian!(
-    f::F,
-    jac,
-    extras::JacobianExtras,
-    backend::AbstractADType,
-    x,
-    contexts::Vararg{Context,C},
+    f::F, jac, prep::JacobianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    return f(x, map(unwrap, contexts)...),
-    jacobian!(f, jac, extras, backend, x, contexts...)
+    return f(x, map(unwrap, contexts)...), jacobian!(f, jac, prep, backend, x, contexts...)
 end
 
 ## Two arguments
@@ -181,35 +210,30 @@ end
 function jacobian(
     f!::F,
     y,
-    extras::JacobianExtras,
+    prep::StandardJacobianPrep,
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    return _jacobian_aux((f!, y), extras, backend, x, contexts...)
+    return _jacobian_aux((f!, y), prep, backend, x, contexts...)
 end
 
 function jacobian!(
     f!::F,
     y,
     jac,
-    extras::JacobianExtras,
+    prep::StandardJacobianPrep,
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    return _jacobian_aux!((f!, y), jac, extras, backend, x, contexts...)
+    return _jacobian_aux!((f!, y), jac, prep, backend, x, contexts...)
 end
 
 function value_and_jacobian(
-    f!::F,
-    y,
-    extras::JacobianExtras,
-    backend::AbstractADType,
-    x,
-    contexts::Vararg{Context,C},
+    f!::F, y, prep::JacobianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    jac = jacobian(f!, y, extras, backend, x, contexts...)
+    jac = jacobian(f!, y, prep, backend, x, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     return y, jac
 end
@@ -218,12 +242,12 @@ function value_and_jacobian!(
     f!::F,
     y,
     jac,
-    extras::JacobianExtras,
+    prep::JacobianPrep,
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    jacobian!(f!, y, jac, extras, backend, x, contexts...)
+    jacobian!(f!, y, jac, prep, backend, x, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     return y, jac
 end
@@ -232,59 +256,101 @@ end
 
 function _jacobian_aux(
     f_or_f!y::FY,
-    extras::PushforwardJacobianExtras{B},
+    prep::PushforwardJacobianPrep{<:BatchSizeSettings{B,true,aligned}},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {FY,B,C}
-    @compat (; batched_seeds, pushforward_extras, N) = extras
+) where {FY,B,aligned,C}
+    (; batch_size_settings, batched_seeds, pushforward_prep) = prep
+    (; B_last) = batch_size_settings
+    dy_batch = pushforward(
+        f_or_f!y..., pushforward_prep, backend, x, only(batched_seeds), contexts...
+    )
+    block = stack_vec_col(dy_batch)
+    if aligned
+        return block
+    else
+        return block[:, 1:B_last]
+    end
+end
 
-    pushforward_extras_same = prepare_pushforward_same_point(
-        f_or_f!y..., pushforward_extras, backend, x, batched_seeds[1], contexts...
+function _jacobian_aux(
+    f_or_f!y::FY,
+    prep::PushforwardJacobianPrep{<:BatchSizeSettings{B,false,aligned}},
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C},
+) where {FY,B,aligned,C}
+    (; batch_size_settings, batched_seeds, pushforward_prep) = prep
+    (; A, B_last) = batch_size_settings
+
+    pushforward_prep_same = prepare_pushforward_same_point(
+        f_or_f!y..., pushforward_prep, backend, x, batched_seeds[1], contexts...
     )
 
-    jac_blocks = map(eachindex(batched_seeds)) do a
+    jac = mapreduce(hcat, eachindex(batched_seeds)) do a
         dy_batch = pushforward(
             f_or_f!y...,
-            pushforward_extras_same,
+            pushforward_prep_same,
             backend,
             x,
             batched_seeds[a],
             contexts...,
         )
-        stack(vec, dy_batch.d; dims=2)
-    end
-
-    jac = reduce(hcat, jac_blocks)
-    if N < size(jac, 2)
-        jac = jac[:, 1:N]
+        block = stack_vec_col(dy_batch)
+        if !aligned && a == A
+            return block[:, 1:B_last]
+        else
+            return block
+        end
     end
     return jac
 end
 
 function _jacobian_aux(
     f_or_f!y::FY,
-    extras::PullbackJacobianExtras{B},
+    prep::PullbackJacobianPrep{<:BatchSizeSettings{B,true,aligned}},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {FY,B,C}
-    @compat (; batched_seeds, pullback_extras, M) = extras
+) where {FY,B,aligned,C}
+    (; batch_size_settings, batched_seeds, pullback_prep) = prep
+    (; B_last) = batch_size_settings
+    dx_batch = pullback(
+        f_or_f!y..., pullback_prep, backend, x, only(batched_seeds), contexts...
+    )
+    block = stack_vec_row(dx_batch)
+    if aligned
+        return block
+    else
+        return block[1:B_last, :]
+    end
+end
 
-    pullback_extras_same = prepare_pullback_same_point(
-        f_or_f!y..., extras.pullback_extras, backend, x, batched_seeds[1], contexts...
+function _jacobian_aux(
+    f_or_f!y::FY,
+    prep::PullbackJacobianPrep{<:BatchSizeSettings{B,false,aligned}},
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C},
+) where {FY,B,aligned,C}
+    (; batch_size_settings, batched_seeds, pullback_prep) = prep
+    (; A, B_last) = batch_size_settings
+
+    pullback_prep_same = prepare_pullback_same_point(
+        f_or_f!y..., prep.pullback_prep, backend, x, batched_seeds[1], contexts...
     )
 
-    jac_blocks = map(eachindex(batched_seeds)) do a
+    jac = mapreduce(vcat, eachindex(batched_seeds)) do a
         dx_batch = pullback(
-            f_or_f!y..., pullback_extras_same, backend, x, batched_seeds[a], contexts...
+            f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
         )
-        stack(vec, dx_batch.d; dims=1)
-    end
-
-    jac = reduce(vcat, jac_blocks)
-    if M < size(jac, 1)
-        jac = jac[1:M, :]
+        block = stack_vec_row(dx_batch)
+        if !aligned && a == A
+            return block[1:B_last, :]
+        else
+            return block
+        end
     end
     return jac
 end
@@ -292,31 +358,32 @@ end
 function _jacobian_aux!(
     f_or_f!y::FY,
     jac,
-    extras::PushforwardJacobianExtras{B},
+    prep::PushforwardJacobianPrep{<:BatchSizeSettings{B}},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
 ) where {FY,B,C}
-    @compat (; batched_seeds, batched_results, pushforward_extras, N) = extras
+    (; batch_size_settings, batched_seeds, batched_results, pushforward_prep) = prep
+    (; N) = batch_size_settings
 
-    pushforward_extras_same = prepare_pushforward_same_point(
-        f_or_f!y..., pushforward_extras, backend, x, batched_seeds[1], contexts...
+    pushforward_prep_same = prepare_pushforward_same_point(
+        f_or_f!y..., pushforward_prep, backend, x, batched_seeds[1], contexts...
     )
 
     for a in eachindex(batched_seeds, batched_results)
         pushforward!(
             f_or_f!y...,
             batched_results[a],
-            pushforward_extras_same,
+            pushforward_prep_same,
             backend,
             x,
             batched_seeds[a],
             contexts...,
         )
 
-        for b in eachindex(batched_results[a].d)
+        for b in eachindex(batched_results[a])
             copyto!(
-                view(jac, :, 1 + ((a - 1) * B + (b - 1)) % N), vec(batched_results[a].d[b])
+                view(jac, :, 1 + ((a - 1) * B + (b - 1)) % N), vec(batched_results[a][b])
             )
         end
     end
@@ -327,31 +394,32 @@ end
 function _jacobian_aux!(
     f_or_f!y::FY,
     jac,
-    extras::PullbackJacobianExtras{B},
+    prep::PullbackJacobianPrep{<:BatchSizeSettings{B}},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
 ) where {FY,B,C}
-    @compat (; batched_seeds, batched_results, pullback_extras, M) = extras
+    (; batch_size_settings, batched_seeds, batched_results, pullback_prep) = prep
+    (; N) = batch_size_settings
 
-    pullback_extras_same = prepare_pullback_same_point(
-        f_or_f!y..., extras.pullback_extras, backend, x, batched_seeds[1], contexts...
+    pullback_prep_same = prepare_pullback_same_point(
+        f_or_f!y..., prep.pullback_prep, backend, x, batched_seeds[1], contexts...
     )
 
     for a in eachindex(batched_seeds, batched_results)
         pullback!(
             f_or_f!y...,
             batched_results[a],
-            pullback_extras_same,
+            pullback_prep_same,
             backend,
             x,
             batched_seeds[a],
             contexts...,
         )
 
-        for b in eachindex(batched_results[a].d)
+        for b in eachindex(batched_results[a])
             copyto!(
-                view(jac, 1 + ((a - 1) * B + (b - 1)) % M, :), vec(batched_results[a].d[b])
+                view(jac, 1 + ((a - 1) * B + (b - 1)) % N, :), vec(batched_results[a][b])
             )
         end
     end

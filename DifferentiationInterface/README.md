@@ -1,17 +1,17 @@
-![DifferentiationInterface Logo](https://raw.githubusercontent.com/gdalle/DifferentiationInterface.jl/main/DifferentiationInterface/docs/src/assets/logo.svg)
+![DifferentiationInterface Logo](https://raw.githubusercontent.com/JuliaDiff/DifferentiationInterface.jl/main/DifferentiationInterface/docs/src/assets/logo.svg)
 
 # DifferentiationInterface
 
-[![Build Status](https://github.com/gdalle/DifferentiationInterface.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/gdalle/DifferentiationInterface.jl/actions/workflows/Test.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/gdalle/DifferentiationInterface.jl/branch/main/graph/badge.svg?flag=DI)](https://app.codecov.io/gh/gdalle/DifferentiationInterface.jl)
-[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
+[![Build Status](https://github.com/JuliaDiff/DifferentiationInterface.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/JuliaDiff/DifferentiationInterface.jl/actions/workflows/Test.yml?query=branch%3Amain)
+[![Coverage](https://codecov.io/gh/JuliaDiff/DifferentiationInterface.jl/branch/main/graph/badge.svg?flag=DI)](https://app.codecov.io/gh/JuliaDiff/DifferentiationInterface.jl)
+[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/JuliaDiff/BlueStyle)
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 [![DOI](https://zenodo.org/badge/740973714.svg)](https://zenodo.org/doi/10.5281/zenodo.11092033)
 
 |           Package            |                                                                                                                                                    Docs                                                                                                                                                    |
 | :--------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|   DifferentiationInterface   |   [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://gdalle.github.io/DifferentiationInterface.jl/DifferentiationInterface/stable/)     [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://gdalle.github.io/DifferentiationInterface.jl/DifferentiationInterface/dev/)   |
-| DifferentiationInterfaceTest | [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://gdalle.github.io/DifferentiationInterface.jl/DifferentiationInterfaceTest/stable/) [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://gdalle.github.io/DifferentiationInterface.jl/DifferentiationInterfaceTest/dev/) |
+|   DifferentiationInterface   |   [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/stable/)     [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/dev/)   |
+| DifferentiationInterfaceTest | [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterfaceTest/stable/) [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterfaceTest/dev/) |
 
 An interface to various automatic differentiation (AD) backends in Julia.
 
@@ -24,24 +24,24 @@ This package provides a unified syntax to differentiate functions, including:
 - Preparation mechanism (e.g. to pre-allocate a cache or record a tape)
 - Built-in sparsity handling
 - Thorough validation on standard inputs and outputs (numbers, vectors, matrices)
-- Testing and benchmarking utilities accessible to users with [DifferentiationInterfaceTest](https://github.com/gdalle/DifferentiationInterface.jl/tree/main/DifferentiationInterfaceTest)
+- Testing and benchmarking utilities accessible to users with [DifferentiationInterfaceTest](https://github.com/JuliaDiff/DifferentiationInterface.jl/tree/main/DifferentiationInterfaceTest)
 
 ## Compatibility
 
 We support the following backends defined by [ADTypes.jl](https://github.com/SciML/ADTypes.jl):
 
 - [ChainRulesCore.jl](https://github.com/JuliaDiff/ChainRulesCore.jl)
-- [Diffractor.jl](https://github.com/JuliaDiff/Diffractor.jl)
+- [Diffractor.jl](https://github.com/JuliaDiff/Diffractor.jl) (currently broken)
 - [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl)
 - [FastDifferentiation.jl](https://github.com/brianguenter/FastDifferentiation.jl)
 - [FiniteDiff.jl](https://github.com/JuliaDiff/FiniteDiff.jl)
 - [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl)
 - [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl)
 - [GTPSA.jl](https://github.com/bmad-sim/GTPSA.jl)
+- [Mooncake.jl](https://github.com/compintell/Mooncake.jl)
 - [PolyesterForwardDiff.jl](https://github.com/JuliaDiff/PolyesterForwardDiff.jl)
 - [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl)
 - [Symbolics.jl](https://github.com/JuliaSymbolics/Symbolics.jl)
-- [Tapir.jl](https://github.com/withbayes/Tapir.jl)
 - [Tracker.jl](https://github.com/FluxML/Tracker.jl)
 - [Zygote.jl](https://github.com/FluxML/Zygote.jl)
 
@@ -66,7 +66,7 @@ To install the development version, run this instead:
 using Pkg
 
 Pkg.add(
-    url="https://github.com/gdalle/DifferentiationInterface.jl",
+    url="https://github.com/JuliaDiff/DifferentiationInterface.jl",
     subdir="DifferentiationInterface"
 )
 ```

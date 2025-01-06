@@ -5,6 +5,9 @@ using DifferentiationInterface, DifferentiationInterfaceTest
 using Diffractor: Diffractor
 using Test
 
+using ExplicitImports
+check_no_implicit_imports(DifferentiationInterface)
+
 LOGGING = get(ENV, "CI", "false") == "false"
 
 for backend in [AutoDiffractor()]
@@ -13,5 +16,8 @@ for backend in [AutoDiffractor()]
 end
 
 test_differentiation(
-    AutoDiffractor(), default_scenarios(; linalg=false); second_order=false, logging=LOGGING
+    AutoDiffractor(),
+    default_scenarios(; linalg=false);
+    excluded=SECOND_ORDER,
+    logging=LOGGING,
 );

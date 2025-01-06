@@ -1,0 +1,14 @@
+steps:
+  - label: "DI GPU tests"
+    if: |
+      !build.pull_request.draft &&
+        build.pull_request.labels includes "gpu"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+    command: |
+      julia ./DifferentiationInterface/test/GPU/CUDA/simple.jl
+    agents:
+      queue: "juliagpu"
+      cuda: "*"
+    timeout_in_minutes: 60

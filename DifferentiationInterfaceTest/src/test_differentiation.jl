@@ -1,81 +1,111 @@
 """
 $(TYPEDSIGNATURES)
 
-Cross-test a list of `backends` on a list of `scenarios`, running a variety of different tests.
+Apply a list of `backends` on a list of `scenarios`, running a variety of different tests and/or benchmarks.
 
-# Default arguments
+# Return
 
-- `scenarios::Vector{<:Scenario}`: the output of [`default_scenarios()`](@ref)
+This function always creates and runs a `@testset`, though its contents may vary.
+    
+- if `benchmark == :none`, it returns `nothing`.
+- if `benchmark != :none`, it returns a `DataFrame` of benchmark results, whose columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref).
+
+# Positional arguments
+
+- `backends::Vector{<:AbstractADType}`: the backends to test
+- `scenarios::Vector{<:Scenario}`: the scenarios on which to test them (defaults to the output of [`default_scenarios()`](@ref))
 
 # Keyword arguments
 
-Testing:
+**Test categories:**
 
 - `correctness=true`: whether to compare the differentiation results with the theoretical values specified in each scenario
-- `type_stability=false`: whether to check type stability with JET.jl (thanks to `JET.@test_opt`)
-- `sparsity`: whether to check sparsity of the jacobian / hessian
-- `detailed=false`: whether to print a detailed or condensed test log
+- `type_stability=:none`: whether (and how) to check type stability of operators with JET.jl.
+- `allocations=:none`: whether (and how) to check allocations inside operators with AllocCheck.jl
+- `benchmark=:none`: whether (and how) to benchmark operators with Chairmarks.jl
 
-Filtering:
+For `type_stability`, `allocations` and `benchmark`, the possible values are `:none`, `:prepared` or `:full`.
+Each setting tests/benchmarks a different subset of calls:
 
-- `input_type=Any`, `output_type=Any`: restrict scenario inputs / outputs to subtypes of this
-- `first_order=true`, `second_order=true`: include first order / second order operators
-- `onearg=true`, `twoarg=true`: include out-of-place / in-place functions
-- `inplace=true`, `outofplace=true`: include in-place / out-of-place operators
+| kwarg | prepared operator | unprepared operator | preparation |
+|---|---|---|---|
+| `:none` | no | no | no |
+| `:prepared` | yes | no | no |
+| `:full` | yes | yes | yes |
 
-Options:
+**Misc options:**
 
+- `excluded::Vector{Symbol}`: list of operators to exclude, such as [`FIRST_ORDER`](@ref) or [`SECOND_ORDER`](@ref)
+- `detailed=false`: whether to create a detailed or condensed testset
 - `logging=false`: whether to log progress
-- `isequal=isequal`: function used to compare objects exactly, with the standard signature `isequal(x, y)`
+
+**Correctness options:**
+
 - `isapprox=isapprox`: function used to compare objects approximately, with the standard signature `isapprox(x, y; atol, rtol)`
 - `atol=0`: absolute precision for correctness testing (when comparing to the reference outputs)
 - `rtol=1e-3`: relative precision for correctness testing (when comparing to the reference outputs)
+- `scenario_intact=true`: whether to check that the scenario remains unchanged after the operators are applied
+- `sparsity=false`: whether to check sparsity patterns for Jacobians / Hessians
+
+**Type stability options:**
+
+- `ignored_modules=nothing`: list of modules that JET.jl should ignore
+- `function_filter`: filter for functions that JET.jl should ignore (with a reasonable default)
+
+**Benchmark options:**
+
+- `count_calls=true`: whether to also count function calls during benchmarking
+- `benchmark_test=true`: whether to include tests which succeed iff benchmark doesn't error
+- `benchmark_seconds=1`: how long to run each benchmark for
+- `benchmark_aggregation=minimum`: function used to aggregate sample measurements
 """
 function test_differentiation(
     backends::Vector{<:AbstractADType},
     scenarios::Vector{<:Scenario}=default_scenarios();
-    # testing
+    # test categories
     correctness::Bool=true,
-    type_stability::Bool=false,
-    call_count::Bool=false,
-    sparsity::Bool=false,
-    detailed=false,
-    # filtering
-    input_type::Type=Any,
-    output_type::Type=Any,
-    first_order::Bool=true,
-    second_order::Bool=true,
-    onearg::Bool=true,
-    twoarg::Bool=true,
-    inplace::Bool=true,
-    outofplace::Bool=true,
+    type_stability::Symbol=:none,
+    allocations::Symbol=:none,
+    benchmark::Symbol=:none,
+    # misc options
     excluded::Vector{Symbol}=Symbol[],
-    # options
+    detailed::Bool=false,
     logging::Bool=false,
-    isequal=isequal,
+    # correctness options
     isapprox=isapprox,
     atol::Real=0,
     rtol::Real=1e-3,
+    scenario_intact::Bool=true,
+    sparsity::Bool=false,
+    # type stability options
+    ignored_modules=nothing,
+    function_filter=if VERSION >= v"1.11"
+        @nospecialize(f) -> true
+    else
+        @nospecialize(f) -> f != Base.mapreduce_empty  # fix for `mapreduce` in jacobian and hessian
+    end,
+    # allocs options
+    skip_allocations::Bool=false,  # private, only for code coverage
+    # benchmark options
+    count_calls::Bool=true,
+    benchmark_test::Bool=true,
+    benchmark_seconds::Real=1,
+    benchmark_aggregation=minimum,
 )
-    scenarios = filter_scenarios(
-        scenarios;
-        first_order,
-        second_order,
-        input_type,
-        output_type,
-        onearg,
-        twoarg,
-        inplace,
-        outofplace,
-        excluded,
-    )
+    @assert type_stability in (:none, :prepared, :full)
+    @assert allocations in (:none, :prepared, :full)
+    @assert benchmark in (:none, :prepared, :full)
+
+    scenarios = filter(s -> !(operator(s) in excluded), scenarios)
+    scenarios = sort(scenarios; by=s -> (operator(s), string(s.f)))
 
     title_additions =
-        (correctness != false ? " + correctness" : "") *
-        (call_count ? " + calls" : "") *
-        (type_stability ? " + types" : "") *
-        (sparsity ? " + sparsity" : "")
+        (correctness ? " + correctness" : "") *
+        ((type_stability != :none) ? " + type stability" : "") *
+        ((benchmark != :none) ? " + benchmarks" : "")
     title = "Testing" * title_additions[3:end]
+
+    benchmark_data = DifferentiationBenchmarkDataRow[]
 
     prog = ProgressUnknown(; desc="$title", spinner=true, enabled=logging)
 
@@ -92,34 +122,75 @@ function test_differentiation(
                             (:backend, "$backend - $i/$(length(backends))"),
                             (:scenario_type, "$op - $j/$(length(grouped_scenarios))"),
                             (:scenario, "$k/$(length(op_group))"),
-                            (:arguments, nb_args(scen)),
-                            (:place, place(scen)),
+                            (:operator_place, operator_place(scen)),
+                            (:function_place, function_place(scen)),
                             (:function, scen.f),
                             (:input_type, typeof(scen.x)),
                             (:input_size, mysize(scen.x)),
                             (:output_type, typeof(scen.y)),
                             (:output_size, mysize(scen.y)),
-                            (:batched_seed, scen.seed isa Tangents),
-                            (:with_context, length(scen.contexts) > 0),
+                            (
+                                :nb_tangents,
+                                scen.tang isa NTuple ? length(scen.tang) : nothing,
+                            ),
+                            (:nb_contexts, length(scen.contexts)),
                         ],
                     )
+                    adapted_backend = adapt_batchsize(backend, scen)
                     correctness && @testset "Correctness" begin
-                        test_correctness(backend, scen; isequal, isapprox, atol, rtol)
+                        test_correctness(
+                            adapted_backend,
+                            scen;
+                            isapprox,
+                            atol,
+                            rtol,
+                            scenario_intact,
+                            sparsity,
+                        )
                     end
-                    type_stability && @testset "Type stability" begin
-                        @static if VERSION >= v"1.7"
-                            test_jet(backend, scen)
-                        end
+                    yield()
+                    (type_stability != :none) && @testset "Type stability" begin
+                        test_jet(
+                            adapted_backend,
+                            scen;
+                            subset=type_stability,
+                            ignored_modules,
+                            function_filter,
+                        )
                     end
-                    sparsity && @testset "Sparsity" begin
-                        test_sparsity(backend, scen)
+                    yield()
+                    (allocations != :none) && @testset "Allocations" begin
+                        test_alloccheck(
+                            adapted_backend,
+                            scen;
+                            subset=allocations,
+                            skip=skip_allocations,
+                        )
+                    end
+                    yield()
+                    (benchmark != :none) && @testset "Benchmark" begin
+                        run_benchmark!(
+                            benchmark_data,
+                            adapted_backend,
+                            scen;
+                            logging,
+                            subset=benchmark,
+                            count_calls,
+                            benchmark_test,
+                            benchmark_seconds,
+                            benchmark_aggregation,
+                        )
                     end
                     yield()
                 end
             end
         end
     end
-    return nothing
+    if benchmark != :none
+        return DataFrame(benchmark_data)
+    else
+        return nothing
+    end
 end
 
 """
@@ -134,85 +205,33 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Benchmark a list of `backends` for a list of `operators` on a list of `scenarios`.
+Shortcut for [`test_differentiation`](@ref) with only benchmarks and no correctness or type stability checks.
 
-The object returned is a `DataFrames.DataFrame` where each column corresponds to a field of [`DifferentiationBenchmarkDataRow`](@ref).
-
-The keyword arguments available here have the same meaning as those in [`test_differentiation`](@ref).
+Specifying the set of scenarios is mandatory for this function.
 """
 function benchmark_differentiation(
-    backends::Vector{<:AbstractADType},
+    backends,
     scenarios::Vector{<:Scenario};
-    # filtering
-    input_type::Type=Any,
-    output_type::Type=Any,
-    first_order::Bool=true,
-    second_order::Bool=true,
-    onearg::Bool=true,
-    twoarg::Bool=true,
-    inplace::Bool=true,
-    outofplace::Bool=true,
+    benchmark::Symbol=:prepared,
     excluded::Vector{Symbol}=Symbol[],
-    # options
     logging::Bool=false,
+    count_calls::Bool=true,
+    benchmark_test::Bool=true,
+    benchmark_seconds::Real=1,
+    benchmark_aggregation=minimum,
 )
-    scenarios = filter_scenarios(
+    return test_differentiation(
+        backends,
         scenarios;
-        first_order,
-        second_order,
-        input_type,
-        output_type,
-        onearg,
-        twoarg,
-        inplace,
-        outofplace,
+        correctness=false,
+        type_stability=:none,
+        allocations=:none,
+        benchmark,
+        logging,
         excluded,
+        count_calls,
+        benchmark_test,
+        benchmark_seconds,
+        benchmark_aggregation,
     )
-
-    benchmark_data = DifferentiationBenchmarkDataRow[]
-    prog = ProgressUnknown(; desc="Benchmarking", spinner=true, enabled=logging)
-    for (i, backend) in enumerate(backends)
-        filtered_scenarios = filter(s -> compatible(backend, s), scenarios)
-        grouped_scenarios = group_by_operator(filtered_scenarios)
-        for (j, (op, op_group)) in enumerate(pairs(grouped_scenarios))
-            for (k, scen) in enumerate(op_group)
-                next!(
-                    prog;
-                    showvalues=[
-                        (:backend, "$backend - $i/$(length(backends))"),
-                        (:scenario_type, "$op - $j/$(length(grouped_scenarios))"),
-                        (:scenario, "$k/$(length(op_group))"),
-                        (:arguments, nb_args(scen)),
-                        (:place, place(scen)),
-                        (:function, scen.f),
-                        (:input_type, typeof(scen.x)),
-                        (:input_size, mysize(scen.x)),
-                        (:output_type, typeof(scen.y)),
-                        (:output_size, mysize(scen.y)),
-                        (:batched_seed, scen.seed isa Tangents),
-                        (:with_context, length(scen.contexts) > 0),
-                    ],
-                )
-                run_benchmark!(benchmark_data, backend, scen; logging)
-                yield()
-            end
-        end
-    end
-    return DataFrame(benchmark_data)
-end
-
-"""
-    test_allocfree(benchmark_data::DataFrame)
-
-Test that every row in `benchmark_data` which is not a preparation row has zero allocation.
-"""
-function test_allocfree(benchmark_data::DataFrame)
-    preparation_rows = startswith.(string.(benchmark_data[!, :operator]), Ref("prepare"))
-    useful_data = benchmark_data[.!preparation_rows, :]
-
-    @testset verbose = true "No allocations" begin
-        @testset "$(row[:scenario]) - $(row[:operator])" for row in eachrow(useful_data)
-            @test row[:allocs] == 0
-        end
-    end
 end

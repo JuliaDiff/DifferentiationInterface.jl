@@ -36,12 +36,12 @@ function sparse_vec_to_vec_scenarios(x::AbstractVector)
     jac = diffsquare_jacobian(x)
 
     scens = Scenario[]
-    for place in (:outofplace, :inplace)
+    for pl_op in (:out, :in)
         append!(
             scens,
             [
-                JacobianScenario(f; x, y, jac, nb_args=1, place),
-                JacobianScenario(f!; x, y, jac, nb_args=2, place),
+                Scenario{:jacobian,pl_op}(f, x; res1=jac),
+                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
             ],
         )
     end
@@ -72,12 +72,12 @@ function sparse_mat_to_vec_scenarios(x::AbstractMatrix)
     jac = diffsquarecube_matvec_jacobian(x)
 
     scens = Scenario[]
-    for place in (:outofplace, :inplace)
+    for pl_op in (:out, :in)
         append!(
             scens,
             [
-                JacobianScenario(f; x, y, jac, nb_args=1, place),
-                JacobianScenario(f!; x, y, jac, nb_args=2, place),
+                Scenario{:jacobian,pl_op}(f, x; res1=jac),
+                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
             ],
         )
     end
@@ -105,12 +105,12 @@ function sparse_vec_to_mat_scenarios(x::AbstractVector)
     jac = diffsquarecube_vecmat_jacobian(vec(x))
 
     scens = Scenario[]
-    for place in (:outofplace, :inplace)
+    for pl_op in (:out, :in)
         append!(
             scens,
             [
-                JacobianScenario(f; x, y, jac, nb_args=1, place),
-                JacobianScenario(f!; x, y, jac, nb_args=2, place),
+                Scenario{:jacobian,pl_op}(f, x; res1=jac),
+                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
             ],
         )
     end
@@ -140,12 +140,12 @@ function sparse_mat_to_mat_scenarios(x::AbstractMatrix)
     jac = diffsquarecube_matmat_jacobian(x)
 
     scens = Scenario[]
-    for place in (:outofplace, :inplace)
+    for pl_op in (:out, :in)
         append!(
             scens,
             [
-                JacobianScenario(f; x, y, jac, nb_args=1, place),
-                JacobianScenario(f!; x, y, jac, nb_args=2, place),
+                Scenario{:jacobian,pl_op}(f, x; res1=jac),
+                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
             ],
         )
     end
@@ -177,15 +177,13 @@ function sumdiffcube_hessian(x::AbstractVector)
 end
 
 function sparse_vec_to_num_scenarios(x::AbstractVector)
-    nb_args = 1
     f = sumdiffcube
-    y = f(x)
     grad = sumdiffcube_gradient(x)
     hess = sumdiffcube_hessian(x)
 
     scens = Scenario[]
-    for place in (:outofplace, :inplace)
-        append!(scens, [HessianScenario(f; x, y, grad, hess, nb_args, place)])
+    for pl_op in (:out, :in)
+        append!(scens, [Scenario{:hessian,pl_op}(f, x; res1=grad, res2=hess)])
     end
     return scens
 end
@@ -203,15 +201,118 @@ function sumdiffcube_mat_hessian(x::AbstractMatrix)
 end
 
 function sparse_mat_to_num_scenarios(x::AbstractMatrix)
-    nb_args = 1
     f = sumdiffcube_mat
-    y = f(x)
     grad = sumdiffcube_mat_gradient(x)
     hess = sumdiffcube_mat_hessian(x)
 
     scens = Scenario[]
-    for place in (:outofplace, :inplace)
-        append!(scens, [HessianScenario(f; x, y, grad, hess, nb_args, place)])
+    for pl_op in (:out, :in)
+        append!(scens, [Scenario{:hessian,pl_op}(f, x; res1=grad, res2=hess)])
+    end
+    return scens
+end
+
+## Various matrices
+
+function banded_matrix(::Type{T}, n, b) where {T}
+    @assert b <= n
+    pairs = [k => rand(T, n - k) for k in 0:b]
+    return spdiagm(n, n, pairs...)
+end
+
+### Linear map
+
+struct SquareLinearMap{M<:AbstractMatrix}
+    A::M
+end
+
+function Base.show(io::IO, s::SquareLinearMap{M}) where {M}
+    return print(io, "SquareLinearMap{$M - $(size(s.A)) with $(mynnz(s.A)) nonzeros}")
+end
+
+function (s::SquareLinearMap)(x::AbstractArray)
+    return s.A * abs2.(vec(x))
+end
+
+function (s::SquareLinearMap)(y::AbstractArray, x::AbstractArray)
+    vec(y) .= s.A * abs2.(vec(x))
+    return nothing
+end
+
+function squarelinearmap_jacobian(x::AbstractArray, A::AbstractMatrix)
+    return 2 .* A .* transpose(vec(x))
+end
+
+function squarelinearmap_scenarios(x::AbstractVector, band_sizes)
+    n = length(x)
+    scens = Scenario[]
+    for A in banded_matrix.(eltype(x), n, band_sizes)
+        f = SquareLinearMap(A)
+        f! = f
+        y = f(x)
+        jac = sparse(squarelinearmap_jacobian(x, A))
+        for pl_op in (:out, :in)
+            append!(
+                scens,
+                [
+                    Scenario{:jacobian,pl_op}(f, x; res1=jac),
+                    Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
+                ],
+            )
+        end
+    end
+    return scens
+end
+
+### Quadratic form
+
+struct SquareQuadraticForm{M<:AbstractMatrix}
+    A::M
+end
+
+function Base.show(io::IO, s::SquareQuadraticForm{M}) where {M}
+    return print(io, "SquareQuadraticForm{$M - $(size(s.A)) with $(mynnz(s.A)) nonzeros}")
+end
+
+function (s::SquareQuadraticForm)(x::AbstractArray)
+    v = abs2.(vec(x))
+    return dot(v, s.A, v)
+end
+
+function squarequadraticform_gradient(x::AbstractArray, A::AbstractMatrix)
+    g = similar(x)
+    for i in eachindex(g)
+        g[i] =
+            4 * A[i, i] * x[i]^3 +
+            2 * sum((A[i, j] + A[j, i]) * x[i] * x[j]^2 for j in eachindex(g) if j != i)
+    end
+    return g
+end
+
+function squarequadraticform_hessian(x::AbstractArray, A::AbstractMatrix)
+    H = similar(x, length(x), length(x))
+    for i in axes(H, 1), j in axes(H, 2)
+        if i == j
+            H[i, i] =
+                12 * A[i, i] * x[i]^2 +
+                2 * sum((A[i, j2] + A[j2, i]) * x[j2]^2 for j2 in axes(H, 2) if j2 != i)
+        else
+            H[i, j] = 4 * (A[i, j] + A[j, i]) * x[i] * x[j]
+        end
+    end
+    return H
+end
+
+function squarequadraticform_scenarios(x::AbstractVector, band_sizes)
+    n = length(x)
+    scens = Scenario[]
+    for A in banded_matrix.(eltype(x), n, band_sizes)
+        f = SquareQuadraticForm(A)
+        grad = squarequadraticform_gradient(x, A)
+        hess = sparse(squarequadraticform_hessian(x, A))
+        for pl_op in (:out, :in)
+            push!(scens, Scenario{:hessian,pl_op}(f, x; res1=grad, res2=hess))
+        end
     end
     return scens
 end
@@ -219,17 +320,27 @@ end
 ## Gather
 
 """
-    sparse_scenarios(rng=Random.default_rng())
+    sparse_scenarios()
 
 Create a vector of [`Scenario`](@ref)s with sparse array types, focused on sparse Jacobians and Hessians.
 """
-function sparse_scenarios(rng::AbstractRNG=default_rng())
-    return vcat(
-        sparse_vec_to_vec_scenarios(rand(rng, 6)),
-        sparse_vec_to_mat_scenarios(rand(rng, 6)),
-        sparse_mat_to_vec_scenarios(rand(rng, 2, 3)),
-        sparse_mat_to_mat_scenarios(rand(rng, 2, 3)),
-        sparse_vec_to_num_scenarios(rand(rng, 6)),
-        sparse_mat_to_num_scenarios(rand(rng, 2, 3)),
+function sparse_scenarios(; band_sizes=[5, 10, 20], include_constantified=false)
+    x_6 = float.(1:6)
+    x_2_3 = float.(reshape(1:6, 2, 3))
+    x_50 = float.(range(1, 2, 50))
+
+    scens = vcat(
+        sparse_vec_to_vec_scenarios(x_6),
+        sparse_vec_to_mat_scenarios(x_6),
+        sparse_mat_to_vec_scenarios(x_2_3),
+        sparse_mat_to_mat_scenarios(x_2_3),
+        sparse_vec_to_num_scenarios(x_6),
+        sparse_mat_to_num_scenarios(x_2_3),
     )
+    if !isempty(band_sizes)
+        append!(scens, squarelinearmap_scenarios(x_50, band_sizes))
+        append!(scens, squarequadraticform_scenarios(x_50, band_sizes))
+    end
+    include_constantified && append!(scens, constantify(scens))
+    return scens
 end

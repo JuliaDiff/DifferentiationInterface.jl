@@ -23,10 +23,10 @@ Most operators have 4 variants, which look like this in the first order: `operat
 To implement a new operator for an existing backend, you need to write 5 methods: 1 for [preparation](@ref Preparation) and 4 corresponding to the variants of the operator (see above).
 For first-order operators, you may also want to support [in-place functions](@ref "Mutation and signatures"), which requires another 5 methods (defined on `f!` instead of `f`).
 
-The method `prepare_operator` must output an `extras` object of the correct type.
-For instance, `prepare_gradient(f, backend, x)` must return a [`DifferentiationInterface.GradientExtras`](@ref).
-Assuming you don't need any preparation for said operator, you can use the trivial extras that are already defined, like `DifferentiationInterface.NoGradientExtras`.
-Otherwise, define a custom struct like `MyGradientExtras <: DifferentiationInterface.GradientExtras` and put the necessary storage in there.
+The method `prepare_operator` must output a `prep` object of the correct type.
+For instance, `prepare_gradient(f, backend, x)` must return a [`DifferentiationInterface.GradientPrep`](@ref).
+Assuming you don't need any preparation for said operator, you can use the trivial prep that are already defined, like `DifferentiationInterface.NoGradientPrep`.
+Otherwise, define a custom struct like `MyGradientPrep <: DifferentiationInterface.GradientPrep` and put the necessary storage in there.
 
 ## New backend
 
@@ -57,11 +57,11 @@ Every other operator can be deduced from these two, but you can gain efficiency 
 ### Tests and docs
 
 Once that is done, you need to add your new backend to the test suite.
-Test files should be gathered in a folder named `SuperDiff` inside [`DifferentiationInterface/test/Back`](https://github.com/gdalle/DifferentiationInterface.jl/tree/main/DifferentiationInterface/test/Back).
-They should use [DifferentiationInterfaceTest.jl](https://github.com/gdalle/DifferentiationInterface.jl/tree/main/DifferentiationInterfaceTest) to check correctness against the default scenarios.
+Test files should be gathered in a folder named `SuperDiff` inside [`DifferentiationInterface/test/Back`](https://github.com/JuliaDiff/DifferentiationInterface.jl/tree/main/DifferentiationInterface/test/Back).
+They should use [DifferentiationInterfaceTest.jl](https://github.com/JuliaDiff/DifferentiationInterface.jl/tree/main/DifferentiationInterfaceTest) to check correctness against the default scenarios.
 Take inspiration from the tests of other backends to write your own.
-To activate tests in CI, modify the [test workflow](https://github.com/gdalle/DifferentiationInterface.jl/blob/main/.github/workflows/Test.yml) and add your package to the list.
-To run the tests locally, replace the following line in [`DifferentiationInterface/test/runtests.jl`](https://github.com/gdalle/DifferentiationInterface.jl/blob/main/DifferentiationInterface/test/runtests.jl)
+To activate tests in CI, modify the [test workflow](https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/.github/workflows/Test.yml) and add your package to the list.
+To run the tests locally, replace the following line in [`DifferentiationInterface/test/runtests.jl`](https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/DifferentiationInterface/test/runtests.jl)
 
 ```julia
 GROUP = get(ENV, "JULIA_DI_TEST_GROUP", "All")

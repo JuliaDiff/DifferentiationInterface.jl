@@ -33,7 +33,7 @@ These operators are computed using only the input `x`.
 
 ### Low-level operators
 
-These operators are computed using the input `x` and another argument `t` of type [`Tangents`](@ref), which contains one or more tangents.
+These operators are computed using the input `x` and another argument `t` of type `NTuple`, which contains one or more tangents.
 You can think of tangents as perturbations propagated through the function; they live either in the same space as `x` or in the same space as `y`.
 
 | operator                    | order | input `x` | output `y` | element type of `t` | operator result type | operator result shape |
@@ -58,7 +58,7 @@ Several variants of each operator are defined:
 | [`jacobian`](@ref)          | [`jacobian!`](@ref)          | [`value_and_jacobian`](@ref)                     | [`value_and_jacobian!`](@ref)                     |
 | [`pushforward`](@ref)       | [`pushforward!`](@ref)       | [`value_and_pushforward`](@ref)                  | [`value_and_pushforward!`](@ref)                  |
 | [`pullback`](@ref)          | [`pullback!`](@ref)          | [`value_and_pullback`](@ref)                     | [`value_and_pullback!`](@ref)                     |
-| [`hvp`](@ref)               | [`hvp!`](@ref)               | -                                                | -                                                 |
+| [`hvp`](@ref)               | [`hvp!`](@ref)               | [`gradient_and_hvp`](@ref)                       | [`gradient_and_hvp!`](@ref)                       |
 
 ## Mutation and signatures
 
@@ -107,31 +107,48 @@ In addition, the preparation syntax depends on the number of arguments accepted 
 | out-of-place function | `prepare_op(f, backend, x, [t])`     |
 | in-place function     | `prepare_op(f!, y, backend, x, [t])` |
 
-Preparation creates an object called `extras` which contains the the necessary information to speed up an operator and its variants.
-The idea is that you prepare only once, which can be costly, but then call the operator several times while reusing the same `extras`.
+Preparation creates an object called `prep` which contains the the necessary information to speed up an operator and its variants.
+The idea is that you prepare only once, which can be costly, but then call the operator several times while reusing the same `prep`.
 
 ```julia
 op(f, backend, x, [t])  # slow because it includes preparation
-op(f, extras, backend, x, [t])  # fast because it skips preparation
+op(f, prep, backend, x, [t])  # fast because it skips preparation
 ```
 
 !!! warning
-    The `extras` object is the last argument before `backend` and it is always mutated, regardless of the bang `!` in the operator name.
+    The `prep` object is the last argument before `backend` and it is always mutated, regardless of the bang `!` in the operator name.
 
 ### Reusing preparation
 
-Deciding whether it is safe to reuse the results of preparation is not easy.
-Here are the general rules that we strive to implement:
+It is not always safe to reuse the results of preparation.
+For different-point preparation, the output `prep` of
 
-For different-point preparation, the output `extras` of `prepare_op(f, b, x, [t])` can be reused in `op(f, extras, b, other_x, [other_t])`, provided that:
+```julia
+prepare_op(f, [y], backend, x, [t, contexts...])
+```
 
-- the inputs `x` and `other_x` have similar types and equal shapes
-- the tangents in `t` and `other_t` have similar types and equal shapes
+can be reused in subsequent calls to
 
-For same-point preparation, the output `extras` of `prepare_op_same_point(f, b, x, [t])` can be reused in `op(f, extras, b, x, other_t)`, provided that:
+```julia
+op(f, prep, [other_y], backend, other_x, [other_t, other_contexts...])
+```
 
-- the input `x` remains the same
-- the tangents in `t` and `other_t` have similar types and equal shapes
+provided that the following conditions all hold:
+
+- `f` and `backend` remain the same
+- `other_x` has the same type and size as `x`
+- `other_y` has the same type and size as `y`
+- `other_t` has the same type and size as `t`
+- all the elements of `other_contexts` have the same type and size as the corresponding elements of `contexts`
+
+For same-point preparation, the same rules hold with two modifications:
+
+- `other_x` must be _equal_ to `x`
+- any element of `other_contexts` with type `Constant` must be _equal_ to the corresponding element of `contexts`
+
+!!! danger
+    Reusing preparation with different types or sizes may work with some backends and error with others, so it is not allowed by the API of DifferentiationInterface.
 
 !!! warning
     These rules hold for the majority of backends, but there are some exceptions.
+    The most important exception is [ReverseDiff](@ref) and its taping mechanism, which is sensitive to control flow inside the function.

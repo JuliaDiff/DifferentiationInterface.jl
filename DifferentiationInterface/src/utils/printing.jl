@@ -1,17 +1,24 @@
-function package_name(b::AbstractADType)
-    s = string(b)
-    k = findfirst('(', s)
-    isnothing(k) && throw(ArgumentError("Cannot parse backend into package"))
-    return s[5:(k - 1)]
+package_name(b::AbstractADType) = package_name(typeof(b))
+
+function package_name(::Type{B}) where {B<:AbstractADType}
+    s = string(B)
+    s = chopprefix(s, "ADTypes.")
+    s = chopprefix(s, "Auto")
+    k = findfirst('{', s)
+    if isnothing(k)
+        return s
+    else
+        return s[begin:(k - 1)]
+    end
 end
 
-function package_name(b::SecondOrder)
-    p1 = package_name(outer(b))
-    p2 = package_name(inner(b))
+function package_name(::Type{SecondOrder{O,I}}) where {O,I}
+    p1 = package_name(O)
+    p2 = package_name(I)
     return p1 == p2 ? p1 : "$p1, $p2"
 end
 
-package_name(b::AutoSparse) = package_name(dense_ad(b))
+package_name(::Type{<:AutoSparse{D}}) where {D} = package_name(D)
 
 function document_preparation(operator_name::AbstractString; same_point=false)
     if same_point

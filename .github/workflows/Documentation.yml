@@ -19,6 +19,7 @@ jobs:
   docs:
     name: ${{ matrix.pkg.shortcut }}
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
     permissions:
       contents: write
       statuses: write
@@ -37,7 +38,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
         with:
-          version: '1'
+          version: '1'  # TODO: 1
       - uses: julia-actions/cache@v1
       - name: Install dependencies
         run: julia --project=${{ matrix.pkg.dir}}/docs/ -e '

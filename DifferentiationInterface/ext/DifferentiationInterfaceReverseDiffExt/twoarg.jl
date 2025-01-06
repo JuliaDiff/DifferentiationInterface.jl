@@ -1,56 +1,76 @@
 ## Pullback
 
-DI.prepare_pullback(f!, y, ::AutoReverseDiff, x, ty::Tangents) = NoPullbackExtras()
+function DI.prepare_pullback(
+    f!, y, ::AutoReverseDiff, x, ty::NTuple, contexts::Vararg{DI.Context,C}
+) where {C}
+    return DI.NoPullbackPrep()
+end
 
 ### Array in
 
 function DI.value_and_pullback(
-    f!, y, ::NoPullbackExtras, ::AutoReverseDiff, x::AbstractArray, ty::Tangents
-)
-    tx = map(ty) do dy
-        function dotproduct_closure(x)
-            y_copy = similar(y, eltype(x))
-            f!(y_copy, x)
-            return dot(y_copy, dy)
-        end
-        gradient(dotproduct_closure, x)
+    f!,
+    y,
+    ::DI.NoPullbackPrep,
+    ::AutoReverseDiff,
+    x::AbstractArray,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    function dotclosure(x, dy)
+        y_copy = similar(y, eltype(x))
+        fc!(y_copy, x)
+        return dot(y_copy, dy)
     end
-    f!(y, x)
+    tx = map(ty) do dy
+        gradient(Fix2(dotclosure, dy), x)
+    end
+    fc!(y, x)
     return y, tx
 end
 
 function DI.value_and_pullback!(
     f!,
     y,
-    tx::Tangents,
-    ::NoPullbackExtras,
+    tx::NTuple,
+    ::DI.NoPullbackPrep,
     ::AutoReverseDiff,
     x::AbstractArray,
-    ty::Tangents,
-)
-    for b in eachindex(tx.d, ty.d)
-        dx, dy = tx.d[b], ty.d[b]
-        function dotproduct_closure(x)
-            y_copy = similar(y, eltype(x))
-            f!(y_copy, x)
-            return dot(y_copy, dy)
-        end
-        gradient!(dx, dotproduct_closure, x)
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    function dotclosure(x, dy)
+        y_copy = similar(y, eltype(x))
+        fc!(y_copy, x)
+        return dot(y_copy, dy)
     end
-    f!(y, x)
+    for b in eachindex(tx, ty)
+        dx, dy = tx[b], ty[b]
+        gradient!(dx, Fix2(dotclosure, dy), x)
+    end
+    fc!(y, x)
     return y, tx
 end
 
 function DI.pullback(
-    f!, y, ::NoPullbackExtras, ::AutoReverseDiff, x::AbstractArray, ty::Tangents
-)
+    f!,
+    y,
+    ::DI.NoPullbackPrep,
+    ::AutoReverseDiff,
+    x::AbstractArray,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    function dotclosure(x, dy)
+        y_copy = similar(y, eltype(x))
+        fc!(y_copy, x)
+        return dot(y_copy, dy)
+    end
     tx = map(ty) do dy
-        function dotproduct_closure(x)
-            y_copy = similar(y, eltype(x))
-            f!(y_copy, x)
-            return dot(y_copy, dy)
-        end
-        gradient(dotproduct_closure, x)
+        gradient(Fix2(dotclosure, dy), x)
     end
     return tx
 end
@@ -58,20 +78,22 @@ end
 function DI.pullback!(
     f!,
     y,
-    tx::Tangents,
-    ::NoPullbackExtras,
+    tx::NTuple,
+    ::DI.NoPullbackPrep,
     ::AutoReverseDiff,
     x::AbstractArray,
-    ty::Tangents,
-)
-    for b in eachindex(tx.d, ty.d)
-        dx, dy = tx.d[b], ty.d[b]
-        function dotproduct_closure(x)
-            y_copy = similar(y, eltype(x))
-            f!(y_copy, x)
-            return dot(y_copy, dy)
-        end
-        gradient!(dx, dotproduct_closure, x)
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    function dotclosure(x, dy)
+        y_copy = similar(y, eltype(x))
+        fc!(y_copy, x)
+        return dot(y_copy, dy)
+    end
+    for b in eachindex(tx, ty)
+        dx, dy = tx[b], ty[b]
+        gradient!(dx, Fix2(dotclosure, dy), x)
     end
     return tx
 end
@@ -79,55 +101,150 @@ end
 ### Number in, not supported
 
 function DI.value_and_pullback(
-    f!, y, ::NoPullbackExtras, backend::AutoReverseDiff, x::Number, ty::Tangents{B}
-) where {B}
+    f!,
+    y,
+    ::DI.NoPullbackPrep,
+    backend::AutoReverseDiff,
+    x::Number,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
     x_array = [x]
-    f!_array(_y::AbstractArray, _x_array) = f!(_y, only(_x_array))
-    y, tx_array = DI.value_and_pullback(f!_array, y, backend, x_array, ty)
-    return y, Tangents(only.(tx_array.d)...)
+    function f!_array(_y::AbstractArray, _x_array, args...)
+        return f!(_y, only(_x_array), args...)
+    end
+    y, tx_array = DI.value_and_pullback(f!_array, y, backend, x_array, ty, contexts...)
+    return y, only.(tx_array)
 end
 
 ## Jacobian
 
-struct ReverseDiffTwoArgJacobianExtras{T} <: JacobianExtras
+### Without contexts
+
+@kwdef struct ReverseDiffTwoArgJacobianPrep{C,T} <: DI.JacobianPrep
+    config::C
     tape::T
 end
 
-function DI.prepare_jacobian(
-    f!, y::AbstractArray, ::AutoReverseDiff{Compile}, x::AbstractArray
-) where {Compile}
-    tape = JacobianTape(f!, y, x)
-    if Compile
-        tape = compile(tape)
+function DI.prepare_jacobian(f!, y, ::AutoReverseDiff{compile}, x) where {compile}
+    if compile
+        tape = ReverseDiff.compile(JacobianTape(f!, y, x))
+        return ReverseDiffTwoArgJacobianPrep(; config=nothing, tape=tape)
+    else
+        config = JacobianConfig(y, x)
+        return ReverseDiffTwoArgJacobianPrep(; config=config, tape=nothing)
     end
-    return ReverseDiffTwoArgJacobianExtras(tape)
 end
 
 function DI.value_and_jacobian(
-    _f!, y, extras::ReverseDiffTwoArgJacobianExtras, ::AutoReverseDiff, x
-)
+    f!, y, prep::ReverseDiffTwoArgJacobianPrep, ::AutoReverseDiff{compile}, x
+) where {compile}
     jac = similar(y, length(y), length(x))
     result = MutableDiffResult(y, (jac,))
-    result = jacobian!(result, extras.tape, x)
+    if compile
+        result = jacobian!(result, prep.tape, x)
+    else
+        result = jacobian!(result, f!, y, x, prep.config)
+    end
     return DiffResults.value(result), DiffResults.derivative(result)
 end
 
 function DI.value_and_jacobian!(
-    _f!, y, jac, extras::ReverseDiffTwoArgJacobianExtras, ::AutoReverseDiff, x
-)
+    f!, y, jac, prep::ReverseDiffTwoArgJacobianPrep, ::AutoReverseDiff{compile}, x
+) where {compile}
     result = MutableDiffResult(y, (jac,))
-    result = jacobian!(result, extras.tape, x)
+    if compile
+        result = jacobian!(result, prep.tape, x)
+    else
+        result = jacobian!(result, f!, y, x, prep.config)
+    end
     return DiffResults.value(result), DiffResults.derivative(result)
 end
 
-function DI.jacobian(_f!, _y, extras::ReverseDiffTwoArgJacobianExtras, ::AutoReverseDiff, x)
-    jac = jacobian!(extras.tape, x)
+function DI.jacobian(
+    f!, y, prep::ReverseDiffTwoArgJacobianPrep, ::AutoReverseDiff{compile}, x
+) where {compile}
+    if compile
+        jac = jacobian!(prep.tape, x)
+    else
+        jac = jacobian(f!, y, x, prep.config)
+    end
     return jac
 end
 
 function DI.jacobian!(
-    _f!, _y, jac, extras::ReverseDiffTwoArgJacobianExtras, ::AutoReverseDiff, x
-)
-    jac = jacobian!(jac, extras.tape, x)
+    f!, y, jac, prep::ReverseDiffTwoArgJacobianPrep, ::AutoReverseDiff{compile}, x
+) where {compile}
+    if compile
+        jac = jacobian!(jac, prep.tape, x)
+    else
+        jac = jacobian!(jac, f!, y, x, prep.config)
+    end
+    return jac
+end
+
+### With contexts
+
+function DI.prepare_jacobian(
+    f!, y, ::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
+) where {C}
+    config = JacobianConfig(y, x)
+    return ReverseDiffTwoArgJacobianPrep(; config=config, tape=nothing)
+end
+
+function DI.value_and_jacobian(
+    f!,
+    y,
+    prep::ReverseDiffTwoArgJacobianPrep,
+    ::AutoReverseDiff,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    jac = similar(y, length(y), length(x))
+    result = MutableDiffResult(y, (jac,))
+    result = jacobian!(result, fc!, y, x, prep.config)
+    return DiffResults.value(result), DiffResults.derivative(result)
+end
+
+function DI.value_and_jacobian!(
+    f!,
+    y,
+    jac,
+    prep::ReverseDiffTwoArgJacobianPrep,
+    ::AutoReverseDiff,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    result = MutableDiffResult(y, (jac,))
+    result = jacobian!(result, fc!, y, x, prep.config)
+    return DiffResults.value(result), DiffResults.derivative(result)
+end
+
+function DI.jacobian(
+    f!,
+    y,
+    prep::ReverseDiffTwoArgJacobianPrep,
+    ::AutoReverseDiff,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    jac = jacobian(fc!, y, x, prep.config)
+    return jac
+end
+
+function DI.jacobian!(
+    f!,
+    y,
+    jac,
+    prep::ReverseDiffTwoArgJacobianPrep,
+    ::AutoReverseDiff,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    fc! = DI.with_contexts(f!, contexts...)
+    jac = jacobian!(jac, fc!, y, x, prep.config)
     return jac
 end

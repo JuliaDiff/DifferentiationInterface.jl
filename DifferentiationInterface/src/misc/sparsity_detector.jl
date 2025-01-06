@@ -73,7 +73,7 @@ struct DenseSparsityDetector{method,B} <: ADTypes.AbstractSparsityDetector
 end
 
 function Base.show(io::IO, detector::DenseSparsityDetector{method}) where {method}
-    @compat (; backend, atol) = detector
+    (; backend, atol) = detector
     return print(
         io,
         DenseSparsityDetector,

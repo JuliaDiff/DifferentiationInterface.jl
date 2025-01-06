@@ -5,14 +5,14 @@ end
 
 CallCounter(f::F) where {F} = CallCounter{F}(f, Ref(0))
 
-function (cc::CallCounter)(x)
+function (cc::CallCounter)(x, args...)
     cc.count[] += 1
-    return cc.f(x)
+    return cc.f(x, args...)
 end
 
-function (cc::CallCounter)(y, x)
+function (cc::CallCounter)(y, x, args...)
     cc.count[] += 1
-    return cc.f(y, x)
+    return cc.f(y, x, args...)
 end
 
 function reset_count!(cc::CallCounter)
@@ -22,7 +22,7 @@ function reset_count!(cc::CallCounter)
 end
 
 function failed_bench()
-    evals = 0
+    evals = 0.0
     time = NaN
     allocs = NaN
     bytes = NaN
@@ -45,24 +45,10 @@ function failed_bench()
     return Benchmark([sample])
 end
 
-function failed_benchs(k::Integer)
-    return ntuple(i -> failed_bench(), k)
-end
-
 """
     DifferentiationBenchmarkDataRow
 
 Ad-hoc storage type for differentiation benchmarking results.
-
-If you have a vector `rows::Vector{DifferentiationBenchmarkDataRow}`, you can turn it into a `DataFrame` as follows:
-
-```julia
-using DataFrames
-
-df = DataFrame(rows)
-```
-
-The resulting `DataFrame` will have one column for each of the following fields.
 
 #  Fields
 
@@ -70,52 +56,56 @@ $(TYPEDFIELDS)
 
 See the documentation of [Chairmarks.jl](https://github.com/LilithHafner/Chairmarks.jl) for more details on the measurement fields.
 """
-Base.@kwdef struct DifferentiationBenchmarkDataRow
+Base.@kwdef struct DifferentiationBenchmarkDataRow{T}
     "backend used for benchmarking"
     backend::AbstractADType
     "scenario used for benchmarking"
     scenario::Scenario
     "differentiation operator used for benchmarking, e.g. `:gradient` or `:hessian`"
     operator::Symbol
+    "whether the operator had been prepared"
+    prepared::Union{Nothing,Bool}
     "number of calls to the differentiated function for one call to the operator"
     calls::Int
     "number of benchmarking samples taken"
     samples::Int
     "number of evaluations used for averaging in each sample"
     evals::Int
-    "minimum runtime over all samples, in seconds"
-    time::Float64
-    "minimum number of allocations over all samples"
-    allocs::Float64
-    "minimum memory allocated over all samples, in bytes"
-    bytes::Float64
-    "minimum fraction of time spent in garbage collection over all samples, between 0.0 and 1.0"
-    gc_fraction::Float64
-    "minimum fraction of time spent compiling over all samples, between 0.0 and 1.0"
-    compile_fraction::Float64
+    "aggregated runtime over all samples, in seconds"
+    time::T
+    "aggregated number of allocations over all samples"
+    allocs::T
+    "aggregated memory allocated over all samples, in bytes"
+    bytes::T
+    "aggregated fraction of time spent in garbage collection over all samples, between 0.0 and 1.0"
+    gc_fraction::T
+    "aggregated fraction of time spent compiling over all samples, between 0.0 and 1.0"
+    compile_fraction::T
 end
 
 function record!(
-    data::Vector{DifferentiationBenchmarkDataRow},
+    data::Vector{DifferentiationBenchmarkDataRow};
     backend::AbstractADType,
     scenario::Scenario,
-    operator,
+    operator::String,
+    prepared::Union{Nothing,Bool},
     bench::Benchmark,
     calls::Integer,
+    aggregation,
 )
-    bench_min = minimum(bench)
     row = DifferentiationBenchmarkDataRow(;
         backend=backend,
         scenario=scenario,
         operator=Symbol(operator),
+        prepared=prepared,
         calls=calls,
         samples=length(bench.samples),
-        evals=Int(bench_min.evals),
-        time=bench_min.time,
-        allocs=bench_min.allocs,
-        bytes=bench_min.bytes,
-        gc_fraction=bench_min.gc_fraction,
-        compile_fraction=bench_min.compile_fraction,
+        evals=Int(bench.samples[1].evals),
+        time=aggregation(getfield.(bench.samples, :time)),
+        allocs=aggregation(getfield.(bench.samples, :allocs)),
+        bytes=aggregation(getfield.(bench.samples, :bytes)),
+        gc_fraction=aggregation(getfield.(bench.samples, :gc_fraction)),
+        compile_fraction=aggregation(getfield.(bench.samples, :compile_fraction)),
     )
     return push!(data, row)
 end

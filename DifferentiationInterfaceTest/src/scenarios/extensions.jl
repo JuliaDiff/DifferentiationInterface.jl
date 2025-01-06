@@ -1,5 +1,5 @@
 """
-    static_scenarios(rng=Random.default_rng())
+    static_scenarios()
 
 Create a vector of [`Scenario`](@ref)s with static array types from [StaticArrays.jl](https://github.com/JuliaArrays/StaticArrays.jl).
 
@@ -9,7 +9,7 @@ Create a vector of [`Scenario`](@ref)s with static array types from [StaticArray
 function static_scenarios end
 
 """
-    component_scenarios(rng=Random.default_rng())
+    component_scenarios()
 
 Create a vector of [`Scenario`](@ref)s with component array types from [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 
@@ -19,7 +19,7 @@ Create a vector of [`Scenario`](@ref)s with component array types from [Componen
 function component_scenarios end
 
 """
-    gpu_scenarios(rng=Random.default_rng())
+    gpu_scenarios()
 
 Create a vector of [`Scenario`](@ref)s with GPU array types from [JLArrays.jl](https://github.com/JuliaGPU/GPUArrays.jl/tree/master/lib/JLArrays).
 
@@ -50,23 +50,15 @@ Approximate comparison function to use in correctness tests with gradients of Fl
 function flux_isapprox end
 
 """
-    flux_isequal(x, y)
-
-Exact comparison function to use in correctness tests with gradients of Flux.jl networks.
-"""
-function flux_isequal end
-
-"""
     lux_scenarios(rng=Random.default_rng())
 
 Create a vector of [`Scenario`](@ref)s with neural networks from [Lux.jl](https://github.com/LuxDL/Lux.jl).
 
 !!! warning
-    This function requires ComponentArrays.jl, FiniteDiff.jl, Lux.jl and LuxTestUtils.jl to be loaded (it is implemented in a package extension).
+    This function requires ComponentArrays.jl, ForwardDiff.jl, Lux.jl and LuxTestUtils.jl to be loaded (it is implemented in a package extension).
 
 !!! danger
     These scenarios are still experimental and not part of the public API.
-    Their ground truth values are computed with finite differences, and thus subject to imprecision.
 """
 function lux_scenarios end
 
@@ -76,10 +68,3 @@ function lux_scenarios end
 Approximate comparison function to use in correctness tests with gradients of Lux.jl networks.
 """
 function lux_isapprox end
-
-"""
-    lux_isequal(x, y)
-
-Exact comparison function to use in correctness tests with gradients of Lux.jl networks.
-"""
-function lux_isequal end

@@ -1,23 +1,40 @@
 using Pkg
-Pkg.add("ReverseDiff")
+Pkg.add(["ForwardDiff", "ReverseDiff"])  # ForwardDiff already in ReverseDiff's deps
 
 using DifferentiationInterface, DifferentiationInterfaceTest
-using DifferentiationInterface: AutoReverseFromPrimitive
+using ForwardDiff: ForwardDiff
 using ReverseDiff: ReverseDiff
 using StaticArrays: StaticArrays
 using Test
 
+using ExplicitImports
+check_no_implicit_imports(DifferentiationInterface)
+
 LOGGING = get(ENV, "CI", "false") == "false"
 
-dense_backends = [AutoReverseDiff(; compile=false), AutoReverseDiff(; compile=true)]
+backends = [AutoReverseDiff(; compile=false), AutoReverseDiff(; compile=true)]
+second_order_backends = [SecondOrder(AutoForwardDiff(), AutoReverseDiff())]
 
-fromprimitive_backends = [AutoReverseFromPrimitive(AutoReverseDiff())]
-
-for backend in vcat(dense_backends, fromprimitive_backends)
+for backend in vcat(backends, second_order_backends)
     @test check_available(backend)
     @test check_inplace(backend)
 end
 
-test_differentiation(vcat(dense_backends, fromprimitive_backends); logging=LOGGING);
+## Dense
 
-test_differentiation(AutoReverseDiff(), static_scenarios(); logging=LOGGING);
+test_differentiation(
+    vcat(backends, second_order_backends),
+    default_scenarios(; include_constantified=true);
+    logging=LOGGING,
+);
+
+test_differentiation(backends, static_scenarios(); logging=LOGGING);
+
+## Sparse
+
+test_differentiation(
+    MyAutoSparse.(vcat(backends, second_order_backends)),
+    sparse_scenarios();
+    sparsity=true,
+    logging=LOGGING,
+);
