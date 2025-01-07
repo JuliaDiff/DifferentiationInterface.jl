@@ -45,9 +45,6 @@ test_differentiation(
     backend = AutoReverseDiff()
     u0 = [1.0; 0.0; 0.0]
     prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
-    @test overloaded_inputs(prep) == ReverseDiff.TrackedReal{
-        Float64,
-        Float64,
-        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}},
-    }
+    @test typeof(overloaded_inputs(prep)) ==
+        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
 end;

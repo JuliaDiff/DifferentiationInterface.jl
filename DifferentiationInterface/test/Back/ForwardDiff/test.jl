@@ -110,5 +110,10 @@ end;
     backend = AutoForwardDiff()
     u0 = [1.0; 0.0; 0.0]
     prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
-    @test overloaded_inputs(prep) == ForwardDiff.Dual{Nothing,Float64,3}
+    @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,3}}
+
+    backend = MyAutoSparse(AutoForwardDiff())
+    prep = DI.prepare_jacobian(copyto!, similar(u0), backend, u0)
+    @test typeof(overloaded_inputs(prep)) ==
+        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,1}}
 end;
