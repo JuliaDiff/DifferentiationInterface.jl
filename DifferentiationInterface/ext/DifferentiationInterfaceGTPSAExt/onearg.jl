@@ -40,10 +40,10 @@ function DI.pushforward(
     x, 
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {C} 
     fc = DI.with_contexts(f, contexts...)
     ty = map(tx) do dx
-        initialize!(prep.xt, x, dx, 1)
+        foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
         yt = fc(prep.xt)
         if yt isa Number
             return yt[1]
@@ -67,7 +67,7 @@ function DI.pushforward!(
     fc = DI.with_contexts(f, contexts...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        initialize!(prep.xt, x, dx, 1)
+        foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
         yt = fc(prep.xt)
         map!(t -> t[1], dy, yt)
     end
@@ -93,7 +93,7 @@ function DI.value_and_pushforward!(
     f, 
     ty::NTuple, 
     prep::GTPSAOneArgPushforwardPrep, 
-    ::AutoGTPSA, 
+    backend::AutoGTPSA, 
     x, 
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
@@ -121,7 +121,6 @@ function DI.prepare_gradient(
 
     if D != Nothing
         d = backend.descriptor
-        length(x) == GTPSA.numnn(d) || error("Number of variables + parameters in Descriptor disagrees with function number of inputs!")
     else
         d = Descriptor(length(x), 1) # n variables to first order
     end
@@ -158,7 +157,7 @@ function DI.gradient(
         return yt[1]
     else
         grad = similar(x, GTPSA.numtype(yt))
-        GTPSA.gradient!(grad, yt; include_params=true)
+        GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
         return grad
     end
 end
@@ -174,7 +173,7 @@ function DI.gradient!(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
-    GTPSA.gradient!(grad, yt; include_params=true)
+    GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
     return grad
 end
 
@@ -192,7 +191,7 @@ function DI.value_and_gradient(
         return yt[0], yt[1]
     else
         grad = similar(x, GTPSA.numtype(yt))
-        GTPSA.gradient!(grad, yt; include_params=true)
+        GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
         return yt[0], grad
     end
 end
@@ -208,7 +207,7 @@ function DI.value_and_gradient!(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part (slopes set in prepare)
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
-    GTPSA.gradient!(grad, yt; include_params=true)
+    GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
     return yt[0], grad
 end
 
@@ -227,7 +226,6 @@ function DI.prepare_jacobian(
 ) where {D,C}
     if D != Nothing
         d = backend.descriptor
-        length(x) == GTPSA.numnn(d) || error("Number of variables + parameters in Descriptor disagrees with function number of inputs!")
     else
         d = Descriptor(length(x), 1) # n variables to first order
     end
@@ -254,7 +252,7 @@ function DI.jacobian(
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
     jac = similar(x, GTPSA.numtype(eltype(yt)), (length(yt), length(x)))
-    GTPSA.jacobian!(jac, yt; include_params=true)
+    GTPSA.jacobian!(jac, yt; include_params=true, unsafe_size=true)
     return jac
 end
 
@@ -269,7 +267,7 @@ function DI.jacobian!(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
-    GTPSA.jacobian!(jac, yt; include_params=true)
+    GTPSA.jacobian!(jac, yt; include_params=true, unsafe_size=true)
     return jac
 end
 
@@ -285,7 +283,7 @@ function DI.value_and_jacobian(
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
     jac = similar(x, GTPSA.numtype(eltype(yt)), (length(yt), length(x)))
-    GTPSA.jacobian!(jac, yt; include_params=true)
+    GTPSA.jacobian!(jac, yt; include_params=true, unsafe_size=true)
     y = map(t -> t[0], yt)
     return y, jac
 end
@@ -301,7 +299,7 @@ function DI.value_and_jacobian!(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
-    GTPSA.jacobian!(jac, yt; include_params=true)
+    GTPSA.jacobian!(jac, yt; include_params=true, unsafe_size=true)
     y = map(t -> t[0], yt)
     return y, jac
 end
@@ -332,19 +330,25 @@ end
 function DI.second_derivative(
     f, 
     prep::GTPSAOneArgSecondDerivativePrep, 
-    ::AutoGTPSA, 
+    backend::AutoGTPSA{D}, 
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {D,C}
     prep.xt[0] = x
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
+    if D == Nothing
+        idx2 = 2
+    else
+        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+    end
+
     if yt isa Number
-        return yt[2] * 2
+        return yt[idx2] * 2
     else
         der2 = similar(yt, GTPSA.numtype(eltype(yt)))
         for i in eachindex(yt)
-            der2[i] = yt[i][2] * 2 # *2 because monomial coefficient is 1/2
+            der2[i] = yt[i][idx2] * 2 # *2 because monomial coefficient is 1/2
         end
         return der2
     end
@@ -354,15 +358,20 @@ function DI.second_derivative!(
     f, 
     der2,
     prep::GTPSAOneArgSecondDerivativePrep, 
-    ::AutoGTPSA, 
+    backend::AutoGTPSA{D}, 
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {D,C}
     prep.xt[0] = x
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
+    if D == Nothing
+        idx2 = 2
+    else
+        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+    end
     for i in eachindex(yt)
-        der2[i] = yt[i][2] * 2
+        der2[i] = yt[i][idx2] * 2
     end
     return der2
 end
@@ -370,22 +379,27 @@ end
 function DI.value_derivative_and_second_derivative(
     f, 
     prep::GTPSAOneArgSecondDerivativePrep, 
-    ::AutoGTPSA, 
+    backend::AutoGTPSA{D}, 
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {D,C}
     prep.xt[0] = x
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
+    if D == Nothing
+        idx2 = 2
+    else
+        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+    end
     if yt isa Number
-        return yt[0], yt[1], yt[2] * 2
+        return yt[0], yt[1], yt[idx2] * 2
     else
         y = map(t -> t[0], yt)
         der = similar(yt, GTPSA.numtype(eltype(yt)))
         der2 = similar(yt, GTPSA.numtype(eltype(yt)))
         for i in eachindex(yt)
             der[i] = yt[i][1]
-            der2[i] = yt[i][2] * 2
+            der2[i] = yt[i][idx2] * 2
         end
         return y, der, der2
     end
@@ -396,17 +410,22 @@ function DI.value_derivative_and_second_derivative!(
     der,
     der2,
     prep::GTPSAOneArgSecondDerivativePrep, 
-    ::AutoGTPSA, 
+    backend::AutoGTPSA{D}, 
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {D,C}
     prep.xt[0] = x
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
     y = map(t -> t[0], yt)
+    if D == Nothing
+        idx2 = 2
+    else
+        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+    end
     for i in eachindex(yt)
         der[i] = yt[i][1]
-        der2[i] = yt[i][2] * 2
+        der2[i] = yt[i][idx2] * 2
     end
     return y, der, der2
 end
@@ -427,9 +446,7 @@ function DI.prepare_hessian(
 ) where {D,C}
     if D != Nothing
         d = backend.descriptor
-        nn = GTPSA.numnn(d)
-        length(x) == nn || error("Number of variables + parameters in Descriptor disagrees with function number of inputs!")
-        m = Vector{UInt8}(undef, nn)
+        m = Vector{UInt8}(undef, length(x))
     else
         nn = length(x)
         d = Descriptor(nn, 2)
@@ -462,10 +479,10 @@ function DI.hessian(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
-    hess = similar(x, GTPSA.numtype(eltype(yt)), (length(x), length(x)))
+    hess = similar(x, GTPSA.numtype(yt), (length(x), length(x)))
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess, yt; include_params=true, unsafe_size=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
     )
     return hess
 end
@@ -483,7 +500,7 @@ function DI.hessian!(
     yt = fc(prep.xt)
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess, yt; include_params=true, unsafe_size=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
     )
     return hess
 end
@@ -499,15 +516,14 @@ function DI.value_gradient_and_hessian(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
-    y = map(t -> t[0], yt)
-    grad = similar(x, GTPSA.numtype(eltype(yt)))
-    GTPSA.gradient!(grad, yt; include_params=true)
-    hess = similar(x, GTPSA.numtype(eltype(yt)), (length(x), length(x)))
+    grad = similar(x, GTPSA.numtype(yt))
+    GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
+    hess = similar(x, GTPSA.numtype(yt), (length(x), length(x)))
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess, yt; include_params=true, unsafe_size=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
     )
-    return y, grad, hess
+    return yt[0], grad, hess
 end
 
 
@@ -523,13 +539,12 @@ function DI.value_gradient_and_hessian!(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
-    y = map(t -> t[0], yt)
-    GTPSA.gradient!(grad, yt; include_params=true)
+    GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess, yt; include_params=true, unsafe_size=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
     )
-    return y, grad, hess
+    return yt[0], grad, hess
 end
 
 struct GTPSAOneArgHVPPrep{E,H} <: DI.HVPPrep
@@ -559,6 +574,7 @@ function DI.hvp(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.hessian!(f, prep.hess, prep.hessprep, backend, x, contexts...)
+    #return prep.hess
     tg = map(tx) do dx
         dg = similar(x, eltype(prep.hess))
         dg .= 0
@@ -584,7 +600,7 @@ function DI.hvp!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.hessian!(f, prep.hess, prep.hessprep, backend, x, contexts...)
-    for b in eachindex(tg.d)
+    for b in eachindex(tg)
         dx, dg = tx[b], tg[b]
         dg .= 0
         j = 1
@@ -596,4 +612,67 @@ function DI.hvp!(
         end
     end
     return tg
+end
+
+function DI.gradient_and_hvp(    
+    f, 
+    prep::GTPSAOneArgHVPPrep, 
+    ::AutoGTPSA{D}, 
+    x, 
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {D,C}
+    fc = DI.with_contexts(f, contexts...)
+    yt = fc(prep.hessprep.xt)
+    grad = similar(x, GTPSA.numtype(yt))
+    GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
+    unsafe_fast = D == Nothing ? true : false
+    GTPSA.hessian!(
+        prep.hess, yt; include_params=true, unsafe_size=true, unsafe_fast=unsafe_fast, tmp_mono=prep.hessprep.m
+    )
+    tg = map(tx) do dx
+        dg = similar(x, eltype(prep.hess))
+        dg .= 0
+        j = 1
+        for dxi in dx
+            for i in 1:size(prep.hess, 2)
+                dg[i] += prep.hess[i, j] * dxi
+            end
+            j += 1
+        end
+        return dg
+    end
+    return grad, tg
+end
+
+function DI.gradient_and_hvp!(    
+    f, 
+    grad,
+    tg,
+    prep::GTPSAOneArgHVPPrep, 
+    ::AutoGTPSA{D}, 
+    x, 
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {D,C}
+    fc = DI.with_contexts(f, contexts...)
+    yt = fc(prep.hessprep.xt)
+    GTPSA.gradient!(grad, yt; include_params=true, unsafe_size=true)
+    unsafe_fast = D == Nothing ? true : false
+    GTPSA.hessian!(
+        prep.hess, yt; include_params=true, unsafe_size=true, unsafe_fast=unsafe_fast, tmp_mono=prep.hessprep.m
+    )
+    for b in eachindex(tg, tx)
+        dg, dx = tg[b], tx[b]
+        dg .= 0
+        j = 1
+        for dxi in dx
+            for i in 1:size(prep.hess, 2)
+                dg[i] += prep.hess[i, j] * dxi
+            end
+            j += 1
+        end
+        return dg
+    end
+    return grad, tg
 end
