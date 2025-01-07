@@ -109,9 +109,14 @@ end;
 @testset verbose = true "Overload inputs" begin
     backend = AutoForwardDiff()
     u0 = [1.0; 0.0; 0.0]
+    # One Arg
+    prep = DI.prepare_jacobian(nothing, backend, u0)
+    @test typeof(overloaded_inputs(prep)) == ForwardDiff.Dual{Nothing,Float64,3}
+    # Two Arg
     prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
     @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,3}}
 
+    # Sparse backend
     backend = MyAutoSparse(AutoForwardDiff())
     prep = DI.prepare_jacobian(copyto!, similar(u0), backend, u0)
     @test typeof(overloaded_inputs(prep)) ==

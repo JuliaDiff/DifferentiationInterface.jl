@@ -175,6 +175,6 @@ Base.Bool(::PullbackSlow) = false
 """
     overload_inputs(prep)
 
-Return the Dual number types for operator-overloading preparation `prep`.
+Return the Dualized array for operator-overloading preparation `prep`.
 """
 function overloaded_inputs end
