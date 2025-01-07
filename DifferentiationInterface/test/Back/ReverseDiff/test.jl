@@ -2,6 +2,7 @@ using Pkg
 Pkg.add(["ForwardDiff", "ReverseDiff"])  # ForwardDiff already in ReverseDiff's deps
 
 using DifferentiationInterface, DifferentiationInterfaceTest
+import DifferentiationInterface as DI
 using ForwardDiff: ForwardDiff
 using ReverseDiff: ReverseDiff
 using StaticArrays: StaticArrays
