@@ -45,11 +45,17 @@ test_differentiation(
 @testset verbose = true "Overload inputs" begin
     backend = AutoReverseDiff()
     u0 = [1.0; 0.0; 0.0]
-    # One Arg
+    # Gradient
+    prep = DI.prepare_gradient(nothing, backend, u0)
+    @test typeof(overloaded_inputs(prep)) ==
+        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
+
+    # Jacobian
+    ## One Arg
     prep = DI.prepare_jacobian(nothing, backend, u0)
     @test typeof(overloaded_inputs(prep)) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
-    # Two Arg
+    ## Two Arg
     prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
     @test typeof(overloaded_inputs(prep)) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}

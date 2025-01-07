@@ -108,11 +108,28 @@ end;
 ## Overloaded inputs
 @testset verbose = true "Overload inputs" begin
     backend = AutoForwardDiff()
-    u0 = [1.0; 0.0; 0.0]
-    # One Arg
+
+    # Derivative
+    u0 = 1.0
+    u1 = [1.0, 1.0]
+    ## One Arg
+    prep = DI.prepare_derivative(nothing, backend, u0)
+    @test overloaded_inputs(prep) == ForwardDiff.Dual{Nothing}(1.0, 1.0)
+    ## Two Arg
+    prep = DI.prepare_derivative(nothing, u1, backend, u0)
+    @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,1}}
+
+    # Gradient
+    u0 = [1.0, 1.0]
+    prep = DI.prepare_gradient(nothing, backend, u0)
+    @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,2}}
+
+    # Jacobian
+    u0 = [1.0, 0.0, 0.0]
+    ## One Arg
     prep = DI.prepare_jacobian(nothing, backend, u0)
     @test typeof(overloaded_inputs(prep)) == ForwardDiff.Dual{Nothing,Float64,3}
-    # Two Arg
+    ## Two Arg
     prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
     @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,3}}
 
