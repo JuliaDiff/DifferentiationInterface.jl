@@ -195,7 +195,7 @@ function DI.value_and_jacobian(
     return y, jac
 end
 
-function DI.value_and_jacobian(
+function DI.value_and_jacobian!(
     f!, 
     y,
     jac,
