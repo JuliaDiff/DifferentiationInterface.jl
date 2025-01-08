@@ -161,7 +161,7 @@ function DI.jacobian(
     fc! = DI.with_contexts(f!, contexts...)
     fc!(prep.yt, prep.xt)
     jac = similar(x, GTPSA.numtype(eltype(prep.yt)), (length(prep.yt), length(x)))
-    GTPSA.jacobian!(jac, prep.yt; include_params=true, unsafe_size=true)
+    GTPSA.jacobian!(jac, prep.yt; include_params=true, unsafe_inbounds=true)
     map!(t -> t[0], y, prep.yt)
     return jac
 end
@@ -178,7 +178,7 @@ function DI.jacobian!(
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc! = DI.with_contexts(f!, contexts...)
     fc!(prep.yt, prep.xt)
-    GTPSA.jacobian!(jac, prep.yt; include_params=true, unsafe_size=true)
+    GTPSA.jacobian!(jac, prep.yt; include_params=true, unsafe_inbounds=true)
     map!(t -> t[0], y, prep.yt)
     return jac
 end

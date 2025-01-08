@@ -143,7 +143,12 @@ For higher level operators, preparation creates a [config object](https://juliad
 
 ### GTPSA
 
-TO-DO
+For all operators, preparation preallocates the input [`TPS`s](https://bmad-sim.github.io/GTPSA.jl/stable/man/d_tps/), and for in-place functions the output `TPS`s as well. For minimal allocations of `TPS` temporaries inside of a function, the [`@FastGTPSA`/`@FastGTPSA!`](https://bmad-sim.github.io/GTPSA.jl/stable/man/k_fastgtpsa/) macros are recommended.
+
+If a GTPSA [`Descriptor`](https://bmad-sim.github.io/GTPSA.jl/stable/man/c_descriptor/) is not provided to `AutoGTPSA`, then a `Descriptor` will be generated in preparation based on the context.
+
+!!! danger
+    When providing a custom GTPSA `Descriptor` to `AutoGTPSA`, it is the responsibility of the user to ensure that the number of variables + parameters is not less than the number of inputs of the provided function. Undefined behavior and crashes may occur if this is not the case.
 
 ### PolyesterForwardDiff
 
