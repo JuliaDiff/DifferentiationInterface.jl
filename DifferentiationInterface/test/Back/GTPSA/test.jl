@@ -16,11 +16,11 @@ end
 test_differentiation(AutoGTPSA(); type_stability=:full, logging=LOGGING);
 
 # Test with Descriptor:
-d1 = Descriptor(20, 2) # 20 variables to 2nd order
+d1 = GTPSA.Descriptor(20, 2) # 20 variables to 2nd order
 test_differentiation(AutoGTPSA(d1); type_stability=:full, logging=LOGGING);
 
 # Test with Descriptor using varying orders 
 vos = 2*ones(Int, 20)
 vos[1] = 3
-d2 = Descriptor(vos, 3)
+d2 = GTPSA.Descriptor(vos, 3)
 test_differentiation(AutoGTPSA(d2); type_stability=:full, logging=LOGGING);
