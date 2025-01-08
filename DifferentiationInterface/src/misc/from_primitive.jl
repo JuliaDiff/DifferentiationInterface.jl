@@ -11,7 +11,7 @@ end
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
 inplace_support(fromprim::FromPrimitive) = inplace_support(fromprim.backend)
 
-function BatchSizeSettings(fromprim::FromPrimitive, x::AbstractArray)
+function BatchSizeSettings(fromprim::FromPrimitive, x::AbstractArray{<:Real})
     return BatchSizeSettings(fromprim.backend, x)
 end
 
