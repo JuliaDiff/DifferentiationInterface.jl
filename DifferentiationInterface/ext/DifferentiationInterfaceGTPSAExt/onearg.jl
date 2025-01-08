@@ -7,13 +7,9 @@ struct GTPSAOneArgPushforwardPrep{X} <: DI.PushforwardPrep
 end
 
 function DI.prepare_pushforward(
-    ::F, 
-    backend::AutoGTPSA{D}, 
-    x, 
-    tx::NTuple,
-    ::Vararg{DI.Context,C},
+    ::F, backend::AutoGTPSA{D}, x, tx::NTuple, ::Vararg{DI.Context,C}
 ) where {F,D,C}
-    
+
     # For pushforward/JVP, we only actually need 1 single variable (in the GTPSA sense)
     # because we even if we did multiple we will add up the derivatives of each at the end.
     if D != Nothing
@@ -34,13 +30,13 @@ function DI.prepare_pushforward(
 end
 
 function DI.pushforward(
-    f, 
-    prep::GTPSAOneArgPushforwardPrep, 
-    ::AutoGTPSA, 
-    x, 
+    f,
+    prep::GTPSAOneArgPushforwardPrep,
+    ::AutoGTPSA,
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C} 
+) where {C}
     fc = DI.with_contexts(f, contexts...)
     ty = map(tx) do dx
         foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
@@ -56,11 +52,11 @@ function DI.pushforward(
 end
 
 function DI.pushforward!(
-    f, 
-    ty::NTuple, 
-    prep::GTPSAOneArgPushforwardPrep, 
-    ::AutoGTPSA, 
-    x, 
+    f,
+    ty::NTuple,
+    prep::GTPSAOneArgPushforwardPrep,
+    ::AutoGTPSA,
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -75,14 +71,13 @@ function DI.pushforward!(
 end
 
 function DI.value_and_pushforward(
-    f, 
-    prep::GTPSAOneArgPushforwardPrep, 
-    backend::AutoGTPSA, 
-    x, 
+    f,
+    prep::GTPSAOneArgPushforwardPrep,
+    backend::AutoGTPSA,
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-
     fc = DI.with_contexts(f, contexts...)
     ty = DI.pushforward(fc, prep, backend, x, tx)
     y = fc(x) # TO-DO: optimize
@@ -90,11 +85,11 @@ function DI.value_and_pushforward(
 end
 
 function DI.value_and_pushforward!(
-    f, 
-    ty::NTuple, 
-    prep::GTPSAOneArgPushforwardPrep, 
-    backend::AutoGTPSA, 
-    x, 
+    f,
+    ty::NTuple,
+    prep::GTPSAOneArgPushforwardPrep,
+    backend::AutoGTPSA,
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -113,12 +108,8 @@ end
 
 # Unlike JVP, this requires us to use all variables 
 function DI.prepare_gradient(
-    f,
-    backend::AutoGTPSA{D},
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
 ) where {D,C}
-
     if D != Nothing
         d = backend.descriptor
     else
@@ -144,11 +135,7 @@ function DI.prepare_gradient(
 end
 
 function DI.gradient(
-    f, 
-    prep::GTPSAOneArgGradientPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::GTPSAOneArgGradientPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part (slopes set in prepare)
     fc = DI.with_contexts(f, contexts...)
@@ -163,12 +150,7 @@ function DI.gradient(
 end
 
 function DI.gradient!(
-    f, 
-    grad,
-    prep::GTPSAOneArgGradientPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, grad, prep::GTPSAOneArgGradientPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
@@ -178,11 +160,7 @@ function DI.gradient!(
 end
 
 function DI.value_and_gradient(
-    f, 
-    prep::GTPSAOneArgGradientPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::GTPSAOneArgGradientPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part (slopes set in prepare)
     fc = DI.with_contexts(f, contexts...)
@@ -197,12 +175,7 @@ function DI.value_and_gradient(
 end
 
 function DI.value_and_gradient!(
-    f, 
-    grad,
-    prep::GTPSAOneArgGradientPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, grad, prep::GTPSAOneArgGradientPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part (slopes set in prepare)
     fc = DI.with_contexts(f, contexts...)
@@ -219,10 +192,7 @@ end
 
 # To materialize the entire Jacobian we use all variables 
 function DI.prepare_jacobian(
-    f,
-    backend::AutoGTPSA{D},
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
 ) where {D,C}
     if D != Nothing
         d = backend.descriptor
@@ -242,11 +212,7 @@ function DI.prepare_jacobian(
 end
 
 function DI.jacobian(
-    f, 
-    prep::GTPSAOneArgJacobianPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::GTPSAOneArgJacobianPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
@@ -257,12 +223,7 @@ function DI.jacobian(
 end
 
 function DI.jacobian!(
-    f, 
-    jac,
-    prep::GTPSAOneArgJacobianPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, jac, prep::GTPSAOneArgJacobianPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
@@ -271,13 +232,8 @@ function DI.jacobian!(
     return jac
 end
 
-
 function DI.value_and_jacobian(
-    f, 
-    prep::GTPSAOneArgJacobianPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::GTPSAOneArgJacobianPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
@@ -289,12 +245,7 @@ function DI.value_and_jacobian(
 end
 
 function DI.value_and_jacobian!(
-    f, 
-    jac,
-    prep::GTPSAOneArgJacobianPrep, 
-    ::AutoGTPSA, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, jac, prep::GTPSAOneArgJacobianPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
@@ -304,7 +255,6 @@ function DI.value_and_jacobian!(
     return y, jac
 end
 
-
 ## Second derivative
 # Contains single pre-allocated TPS
 struct GTPSAOneArgSecondDerivativePrep{X} <: DI.SecondDerivativePrep
@@ -312,10 +262,7 @@ struct GTPSAOneArgSecondDerivativePrep{X} <: DI.SecondDerivativePrep
 end
 
 function DI.prepare_second_derivative(
-    f,
-    backend::AutoGTPSA{D},
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
 ) where {D,C}
     if D != Nothing
         d = backend.descriptor
@@ -328,9 +275,9 @@ function DI.prepare_second_derivative(
 end
 
 function DI.second_derivative(
-    f, 
-    prep::GTPSAOneArgSecondDerivativePrep, 
-    backend::AutoGTPSA{D}, 
+    f,
+    prep::GTPSAOneArgSecondDerivativePrep,
+    backend::AutoGTPSA{D},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
@@ -340,7 +287,7 @@ function DI.second_derivative(
     if D == Nothing
         idx2 = 2
     else
-        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+        idx2 = GTPSA.numnn(backend.descriptor) + 1 # index of first second derivative
     end
 
     if yt isa Number
@@ -355,10 +302,10 @@ function DI.second_derivative(
 end
 
 function DI.second_derivative!(
-    f, 
+    f,
     der2,
-    prep::GTPSAOneArgSecondDerivativePrep, 
-    backend::AutoGTPSA{D}, 
+    prep::GTPSAOneArgSecondDerivativePrep,
+    backend::AutoGTPSA{D},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
@@ -368,7 +315,7 @@ function DI.second_derivative!(
     if D == Nothing
         idx2 = 2
     else
-        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+        idx2 = GTPSA.numnn(backend.descriptor) + 1 # index of first second derivative
     end
     for i in eachindex(yt)
         der2[i] = yt[i][idx2] * 2
@@ -377,9 +324,9 @@ function DI.second_derivative!(
 end
 
 function DI.value_derivative_and_second_derivative(
-    f, 
-    prep::GTPSAOneArgSecondDerivativePrep, 
-    backend::AutoGTPSA{D}, 
+    f,
+    prep::GTPSAOneArgSecondDerivativePrep,
+    backend::AutoGTPSA{D},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
@@ -389,7 +336,7 @@ function DI.value_derivative_and_second_derivative(
     if D == Nothing
         idx2 = 2
     else
-        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+        idx2 = GTPSA.numnn(backend.descriptor) + 1 # index of first second derivative
     end
     if yt isa Number
         return yt[0], yt[1], yt[idx2] * 2
@@ -406,11 +353,11 @@ function DI.value_derivative_and_second_derivative(
 end
 
 function DI.value_derivative_and_second_derivative!(
-    f, 
+    f,
     der,
     der2,
-    prep::GTPSAOneArgSecondDerivativePrep, 
-    backend::AutoGTPSA{D}, 
+    prep::GTPSAOneArgSecondDerivativePrep,
+    backend::AutoGTPSA{D},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
@@ -421,7 +368,7 @@ function DI.value_derivative_and_second_derivative!(
     if D == Nothing
         idx2 = 2
     else
-        idx2 = GTPSA.numnn(backend.descriptor)+1 # index of first second derivative
+        idx2 = GTPSA.numnn(backend.descriptor) + 1 # index of first second derivative
     end
     for i in eachindex(yt)
         der[i] = yt[i][1]
@@ -439,10 +386,7 @@ struct GTPSAOneArgHessianPrep{X,M} <: DI.HessianPrep
 end
 
 function DI.prepare_hessian(
-    f,
-    backend::AutoGTPSA{D},
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
 ) where {D,C}
     if D != Nothing
         d = backend.descriptor
@@ -470,11 +414,7 @@ function DI.prepare_hessian(
 end
 
 function DI.hessian(
-    f, 
-    prep::GTPSAOneArgHessianPrep, 
-    ::AutoGTPSA{D}, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::GTPSAOneArgHessianPrep, ::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
 ) where {D,C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
@@ -482,36 +422,36 @@ function DI.hessian(
     hess = similar(x, GTPSA.numtype(yt), (length(x), length(x)))
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_inbounds=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess,
+        yt;
+        include_params=true,
+        unsafe_inbounds=true,
+        unsafe_fast=unsafe_fast,
+        tmp_mono=prep.m,
     )
     return hess
 end
 
 function DI.hessian!(
-    f, 
-    hess,
-    prep::GTPSAOneArgHessianPrep, 
-    ::AutoGTPSA{D}, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, hess, prep::GTPSAOneArgHessianPrep, ::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
 ) where {D,C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
     yt = fc(prep.xt)
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_inbounds=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess,
+        yt;
+        include_params=true,
+        unsafe_inbounds=true,
+        unsafe_fast=unsafe_fast,
+        tmp_mono=prep.m,
     )
     return hess
 end
 
-
 function DI.value_gradient_and_hessian(
-    f, 
-    prep::GTPSAOneArgHessianPrep, 
-    ::AutoGTPSA{D}, 
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::GTPSAOneArgHessianPrep, ::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
 ) where {D,C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc = DI.with_contexts(f, contexts...)
@@ -521,18 +461,22 @@ function DI.value_gradient_and_hessian(
     hess = similar(x, GTPSA.numtype(yt), (length(x), length(x)))
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_inbounds=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess,
+        yt;
+        include_params=true,
+        unsafe_inbounds=true,
+        unsafe_fast=unsafe_fast,
+        tmp_mono=prep.m,
     )
     return yt[0], grad, hess
 end
 
-
 function DI.value_gradient_and_hessian!(
-    f, 
+    f,
     grad,
     hess,
-    prep::GTPSAOneArgHessianPrep, 
-    ::AutoGTPSA{D}, 
+    prep::GTPSAOneArgHessianPrep,
+    ::AutoGTPSA{D},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
@@ -542,7 +486,12 @@ function DI.value_gradient_and_hessian!(
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        hess, yt; include_params=true, unsafe_inbounds=true, unsafe_fast=unsafe_fast, tmp_mono=prep.m
+        hess,
+        yt;
+        include_params=true,
+        unsafe_inbounds=true,
+        unsafe_fast=unsafe_fast,
+        tmp_mono=prep.m,
     )
     return yt[0], grad, hess
 end
@@ -553,11 +502,7 @@ struct GTPSAOneArgHVPPrep{E,H} <: DI.HVPPrep
 end
 
 function DI.prepare_hvp(
-    f,
-    backend::AutoGTPSA,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
+    f, backend::AutoGTPSA, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
     hessprep = DI.prepare_hessian(f, backend, x)
     fc = DI.with_contexts(f, contexts...)
@@ -565,11 +510,11 @@ function DI.prepare_hvp(
     return GTPSAOneArgHVPPrep(hessprep, hess)
 end
 
-function DI.hvp(    
-    f, 
-    prep::GTPSAOneArgHVPPrep, 
-    backend::AutoGTPSA, 
-    x, 
+function DI.hvp(
+    f,
+    prep::GTPSAOneArgHVPPrep,
+    backend::AutoGTPSA,
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -591,11 +536,11 @@ function DI.hvp(
 end
 
 function DI.hvp!(
-    f, 
+    f,
     tg::NTuple,
-    prep::GTPSAOneArgHVPPrep, 
-    backend::AutoGTPSA, 
-    x, 
+    prep::GTPSAOneArgHVPPrep,
+    backend::AutoGTPSA,
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -614,11 +559,11 @@ function DI.hvp!(
     return tg
 end
 
-function DI.gradient_and_hvp(    
-    f, 
-    prep::GTPSAOneArgHVPPrep, 
-    ::AutoGTPSA{D}, 
-    x, 
+function DI.gradient_and_hvp(
+    f,
+    prep::GTPSAOneArgHVPPrep,
+    ::AutoGTPSA{D},
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
@@ -629,7 +574,12 @@ function DI.gradient_and_hvp(
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        prep.hess, yt; include_params=true, unsafe_inbounds=true, unsafe_fast=unsafe_fast, tmp_mono=prep.hessprep.m
+        prep.hess,
+        yt;
+        include_params=true,
+        unsafe_inbounds=true,
+        unsafe_fast=unsafe_fast,
+        tmp_mono=prep.hessprep.m,
     )
     tg = map(tx) do dx
         dg = similar(x, eltype(prep.hess))
@@ -646,13 +596,13 @@ function DI.gradient_and_hvp(
     return grad, tg
 end
 
-function DI.gradient_and_hvp!(    
-    f, 
+function DI.gradient_and_hvp!(
+    f,
     grad,
     tg,
-    prep::GTPSAOneArgHVPPrep, 
-    ::AutoGTPSA{D}, 
-    x, 
+    prep::GTPSAOneArgHVPPrep,
+    ::AutoGTPSA{D},
+    x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
@@ -662,7 +612,12 @@ function DI.gradient_and_hvp!(
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
-        prep.hess, yt; include_params=true, unsafe_inbounds=true, unsafe_fast=unsafe_fast, tmp_mono=prep.hessprep.m
+        prep.hess,
+        yt;
+        include_params=true,
+        unsafe_inbounds=true,
+        unsafe_fast=unsafe_fast,
+        tmp_mono=prep.hessprep.m,
     )
     for b in eachindex(tg, tx)
         dg, dx = tg[b], tx[b]
