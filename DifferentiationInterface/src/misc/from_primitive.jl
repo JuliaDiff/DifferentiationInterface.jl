@@ -1,10 +1,10 @@
 abstract type FromPrimitive <: AbstractADType end
 
-function basis(fromprim::FromPrimitive, x::AbstractArray, i)
+function basis(fromprim::FromPrimitive, x::AbstractArray{<:Real}, i)
     return basis(fromprim.backend, x, i)
 end
 
-function multibasis(fromprim::FromPrimitive, x::AbstractArray, inds)
+function multibasis(fromprim::FromPrimitive, x::AbstractArray{<:Real}, inds)
     return multibasis(fromprim.backend, x, inds)
 end
 
