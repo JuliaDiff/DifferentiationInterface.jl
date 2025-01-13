@@ -1,5 +1,4 @@
 ## Pushforward
-DI.overloaded_input_type_pushforward(f::F, backend, x, tx::NTuple, contexts::Vararg{C})
 DI.overloaded_input_type(prep::ForwardDiffOneArgPushforwardPrep) = typeof(prep.xdual_tmp)
 DI.overloaded_input_type(prep::ForwardDiffTwoArgPushforwardPrep) = typeof(prep.xdual_tmp)
 

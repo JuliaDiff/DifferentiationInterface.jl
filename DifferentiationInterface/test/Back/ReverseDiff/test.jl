@@ -45,17 +45,17 @@ test_differentiation(
 
     # Derivative
     x = 1.0
-    @test_skip DI.overloaded_input_type_derivative(copy, backend, x) ==
+    @test_skip DI.overloaded_input_type(prepare_derivative(copy, backend, x)) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
 
     # Gradient
     x = [1.0; 0.0; 0.0]
-    @test DI.overloaded_input_type_gradient(sum, backend, x) ==
+    @test DI.overloaded_input_type(prepare_gradient(sum, backend, x)) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
 
     # Jacobian
-    @test DI.overloaded_input_type_jacobian(copy, backend, x) ==
+    @test DI.overloaded_input_type(prepare_jacobian(copy, backend, x)) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
-    @test DI.overloaded_input_type_jacobian(copyto!, similar(x), backend, x) ==
+    @test DI.overloaded_input_type(prepare_jacobian(copyto!, similar(x), backend, x)) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
 end;
