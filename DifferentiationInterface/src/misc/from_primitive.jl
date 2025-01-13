@@ -1,17 +1,17 @@
 abstract type FromPrimitive <: AbstractADType end
 
-function basis(fromprim::FromPrimitive, x::AbstractArray, i)
+function basis(fromprim::FromPrimitive, x::AbstractArray{<:Real}, i)
     return basis(fromprim.backend, x, i)
 end
 
-function multibasis(fromprim::FromPrimitive, x::AbstractArray, inds)
+function multibasis(fromprim::FromPrimitive, x::AbstractArray{<:Real}, inds)
     return multibasis(fromprim.backend, x, inds)
 end
 
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
 inplace_support(fromprim::FromPrimitive) = inplace_support(fromprim.backend)
 
-function BatchSizeSettings(fromprim::FromPrimitive, x::AbstractArray)
+function BatchSizeSettings(fromprim::FromPrimitive, x::AbstractArray{<:Real})
     return BatchSizeSettings(fromprim.backend, x)
 end
 

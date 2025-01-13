@@ -26,7 +26,7 @@ using ReverseDiff:
 
 DI.check_available(::AutoReverseDiff) = true
 
-function DI.basis(::AutoReverseDiff, a::AbstractArray{T}, i) where {T}
+function DI.basis(::AutoReverseDiff, a::AbstractArray{T}, i) where {T<:Real}
     return DI.OneElement(i, one(T), a)
 end
 
