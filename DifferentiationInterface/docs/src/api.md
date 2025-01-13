@@ -131,12 +131,6 @@ DifferentiateWith
 DenseSparsityDetector
 ```
 
-### Get Dualized array
-
-```@docs
-overloaded_inputs
-```
-
 ## Internals
 
 The following is not part of the public API.

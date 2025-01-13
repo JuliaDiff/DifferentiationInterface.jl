@@ -40,23 +40,22 @@ test_differentiation(
     logging=LOGGING,
 );
 
-## Overloaded inputs
-
-@testset verbose = true "Overload inputs" begin
+@testset verbose = true "Overloaded inputs" begin
     backend = AutoReverseDiff()
-    u0 = [1.0; 0.0; 0.0]
+
+    # Derivative
+    x = 1.0
+    @test_skip DI.overloaded_input_type_derivative(copy, backend, x) ==
+        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
+
     # Gradient
-    prep = DI.prepare_gradient(nothing, backend, u0)
-    @test typeof(overloaded_inputs(prep)) ==
+    x = [1.0; 0.0; 0.0]
+    @test DI.overloaded_input_type_gradient(sum, backend, x) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
 
     # Jacobian
-    ## One Arg
-    prep = DI.prepare_jacobian(nothing, backend, u0)
-    @test typeof(overloaded_inputs(prep)) ==
+    @test DI.overloaded_input_type_jacobian(copy, backend, x) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
-    ## Two Arg
-    prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
-    @test typeof(overloaded_inputs(prep)) ==
+    @test DI.overloaded_input_type_jacobian(copyto!, similar(x), backend, x) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
 end;

@@ -1,5 +1,6 @@
-# Gradient
-DI.overloaded_inputs(prep::ReverseDiffGradientPrep) = prep.config.input
-# Jacobian
-DI.overloaded_inputs(prep::ReverseDiffOneArgJacobianPrep) = prep.config.input
-DI.overloaded_inputs(prep::ReverseDiffTwoArgJacobianPrep) = prep.config.input
+## Gradient
+DI.overloaded_input_type(prep::ReverseDiffGradientPrep) = typeof(prep.config.input)
+
+## Jacobian
+DI.overloaded_input_type(prep::ReverseDiffOneArgJacobianPrep) = typeof(prep.config.input)
+DI.overloaded_input_type(prep::ReverseDiffTwoArgJacobianPrep) = typeof(prep.config.input)

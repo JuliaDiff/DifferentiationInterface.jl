@@ -169,12 +169,3 @@ Base.Bool(::PushforwardSlow) = false
 
 Base.Bool(::PullbackFast) = true
 Base.Bool(::PullbackSlow) = false
-
-## Overload inputs
-
-"""
-    overload_inputs(prep)
-
-Return the Dualized array for operator-overloading preparation `prep`.
-"""
-function overloaded_inputs end

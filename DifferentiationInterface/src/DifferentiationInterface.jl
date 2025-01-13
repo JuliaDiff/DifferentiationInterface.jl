@@ -63,6 +63,7 @@ include("misc/from_primitive.jl")
 include("misc/sparsity_detector.jl")
 include("misc/simple_finite_diff.jl")
 include("misc/zero_backends.jl")
+include("misc/overloading.jl")
 
 ## Exported
 
@@ -99,8 +100,6 @@ export DifferentiateWith
 export DenseSparsityDetector
 
 export check_available, check_inplace
-
-export overloaded_inputs
 
 ## Re-exported from ADTypes
 

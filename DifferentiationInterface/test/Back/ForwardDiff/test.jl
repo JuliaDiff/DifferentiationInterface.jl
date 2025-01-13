@@ -105,37 +105,29 @@ test_differentiation(AutoForwardDiff(), static_scenarios(); logging=LOGGING)
     end
 end;
 
-## Overloaded inputs
-@testset verbose = true "Overload inputs" begin
+@testset verbose = true "Overloaded inputs" begin
     backend = AutoForwardDiff()
+    sparse_backend = MyAutoSparse(AutoForwardDiff())
 
     # Derivative
-    u0 = 1.0
-    u1 = [1.0, 1.0]
-    ## One Arg
-    prep = DI.prepare_derivative(nothing, backend, u0)
-    @test overloaded_inputs(prep) == ForwardDiff.Dual{Nothing}(1.0, 1.0)
-    ## Two Arg
-    prep = DI.prepare_derivative(nothing, u1, backend, u0)
-    @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,1}}
+    x = 1.0
+    y = [1.0, 1.0]
+    @test DI.overloaded_input_type_derivative(copy, backend, x) ==
+        ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy),Float64},Float64,1}
+    @test DI.overloaded_input_type_derivative(copyto!, y, backend, x) ==
+        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,1}}
 
     # Gradient
-    u0 = [1.0, 1.0]
-    prep = DI.prepare_gradient(nothing, backend, u0)
-    @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,2}}
+    x = [1.0, 1.0]
+    @test DI.overloaded_input_type_gradient(sum, backend, x) ==
+        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(sum),Float64},Float64,2}}
 
     # Jacobian
-    u0 = [1.0, 0.0, 0.0]
-    ## One Arg
-    prep = DI.prepare_jacobian(nothing, backend, u0)
-    @test typeof(overloaded_inputs(prep)) == ForwardDiff.Dual{Nothing,Float64,3}
-    ## Two Arg
-    prep = DI.prepare_jacobian(nothing, similar(u0), backend, u0)
-    @test typeof(overloaded_inputs(prep)) == Vector{ForwardDiff.Dual{Nothing,Float64,3}}
-
-    # Sparse backend
-    backend = MyAutoSparse(AutoForwardDiff())
-    prep = DI.prepare_jacobian(copyto!, similar(u0), backend, u0)
-    @test typeof(overloaded_inputs(prep)) ==
+    x = [1.0, 0.0, 0.0]
+    @test DI.overloaded_input_type_jacobian(copy, backend, x) ==
+        ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy),Float64},Float64,3}
+    @test DI.overloaded_input_type_jacobian(copyto!, similar(x), backend, x) ==
+        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,3}}
+    @test DI.overloaded_input_type_jacobian(copyto!, similar(x), sparse_backend, x) ==
         Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,1}}
 end;

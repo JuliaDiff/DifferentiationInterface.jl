@@ -330,6 +330,12 @@ function _sparse_jacobian_aux!(
     return jac
 end
 
-## Overloaded inputs utils
+## Operator overloading
 
-DI.overloaded_inputs(prep::PushforwardSparseJacobianPrep) = prep.pushforward_prep.xdual_tmp
+function DI.overloaded_input_type(prep::PushforwardSparseJacobianPrep)
+    return DI.overloaded_input_type(prep.pushforward_prep)
+end
+
+function DI.overloaded_input_type(prep::PullbackSparseJacobianPrep)
+    return DI.overloaded_input_type(prep.pullback_prep)
+end
