@@ -329,3 +329,9 @@ function _sparse_jacobian_aux!(
     decompress!(jac, compressed_matrix, coloring_result)
     return jac
 end
+
+## Operator overloading
+
+function DI.overloaded_input_type(prep::PushforwardSparseJacobianPrep)
+    return DI.overloaded_input_type(prep.pushforward_prep)
+end

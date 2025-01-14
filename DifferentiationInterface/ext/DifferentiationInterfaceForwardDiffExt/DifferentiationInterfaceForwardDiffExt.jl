@@ -32,5 +32,6 @@ include("onearg.jl")
 include("twoarg.jl")
 include("secondorder.jl")
 include("differentiate_with.jl")
+include("misc.jl")
 
 end # module

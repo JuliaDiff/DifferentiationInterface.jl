@@ -32,5 +32,6 @@ end
 
 include("onearg.jl")
 include("twoarg.jl")
+include("utils.jl")
 
 end # module
