@@ -21,3 +21,10 @@ test_differentiation(
     excluded=SECOND_ORDER,
     logging=LOGGING,
 );
+
+test_differentiation(
+    AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(3, 1)),
+    complex_scenarios();
+    excluded=SECOND_ORDER,
+    logging=LOGGING,
+);

@@ -134,7 +134,7 @@ include("test_differentiation.jl")
 
 export FIRST_ORDER, SECOND_ORDER
 export Scenario
-export default_scenarios, sparse_scenarios
+export default_scenarios, complex_scenarios, sparse_scenarios
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
 # extensions

@@ -15,7 +15,7 @@ num_to_num(x::Number)::Number = sin(x)
 num_to_num_derivative(x) = cos(x)
 num_to_num_second_derivative(x) = -sin(x)
 num_to_num_pushforward(x, dx) = num_to_num_derivative(x) * dx
-num_to_num_pullback(x, dy) = num_to_num_derivative(x) * dy
+num_to_num_pullback(x, dy) = conj(num_to_num_derivative(x)) * dy
 
 num_to_num_vec(x) = sin.(x)
 
@@ -24,7 +24,7 @@ function num_to_num_vec!(y, x)
     return nothing
 end
 
-function num_to_num_scenarios(x::Number; dx::Number, dy::Number)
+function num_to_num_scenarios(x::Number; dx::Number, dy::Number, add_vectors=true)
     f = num_to_num
     y = f(x)
     dy_from_dx = num_to_num_pushforward(x, dx)
@@ -40,30 +40,32 @@ function num_to_num_scenarios(x::Number; dx::Number, dy::Number)
         Scenario{:second_derivative,:out}(f, x; res1=der, res2=der2),
     ]
 
-    # add scenarios [x] -> [y] to test 1-sized everything
+    if add_vectors
+        # add scenarios [x] -> [y] to test 1-sized everything
 
-    jac = fill(der, 1, 1)
+        jac = fill(der, 1, 1)
 
-    for pl_op in (:out, :in)
-        append!(
-            scens,
-            [
-                Scenario{:pushforward,pl_op}(
-                    num_to_num_vec, [x]; tang=([dx],), res1=([dy_from_dx],)
-                ),
-                Scenario{:pushforward,pl_op}(
-                    num_to_num_vec!, [y], [x]; tang=([dx],), res1=([dy_from_dx],)
-                ),
-                Scenario{:pullback,pl_op}(
-                    num_to_num_vec, [x]; tang=([dy],), res1=([dx_from_dy],)
-                ),
-                Scenario{:pullback,pl_op}(
-                    num_to_num_vec!, [y], [x]; tang=([dy],), res1=([dx_from_dy],)
-                ),
-                Scenario{:jacobian,pl_op}(num_to_num_vec, [x]; res1=jac),
-                Scenario{:jacobian,pl_op}(num_to_num_vec!, [y], [x]; res1=jac),
-            ],
-        )
+        for pl_op in (:out, :in)
+            append!(
+                scens,
+                [
+                    Scenario{:pushforward,pl_op}(
+                        num_to_num_vec, [x]; tang=([dx],), res1=([dy_from_dx],)
+                    ),
+                    Scenario{:pushforward,pl_op}(
+                        num_to_num_vec!, [y], [x]; tang=([dx],), res1=([dy_from_dx],)
+                    ),
+                    Scenario{:pullback,pl_op}(
+                        num_to_num_vec, [x]; tang=([dy],), res1=([dx_from_dy],)
+                    ),
+                    Scenario{:pullback,pl_op}(
+                        num_to_num_vec!, [y], [x]; tang=([dy],), res1=([dx_from_dy],)
+                    ),
+                    Scenario{:jacobian,pl_op}(num_to_num_vec, [x]; res1=jac),
+                    Scenario{:jacobian,pl_op}(num_to_num_vec!, [y], [x]; res1=jac),
+                ],
+            )
+        end
     end
 
     return scens
@@ -193,7 +195,7 @@ function arr_to_num_gradient(x0)
             (α + β) * x[k]^(α + β - 1)
         )
     end
-    return convert(typeof(x0), g)
+    return conj.(convert(typeof(x0), g))
 end
 
 function arr_to_num_hessian(x0)
@@ -213,7 +215,7 @@ function arr_to_num_hessian(x0)
     return convert(typeof(similar(x0, length(x0), length(x0))), H)
 end
 
-arr_to_num_pushforward(x, dx) = dot(arr_to_num_gradient(x), dx)
+arr_to_num_pushforward(x, dx) = sum(arr_to_num_gradient(x) .* dx)
 arr_to_num_pullback(x, dy) = arr_to_num_gradient(x) .* dy
 arr_to_num_hvp(x, dx) = reshape(arr_to_num_hessian(x) * vec(dx), size(x))
 
@@ -289,7 +291,9 @@ function vec_to_vec!(y::AbstractVector, x::AbstractVector)
 end
 
 vec_to_vec_pushforward(x, dx) = vcat(cos.(x) .* dx, -sin.(x) .* dx)
-vec_to_vec_pullback(x, dy) = cos.(x) .* first_half(dy) .- sin.(x) .* second_half(dy)
+function vec_to_vec_pullback(x, dy)
+    return conj.(cos.(x)) .* first_half(dy) .- conj.(sin.(x)) .* second_half(dy)
+end
 vec_to_vec_jacobian(x) = vcat(Diagonal(cos.(x)), Diagonal(-sin.(x)))
 
 function vec_to_vec_scenarios_onearg(
@@ -327,7 +331,7 @@ function vec_to_mat!(y::AbstractMatrix, x::AbstractVector)
 end
 
 vec_to_mat_pushforward(x, dx) = hcat(cos.(x) .* dx, -sin.(x) .* dx)
-vec_to_mat_pullback(x, dy) = cos.(x) .* dy[:, 1] .- sin.(x) .* dy[:, 2]
+vec_to_mat_pullback(x, dy) = conj.(cos.(x)) .* dy[:, 1] .- conj.(sin.(x)) .* dy[:, 2]
 vec_to_mat_jacobian(x) = vcat(Diagonal(cos.(x)), Diagonal(-sin.(x)))
 
 function vec_to_mat_scenarios_onearg(
@@ -370,8 +374,8 @@ function mat_to_vec_pushforward(x, dx)
 end
 
 function mat_to_vec_pullback(x, dy)
-    return cos.(x) .* reshape(first_half(dy), size(x)) .-
-           sin.(x) .* reshape(second_half(dy), size(x))
+    return conj.(cos.(x)) .* reshape(first_half(dy), size(x)) .-
+           conj.(sin.(x)) .* reshape(second_half(dy), size(x))
 end
 
 mat_to_vec_jacobian(x) = vcat(Diagonal(vec(cos.(x))), Diagonal(vec(-sin.(x))))
@@ -416,7 +420,8 @@ function mat_to_mat_pushforward(x, dx)
 end
 
 function mat_to_mat_pullback(x, dy)
-    return cos.(x) .* reshape(dy[:, 1], size(x)) .- sin.(x) .* reshape(dy[:, 2], size(x))
+    return conj.(cos.(x)) .* reshape(dy[:, 1], size(x)) .-
+           conj.(sin.(x)) .* reshape(dy[:, 2], size(x))
 end
 
 mat_to_mat_jacobian(x) = vcat(Diagonal(vec(cos.(x))), Diagonal(vec(-sin.(x))))
@@ -507,4 +512,36 @@ function default_scenarios(;
     include_cachified && append!(final_scens, cachify(scens))
 
     return final_scens
+end
+
+"""
+    complex_scenarios()
+
+Create a vector of [`Scenario`](@ref)s with complex-valued array types.
+"""
+function complex_scenarios(; linalg=true)
+    x_ = 0.42 + im
+    dx_ = 3.14 + im
+    dy_ = -1 / 12 + im
+
+    x_6 = float.(1:6) .+ im
+    dx_6 = float.(-1:-1:-6) .+ im
+
+    dy_6 = float.(-5:2:5) .+ im
+    dy_12 = float.(-11:2:11) .+ im
+
+    V = Vector{Complex{Float64}}
+
+    scens = vcat(
+        # one argument
+        num_to_num_scenarios(x_; dx=dx_, dy=dy_, add_vectors=false),
+        num_to_arr_scenarios_onearg(x_, V; dx=dx_, dy=dy_6),
+        arr_to_num_scenarios_onearg(x_6; dx=dx_6, dy=dy_, linalg),
+        vec_to_vec_scenarios_onearg(x_6; dx=dx_6, dy=dy_12),
+        # two arguments
+        num_to_arr_scenarios_twoarg(x_, V; dx=dx_, dy=dy_6),
+        vec_to_vec_scenarios_twoarg(x_6; dx=dx_6, dy=dy_12),
+    )
+
+    return scens
 end

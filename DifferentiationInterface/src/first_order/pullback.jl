@@ -157,7 +157,7 @@ function _pullback_via_pushforward(
 ) where {F,C}
     t1 = pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...)
     dx = dot(dy, only(t1))
-    return dx
+    return conj(dx)
 end
 
 function _pullback_via_pushforward(
@@ -170,7 +170,7 @@ function _pullback_via_pushforward(
 ) where {F,C}
     dx = map(CartesianIndices(x)) do j
         t1 = pushforward(f, pushforward_prep, backend, x, (basis(backend, x, j),), contexts...)
-        dot(dy, only(t1))
+        conj(dot(dy, only(t1)))
     end
     return dx
 end
@@ -241,7 +241,7 @@ function _pullback_via_pushforward(
     contexts::Vararg{Context,C},
 ) where {F,C}
     t1 = pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...)
-    dx = dot(dy, only(t1))
+    dx = conj(dot(dy, only(t1)))
     return dx
 end
 
@@ -258,7 +258,7 @@ function _pullback_via_pushforward(
         t1 = pushforward(
             f!, y, pushforward_prep, backend, x, (basis(backend, x, j),), contexts...
         )
-        dot(dy, only(t1))
+        conj(dot(dy, only(t1)))
     end
     return dx
 end

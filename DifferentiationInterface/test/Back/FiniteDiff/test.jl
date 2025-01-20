@@ -30,3 +30,7 @@ test_differentiation(
     @test_skip @test_nowarn jacobian(copyto!, similar(x), backend, x)
     @test_skip @test_nowarn hessian(sum, backend, x)
 end
+
+test_differentiation(
+    AutoFiniteDiff(), complex_scenarios(); excluded=SECOND_ORDER, logging=LOGGING
+);
