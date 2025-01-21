@@ -17,11 +17,9 @@ end
 
 test_differentiation(
     AutoFastDifferentiation(),
-    filter(
-        default_scenarios() do s
-            !(s.x isa Matrix) && !(s.y isa Matrix)
-        end,
-    );
+    filter(default_scenarios()) do s
+        !(s.x isa Matrix) && !(s.y isa Matrix)
+    end;
     logging=LOGGING,
 );
 
