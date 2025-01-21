@@ -319,6 +319,9 @@ function _jacobian_aux(
     dx_batch = pullback(
         f_or_f!y..., pullback_prep, backend, x, only(batched_seeds), contexts...
     )
+    if eltype(x) <: Complex
+        dx_batch = map(conj, dx_batch)
+    end
     block = stack_vec_row(dx_batch)
     if aligned
         return block
@@ -345,6 +348,9 @@ function _jacobian_aux(
         dx_batch = pullback(
             f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
         )
+        if eltype(x) <: Complex
+            dx_batch = map(conj, dx_batch)
+        end
         block = stack_vec_row(dx_batch)
         if !aligned && a == A
             return block[1:B_last, :]
@@ -403,7 +409,7 @@ function _jacobian_aux!(
     (; N) = batch_size_settings
 
     pullback_prep_same = prepare_pullback_same_point(
-        f_or_f!y..., prep.pullback_prep, backend, x, batched_seeds[1], contexts...
+        f_or_f!y..., pullback_prep, backend, x, batched_seeds[1], contexts...
     )
 
     for a in eachindex(batched_seeds, batched_results)
@@ -418,6 +424,9 @@ function _jacobian_aux!(
         )
 
         for b in eachindex(batched_results[a])
+            if eltype(x) <: Complex
+                batched_results[a][b] .= conj.(batched_results[a][b])
+            end
             copyto!(
                 view(jac, 1 + ((a - 1) * B + (b - 1)) % N, :), vec(batched_results[a][b])
             )

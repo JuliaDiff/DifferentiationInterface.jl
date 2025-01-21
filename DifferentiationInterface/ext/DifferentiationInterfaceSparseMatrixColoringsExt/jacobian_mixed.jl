@@ -220,6 +220,9 @@ function _sparse_jacobian_aux!(
         )
 
         for b in eachindex(batched_results_reverse[a])
+            if eltype(x) <: Complex
+                batched_results_reverse[a][b] .= conj.(batched_results_reverse[a][b])
+            end
             copyto!(
                 view(compressed_matrix_reverse, 1 + ((a - 1) * Br + (b - 1)) % Nr, :),
                 vec(batched_results_reverse[a][b]),

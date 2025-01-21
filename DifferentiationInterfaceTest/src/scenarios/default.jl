@@ -110,7 +110,7 @@ end
 
 function num_to_arr_pullback(x, dy, ::Type{A}) where {A}
     a = multiplicator(A)
-    return dot(a .* cos.(a .* x), dy)
+    return sum(conj(a .* cos.(a .* x)) .* dy)
 end
 
 function num_to_arr_scenarios_onearg(
@@ -195,7 +195,7 @@ function arr_to_num_gradient(x0)
             (α + β) * x[k]^(α + β - 1)
         )
     end
-    return conj.(convert(typeof(x0), g))
+    return conj(convert(typeof(x0), g))
 end
 
 function arr_to_num_hessian(x0)
@@ -292,7 +292,7 @@ end
 
 vec_to_vec_pushforward(x, dx) = vcat(cos.(x) .* dx, -sin.(x) .* dx)
 function vec_to_vec_pullback(x, dy)
-    return conj.(cos.(x)) .* first_half(dy) .- conj.(sin.(x)) .* second_half(dy)
+    return conj(cos.(x)) .* first_half(dy) .- conj(sin.(x)) .* second_half(dy)
 end
 vec_to_vec_jacobian(x) = vcat(Diagonal(cos.(x)), Diagonal(-sin.(x)))
 
@@ -331,7 +331,7 @@ function vec_to_mat!(y::AbstractMatrix, x::AbstractVector)
 end
 
 vec_to_mat_pushforward(x, dx) = hcat(cos.(x) .* dx, -sin.(x) .* dx)
-vec_to_mat_pullback(x, dy) = conj.(cos.(x)) .* dy[:, 1] .- conj.(sin.(x)) .* dy[:, 2]
+vec_to_mat_pullback(x, dy) = conj(cos.(x)) .* dy[:, 1] .- conj(sin.(x)) .* dy[:, 2]
 vec_to_mat_jacobian(x) = vcat(Diagonal(cos.(x)), Diagonal(-sin.(x)))
 
 function vec_to_mat_scenarios_onearg(
@@ -374,8 +374,8 @@ function mat_to_vec_pushforward(x, dx)
 end
 
 function mat_to_vec_pullback(x, dy)
-    return conj.(cos.(x)) .* reshape(first_half(dy), size(x)) .-
-           conj.(sin.(x)) .* reshape(second_half(dy), size(x))
+    return conj(cos.(x)) .* reshape(first_half(dy), size(x)) .-
+           conj(sin.(x)) .* reshape(second_half(dy), size(x))
 end
 
 mat_to_vec_jacobian(x) = vcat(Diagonal(vec(cos.(x))), Diagonal(vec(-sin.(x))))
@@ -420,8 +420,8 @@ function mat_to_mat_pushforward(x, dx)
 end
 
 function mat_to_mat_pullback(x, dy)
-    return conj.(cos.(x)) .* reshape(dy[:, 1], size(x)) .-
-           conj.(sin.(x)) .* reshape(dy[:, 2], size(x))
+    return conj(cos.(x)) .* reshape(dy[:, 1], size(x)) .-
+           conj(sin.(x)) .* reshape(dy[:, 2], size(x))
 end
 
 mat_to_mat_jacobian(x) = vcat(Diagonal(vec(cos.(x))), Diagonal(vec(-sin.(x))))
@@ -512,36 +512,4 @@ function default_scenarios(;
     include_cachified && append!(final_scens, cachify(scens))
 
     return final_scens
-end
-
-"""
-    complex_scenarios()
-
-Create a vector of [`Scenario`](@ref)s with complex-valued array types.
-"""
-function complex_scenarios(; linalg=true)
-    x_ = 0.42 + im
-    dx_ = 3.14 + im
-    dy_ = -1 / 12 + im
-
-    x_6 = float.(1:6) .+ im
-    dx_6 = float.(-1:-1:-6) .+ im
-
-    dy_6 = float.(-5:2:5) .+ im
-    dy_12 = float.(-11:2:11) .+ im
-
-    V = Vector{Complex{Float64}}
-
-    scens = vcat(
-        # one argument
-        num_to_num_scenarios(x_; dx=dx_, dy=dy_, add_vectors=false),
-        num_to_arr_scenarios_onearg(x_, V; dx=dx_, dy=dy_6),
-        arr_to_num_scenarios_onearg(x_6; dx=dx_6, dy=dy_, linalg),
-        vec_to_vec_scenarios_onearg(x_6; dx=dx_6, dy=dy_12),
-        # two arguments
-        num_to_arr_scenarios_twoarg(x_, V; dx=dx_, dy=dy_6),
-        vec_to_vec_scenarios_twoarg(x_6; dx=dx_6, dy=dy_12),
-    )
-
-    return scens
 end

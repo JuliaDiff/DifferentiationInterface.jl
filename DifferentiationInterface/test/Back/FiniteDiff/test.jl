@@ -2,6 +2,7 @@ using Pkg
 Pkg.add("FiniteDiff")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
+using DifferentiationInterface: DenseSparsityDetector
 using FiniteDiff: FiniteDiff
 using SparseMatrixColorings
 using Test
@@ -23,14 +24,15 @@ test_differentiation(
     logging=LOGGING,
 );
 
-@testset verbose = true "Complex number support" begin
-    backend = AutoSparse(AutoFiniteDiff(); coloring_algorithm=GreedyColoringAlgorithm())
-    x = float.(1:3) .+ im
-    @test_skip @test_nowarn jacobian(identity, backend, x)
-    @test_skip @test_nowarn jacobian(copyto!, similar(x), backend, x)
-    @test_skip @test_nowarn hessian(sum, backend, x)
-end
-
-test_differentiation(
-    AutoFiniteDiff(), complex_scenarios(); excluded=SECOND_ORDER, logging=LOGGING
-);
+@testset "Complex" begin
+    test_differentiation(AutoFiniteDiff(), complex_scenarios(); logging=LOGGING)
+    test_differentiation(
+        AutoSparse(
+            AutoFiniteDiff();
+            sparsity_detector=DenseSparsityDetector(AutoFiniteDiff(); atol=1e-5),
+            coloring_algorithm=GreedyColoringAlgorithm(),
+        ),
+        complex_sparse_scenarios();
+        logging=LOGGING,
+    )
+end;
