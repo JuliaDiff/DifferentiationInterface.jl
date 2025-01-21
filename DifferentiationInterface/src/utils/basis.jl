@@ -63,9 +63,5 @@ function multibasis(a::AbstractArray{T}, inds) where {T}
     for i in inds
         b .+= OneElement(i, one(T), a)
     end
-    if ismutable_array(a)
-        return b
-    else
-        return map(+, zero(a), b)
-    end
+    return ismutable_array(a) ? b : map(+, zero(a), b)
 end
