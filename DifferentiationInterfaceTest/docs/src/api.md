@@ -35,6 +35,7 @@ sparse_scenarios
 component_scenarios
 gpu_scenarios
 static_scenarios
+complex_scenarios
 ```
 
 ## Internals
