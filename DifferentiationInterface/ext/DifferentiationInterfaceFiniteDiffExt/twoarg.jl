@@ -42,7 +42,8 @@ function DI.prepare_derivative(
 ) where {C}
     df = similar(y)
     cache = GradientCache(df, x, fdtype(backend), eltype(y), FUNCTION_INPLACE)
-    relstep = isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+    relstep =
+        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffTwoArgDerivativePrep(cache, relstep, absstep)
 end
@@ -130,8 +131,9 @@ function DI.value_and_jacobian(
 ) where {C}
     fc! = DI.with_contexts(f!, contexts...)
     jac = similar(y, length(y), length(x))
-    finite_difference_jacobian!(jac, fc!, x, prep.cache;
-                relstep=prep.relstep, absstep=prep.absstep)
+    finite_difference_jacobian!(
+        jac, fc!, x, prep.cache; relstep=prep.relstep, absstep=prep.absstep
+    )
     fc!(y, x)
     return y, jac
 end
@@ -146,8 +148,9 @@ function DI.value_and_jacobian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc! = DI.with_contexts(f!, contexts...)
-    finite_difference_jacobian!(jac, fc!, x, prep.cache;
-                relstep=prep.relstep, absstep=prep.absstep)
+    finite_difference_jacobian!(
+        jac, fc!, x, prep.cache; relstep=prep.relstep, absstep=prep.absstep
+    )
     fc!(y, x)
     return y, jac
 end
@@ -162,8 +165,9 @@ function DI.jacobian(
 ) where {C}
     fc! = DI.with_contexts(f!, contexts...)
     jac = similar(y, length(y), length(x))
-    finite_difference_jacobian!(jac, fc!, x, prep.cache;
-                relstep=prep.relstep, absstep=prep.absstep)
+    finite_difference_jacobian!(
+        jac, fc!, x, prep.cache; relstep=prep.relstep, absstep=prep.absstep
+    )
     return jac
 end
 
@@ -177,7 +181,8 @@ function DI.jacobian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc! = DI.with_contexts(f!, contexts...)
-    finite_difference_jacobian!(jac, fc!, x, prep.cache;
-                relstep=prep.relstep, absstep=prep.absstep)
+    finite_difference_jacobian!(
+        jac, fc!, x, prep.cache; relstep=prep.relstep, absstep=prep.absstep
+    )
     return jac
 end
