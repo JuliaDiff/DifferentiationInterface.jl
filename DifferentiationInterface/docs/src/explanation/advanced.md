@@ -71,9 +71,25 @@ But after preparation, the more zeros are present in the matrix, the greater the
 ### Tuning the coloring algorithm
 
 The complexity of sparse Jacobians or Hessians grows with the number of distinct colors in a coloring of the sparsity pattern.
-To reduce this number of colors, [`GreedyColoringAlgorithm`](@ref) has two main settings: the order used for vertices and the decompression method.
+To reduce this number of colors, [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) has two main settings: the order used for vertices and the decompression method.
 Depending on your use case, you may want to modify either of these options to increase performance.
 See the documentation of [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl) for details.
+
+### Mixed mode
+
+When a Jacobian matrix has both dense rows and dense columns, it can be more efficient to use "mixed-mode" differentiation, a mixture of forward and reverse.
+The associated bidirectional coloring algorithm automatically decides how to cover the Jacobian using a set of columns (computed in forward mode) plus a set of rows (computed in reverse mode).
+This behavior is triggered as soon as you put a [`MixedMode`](@ref) object inside `AutoSparse`, like so:
+
+```julia
+AutoSparse(
+    MixedMode(forward_backend, reverse_backend);
+    sparsity_detector,
+    coloring_algorithm
+)
+```
+
+At the moment, mixed mode tends to work best when the [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) is provided with a [`RandomOrder`](@extref SparseMatrixColorings.RandomOrder) instead of the usual [`NaturalOrder`](@extref SparseMatrixColorings.NaturalOrder).
 
 ## Batch mode
 
