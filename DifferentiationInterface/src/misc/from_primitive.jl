@@ -1,113 +1,15 @@
 abstract type FromPrimitive <: AbstractADType end
 
-function basis(fromprim::FromPrimitive, x::AbstractArray, i)
-    return basis(fromprim.backend, x, i)
-end
-
-function multibasis(fromprim::FromPrimitive, x::AbstractArray, inds)
-    return multibasis(fromprim.backend, x, inds)
-end
-
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
 inplace_support(fromprim::FromPrimitive) = inplace_support(fromprim.backend)
+pushforward_performance(fromprim::FromPrimitive) = pushforward_performance(fromprim.backend)
+pullback_performance(fromprim::FromPrimitive) = pullback_performance(fromprim.backend)
 
-function BatchSizeSettings(fromprim::FromPrimitive, x::AbstractArray)
-    return BatchSizeSettings(fromprim.backend, x)
+basis(fromprim::FromPrimitive, x::AbstractArray, i) = basis(fromprim.backend, x, i)
+
+function pick_batchsize(fromprim::FromPrimitive, x_or_N::Union{AbstractArray,Integer})
+    return pick_batchsize(fromprim.backend, x_or_N)
 end
-
-function BatchSizeSettings(fromprim::FromPrimitive, N::Integer)
-    return BatchSizeSettings(fromprim.backend, N)
-end
-
-## Forward (no longer used)
-
-#=
-struct AutoForwardFromPrimitive{B} <: FromPrimitive
-    backend::B
-end
-
-ADTypes.mode(::AutoForwardFromPrimitive) = ADTypes.ForwardMode()
-
-function threshold_batchsize(fromprim::AutoForwardFromPrimitive, dimension::Integer)
-    return AutoForwardFromPrimitive(threshold_batchsize(fromprim.backend, dimension))
-end
-
-struct FromPrimitivePushforwardPrep{E<:PushforwardPrep} <: PushforwardPrep
-    pushforward_prep::E
-end
-
-function prepare_pushforward(
-    f::F, fromprim::AutoForwardFromPrimitive, x, tx::NTuple, contexts::Vararg{Context,C}
-) where {F,C}
-    primitive_prep = prepare_pushforward(f, fromprim.backend, x, tx, contexts...)
-    return FromPrimitivePushforwardPrep(primitive_prep)
-end
-
-function prepare_pushforward(
-    f!::F, y, fromprim::AutoForwardFromPrimitive, x, tx::NTuple, contexts::Vararg{Context,C}
-) where {F,C}
-    primitive_prep = prepare_pushforward(f!, y, fromprim.backend, x, tx, contexts...)
-    return FromPrimitivePushforwardPrep(primitive_prep)
-end
-
-function value_and_pushforward(
-    f::F,
-    prep::FromPrimitivePushforwardPrep,
-    fromprim::AutoForwardFromPrimitive,
-    x,
-    tx::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
-    return value_and_pushforward(
-        f, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
-    )
-end
-
-function value_and_pushforward(
-    f!::F,
-    y,
-    prep::FromPrimitivePushforwardPrep,
-    fromprim::AutoForwardFromPrimitive,
-    x,
-    tx::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
-    return value_and_pushforward(
-        f!, y, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
-    )
-end
-
-function value_and_pushforward!(
-    f::F,
-    ty::NTuple,
-    prep::FromPrimitivePushforwardPrep,
-    fromprim::AutoForwardFromPrimitive,
-    x,
-    tx::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
-    return value_and_pushforward!(
-        f, ty, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
-    )
-end
-
-function value_and_pushforward!(
-    f!::F,
-    y,
-    ty::NTuple,
-    prep::FromPrimitivePushforwardPrep,
-    fromprim::AutoForwardFromPrimitive,
-    x,
-    tx::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
-    return value_and_pushforward!(
-        f!, y, ty, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
-    )
-end
-=#
-
-## Reverse
 
 struct AutoReverseFromPrimitive{B} <: FromPrimitive
     backend::B

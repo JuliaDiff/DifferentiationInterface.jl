@@ -48,6 +48,14 @@ this function can be extended on the backend type.
 """
 basis(::AbstractADType, a::AbstractArray, i) = basis(a, i)
 
+basis(backend::SecondOrder, a::AbstractArray, i) = basis(outer(backend), a, i)
+basis(backend::AutoSparse, a::AbstractArray, i) = basis(dense_ad(backend), a, i)
+basis(backend::MixedMode, a::AbstractArray, i) = basis(forward_backend(backend), a, i)
+
+function basis(a::AbstractArray{T,N}, i) where {T,N}
+    return zero(a) + OneElement(i, one(T), a)
+end
+
 """
     multibasis(backend, a::AbstractArray, inds::AbstractVector)
 
@@ -58,16 +66,10 @@ Construct the sum of the `i`-th standard basis arrays in the vector space of `a`
 If an AD backend benefits from a more specialized basis array implementation,
 this function can be extended on the backend type.
 """
-multibasis(::AbstractADType, a::AbstractArray, inds) = multibasis(a, inds)
-
-function basis(a::AbstractArray{T,N}, i) where {T,N}
-    return zero(a) + OneElement(i, one(T), a)
+function multibasis(backend::AbstractADType, a::AbstractArray, inds)
+    return sum(basis(backend, a, i) for i in inds)
 end
 
 function multibasis(a::AbstractArray{T,N}, inds::AbstractVector) where {T,N}
-    seed = zero(a)
-    for i in inds
-        seed += OneElement(i, one(T), a)
-    end
-    return seed
+    return sum(basis(a, i) for i in inds)
 end
