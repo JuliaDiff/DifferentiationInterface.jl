@@ -158,7 +158,7 @@ function _pushforward_via_pullback(
     contexts::Vararg{Context,C},
 ) where {F,C}
     t1 = pullback(f, pullback_prep, backend, x, (one(y),), contexts...)
-    dy = dot(dx, only(t1))
+    dy = dot(only(t1), dx)
     return dy
 end
 
@@ -173,7 +173,7 @@ function _pushforward_via_pullback(
 ) where {F,C}
     dy = map(CartesianIndices(y)) do i
         t1 = pullback(f, pullback_prep, backend, x, (basis(backend, y, i),), contexts...)
-        dot(dx, only(t1))
+        dot(only(t1), dx)
     end
     return dy
 end
@@ -245,7 +245,7 @@ function _pushforward_via_pullback(
 ) where {F,C}
     dy = map(CartesianIndices(y)) do i  # preserve shape
         t1 = pullback(f!, y, pullback_prep, backend, x, (basis(backend, y, i),), contexts...)
-        dot(dx, only(t1))
+        dot(only(t1), dx)
     end
     return dy
 end

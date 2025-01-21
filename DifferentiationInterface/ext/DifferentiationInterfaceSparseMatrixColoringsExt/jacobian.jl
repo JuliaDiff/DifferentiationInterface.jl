@@ -319,6 +319,9 @@ function _sparse_jacobian_aux!(
         )
 
         for b in eachindex(batched_results[a])
+            if eltype(x) <: Complex
+                batched_results[a][b] .= conj.(batched_results[a][b])
+            end
             copyto!(
                 view(compressed_matrix, 1 + ((a - 1) * B + (b - 1)) % N, :),
                 vec(batched_results[a][b]),

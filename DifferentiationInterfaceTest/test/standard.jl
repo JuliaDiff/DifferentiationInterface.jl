@@ -1,6 +1,7 @@
 using ADTypes
 using DifferentiationInterface
 using DifferentiationInterfaceTest
+using FiniteDiff: FiniteDiff
 using ForwardDiff: ForwardDiff
 using SparseConnectivityTracer
 using SparseMatrixColorings
@@ -12,6 +13,12 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 test_differentiation(
     AutoForwardDiff(), default_scenarios(; include_constantified=true); logging=LOGGING
+)
+
+## Complex
+
+test_differentiation(
+    AutoFiniteDiff(), vcat(complex_scenarios(), complex_sparse_scenarios()); logging=LOGGING
 )
 
 ## Sparse

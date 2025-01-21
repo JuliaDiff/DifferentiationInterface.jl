@@ -11,3 +11,4 @@
 *.csv
 
 playground.jl
+.vscode
