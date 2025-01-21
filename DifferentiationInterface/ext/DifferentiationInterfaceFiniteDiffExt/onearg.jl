@@ -43,6 +43,8 @@ end
 
 struct FiniteDiffOneArgDerivativePrep{C} <: DI.DerivativePrep
     cache::C
+    relstep
+    absstep
 end
 
 function DI.prepare_derivative(
@@ -56,7 +58,9 @@ function DI.prepare_derivative(
         df = similar(y)
         cache = GradientCache(df, x, fdtype(backend), eltype(y), FUNCTION_NOT_INPLACE)
     end
-    return FiniteDiffOneArgDerivativePrep(cache)
+    relstep = isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+    absstep = isnothing(backend.absstep) ? relstep : backend.relstep
+    return FiniteDiffOneArgDerivativePrep(cache, relstep, absstep)
 end
 
 ### Scalar to scalar
@@ -221,7 +225,8 @@ function DI.jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    return finite_difference_jacobian(fc, x, prep.cache)
+    return finite_difference_jacobian(fc, x, prep.cache;
+                relstep=prep.relstep, absstep=prep.absstep)
 end
 
 function DI.value_and_jacobian(
@@ -233,7 +238,8 @@ function DI.value_and_jacobian(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
-    return y, finite_difference_jacobian(fc, x, prep.cache, y)
+    return y, finite_difference_jacobian(fc, x, prep.cache, y;
+                relstep=prep.relstep, absstep=prep.absstep)
 end
 
 function DI.jacobian!(
@@ -245,7 +251,8 @@ function DI.jacobian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    return copyto!(jac, finite_difference_jacobian(fc, x, prep.cache; jac_prototype=jac))
+    return copyto!(jac, finite_difference_jacobian(fc, x, prep.cache; 
+                jac_prototype=jac, relstep=prep.relstep, absstep=prep.absstep))
 end
 
 function DI.value_and_jacobian!(
@@ -259,7 +266,8 @@ function DI.value_and_jacobian!(
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
     return y,
-    copyto!(jac, finite_difference_jacobian(fc, x, prep.cache, y; jac_prototype=jac))
+    copyto!(jac, finite_difference_jacobian(fc, x, prep.cache, y; 
+                jac_prototype=jac, relstep=prep.relstep, absstep=prep.absstep))
 end
 
 ## Hessian
@@ -288,7 +296,8 @@ function DI.hessian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    return finite_difference_hessian(fc, x, prep.hessian_cache)
+    return finite_difference_hessian(fc, x, prep.hessian_cache; 
+                relstep=prep.relstep, absstep=prep.absstep)
 end
 
 function DI.hessian!(
@@ -300,7 +309,8 @@ function DI.hessian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    return finite_difference_hessian!(hess, fc, x, prep.hessian_cache)
+    return finite_difference_hessian!(hess, fc, x, prep.hessian_cache;
+                relstep=prep.relstep, absstep=prep.absstep)
 end
 
 function DI.value_gradient_and_hessian(
@@ -312,7 +322,8 @@ function DI.value_gradient_and_hessian(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     grad = finite_difference_gradient(fc, x, prep.gradient_cache)
-    hess = finite_difference_hessian(fc, x, prep.hessian_cache)
+    hess = finite_difference_hessian(fc, x, prep.hessian_cache;
+                relstep=prep.relstep, absstep=prep.absstep)
     return fc(x), grad, hess
 end
 
@@ -327,6 +338,7 @@ function DI.value_gradient_and_hessian!(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     finite_difference_gradient!(grad, fc, x, prep.gradient_cache)
-    finite_difference_hessian!(hess, fc, x, prep.hessian_cache)
+    finite_difference_hessian!(hess, fc, x, prep.hessian_cache;
+                relstep=prep.relstep, absstep=prep.absstep)
     return fc(x), grad, hess
 end
