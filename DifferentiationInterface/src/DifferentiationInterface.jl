@@ -29,7 +29,7 @@ using ADTypes:
     AutoSymbolics,
     AutoTracker,
     AutoZygote
-using LinearAlgebra: axpy!, dot
+using LinearAlgebra: dot
 
 include("compat.jl")
 
