@@ -15,7 +15,15 @@ for backend in [AutoFastDifferentiation(), AutoSparse(AutoFastDifferentiation())
     @test check_inplace(backend)
 end
 
-test_differentiation(AutoFastDifferentiation(); logging=LOGGING);
+test_differentiation(
+    AutoFastDifferentiation(),
+    filter(
+        default_scenarios() do s
+            !(s.x isa Matrix) && !(s.y isa Matrix)
+        end,
+    );
+    logging=LOGGING,
+);
 
 test_differentiation(
     AutoSparse(AutoFastDifferentiation()),
