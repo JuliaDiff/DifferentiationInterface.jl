@@ -136,7 +136,7 @@ function _prepare_jacobian_aux(
     contexts::Vararg{Context,C},
 ) where {B,FY,C}
     (; N, A) = batch_size_settings
-    seeds = [basis(backend, x, ind) for ind in eachindex(x)]
+    seeds = [basis(x, ind) for ind in eachindex(x)]
     batched_seeds = [
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
@@ -159,7 +159,7 @@ function _prepare_jacobian_aux(
     contexts::Vararg{Context,C},
 ) where {B,FY,C}
     (; N, A) = batch_size_settings
-    seeds = [basis(backend, y, ind) for ind in eachindex(y)]
+    seeds = [basis(y, ind) for ind in eachindex(y)]
     batched_seeds = [
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]

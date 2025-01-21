@@ -2,10 +2,6 @@ abstract type FromPrimitive <: AbstractADType end
 
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
 inplace_support(fromprim::FromPrimitive) = inplace_support(fromprim.backend)
-pushforward_performance(fromprim::FromPrimitive) = pushforward_performance(fromprim.backend)
-pullback_performance(fromprim::FromPrimitive) = pullback_performance(fromprim.backend)
-
-basis(fromprim::FromPrimitive, x::AbstractArray, i) = basis(fromprim.backend, x, i)
 
 function pick_batchsize(fromprim::FromPrimitive, x_or_N::Union{AbstractArray,Integer})
     return pick_batchsize(fromprim.backend, x_or_N)
