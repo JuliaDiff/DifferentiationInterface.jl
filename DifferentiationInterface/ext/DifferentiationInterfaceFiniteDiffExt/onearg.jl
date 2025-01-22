@@ -357,7 +357,7 @@ function DI.prepare_hessian(
     gradient_cache = GradientCache(df, x, fdtype(backend))
     hessian_cache = HessianCache(x, fdhtype(backend))
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype(backend) eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffHessianPrep(gradient_cache, hessian_cache, relstep, absstep)
 end
