@@ -21,7 +21,7 @@ function DI.value_and_pushforward(
         return new_y
     end
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     ty = map(tx) do dx
         finite_difference_derivative(
@@ -52,7 +52,7 @@ function DI.prepare_derivative(
     df = similar(y)
     cache = GradientCache(df, x, fdtype(backend), eltype(y), FUNCTION_INPLACE)
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffTwoArgDerivativePrep(cache, relstep, absstep)
 end
@@ -138,7 +138,7 @@ function DI.prepare_jacobian(
     fx1 = similar(y)
     cache = JacobianCache(x1, fx, fx1, fdjtype(backend))
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffTwoArgJacobianPrep(cache, relstep, absstep)
 end

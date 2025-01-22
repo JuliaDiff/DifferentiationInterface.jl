@@ -16,7 +16,7 @@ function DI.pushforward(
 ) where {C}
     step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     ty = map(tx) do dx
         finite_difference_derivative(
@@ -37,7 +37,7 @@ function DI.value_and_pushforward(
     step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
     y = f(x, map(DI.unwrap, contexts)...)
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     ty = map(tx) do dx
         finite_difference_derivative(
@@ -73,7 +73,7 @@ function DI.prepare_derivative(
         cache = GradientCache(df, x, fdtype(backend), eltype(y), FUNCTION_NOT_INPLACE)
     end
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffOneArgDerivativePrep(cache, relstep, absstep)
 end
@@ -89,7 +89,7 @@ function DI.derivative(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return finite_difference_derivative(fc, x, fdtype(backend); relstep, absstep)
 end
@@ -104,7 +104,7 @@ function DI.value_and_derivative(
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return y,
     finite_difference_derivative(fc, x, fdtype(backend), eltype(y), y; relstep, absstep)
@@ -185,7 +185,7 @@ function DI.prepare_gradient(
     df = zero(y) .* x
     cache = GradientCache(df, x, fdtype(backend))
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffGradientPrep(cache, relstep, absstep)
 end
@@ -264,7 +264,7 @@ function DI.prepare_jacobian(
     fx1 = similar(y)
     cache = JacobianCache(x1, fx, fx1, fdjtype(backend))
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffOneArgJacobianPrep(cache, relstep, absstep)
 end
@@ -357,7 +357,7 @@ function DI.prepare_hessian(
     gradient_cache = GradientCache(df, x, fdtype(backend))
     hessian_cache = HessianCache(x, fdhtype(backend))
     relstep =
-        isnothing(backend.relstep) ? default_relstep(fdtype, eltype(x)) : backend.relstep
+        isnothing(backend.relstep) ? default_relstep(fdtype(backend) eltype(x)) : backend.relstep
     absstep = isnothing(backend.absstep) ? relstep : backend.relstep
     return FiniteDiffHessianPrep(gradient_cache, hessian_cache, relstep, absstep)
 end
