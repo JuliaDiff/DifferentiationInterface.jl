@@ -264,7 +264,7 @@ function DI.prepare_jacobian(
     fx1 = similar(y)
     cache = JacobianCache(x1, fx, fx1, fdjtype(backend))
     relstep = if isnothing(backend.relstep)
-        default_relstep(fdtype(backend), eltype(x))
+        default_relstep(fdjtype(backend), eltype(x))
     else
         backend.relstep
     end
@@ -337,11 +337,13 @@ end
 
 ## Hessian
 
-struct FiniteDiffHessianPrep{C1,C2,R,A} <: DI.HessianPrep
+struct FiniteDiffHessianPrep{C1,C2,RG,AG,RH,AH} <: DI.HessianPrep
     gradient_cache::C1
     hessian_cache::C2
-    relstep::R
-    absstep::A
+    relstep_g::RG
+    absstep_g::AG
+    relstep_h::RH
+    absstep_h::AH
 end
 
 function DI.prepare_hessian(
@@ -352,13 +354,11 @@ function DI.prepare_hessian(
     df = zero(y) .* x
     gradient_cache = GradientCache(df, x, fdtype(backend))
     hessian_cache = HessianCache(x, fdhtype(backend))
-    relstep = if isnothing(backend.relstep)
-        default_relstep(fdtype(backend), eltype(x))
-    else
-        backend.relstep
-    end
-    absstep = isnothing(backend.absstep) ? relstep : backend.relstep
-    return FiniteDiffHessianPrep(gradient_cache, hessian_cache, relstep, absstep)
+    relstep_g = isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
+    relstep_h = isnothing(backend.relstep) ? default_relstep(fdhtype(backend), eltype(x)) : backend.relstep
+    absstep_g = isnothing(backend.absstep) ? relstep_g : backend.absstep
+    absstep_h = isnothing(backend.absstep) ? relstep_h : backend.absstep
+    return FiniteDiffHessianPrep(gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h)
 end
 
 function DI.hessian(

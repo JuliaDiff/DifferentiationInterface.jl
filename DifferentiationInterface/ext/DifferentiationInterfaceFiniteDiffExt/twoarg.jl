@@ -140,7 +140,7 @@ function DI.prepare_jacobian(
     fx1 = similar(y)
     cache = JacobianCache(x1, fx, fx1, fdjtype(backend))
     relstep = if isnothing(backend.relstep)
-        default_relstep(fdtype(backend), eltype(x))
+        default_relstep(fdjtype(backend), eltype(x))
     else
         backend.relstep
     end
