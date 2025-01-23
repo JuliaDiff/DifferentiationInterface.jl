@@ -156,7 +156,7 @@ end
 
 function DI.value_and_derivative(
     f,
-    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache,<:Number,<:Number},
+    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache},
     ::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
