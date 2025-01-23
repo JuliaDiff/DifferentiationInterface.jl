@@ -376,7 +376,9 @@ function DI.hessian(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     (; relstep_h, absstep_h) = prep
-    return finite_difference_hessian(fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h)
+    return finite_difference_hessian(
+        fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+    )
 end
 
 function DI.hessian!(
@@ -389,7 +391,9 @@ function DI.hessian!(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     (; relstep_h, absstep_h) = prep
-    return finite_difference_hessian!(hess, fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h)
+    return finite_difference_hessian!(
+        hess, fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+    )
 end
 
 function DI.value_gradient_and_hessian(
@@ -397,8 +401,12 @@ function DI.value_gradient_and_hessian(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     (; relstep_g, absstep_g, relstep_h, absstep_h) = prep
-    grad = finite_difference_gradient(fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g)
-    hess = finite_difference_hessian(fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h)
+    grad = finite_difference_gradient(
+        fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g
+    )
+    hess = finite_difference_hessian(
+        fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+    )
     return fc(x), grad, hess
 end
 
@@ -413,7 +421,11 @@ function DI.value_gradient_and_hessian!(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     (; relstep_g, absstep_g, relstep_h, absstep_h) = prep
-    finite_difference_gradient!(grad, fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g)
-    finite_difference_hessian!(hess, fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h)
+    finite_difference_gradient!(
+        grad, fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g
+    )
+    finite_difference_hessian!(
+        hess, fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+    )
     return fc(x), grad, hess
 end
