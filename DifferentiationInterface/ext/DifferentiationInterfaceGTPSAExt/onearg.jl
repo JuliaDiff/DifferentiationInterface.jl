@@ -519,7 +519,6 @@ function DI.hvp(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.hessian!(f, prep.hess, prep.hessprep, backend, x, contexts...)
-    #return prep.hess
     tg = map(tx) do dx
         dg = similar(x, eltype(prep.hess))
         dg .= 0
@@ -562,25 +561,13 @@ end
 function DI.gradient_and_hvp(
     f,
     prep::GTPSAOneArgHVPPrep,
-    ::AutoGTPSA{D},
+    backend::AutoGTPSA{D},
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
-    foreach((t, xi) -> t[0] = xi, prep.hessprep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
-    yt = fc(prep.hessprep.xt)
-    grad = similar(x, GTPSA.numtype(yt))
-    GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
-    unsafe_fast = D == Nothing ? true : false
-    GTPSA.hessian!(
-        prep.hess,
-        yt;
-        include_params=true,
-        unsafe_inbounds=true,
-        unsafe_fast=unsafe_fast,
-        tmp_mono=prep.hessprep.m,
-    )
+    grad = similar(x, eltype(prep.hess))
+    DI.value_gradient_and_hessian!(f, grad, prep.hess, prep.hessprep, backend, x, contexts...)
     tg = map(tx) do dx
         dg = similar(x, eltype(prep.hess))
         dg .= 0
@@ -601,24 +588,12 @@ function DI.gradient_and_hvp!(
     grad,
     tg,
     prep::GTPSAOneArgHVPPrep,
-    ::AutoGTPSA{D},
+    backend::AutoGTPSA{D},
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {D,C}
-    foreach((t, xi) -> t[0] = xi, prep.hessprep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
-    yt = fc(prep.hessprep.xt)
-    GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
-    unsafe_fast = D == Nothing ? true : false
-    GTPSA.hessian!(
-        prep.hess,
-        yt;
-        include_params=true,
-        unsafe_inbounds=true,
-        unsafe_fast=unsafe_fast,
-        tmp_mono=prep.hessprep.m,
-    )
+    DI.value_gradient_and_hessian!(f, grad, prep.hess, prep.hessprep, backend, x, contexts...)
     for b in eachindex(tg, tx)
         dg, dx = tg[b], tx[b]
         dg .= 0

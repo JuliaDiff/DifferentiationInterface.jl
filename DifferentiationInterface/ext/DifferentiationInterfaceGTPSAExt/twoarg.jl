@@ -177,7 +177,7 @@ function DI.value_and_jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    jac = DI.jacobian(f!, y, prep, backend, x, contexts...)
+    jac = DI.jacobian(f!, y, prep, backend, x, contexts...) # y set on line 151
     return y, jac
 end
 

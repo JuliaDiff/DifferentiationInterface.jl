@@ -2,8 +2,7 @@ module DifferentiationInterfaceGTPSAExt
 
 import DifferentiationInterface as DI
 using ADTypes: AutoGTPSA
-using GTPSA
-using LinearAlgebra
+using GTPSA: GTPSA, TPS, Descriptor 
 
 DI.check_available(::AutoGTPSA) = true
 
