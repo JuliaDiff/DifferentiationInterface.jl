@@ -354,11 +354,21 @@ function DI.prepare_hessian(
     df = zero(y) .* x
     gradient_cache = GradientCache(df, x, fdtype(backend))
     hessian_cache = HessianCache(x, fdhtype(backend))
-    relstep_g = isnothing(backend.relstep) ? default_relstep(fdtype(backend), eltype(x)) : backend.relstep
-    relstep_h = isnothing(backend.relstep) ? default_relstep(fdhtype(backend), eltype(x)) : backend.relstep
+    relstep_g = if isnothing(backend.relstep)
+        default_relstep(fdtype(backend), eltype(x))
+    else
+        backend.relstep
+    end
+    relstep_h = if isnothing(backend.relstep)
+        default_relstep(fdhtype(backend), eltype(x))
+    else
+        backend.relstep
+    end
     absstep_g = isnothing(backend.absstep) ? relstep_g : backend.absstep
     absstep_h = isnothing(backend.absstep) ? relstep_h : backend.absstep
-    return FiniteDiffHessianPrep(gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h)
+    return FiniteDiffHessianPrep(
+        gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h
+    )
 end
 
 function DI.hessian(
