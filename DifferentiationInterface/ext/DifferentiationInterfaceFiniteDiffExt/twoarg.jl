@@ -50,7 +50,7 @@ struct FiniteDiffTwoArgDerivativePrep{C,R,A} <: DI.DerivativePrep
 end
 
 function DI.prepare_derivative(
-    f!, y, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
+    f!, y, backend::AutoFiniteDiff, x, ::Vararg{DI.Context,C}
 ) where {C}
     df = similar(y)
     cache = GradientCache(df, x, fdtype(backend), eltype(y), FUNCTION_INPLACE)
@@ -67,7 +67,7 @@ function DI.value_and_derivative(
     f!,
     y,
     prep::FiniteDiffTwoArgDerivativePrep,
-    backend::AutoFiniteDiff,
+    ::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -83,7 +83,7 @@ function DI.value_and_derivative!(
     y,
     der,
     prep::FiniteDiffTwoArgDerivativePrep,
-    backend::AutoFiniteDiff,
+    ::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -98,7 +98,7 @@ function DI.derivative(
     f!,
     y,
     prep::FiniteDiffTwoArgDerivativePrep,
-    backend::AutoFiniteDiff,
+    ::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -114,7 +114,7 @@ function DI.derivative!(
     y,
     der,
     prep::FiniteDiffTwoArgDerivativePrep,
-    backend::AutoFiniteDiff,
+    ::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
