@@ -10,7 +10,7 @@ struct GTPSATwoArgPushforwardPrep{X,Y} <: DI.PushforwardPrep
 end
 
 function DI.prepare_pushforward(
-    ::F, y, backend::AutoGTPSA{D}, x, tx::NTuple, ::Vararg{DI.Context,C}
+    ::F, y, backend::AutoGTPSA{D}, x, tx::NTuple, ::Vararg{DI.Constant,C}
 ) where {F,D,C}
 
     # For pushforward/JVP, we only actually need 1 single variable (in the GTPSA sense)
@@ -44,7 +44,7 @@ function DI.pushforward(
     ::AutoGTPSA,
     x,
     tx::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Constant,C},
 ) where {C}
     fc! = DI.with_contexts(f!, contexts...)
     ty = map(tx) do dx
@@ -65,7 +65,7 @@ function DI.pushforward!(
     ::AutoGTPSA,
     x,
     tx::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Constant,C},
 ) where {C}
     fc! = DI.with_contexts(f!, contexts...)
     for b in eachindex(tx, ty)
@@ -85,7 +85,7 @@ function DI.value_and_pushforward(
     backend::AutoGTPSA,
     x,
     tx::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Constant,C},
 ) where {C}
     ty = DI.pushforward(f!, y, prep, backend, x, tx, contexts...)
     return y, ty
@@ -99,7 +99,7 @@ function DI.value_and_pushforward!(
     backend::AutoGTPSA,
     x,
     tx::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
     return y, ty
@@ -114,7 +114,7 @@ struct GTPSATwoArgJacobianPrep{X,Y} <: DI.JacobianPrep
 end
 
 function DI.prepare_jacobian(
-    f, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Context,C}
+    f, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     if D != Nothing
         d = backend.descriptor
@@ -141,7 +141,7 @@ function DI.prepare_jacobian(
 end
 
 function DI.jacobian(
-    f!, y, prep::GTPSATwoArgJacobianPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Context,C}
+    f!, y, prep::GTPSATwoArgJacobianPrep, ::AutoGTPSA, x, contexts::Vararg{DI.Constant,C}
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc! = DI.with_contexts(f!, contexts...)
@@ -159,7 +159,7 @@ function DI.jacobian!(
     prep::GTPSATwoArgJacobianPrep,
     ::AutoGTPSA,
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Constant,C},
 ) where {C}
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
     fc! = DI.with_contexts(f!, contexts...)
@@ -175,7 +175,7 @@ function DI.value_and_jacobian(
     prep::GTPSATwoArgJacobianPrep,
     backend::AutoGTPSA,
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Constant,C},
 ) where {C}
     jac = DI.jacobian(f!, y, prep, backend, x, contexts...) # y set on line 151
     return y, jac
@@ -188,7 +188,7 @@ function DI.value_and_jacobian!(
     prep::GTPSATwoArgJacobianPrep,
     backend::AutoGTPSA,
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.jacobian!(f!, y, jac, prep, backend, x, contexts...)
     return y, jac
