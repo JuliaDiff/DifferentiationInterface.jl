@@ -121,6 +121,7 @@ include("scenarios/scenario.jl")
 include("scenarios/modify.jl")
 include("scenarios/default.jl")
 include("scenarios/sparse.jl")
+include("scenarios/complex.jl")
 include("scenarios/allocfree.jl")
 include("scenarios/extensions.jl")
 
@@ -135,6 +136,7 @@ include("test_differentiation.jl")
 export FIRST_ORDER, SECOND_ORDER
 export Scenario
 export default_scenarios, sparse_scenarios
+export complex_scenarios, complex_sparse_scenarios
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
 # extensions

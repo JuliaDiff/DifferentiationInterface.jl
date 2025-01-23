@@ -90,4 +90,4 @@ To improve your performance by up to several orders of magnitude compared to thi
 
 ## Citation
 
-Please cite both DifferentiationInterface.jl and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.bib` file.
+Please cite both DifferentiationInterface.jl and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.cff` file.

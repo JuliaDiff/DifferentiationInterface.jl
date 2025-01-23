@@ -53,28 +53,30 @@ function BatchSizeSettings(backend::AbstractADType, x::AbstractArray)
     return BatchSizeSettings(backend, N)
 end
 
+function pick_batchsize(backend::SecondOrder, x_or_N::Union{AbstractArray,Integer})
+    throw(
+        ArgumentError(
+            "You should select the batch size for the inner or outer backend of $backend"
+        ),
+    )
+end
+
+function pick_batchsize(backend::AutoSparse, x_or_N::Union{AbstractArray,Integer})
+    throw(
+        ArgumentError("You should select the batch size for the dense backend of $backend")
+    )
+end
+
+function pick_batchsize(backend::MixedMode, x_or_N::Union{AbstractArray,Integer})
+    throw(
+        ArgumentError(
+            "You should select the batch size for the forward or reverse backend of $backend",
+        ),
+    )
+end
+
 function pick_batchsize(backend::AbstractADType, x_or_N::Union{AbstractArray,Integer})
-    if backend isa SecondOrder
-        throw(
-            ArgumentError(
-                "You should select the batch size for the inner or outer backend of $backend",
-            ),
-        )
-    elseif backend isa AutoSparse
-        throw(
-            ArgumentError(
-                "You should select the batch size for the dense backend of $backend"
-            ),
-        )
-    elseif backend isa MixedMode
-        throw(
-            ArgumentError(
-                "You should select the batch size for the forward or reverse backend of $backend",
-            ),
-        )
-    else
-        return BatchSizeSettings(backend, x_or_N)
-    end
+    return BatchSizeSettings(backend, x_or_N)
 end
 
 threshold_batchsize(backend::AbstractADType, ::Integer) = backend

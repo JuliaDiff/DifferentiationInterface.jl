@@ -1,0 +1,59 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: DifferentiationInterface.jl
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file, and also cite the AbstractDifferentiation.jl software.
+type: software
+authors:
+  - given-names: Guillaume
+    family-names: Dalle
+    email: guillaume.dalle@enpc.fr
+    affiliation: >-
+      LVMT, ENPC, Institut Polytechnique de Paris, Univ
+      Gustave Eiffel, Marne-la-Vallée, France
+    orcid: 'https://orcid.org/0000-0003-4866-1687'
+  - given-names: Adrian
+    family-names: Hill
+    email: hill@tu-berlin.de
+    affiliation: 'Machine Learning Group, BIFOLD, TU Berlin'
+    orcid: 'https://orcid.org/0009-0009-5977-301X'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.11092033
+    description: Zenodo DOI
+repository-code: 'https://github.com/JuliaDiff/DifferentiationInterface.jl'
+abstract: >-
+  An interface to various automatic differentiation backends
+  in Julia.
+keywords:
+  - automatic differentiation
+  - julia
+license: MIT
+references:
+  - title: >-
+      AbstractDifferentiation.jl: Backend-Agnostic
+      Differentiable Programming in Julia
+    type: software
+    authors:
+      - given-names: Frank
+        family-names: Schäfer
+        orcid: 'https://orcid.org/0000-0003-2684-4984'
+      - given-names: Mohamed
+        family-names: Tarek
+        orcid: 'https://orcid.org/0000-0003-3074-0678'
+      - given-names: Lyndon
+        family-names: White
+        orcid: 'https://orcid.org/0000-0003-1386-1646'
+      - given-names: Chris
+        family-names: Rackauckas
+        orcid: 'https://orcid.org/0000-0001-5850-0663'
+    identifiers:
+      - type: other
+        value: 'https://arxiv.org/abs/2109.12449'
+        description: Arxiv
+    repository-code: 'https://github.com/JuliaDiff/AbstractDifferentiation.jl'
+    abstract: An abstract interface for automatic differentiation.
+    license: MIT

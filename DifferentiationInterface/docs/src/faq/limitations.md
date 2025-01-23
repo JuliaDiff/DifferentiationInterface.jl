@@ -7,5 +7,7 @@ As a result, DifferentiationInterface only supports a single active argument, ca
 
 ## Complex numbers
 
-At the moment, complex numbers are only handled by a few AD backends, sometimes using different conventions.
-As a result, DifferentiationInterface is only tested on real numbers and complex number support is not part of its API guarantees.
+Complex derivatives are only handled by a few AD backends, sometimes using different conventions.
+To find the easiest common ground, DifferentiationInterface assumes that whenever complex numbers are involved, the function to differentiate is holomorphic.
+This functionality is still considered experimental and not yet part of the public API guarantees.
+If you work with non-holomorphic functions, you will need to manually separate real and imaginary parts.

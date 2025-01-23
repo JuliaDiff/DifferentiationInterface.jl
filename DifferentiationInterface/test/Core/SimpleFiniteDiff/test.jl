@@ -1,6 +1,7 @@
 using DifferentiationInterface, DifferentiationInterfaceTest
-using DifferentiationInterface: AutoSimpleFiniteDiff, AutoReverseFromPrimitive
-using DifferentiationInterfaceTest
+using DifferentiationInterface:
+    AutoSimpleFiniteDiff, AutoReverseFromPrimitive, DenseSparsityDetector
+using SparseMatrixColorings
 using Test
 
 LOGGING = get(ENV, "CI", "false") == "false"
@@ -41,6 +42,8 @@ end
         default_scenarios(; include_constantified=true);
         logging=LOGGING,
     )
+
+    test_differentiation(backends, complex_scenarios(); logging=LOGGING)
 end
 
 @testset "Sparse" begin
@@ -58,6 +61,20 @@ end
         sparsity=true,
         logging=LOGGING,
     )
+
+    @testset "Complex numbers" begin
+        test_differentiation(
+            AutoSparse.(
+                vcat(
+                    adaptive_backends, MixedMode(adaptive_backends[1], adaptive_backends[2])
+                );
+                sparsity_detector=DenseSparsityDetector(AutoSimpleFiniteDiff(); atol=1e-5),
+                coloring_algorithm=GreedyColoringAlgorithm(),
+            ),
+            complex_sparse_scenarios();
+            logging=LOGGING,
+        )
+    end
 
     @testset "SparseMatrixColorings access" begin
         jac_for_prep = prepare_jacobian(copy, MyAutoSparse(adaptive_backends[1]), rand(10))

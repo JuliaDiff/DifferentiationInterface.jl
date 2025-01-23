@@ -95,7 +95,7 @@ function _prepare_sparse_jacobian_aux_aux(
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = column_groups(coloring_result)
-    seeds = [DI.multibasis(backend, x, eachindex(x)[group]) for group in groups]
+    seeds = [DI.multibasis(x, eachindex(x)[group]) for group in groups]
     compressed_matrix = stack(_ -> vec(similar(y)), groups; dims=2)
     batched_seeds = [
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
@@ -126,7 +126,7 @@ function _prepare_sparse_jacobian_aux_aux(
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = row_groups(coloring_result)
-    seeds = [DI.multibasis(backend, y, eachindex(y)[group]) for group in groups]
+    seeds = [DI.multibasis(y, eachindex(y)[group]) for group in groups]
     compressed_matrix = stack(_ -> vec(similar(x)), groups; dims=1)
     batched_seeds = [
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
@@ -319,6 +319,9 @@ function _sparse_jacobian_aux!(
         )
 
         for b in eachindex(batched_results[a])
+            if eltype(x) <: Complex
+                batched_results[a][b] .= conj.(batched_results[a][b])
+            end
             copyto!(
                 view(compressed_matrix, 1 + ((a - 1) * B + (b - 1)) % N, :),
                 vec(batched_results[a][b]),
@@ -328,4 +331,10 @@ function _sparse_jacobian_aux!(
 
     decompress!(jac, compressed_matrix, coloring_result)
     return jac
+end
+
+## Operator overloading
+
+function DI.overloaded_input_type(prep::PushforwardSparseJacobianPrep)
+    return DI.overloaded_input_type(prep.pushforward_prep)
 end

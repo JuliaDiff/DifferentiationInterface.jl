@@ -88,12 +88,8 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
     groups_forward = column_groups(coloring_result)
     groups_reverse = row_groups(coloring_result)
 
-    seeds_forward = [
-        DI.multibasis(backend, x, eachindex(x)[group]) for group in groups_forward
-    ]
-    seeds_reverse = [
-        DI.multibasis(backend, y, eachindex(y)[group]) for group in groups_reverse
-    ]
+    seeds_forward = [DI.multibasis(x, eachindex(x)[group]) for group in groups_forward]
+    seeds_reverse = [DI.multibasis(y, eachindex(y)[group]) for group in groups_reverse]
 
     compressed_matrix_forward = stack(_ -> vec(similar(y)), groups_forward; dims=2)
     compressed_matrix_reverse = stack(_ -> vec(similar(x)), groups_reverse; dims=1)
@@ -220,6 +216,9 @@ function _sparse_jacobian_aux!(
         )
 
         for b in eachindex(batched_results_reverse[a])
+            if eltype(x) <: Complex
+                batched_results_reverse[a][b] .= conj.(batched_results_reverse[a][b])
+            end
             copyto!(
                 view(compressed_matrix_reverse, 1 + ((a - 1) * Br + (b - 1)) % Nr, :),
                 vec(batched_results_reverse[a][b]),

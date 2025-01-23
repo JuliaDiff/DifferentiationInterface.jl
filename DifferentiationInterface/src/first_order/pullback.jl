@@ -126,7 +126,7 @@ function _prepare_pullback_aux(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = x isa Number ? one(x) : basis(backend, x, first(CartesianIndices(x)))
+    dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f, backend, x, (dx,), contexts...)
     return PushforwardPullbackPrep(pushforward_prep)
 end
@@ -140,7 +140,7 @@ function _prepare_pullback_aux(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = x isa Number ? one(x) : basis(backend, x, first(CartesianIndices(x)))
+    dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f!, y, backend, x, (dx,), contexts...)
     return PushforwardPullbackPrep(pushforward_prep)
 end
@@ -156,7 +156,7 @@ function _pullback_via_pushforward(
     contexts::Vararg{Context,C},
 ) where {F,C}
     t1 = pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...)
-    dx = dot(dy, only(t1))
+    dx = dot(only(t1), dy)
     return dx
 end
 
@@ -169,8 +169,8 @@ function _pullback_via_pushforward(
     contexts::Vararg{Context,C},
 ) where {F,C}
     dx = map(CartesianIndices(x)) do j
-        t1 = pushforward(f, pushforward_prep, backend, x, (basis(backend, x, j),), contexts...)
-        dot(dy, only(t1))
+        t1 = pushforward(f, pushforward_prep, backend, x, (basis(x, j),), contexts...)
+        dot(only(t1), dy)
     end
     return dx
 end
@@ -241,7 +241,7 @@ function _pullback_via_pushforward(
     contexts::Vararg{Context,C},
 ) where {F,C}
     t1 = pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...)
-    dx = dot(dy, only(t1))
+    dx = dot(only(t1), dy)
     return dx
 end
 
@@ -255,10 +255,8 @@ function _pullback_via_pushforward(
     contexts::Vararg{Context,C},
 ) where {F,C}
     dx = map(CartesianIndices(x)) do j  # preserve shape
-        t1 = pushforward(
-            f!, y, pushforward_prep, backend, x, (basis(backend, x, j),), contexts...
-        )
-        dot(dy, only(t1))
+        t1 = pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...)
+        dot(only(t1), dy)
     end
     return dx
 end

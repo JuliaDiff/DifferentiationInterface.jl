@@ -42,6 +42,10 @@ end
     )
 end
 
+test_differentiation(
+    AutoZygote(), complex_scenarios(); excluded=[:gradient, :jacobian], logging=LOGGING
+);
+
 ## Sparse
 
 @testset "Sparse" begin
