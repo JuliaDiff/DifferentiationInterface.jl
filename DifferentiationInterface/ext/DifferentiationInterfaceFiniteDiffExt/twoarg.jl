@@ -43,10 +43,10 @@ end
 
 ## Derivative
 
-struct FiniteDiffTwoArgDerivativePrep{C} <: DI.DerivativePrep
+struct FiniteDiffTwoArgDerivativePrep{C,R,A} <: DI.DerivativePrep
     cache::C
-    relstep
-    absstep
+    relstep::R
+    absstep::A
 end
 
 function DI.prepare_derivative(
