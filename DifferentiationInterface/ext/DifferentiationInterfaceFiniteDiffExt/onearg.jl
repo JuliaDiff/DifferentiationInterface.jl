@@ -329,13 +329,7 @@ function DI.value_and_jacobian!(
         copyto!(
             jac,
             finite_difference_jacobian(
-                fc,
-                x,
-                prep.cache,
-                y;
-                jac_prototype=jac,
-                relstep,
-                absstep,
+                fc, x, prep.cache, y; jac_prototype=jac, relstep, absstep
             ),
         ),
     )
@@ -368,11 +362,7 @@ function DI.prepare_hessian(
 end
 
 function DI.hessian(
-    f,
-    prep::FiniteDiffHessianPrep,
-    ::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::FiniteDiffHessianPrep, ::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     (; relstep, absstep) = prep
@@ -393,11 +383,7 @@ function DI.hessian!(
 end
 
 function DI.value_gradient_and_hessian(
-    f,
-    prep::FiniteDiffHessianPrep,
-    ::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::FiniteDiffHessianPrep, ::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     (; relstep, absstep) = prep
