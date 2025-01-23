@@ -216,8 +216,8 @@ function DI.value_and_gradient(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    return fc(x), (; relstep, absstep) = prep
-    return finite_difference_gradient(fc, x, prep.cache; relstep, absstep)
+    (; relstep, absstep) = prep
+    return fc(x), finite_difference_gradient(fc, x, prep.cache; relstep, absstep)
 end
 
 function DI.gradient!(
