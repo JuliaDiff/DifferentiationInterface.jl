@@ -129,7 +129,7 @@ end
 
 function DI.derivative(
     f,
-    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache,<:Number,<:Number},
+    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache},
     ::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
