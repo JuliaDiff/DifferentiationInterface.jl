@@ -91,7 +91,7 @@ end
 
 function DI.derivative(
     f,
-    ::FiniteDiffOneArgDerivativePrep{Nothing,Nothing,Nothing},
+    ::FiniteDiffOneArgDerivativePrep{Nothing},
     backend::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
