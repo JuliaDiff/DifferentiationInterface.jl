@@ -24,6 +24,15 @@ test_differentiation(
     logging=LOGGING,
 );
 
+test_differentiation(
+    [
+        AutoFiniteDiff(; relstep=cbrt(eps(Float64))),
+        AutoFiniteDiff(; relstep=cbrt(eps(Float64)), absstep=cbrt(eps(Float64))),
+    ];
+    excluded=[:second_derivative, :hvp],
+    logging=LOGGING,
+);
+
 @testset "Complex" begin
     test_differentiation(AutoFiniteDiff(), complex_scenarios(); logging=LOGGING)
     test_differentiation(

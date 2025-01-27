@@ -48,7 +48,7 @@ DifferentiationInterfaceTrackerExt = "Tracker"
 DifferentiationInterfaceZygoteExt = ["Zygote", "ForwardDiff"]
 
 [compat]
-ADTypes = "1.9.0"
+ADTypes = "1.12.1"
 ChainRulesCore = "1.23.0"
 DiffResults = "1.1.0"
 Diffractor = "=0.2.6"
