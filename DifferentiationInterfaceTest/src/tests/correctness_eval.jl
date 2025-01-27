@@ -42,7 +42,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1out,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -99,7 +99,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1in,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -170,7 +170,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S2out,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -238,7 +238,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S2in,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -315,7 +315,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1out,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -374,7 +374,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1in,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -448,7 +448,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1out,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -507,7 +507,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1in,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -578,7 +578,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S2out,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -649,7 +649,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S2in,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -739,7 +739,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1out,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -798,7 +798,7 @@ for op in ALL_OPS
         @eval function test_correctness(
             ba::AbstractADType,
             scen::$S1in,
-            otherscen=deepcopy(scen);
+            otherscen;
             isapprox::Function,
             atol::Real,
             rtol::Real,

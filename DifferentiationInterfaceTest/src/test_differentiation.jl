@@ -62,7 +62,7 @@ Each setting tests/benchmarks a different subset of calls:
 function test_differentiation(
     backends::Vector{<:AbstractADType},
     scenarios::Vector{<:Scenario}=default_scenarios(),
-    otherscenarios=similar(scenarios, Nothing);
+    otherscenarios=deepcopy(scenarios);
     # test categories
     correctness::Bool=true,
     type_stability::Symbol=:none,
@@ -120,14 +120,14 @@ function test_differentiation(
             grouped_scenario_inds = group_by_operator(filtered_scenario_inds, scenarios)
             @testset verbose = detailed "$op" for (j, (op, op_group)) in
                                                   enumerate(pairs(grouped_scenario_inds))
-                @testset "$scen" for (k, l) in enumerate(op_group)
+                @testset "$(scenarios[l])" for (k, l) in enumerate(op_group)
                     scen = scenarios[l]
                     otherscen = otherscenarios[l]
                     next!(
                         prog;
                         showvalues=[
                             (:backend, "$backend - $i/$(length(backends))"),
-                            (:scenario_type, "$op - $j/$(length(grouped_scenarios))"),
+                            (:scenario_type, "$op - $j/$(length(grouped_scenario_inds))"),
                             (:scenario, "$k/$(length(op_group))"),
                             (:operator_place, operator_place(scen)),
                             (:function_place, function_place(scen)),
