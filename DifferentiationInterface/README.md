@@ -37,6 +37,7 @@ We support the following backends defined by [ADTypes.jl](https://github.com/Sci
 - [FiniteDiff.jl](https://github.com/JuliaDiff/FiniteDiff.jl)
 - [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl)
 - [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl)
+- [GTPSA.jl](https://github.com/bmad-sim/GTPSA.jl)
 - [Mooncake.jl](https://github.com/compintell/Mooncake.jl)
 - [PolyesterForwardDiff.jl](https://github.com/JuliaDiff/PolyesterForwardDiff.jl)
 - [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl)
@@ -89,4 +90,4 @@ To improve your performance by up to several orders of magnitude compared to thi
 
 ## Citation
 
-Please cite both DifferentiationInterface.jl and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.bib` file.
+Please cite both DifferentiationInterface.jl and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.cff` file.

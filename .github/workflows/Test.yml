@@ -42,6 +42,7 @@ jobs:
           - Back/FiniteDiff
           - Back/FiniteDifferences
           - Back/ForwardDiff
+          - Back/GTPSA
           - Back/Mooncake
           - Back/PolyesterForwardDiff
           - Back/ReverseDiff
