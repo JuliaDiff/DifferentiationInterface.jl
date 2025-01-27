@@ -11,6 +11,7 @@ We support the following dense backend choices from [ADTypes.jl](https://github.
 - [`AutoFiniteDiff`](@extref ADTypes.AutoFiniteDiff)
 - [`AutoFiniteDifferences`](@extref ADTypes.AutoFiniteDifferences)
 - [`AutoForwardDiff`](@extref ADTypes.AutoForwardDiff)
+- [`AutoGTPSA`](@extref ADTypes.AutoGTPSA)
 - [`AutoMooncake`](@extref ADTypes.AutoMooncake)
 - [`AutoPolyesterForwardDiff`](@extref ADTypes.AutoPolyesterForwardDiff)
 - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff)
@@ -45,6 +46,7 @@ In practice, many AD backends have custom implementations for high-level operato
     | `AutoFiniteDiff`           | 🔀    | ❌    | ✅     | ✅      | ✅     | ✅      | ❌     | ❌      |
     | `AutoFiniteDifferences`    | 🔀    | ❌    | ❌     | ✅      | ✅     | ❌      | ❌     | ❌      |
     | `AutoForwardDiff`          | ✅    | ❌    | ✅     | ✅      | ✅     | ✅      | ✅     | ✅      |
+    | `AutoGTPSA`                | ✅    | ❌    | ❌     | ✅      | ✅     | ✅      | ✅     | ✅      |
     | `AutoMooncake`             | ❌    | ✅    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
     | `AutoPolyesterForwardDiff` | 🔀    | ❌    | 🔀     | ✅      | ✅     | 🔀      | 🔀     | 🔀      |
     | `AutoReverseDiff`          | ❌    | 🔀    | ❌     | ✅      | ✅     | ✅      | ❌     | ❌      |
@@ -64,6 +66,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoFiniteDiff`           | ✅                  |
 | `AutoFiniteDifferences`    | ✅                  |
 | `AutoForwardDiff`          | ✅                  |
+| `AutoGTPSA`                | ✅                  |
 | `AutoMooncake`             | ✅                  |
 | `AutoPolyesterForwardDiff` | ✅                  |
 | `AutoReverseDiff`          | ✅                  |
@@ -137,6 +140,15 @@ Nothing specific to mention.
 
 We implement [`pushforward`](@ref) directly using [`Dual` numbers](https://juliadiff.org/ForwardDiff.jl/stable/dev/how_it_works/), and preparation allocates the necessary space.
 For higher level operators, preparation creates a [config object](https://juliadiff.org/ForwardDiff.jl/stable/user/api/#Preallocating/Configuring-Work-Buffers), which can be type-unstable.
+
+### GTPSA
+
+For all operators, preparation preallocates the input [`TPS`s](https://bmad-sim.github.io/GTPSA.jl/stable/man/c_tps/), and for in-place functions the output `TPS`s as well. For minimal allocations of `TPS` temporaries inside of a function, the [`@FastGTPSA`/`@FastGTPSA!`](https://bmad-sim.github.io/GTPSA.jl/stable/man/j_fastgtpsa/) macros are recommended.
+
+If a GTPSA [`Descriptor`](https://bmad-sim.github.io/GTPSA.jl/stable/man/b_descriptor/) is not provided to `AutoGTPSA`, then a `Descriptor` will be generated in preparation based on the context.
+
+!!! danger
+    When providing a custom GTPSA `Descriptor` to `AutoGTPSA`, it is the responsibility of the user to ensure that the number of [GTPSA "variables"](https://bmad-sim.github.io/GTPSA.jl/stable/quickstart/#Calculating-a-Truncated-Power-Series) specified in the `Descriptor` is consistent with the number of inputs of the provided function. Undefined behavior and crashes may occur if this is not the case.
 
 ### PolyesterForwardDiff
 

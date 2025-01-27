@@ -23,6 +23,7 @@ using ADTypes:
     AutoFiniteDiff,
     AutoFiniteDifferences,
     AutoForwardDiff,
+    AutoGTPSA,
     AutoMooncake,
     AutoPolyesterForwardDiff,
     AutoReverseDiff,
@@ -110,6 +111,7 @@ export AutoFastDifferentiation
 export AutoFiniteDiff
 export AutoFiniteDifferences
 export AutoForwardDiff
+export AutoGTPSA
 export AutoMooncake
 export AutoPolyesterForwardDiff
 export AutoReverseDiff
