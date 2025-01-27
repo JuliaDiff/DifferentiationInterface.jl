@@ -13,7 +13,8 @@ using FiniteDiff:
     finite_difference_hessian,
     finite_difference_hessian!,
     finite_difference_jacobian,
-    finite_difference_jacobian!
+    finite_difference_jacobian!,
+    default_relstep
 using LinearAlgebra: dot, mul!
 
 DI.check_available(::AutoFiniteDiff) = true
