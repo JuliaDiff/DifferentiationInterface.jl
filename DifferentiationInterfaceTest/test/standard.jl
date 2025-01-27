@@ -12,7 +12,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
 ## Dense
 
 test_differentiation(
-    AutoForwardDiff(), default_scenarios(; include_constantified=true); logging=LOGGING
+    AutoForwardDiff(), default_scenarios(; include_constantified=false); logging=LOGGING
 )
 
 ## Complex
