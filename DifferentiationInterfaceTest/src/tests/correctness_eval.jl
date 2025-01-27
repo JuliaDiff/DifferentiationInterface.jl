@@ -41,16 +41,15 @@ for op in ALL_OPS
     if op in [:derivative, :gradient, :jacobian]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out,
-            otherscen;
+            scen::$S1out;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -98,16 +97,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in,
-            otherscen;
+            scen::$S1in;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -169,16 +167,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2out,
-            otherscen;
+            scen::$S2out;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -237,16 +234,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2in,
-            otherscen;
+            scen::$S2in;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -314,16 +310,15 @@ for op in ALL_OPS
     elseif op in [:second_derivative, :hessian]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out,
-            otherscen;
+            scen::$S1out;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, res2, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -373,16 +368,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in,
-            otherscen;
+            scen::$S1in;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, res2, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -447,16 +441,15 @@ for op in ALL_OPS
     elseif op in [:pushforward, :pullback]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out,
-            otherscen;
+            scen::$S1out;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -506,16 +499,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in,
-            otherscen;
+            scen::$S1in;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -577,16 +569,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2out,
-            otherscen;
+            scen::$S2out;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -648,16 +639,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2in,
-            otherscen;
+            scen::$S2in;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -738,16 +728,15 @@ for op in ALL_OPS
     elseif op in [:hvp]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out,
-            otherscen;
+            scen::$S1out;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, res2, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, tang, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -797,16 +786,15 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in,
-            otherscen;
+            scen::$S1in;
             isapprox::Function,
             atol::Real,
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, res2, contexts) = new_scen = deepcopy(scen)
-            new_otherscen = deepcopy(otherscen)
+            (; f, x, y, tang, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)

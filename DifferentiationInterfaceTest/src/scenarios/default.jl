@@ -483,7 +483,7 @@ function default_scenarios(;
     V = Vector{Float64}
     M = Matrix{Float64}
 
-    scens = vcat(
+    initialscens = vcat(
         # one argument
         num_to_num_scenarios(x_; dx=dx_, dy=dy_),
         num_to_arr_scenarios_onearg(x_, V; dx=dx_, dy=dy_6),
@@ -502,6 +502,34 @@ function default_scenarios(;
         mat_to_vec_scenarios_twoarg(x_2_3; dx=dx_2_3, dy=dy_12),
         mat_to_mat_scenarios_twoarg(x_2_3; dx=dx_2_3, dy=dy_6_2),
     )
+
+    otherscens = vcat(
+        # one argument
+        num_to_num_scenarios(x_; dx=dx_, dy=dy_),
+        num_to_arr_scenarios_onearg(x_, V; dx=dx_, dy=dy_6),
+        num_to_arr_scenarios_onearg(x_, M; dx=dx_, dy=dy_2_3),
+        arr_to_num_scenarios_onearg(x_6[1:3]; dx=dx_6[1:3], dy=dy_, linalg),
+        arr_to_num_scenarios_onearg(x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_, linalg),
+        vec_to_vec_scenarios_onearg(x_6[1:3]; dx=dx_6[1:3], dy=dy_12[1:6]),
+        vec_to_mat_scenarios_onearg(x_6[1:3]; dx=dx_6[1:3], dy=dy_6_2[1:3, 1:2]),
+        mat_to_vec_scenarios_onearg(x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_12[1:4]),
+        mat_to_mat_scenarios_onearg(
+            x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_6_2[1:2, 1:2]
+        ),
+        # two arguments
+        num_to_arr_scenarios_twoarg(x_, V; dx=dx_, dy=dy_6),
+        num_to_arr_scenarios_twoarg(x_, M; dx=dx_, dy=dy_2_3),
+        vec_to_vec_scenarios_twoarg(x_6[1:3]; dx=dx_6[1:3], dy=dy_12[1:6]),
+        vec_to_mat_scenarios_twoarg(x_6[1:3]; dx=dx_6[1:3], dy=dy_6_2[1:3, 1:2]),
+        mat_to_vec_scenarios_twoarg(x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_12[1:4]),
+        mat_to_mat_scenarios_twoarg(
+            x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_6_2[1:2, 1:2]
+        ),
+    )
+
+    scens = map(initialscens, otherscens) do s1, s2
+        set_otherscen(s1, s2)
+    end
 
     include_batchified && append!(scens, batchify(scens))
 

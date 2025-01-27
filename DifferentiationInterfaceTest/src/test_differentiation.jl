@@ -61,8 +61,7 @@ Each setting tests/benchmarks a different subset of calls:
 """
 function test_differentiation(
     backends::Vector{<:AbstractADType},
-    scenarios::Vector{<:Scenario}=default_scenarios(),
-    otherscenarios=deepcopy(scenarios);
+    scenarios::Vector{<:Scenario}=default_scenarios();
     # test categories
     correctness::Bool=true,
     type_stability::Symbol=:none,
@@ -97,10 +96,8 @@ function test_differentiation(
     @assert allocations in (:none, :prepared, :full)
     @assert benchmark in (:none, :prepared, :full)
 
-    scenario_inds = filter(l -> !(operator(scenarios[l]) in excluded), eachindex(scenarios))
-    scenario_inds = sort(
-        scenario_inds; by=l -> (operator(scenarios[l]), string(scenarios[l].f))
-    )
+    scenarios = filter(s -> !(operator(s) in excluded), scenarios)
+    scenarios = sort(scenarios; by=s -> (operator(s), string(s.f)))
 
     title_additions =
         (correctness ? " + correctness" : "") *
@@ -114,20 +111,16 @@ function test_differentiation(
 
     @testset verbose = true "$title" begin
         @testset verbose = detailed "$backend" for (i, backend) in enumerate(backends)
-            filtered_scenario_inds = filter(
-                l -> compatible(backend, scenarios[l]), scenario_inds
-            )
-            grouped_scenario_inds = group_by_operator(filtered_scenario_inds, scenarios)
+            filtered_scenarios = filter(s -> compatible(backend, s), scenarios)
+            grouped_scenarios = group_by_operator(filtered_scenarios)
             @testset verbose = detailed "$op" for (j, (op, op_group)) in
-                                                  enumerate(pairs(grouped_scenario_inds))
-                @testset "$(scenarios[l])" for (k, l) in enumerate(op_group)
-                    scen = scenarios[l]
-                    otherscen = otherscenarios[l]
+                                                  enumerate(pairs(grouped_scenarios))
+                @testset "$scen" for (k, scen) in enumerate(op_group)
                     next!(
                         prog;
                         showvalues=[
                             (:backend, "$backend - $i/$(length(backends))"),
-                            (:scenario_type, "$op - $j/$(length(grouped_scenario_inds))"),
+                            (:scenario_type, "$op - $j/$(length(grouped_scenarios))"),
                             (:scenario, "$k/$(length(op_group))"),
                             (:operator_place, operator_place(scen)),
                             (:function_place, function_place(scen)),
@@ -147,8 +140,7 @@ function test_differentiation(
                     correctness && @testset "Correctness" begin
                         test_correctness(
                             adapted_backend,
-                            scen,
-                            otherscen;
+                            scen;
                             isapprox,
                             atol,
                             rtol,

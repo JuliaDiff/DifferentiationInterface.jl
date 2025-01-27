@@ -20,7 +20,7 @@ This generic type should never be used directly: use the specific constructor co
 
 $(TYPEDFIELDS)
 """
-struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2}
+struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,S}
     "function `f` (if `args==1`) or `f!` (if `args==2`) to apply"
     f::F
     "primal input"
@@ -35,29 +35,32 @@ struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2}
     res1::R1
     "second-order result of the operator (if applicable)"
     res2::R2
+    otherscen::S
 end
 
 function Scenario{op,pl_op,pl_fun}(
-    f::F; x::X, y::Y, tang::T, contexts::C, res1::R1, res2::R2
-) where {op,pl_op,pl_fun,F,X,Y,T,C,R1,R2}
-    return Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2}(f, x, y, tang, contexts, res1, res2)
+    f::F; x::X, y::Y, tang::T, contexts::C, res1::R1, res2::R2, otherscen::S=nothing
+) where {op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S<:Union{Nothing,Scenario}}
+    return Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S}(
+        f, x, y, tang, contexts, res1, res2, otherscen
+    )
 end
 
 function Scenario{op,pl_op}(
-    f, x; tang=nothing, contexts=(), res1=nothing, res2=nothing
+    f, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, otherscen=nothing
 ) where {op,pl_op}
     @assert op in ALL_OPS
     @assert pl_op in (:in, :out)
     y = f(x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:out}(f; x, y, tang, contexts, res1, res2)
+    return Scenario{op,pl_op,:out}(f; x, y, tang, contexts, res1, res2, otherscen)
 end
 
 function Scenario{op,pl_op}(
-    f!, y, x; tang=nothing, contexts=(), res1=nothing, res2=nothing
+    f!, y, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, otherscen=nothing
 ) where {op,pl_op}
     @assert op in ALL_OPS
     @assert pl_op in (:in, :out)
-    return Scenario{op,pl_op,:in}(f!; x, y, tang, contexts, res1, res2)
+    return Scenario{op,pl_op,:in}(f!; x, y, tang, contexts, res1, res2, otherscen)
 end
 
 Base.:(==)(scen1::Scenario, scen2::Scenario) = false
@@ -108,11 +111,9 @@ function compatible(backend::AbstractADType, scen::Scenario)
            mixedmode_compatible
 end
 
-function group_by_operator(
-    scenario_inds::AbstractVector{<:Integer}, scenarios::AbstractVector{<:Scenario}
-)
+function group_by_operator(scenarios::AbstractVector{<:Scenario})
     return Dict(
-        op => filter(l -> operator(scenarios[l]) == op, scenario_inds) for
+        op => filter(s -> operator(s) == op, scenarios) for
         op in unique(operator.(scenarios))
     )
 end

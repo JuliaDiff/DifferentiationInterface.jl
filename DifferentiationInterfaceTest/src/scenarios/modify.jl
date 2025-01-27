@@ -200,3 +200,19 @@ end
 closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
 cachify(scens::AbstractVector{<:Scenario}) = cachify.(scens)
+
+function set_otherscen(
+    scen::Scenario{op,pl_op,pl_fun}, otherscen::Scenario
+) where {op,pl_op,pl_fun}
+    @assert scen.f == otherscen.f
+    return Scenario{op,pl_op,pl_fun}(
+        scen.f;
+        x=scen.x,
+        y=scen.y,
+        tang=scen.tang,
+        contexts=scen.contexts,
+        res1=scen.res1,
+        res2=scen.res2,
+        otherscen=otherscen,
+    )
+end
