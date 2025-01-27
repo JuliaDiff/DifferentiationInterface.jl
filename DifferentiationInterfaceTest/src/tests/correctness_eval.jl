@@ -41,7 +41,8 @@ for op in ALL_OPS
     if op in [:derivative, :gradient, :jacobian]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out;
+            scen::$S1out,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -49,6 +50,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -56,7 +58,9 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -94,7 +98,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in;
+            scen::$S1in,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -102,6 +107,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -109,7 +115,9 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -161,7 +169,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2out;
+            scen::$S2out,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -169,6 +178,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -177,7 +187,13 @@ for op in ALL_OPS
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
-                    $prep_op(f, copy(yrand), ba, xrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        copy(new_otherscen.y),
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -221,7 +237,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2in;
+            scen::$S2in,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -229,6 +246,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -237,7 +255,13 @@ for op in ALL_OPS
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
-                    $prep_op(f, copy(yrand), ba, xrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        copy(new_otherscen.y),
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -290,7 +314,8 @@ for op in ALL_OPS
     elseif op in [:second_derivative, :hessian]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out;
+            scen::$S1out,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -298,6 +323,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, res2, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -305,7 +331,9 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -345,7 +373,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in;
+            scen::$S1in,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -353,6 +382,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, res2, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -360,7 +390,9 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -415,7 +447,8 @@ for op in ALL_OPS
     elseif op in [:pushforward, :pullback]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out;
+            scen::$S1out,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -423,6 +456,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -430,7 +464,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, tangrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.tang,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     tangrand,
@@ -466,7 +506,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in;
+            scen::$S1in,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -474,6 +515,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -481,7 +523,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, tangrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.tang,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     tangrand,
@@ -529,7 +577,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2out;
+            scen::$S2out,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -537,6 +586,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -545,7 +595,14 @@ for op in ALL_OPS
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
-                    $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        copy(new_otherscen.y),
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.tang,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     tangrand,
@@ -591,7 +648,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S2in;
+            scen::$S2in,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -599,6 +657,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -607,7 +666,14 @@ for op in ALL_OPS
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
-                    $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        copy(y),
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.tang,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     tangrand,
@@ -672,7 +738,8 @@ for op in ALL_OPS
     elseif op in [:hvp]
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1out;
+            scen::$S1out,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -680,6 +747,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, res2, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -687,7 +755,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, tangrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.tang,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     tangrand,
@@ -723,7 +797,8 @@ for op in ALL_OPS
 
         @eval function test_correctness(
             ba::AbstractADType,
-            scen::$S1in;
+            scen::$S1in,
+            otherscen=deepcopy(scen);
             isapprox::Function,
             atol::Real,
             rtol::Real,
@@ -731,6 +806,7 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, res2, contexts) = new_scen = deepcopy(scen)
+            new_otherscen = deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
@@ -738,7 +814,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(f, ba, xrand, tangrand, contextsrand...),
+                    $prep_op(
+                        new_otherscen.f,
+                        ba,
+                        new_otherscen.x,
+                        new_otherscen.tang,
+                        new_otherscen.contexts...,
+                    ),
                     ba,
                     xrand,
                     tangrand,

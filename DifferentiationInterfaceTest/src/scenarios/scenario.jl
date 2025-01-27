@@ -108,9 +108,11 @@ function compatible(backend::AbstractADType, scen::Scenario)
            mixedmode_compatible
 end
 
-function group_by_operator(scenarios::AbstractVector{<:Scenario})
+function group_by_operator(
+    scenario_inds::AbstractVector{<:Integer}, scenarios::AbstractVector{<:Scenario}
+)
     return Dict(
-        op => filter(s -> operator(s) == op, scenarios) for
+        op => filter(l -> operator(scenarios[l]) == op, scenario_inds) for
         op in unique(operator.(scenarios))
     )
 end
