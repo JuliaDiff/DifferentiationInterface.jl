@@ -98,7 +98,9 @@ function test_differentiation(
     @assert benchmark in (:none, :prepared, :full)
 
     scenario_inds = filter(l -> !(operator(scenarios[l]) in excluded), eachindex(scenarios))
-    scenario_inds = sort(scenario_inds; by=l -> (operator(scenarios[l]), string(s.f)))
+    scenario_inds = sort(
+        scenario_inds; by=l -> (operator(scenarios[l]), string(scenarios[l].f))
+    )
 
     title_additions =
         (correctness ? " + correctness" : "") *
