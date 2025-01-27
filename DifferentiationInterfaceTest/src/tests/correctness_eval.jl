@@ -49,11 +49,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -105,11 +105,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -175,11 +175,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -242,11 +242,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -318,11 +318,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -376,11 +376,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -449,11 +449,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -507,11 +507,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -577,11 +577,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -647,18 +647,18 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
                         new_otherscen.f,
-                        copy(y),
+                        copy(new_otherscen.y),
                         ba,
                         new_otherscen.x,
                         new_otherscen.tang,
@@ -736,11 +736,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
@@ -794,11 +794,11 @@ for op in ALL_OPS
             sparsity::Bool,
         )
             (; f, x, y, tang, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
-            new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
+                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
