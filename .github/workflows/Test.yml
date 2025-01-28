@@ -54,8 +54,8 @@ jobs:
         skip_lts:
           - ${{ github.event.pull_request.draft }}
         exclude:
-          # - skip_lts: true
-          #   version: "1.10"
+          - skip_lts: true
+            version: "1.10"
           - version: "1"
             group: Back/ChainRules
     env:
@@ -104,9 +104,9 @@ jobs:
           - Weird
         skip_lts:
           - ${{ github.event.pull_request.draft }}
-        # exclude:
-        #   - skip_lts: true
-        #     version: "1.10"
+        exclude:
+          - skip_lts: true
+            version: "1.10"
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
     steps:
