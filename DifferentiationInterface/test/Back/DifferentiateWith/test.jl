@@ -16,7 +16,9 @@ function differentiatewith_scenarios()
             DIT.function_place(scen) == :out
         end
     good_scens = map(bad_scens) do scen
-        DIT.change_function(scen, DifferentiateWith(scen.f, AutoFiniteDiff()))
+        DIT.change_function(
+            scen, DifferentiateWith(scen.f, AutoFiniteDiff()); keep_smaller=false
+        )
     end
     return good_scens
 end
