@@ -23,7 +23,7 @@ function complex_scenarios()
         arr_to_num_scenarios_onearg(x_6; dx=dx_6, dy=dy_),
         vec_to_vec_scenarios_onearg(x_6; dx=dx_6, dy=dy_12),
         # two arguments
-        num_to_arr_scenarios_twoarg(x_, V; dx=dx_, dy=dy_6),
+        num_to_arr_scenarios_twoarg(x_; dx=dx_, dy=dy_6),
         vec_to_vec_scenarios_twoarg(x_6; dx=dx_6, dy=dy_12),
     )
 
