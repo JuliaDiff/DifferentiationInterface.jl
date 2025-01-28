@@ -18,7 +18,7 @@ for backend in [AutoFiniteDiff()]
 end
 
 test_differentiation(
-    AutoFiniteDiff(),
+    [AutoFiniteDiff(; fdtype=Val(:forward)), AutoFiniteDiff(; fdtype=Val(:central))],
     default_scenarios();
     excluded=[
         :second_derivative, :hvp, :hessian, :jacobian, :derivative, :gradient, :pullback
