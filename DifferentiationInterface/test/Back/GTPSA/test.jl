@@ -16,7 +16,12 @@ for backend in [AutoGTPSA()]
 end
 
 # Test no Descriptor (use context)
-test_differentiation(AutoGTPSA(); type_stability=:full, logging=LOGGING);
+test_differentiation(
+    AutoGTPSA(),
+    default_scenarios(; include_constantified=true);
+    type_stability=:full,
+    logging=LOGGING,
+);
 
 # Test with Descriptor:
 d1 = GTPSA.Descriptor(20, 2) # 20 variables to 2nd order
