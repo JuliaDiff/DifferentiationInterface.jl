@@ -21,9 +21,6 @@ using Symbolics.RuntimeGeneratedFunctions: RuntimeGeneratedFunction
 DI.check_available(::AutoSymbolics) = true
 DI.pullback_performance(::AutoSymbolics) = DI.PullbackSlow()
 
-myvec(x::Number) = [x]
-myvec(x::AbstractArray) = vec(x)
-
 dense_ad(backend::AutoSymbolics) = backend
 dense_ad(backend::AutoSparse{<:AutoSymbolics}) = ADTypes.dense_ad(backend)
 
