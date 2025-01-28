@@ -11,7 +11,11 @@ function DI.prepare_pushforward(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
-    cache = JVPCache(similar(x), y, fdtype(backend))
+    cache = if x isa Number || y isa Number
+        nothing
+    else
+        JVPCache(similar(x), y, fdtype(backend))
+    end
     relstep = if isnothing(backend.relstep)
         default_relstep(fdtype(backend), eltype(x))
     else
@@ -27,7 +31,50 @@ end
 
 function DI.pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep,
+    prep::FiniteDiffOneArgPushforwardPrep{Nothing},
+    backend::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
+    ty = map(tx) do dx
+        finite_difference_derivative(
+            Base.Fix2(step, dx), zero(eltype(x)), fdtype(backend); relstep, absstep
+        )
+    end
+    return ty
+end
+
+function DI.value_and_pushforward(
+    f,
+    prep::FiniteDiffOneArgPushforwardPrep{Nothing},
+    backend::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
+    y = f(x, map(DI.unwrap, contexts)...)
+    ty = map(tx) do dx
+        finite_difference_derivative(
+            Base.Fix2(step, dx),
+            zero(eltype(x)),
+            fdtype(backend),
+            eltype(y),
+            y;
+            relstep,
+            absstep,
+        )
+    end
+    return y, ty
+end
+
+function DI.pushforward(
+    f,
+    prep::FiniteDiffOneArgPushforwardPrep{<:JVPCache},
     ::AutoFiniteDiff,
     x,
     tx::NTuple,
@@ -43,7 +90,7 @@ end
 
 function DI.value_and_pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep,
+    prep::FiniteDiffOneArgPushforwardPrep{<:JVPCache},
     ::AutoFiniteDiff,
     x,
     tx::NTuple,

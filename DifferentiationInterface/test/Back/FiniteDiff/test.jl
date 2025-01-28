@@ -19,7 +19,7 @@ end
 
 test_differentiation(
     [AutoFiniteDiff(; fdtype=Val(:forward)), AutoFiniteDiff(; fdtype=Val(:central))],
-    default_scenarios();
+    default_scenarios(; include_constantified=true);
     excluded=[
         :second_derivative, :hvp, :hessian, :jacobian, :derivative, :gradient, :pullback
     ],

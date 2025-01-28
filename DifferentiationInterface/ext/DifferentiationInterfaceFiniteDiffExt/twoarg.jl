@@ -9,7 +9,11 @@ end
 function DI.prepare_pushforward(
     f!, y, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
-    cache = JVPCache(similar(x), similar(y), fdtype(backend))
+    cache = if x isa Number
+        nothing
+    else
+        JVPCache(similar(x), similar(y), fdtype(backend))
+    end
     relstep = if isnothing(backend.relstep)
         default_relstep(fdtype(backend), eltype(x))
     else
@@ -23,10 +27,40 @@ function DI.prepare_pushforward(
     return FiniteDiffTwoArgPushforwardPrep(cache, relstep, absstep)
 end
 
+function DI.value_and_pushforward(
+    f!,
+    y,
+    prep::FiniteDiffTwoArgPushforwardPrep{Nothing},
+    backend::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    function step(t::Number, dx)
+        new_y = similar(y)
+        f!(new_y, x .+ t .* dx, map(DI.unwrap, contexts)...)
+        return new_y
+    end
+    ty = map(tx) do dx
+        finite_difference_derivative(
+            Base.Fix2(step, dx),
+            zero(eltype(x)),
+            fdtype(backend),
+            eltype(y),
+            y;
+            relstep,
+            absstep,
+        )
+    end
+    f!(y, x, map(DI.unwrap, contexts)...)
+    return y, ty
+end
+
 function DI.pushforward(
     f!,
     y,
-    prep::FiniteDiffTwoArgPushforwardPrep,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
     ::AutoFiniteDiff,
     x,
     tx::NTuple,
@@ -35,15 +69,17 @@ function DI.pushforward(
     (; relstep, absstep) = prep
     fc! = DI.with_contexts(f!, contexts...)
     ty = map(tx) do dx
-        finite_difference_jvp!(similar(y), fc!, x, dx, prep.cache; relstep, absstep)
+        dy = similar(y)
+        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep)
+        dy
     end
-    return y, ty
+    return ty
 end
 
 function DI.value_and_pushforward(
     f!,
     y,
-    prep::FiniteDiffTwoArgPushforwardPrep,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
     ::AutoFiniteDiff,
     x,
     tx::NTuple,
@@ -52,7 +88,9 @@ function DI.value_and_pushforward(
     (; relstep, absstep) = prep
     fc! = DI.with_contexts(f!, contexts...)
     ty = map(tx) do dx
-        finite_difference_jvp!(similar(y), fc!, x, dx, prep.cache; relstep, absstep)
+        dy = similar(y)
+        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep)
+        dy
     end
     fc!(y, x)
     return y, ty
@@ -62,7 +100,7 @@ function DI.pushforward!(
     f!,
     y,
     ty::NTuple,
-    prep::FiniteDiffTwoArgPushforwardPrep,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
     ::AutoFiniteDiff,
     x,
     tx::NTuple,
@@ -74,14 +112,14 @@ function DI.pushforward!(
         dx, dy = tx[b], ty[b]
         finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep)
     end
-    return y, ty
+    return ty
 end
 
 function DI.value_and_pushforward!(
     f!,
     y,
     ty::NTuple,
-    prep::FiniteDiffTwoArgPushforwardPrep,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
     ::AutoFiniteDiff,
     x,
     tx::NTuple,
