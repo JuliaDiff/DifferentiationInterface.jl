@@ -17,8 +17,8 @@ end
 
 test_differentiation(
     AutoFastDifferentiation(),
-    filter(default_scenarios()) do s
-        !(s.x isa Matrix) && !(s.y isa Matrix)
+    filter(default_scenarios(; include_constantified=true, include_cachified=true)) do s
+        !(s.x isa AbstractMatrix) && !(s.y isa AbstractMatrix)
     end;
     logging=LOGGING,
 );

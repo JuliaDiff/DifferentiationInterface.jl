@@ -32,6 +32,9 @@ Concrete type of [`Context`](@ref) argument which is kept constant during differ
 Note that an operator can be prepared with an arbitrary value of the constant.
 However, same-point preparation must occur with the exact value that will be reused later.
 
+!!! warning
+    Some backends require any `Constant` context to be a `Number` or an `AbstractArray`.
+
 # Example
 
 ```jldoctest
@@ -65,6 +68,9 @@ maker(::Constant) = constant_maker
 Concrete type of [`Context`](@ref) argument which can be mutated with active values during differentiation.
 
 The initial values present inside the cache do not matter.
+
+!!! warning
+    Most backends require any `Cache` context to be an `AbstractArray`.
 """
 struct Cache{T} <: Context
     data::T

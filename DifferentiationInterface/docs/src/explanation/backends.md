@@ -56,23 +56,23 @@ In practice, many AD backends have custom implementations for high-level operato
 
 Moreover, each context type is supported by a specific subset of backends:
 
-|                            | [`Constant`](@ref) |
-| -------------------------- | ------------------ |
-| `AutoChainRules`           | ✅                  |
-| `AutoDiffractor`           | ❌                  |
-| `AutoEnzyme` (forward)     | ✅                  |
-| `AutoEnzyme` (reverse)     | ✅                  |
-| `AutoFastDifferentiation`  | ❌                  |
-| `AutoFiniteDiff`           | ✅                  |
-| `AutoFiniteDifferences`    | ✅                  |
-| `AutoForwardDiff`          | ✅                  |
-| `AutoGTPSA`                | ✅                  |
-| `AutoMooncake`             | ✅                  |
-| `AutoPolyesterForwardDiff` | ✅                  |
-| `AutoReverseDiff`          | ✅                  |
-| `AutoSymbolics`            | ❌                  |
-| `AutoTracker`              | ✅                  |
-| `AutoZygote`               | ✅                  |
+|                            | [`Constant`](@ref) | [`Cache`](@ref) |
+| -------------------------- | ------------------ | --------------- |
+| `AutoChainRules`           | ✅                  | ❌               |
+| `AutoDiffractor`           | ❌                  | ❌               |
+| `AutoEnzyme` (forward)     | ✅                  | ✅               |
+| `AutoEnzyme` (reverse)     | ✅                  | ✅               |
+| `AutoFastDifferentiation`  | ✅                  | ✅               |
+| `AutoFiniteDiff`           | ✅                  | ✅               |
+| `AutoFiniteDifferences`    | ✅                  | ✅               |
+| `AutoForwardDiff`          | ✅                  | ✅               |
+| `AutoGTPSA`                | ✅                  | ❌               |
+| `AutoMooncake`             | ✅                  | ❌               |
+| `AutoPolyesterForwardDiff` | ✅                  | ✅               |
+| `AutoReverseDiff`          | ✅                  | ❌               |
+| `AutoSymbolics`            | ✅                  | ❌               |
+| `AutoTracker`              | ✅                  | ❌               |
+| `AutoZygote`               | ✅                  | ❌               |
 
 ## Second order
 

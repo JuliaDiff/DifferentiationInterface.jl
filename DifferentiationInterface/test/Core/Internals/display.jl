@@ -1,5 +1,6 @@
 using ADTypes
 using DifferentiationInterface
+using DifferentiationInterface: required_packages
 using Test
 
 backend = SecondOrder(AutoForwardDiff(), AutoZygote())
@@ -12,8 +13,11 @@ detector = DenseSparsityDetector(AutoForwardDiff(); atol=1e-23)
 diffwith = DifferentiateWith(exp, AutoForwardDiff())
 @test string(diffwith) == "DifferentiateWith(exp, AutoForwardDiff())"
 
-@test DifferentiationInterface.package_name(AutoForwardDiff()) == "ForwardDiff"
-@test DifferentiationInterface.package_name(AutoZygote()) == "Zygote"
-@test DifferentiationInterface.package_name(AutoSparse(AutoForwardDiff())) == "ForwardDiff"
-@test DifferentiationInterface.package_name(SecondOrder(AutoForwardDiff(), AutoZygote())) ==
-    "ForwardDiff, Zygote"
+@test required_packages(AutoForwardDiff()) == ["ForwardDiff"]
+@test required_packages(AutoZygote()) == ["Zygote"]
+@test required_packages(AutoSparse(AutoForwardDiff())) ==
+    ["ForwardDiff", "SparseMatrixColorings"]
+@test required_packages(SecondOrder(AutoForwardDiff(), AutoZygote())) ==
+    ["ForwardDiff", "Zygote"]
+@test required_packages(MixedMode(AutoForwardDiff(), AutoZygote())) ==
+    ["ForwardDiff", "Zygote"]
