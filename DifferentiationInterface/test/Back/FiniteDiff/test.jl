@@ -1,5 +1,5 @@
 using Pkg
-Pkg.add("FiniteDiff")
+Pkg.add(; url="https://github.com/JuliaDiff/FiniteDiff.jl", rev="os/finite_difference_jvp`")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using DifferentiationInterface: DenseSparsityDetector
@@ -16,6 +16,15 @@ for backend in [AutoFiniteDiff()]
     @test check_available(backend)
     @test check_inplace(backend)
 end
+
+test_differentiation(
+    AutoFiniteDiff(),
+    default_scenarios();
+    excluded=[
+        :second_derivative, :hvp, :hessian, :jacobian, :derivative, :gradient, :pullback
+    ],
+    logging=LOGGING,
+);
 
 test_differentiation(
     AutoFiniteDiff(),
