@@ -5,20 +5,24 @@ struct FastDifferentiationTwoArgPushforwardPrep{E1,E1!} <: DI.PushforwardPrep
     jvp_exe!::E1!
 end
 
-function DI.prepare_pushforward(f!, y, ::AutoFastDifferentiation, x, tx::NTuple)
-    x_var = if x isa Number
-        only(make_variables(:x))
-    else
-        make_variables(:x, size(x)...)
-    end
-    y_var = make_variables(:y, size(y)...)
-    f!(y_var, x_var)
+function DI.prepare_pushforward(
+    f!, y, ::AutoFastDifferentiation, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
+    y_var = variablize(y, :y)
+    f!(y_var, x_var, context_vars...)
 
-    x_vec_var = x_var isa Number ? monovec(x_var) : vec(x_var)
-    y_vec_var = vec(y_var)
+    x_vec_var = myvec(x_var)
+    context_vec_vars = map(myvec, context_vars)
+    y_vec_var = myvec(y_var)
     jv_vec_var, v_vec_var = jacobian_times_v(y_vec_var, x_vec_var)
-    jvp_exe = make_function(jv_vec_var, vcat(x_vec_var, v_vec_var); in_place=false)
-    jvp_exe! = make_function(jv_vec_var, vcat(x_vec_var, v_vec_var); in_place=true)
+    jvp_exe = make_function(
+        jv_vec_var, x_vec_var, v_vec_var, context_vec_vars...; in_place=false
+    )
+    jvp_exe! = make_function(
+        jv_vec_var, x_vec_var, v_vec_var, context_vec_vars...; in_place=true
+    )
     return FastDifferentiationTwoArgPushforwardPrep(jvp_exe, jvp_exe!)
 end
 
@@ -29,10 +33,10 @@ function DI.pushforward(
     ::AutoFastDifferentiation,
     x,
     tx::NTuple,
-)
+    contexts::Vararg{DI.Context,C},
+) where {C}
     ty = map(tx) do dx
-        v_vec = vcat(myvec(x), myvec(dx))
-        reshape(prep.jvp_exe(v_vec), size(y))
+        reshape(prep.jvp_exe(myvec(x), myvec(dx), map(myvec_unwrap, contexts)...), size(y))
     end
     return ty
 end
@@ -45,11 +49,11 @@ function DI.pushforward!(
     ::AutoFastDifferentiation,
     x,
     tx::NTuple,
-)
+    contexts::Vararg{DI.Context,C},
+) where {C}
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        v_vec = vcat(myvec(x), myvec(dx))
-        prep.jvp_exe!(vec(dy), v_vec)
+        prep.jvp_exe!(myvec(dy), myvec(x), myvec(dx), map(myvec_unwrap, contexts)...)
     end
     return ty
 end
@@ -61,9 +65,10 @@ function DI.value_and_pushforward(
     backend::AutoFastDifferentiation,
     x,
     tx::NTuple,
-)
-    ty = DI.pushforward(f!, y, prep, backend, x, tx)
-    f!(y, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    ty = DI.pushforward(f!, y, prep, backend, x, tx, contexts...)
+    f!(y, x, map(DI.unwrap, contexts)...)
     return y, ty
 end
 
@@ -75,9 +80,10 @@ function DI.value_and_pushforward!(
     backend::AutoFastDifferentiation,
     x,
     tx::NTuple,
-)
-    DI.pushforward!(f!, y, ty, prep, backend, x, tx)
-    f!(y, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    DI.pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
+    f!(y, x, map(DI.unwrap, contexts)...)
     return y, ty
 end
 
@@ -88,20 +94,24 @@ struct FastDifferentiationTwoArgPullbackPrep{E1,E1!} <: DI.PullbackPrep
     vjp_exe!::E1!
 end
 
-function DI.prepare_pullback(f!, y, ::AutoFastDifferentiation, x, ty::NTuple)
-    x_var = if x isa Number
-        only(make_variables(:x))
-    else
-        make_variables(:x, size(x)...)
-    end
-    y_var = make_variables(:y, size(y)...)
-    f!(y_var, x_var)
+function DI.prepare_pullback(
+    f!, y, ::AutoFastDifferentiation, x, ty::NTuple, contexts::Vararg{DI.Context,C}
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
+    y_var = variablize(y, :y)
+    f!(y_var, x_var, context_vars...)
 
-    x_vec_var = x_var isa Number ? monovec(x_var) : vec(x_var)
-    y_vec_var = y_var isa Number ? monovec(y_var) : vec(y_var)
+    x_vec_var = myvec(x_var)
+    context_vec_vars = map(myvec, context_vars)
+    y_vec_var = myvec(y_var)
     vj_vec_var, v_vec_var = jacobian_transpose_v(y_vec_var, x_vec_var)
-    vjp_exe = make_function(vj_vec_var, vcat(x_vec_var, v_vec_var); in_place=false)
-    vjp_exe! = make_function(vj_vec_var, vcat(x_vec_var, v_vec_var); in_place=true)
+    vjp_exe = make_function(
+        vj_vec_var, x_vec_var, v_vec_var, context_vec_vars...; in_place=false
+    )
+    vjp_exe! = make_function(
+        vj_vec_var, x_vec_var, v_vec_var, context_vec_vars...; in_place=true
+    )
     return FastDifferentiationTwoArgPullbackPrep(vjp_exe, vjp_exe!)
 end
 
@@ -112,13 +122,14 @@ function DI.pullback(
     ::AutoFastDifferentiation,
     x,
     ty::NTuple,
-)
+    contexts::Vararg{DI.Context,C},
+) where {C}
     tx = map(ty) do dy
-        v_vec = vcat(myvec(x), myvec(dy))
+        result = prep.vjp_exe(myvec(x), myvec(dy), map(myvec_unwrap, contexts)...)
         if x isa Number
-            return only(prep.vjp_exe(v_vec))
+            return only(result)
         else
-            return reshape(prep.vjp_exe(v_vec), size(x))
+            return reshape(result, size(x))
         end
     end
     return tx
@@ -132,11 +143,11 @@ function DI.pullback!(
     ::AutoFastDifferentiation,
     x,
     ty::NTuple,
-)
+    contexts::Vararg{DI.Context,C},
+) where {C}
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        v_vec = vcat(myvec(x), myvec(dy))
-        prep.vjp_exe!(vec(dx), v_vec)
+        prep.vjp_exe!(myvec(dx), myvec(x), myvec(dy), map(myvec_unwrap, contexts)...)
     end
     return tx
 end
@@ -148,9 +159,10 @@ function DI.value_and_pullback(
     backend::AutoFastDifferentiation,
     x,
     ty::NTuple,
-)
-    tx = DI.pullback(f!, y, prep, backend, x, ty)
-    f!(y, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    tx = DI.pullback(f!, y, prep, backend, x, ty, contexts...)
+    f!(y, x, map(DI.unwrap, contexts)...)
     return y, tx
 end
 
@@ -162,9 +174,10 @@ function DI.value_and_pullback!(
     backend::AutoFastDifferentiation,
     x,
     ty::NTuple,
-)
-    DI.pullback!(f!, y, tx, prep, backend, x, ty)
-    f!(y, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    DI.pullback!(f!, y, tx, prep, backend, x, ty, contexts...)
+    f!(y, x, map(DI.unwrap, contexts)...)
     return y, tx
 end
 
@@ -175,46 +188,72 @@ struct FastDifferentiationTwoArgDerivativePrep{E1,E1!} <: DI.DerivativePrep
     der_exe!::E1!
 end
 
-function DI.prepare_derivative(f!, y, ::AutoFastDifferentiation, x)
-    x_var = only(make_variables(:x))
-    y_var = make_variables(:y, size(y)...)
-    f!(y_var, x_var)
+function DI.prepare_derivative(
+    f!, y, ::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C}
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
+    y_var = variablize(y, :y)
+    f!(y_var, x_var, context_vars...)
 
-    x_vec_var = monovec(x_var)
-    y_vec_var = vec(y_var)
+    x_vec_var = myvec(x_var)
+    context_vec_vars = map(myvec, context_vars)
+    y_vec_var = myvec(y_var)
     der_vec_var = derivative(y_vec_var, x_var)
-    der_exe = make_function(der_vec_var, x_vec_var; in_place=false)
-    der_exe! = make_function(der_vec_var, x_vec_var; in_place=true)
+    der_exe = make_function(der_vec_var, x_vec_var, context_vec_vars...; in_place=false)
+    der_exe! = make_function(der_vec_var, x_vec_var, context_vec_vars...; in_place=true)
     return FastDifferentiationTwoArgDerivativePrep(der_exe, der_exe!)
 end
 
 function DI.value_and_derivative(
-    f!, y, prep::FastDifferentiationTwoArgDerivativePrep, ::AutoFastDifferentiation, x
-)
-    f!(y, x)
-    der = reshape(prep.der_exe(monovec(x)), size(y))
+    f!,
+    y,
+    prep::FastDifferentiationTwoArgDerivativePrep,
+    ::AutoFastDifferentiation,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    f!(y, x, map(DI.unwrap, contexts)...)
+    der = reshape(prep.der_exe(myvec(x), map(myvec_unwrap, contexts)...), size(y))
     return y, der
 end
 
 function DI.value_and_derivative!(
-    f!, y, der, prep::FastDifferentiationTwoArgDerivativePrep, ::AutoFastDifferentiation, x
-)
-    f!(y, x)
-    prep.der_exe!(der, monovec(x))
+    f!,
+    y,
+    der,
+    prep::FastDifferentiationTwoArgDerivativePrep,
+    ::AutoFastDifferentiation,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    f!(y, x, map(DI.unwrap, contexts)...)
+    prep.der_exe!(der, myvec(x), map(myvec_unwrap, contexts)...)
     return y, der
 end
 
 function DI.derivative(
-    f!, y, prep::FastDifferentiationTwoArgDerivativePrep, ::AutoFastDifferentiation, x
-)
-    der = reshape(prep.der_exe(monovec(x)), size(y))
+    f!,
+    y,
+    prep::FastDifferentiationTwoArgDerivativePrep,
+    ::AutoFastDifferentiation,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    der = reshape(prep.der_exe(myvec(x), map(myvec_unwrap, contexts)...), size(y))
     return der
 end
 
 function DI.derivative!(
-    f!, y, der, prep::FastDifferentiationTwoArgDerivativePrep, ::AutoFastDifferentiation, x
-)
-    prep.der_exe!(der, monovec(x))
+    f!,
+    y,
+    der,
+    prep::FastDifferentiationTwoArgDerivativePrep,
+    ::AutoFastDifferentiation,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    prep.der_exe!(der, myvec(x), map(myvec_unwrap, contexts)...)
     return der
 end
 
@@ -226,21 +265,27 @@ struct FastDifferentiationTwoArgJacobianPrep{E1,E1!} <: DI.JacobianPrep
 end
 
 function DI.prepare_jacobian(
-    f!, y, backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}}, x
-)
-    x_var = make_variables(:x, size(x)...)
-    y_var = make_variables(:y, size(y)...)
-    f!(y_var, x_var)
+    f!,
+    y,
+    backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
+    y_var = variablize(y, :y)
+    f!(y_var, x_var, context_vars...)
 
-    x_vec_var = vec(x_var)
-    y_vec_var = vec(y_var)
+    x_vec_var = myvec(x_var)
+    context_vec_vars = map(myvec, context_vars)
+    y_vec_var = myvec(y_var)
     jac_var = if backend isa AutoSparse
         sparse_jacobian(y_vec_var, x_vec_var)
     else
         jacobian(y_vec_var, x_vec_var)
     end
-    jac_exe = make_function(jac_var, x_vec_var; in_place=false)
-    jac_exe! = make_function(jac_var, x_vec_var; in_place=true)
+    jac_exe = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=false)
+    jac_exe! = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=true)
     return FastDifferentiationTwoArgJacobianPrep(jac_exe, jac_exe!)
 end
 
@@ -250,9 +295,10 @@ function DI.value_and_jacobian(
     prep::FastDifferentiationTwoArgJacobianPrep,
     ::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
-)
-    f!(y, x)
-    jac = prep.jac_exe(vec(x))
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    f!(y, x, map(DI.unwrap, contexts)...)
+    jac = prep.jac_exe(myvec(x), map(myvec_unwrap, contexts)...)
     return y, jac
 end
 
@@ -263,9 +309,10 @@ function DI.value_and_jacobian!(
     prep::FastDifferentiationTwoArgJacobianPrep,
     ::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
-)
-    f!(y, x)
-    prep.jac_exe!(jac, vec(x))
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    f!(y, x, map(DI.unwrap, contexts)...)
+    prep.jac_exe!(jac, myvec(x), map(myvec_unwrap, contexts)...)
     return y, jac
 end
 
@@ -275,8 +322,9 @@ function DI.jacobian(
     prep::FastDifferentiationTwoArgJacobianPrep,
     ::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
-)
-    jac = prep.jac_exe(vec(x))
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    jac = prep.jac_exe(myvec(x), map(myvec_unwrap, contexts)...)
     return jac
 end
 
@@ -287,7 +335,8 @@ function DI.jacobian!(
     prep::FastDifferentiationTwoArgJacobianPrep,
     ::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
-)
-    prep.jac_exe!(jac, vec(x))
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    prep.jac_exe!(jac, myvec(x), map(myvec_unwrap, contexts)...)
     return jac
 end

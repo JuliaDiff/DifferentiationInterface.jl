@@ -15,7 +15,16 @@ for backend in [AutoSymbolics(), AutoSparse(AutoSymbolics())]
     @test check_inplace(backend)
 end
 
-test_differentiation(AutoSymbolics(); logging=LOGGING);
+test_differentiation(
+    AutoSymbolics(), default_scenarios(; include_constantified=true); logging=LOGGING
+);
+
+test_differentiation(
+    AutoSymbolics(),
+    default_scenarios(; include_normal=false, include_cachified=true);
+    excluded=[:jacobian],  # TODO: figure out why this fails
+    logging=LOGGING,
+);
 
 test_differentiation(
     AutoSparse(AutoSymbolics()),

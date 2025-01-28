@@ -1,7 +1,7 @@
 name = "DifferentiationInterface"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 authors = ["Guillaume Dalle", "Adrian Hill"]
-version = "0.6.33"
+version = "0.6.34"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -55,7 +55,7 @@ Diffractor = "=0.2.6"
 Enzyme = "0.13.17"
 EnzymeCore = "0.8.8"
 ExplicitImports = "1.10.1"
-FastDifferentiation = "0.4.1"
+FastDifferentiation = "0.4.3"
 FiniteDiff = "2.23.1"
 FiniteDifferences = "0.12.31"
 ForwardDiff = "0.10.36"
