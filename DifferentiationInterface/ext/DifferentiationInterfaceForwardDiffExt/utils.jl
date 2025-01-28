@@ -1,9 +1,9 @@
-function DI.BatchSizeSettings(::AutoForwardDiff{nothing}, N::Integer)
+function DI.pick_batchsize(::AutoForwardDiff{nothing}, N::Integer)
     chunksize = ForwardDiff.pickchunksize(N)
     return DI.BatchSizeSettings{chunksize}(N)
 end
 
-function DI.BatchSizeSettings(::AutoForwardDiff{chunksize}, N::Integer) where {chunksize}
+function DI.pick_batchsize(::AutoForwardDiff{chunksize}, N::Integer) where {chunksize}
     return DI.BatchSizeSettings{chunksize}(N)
 end
 

@@ -35,32 +35,34 @@ struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,S}
     res1::R1
     "second-order result of the operator (if applicable)"
     res2::R2
-    otherscen::S
+    "private field (not part of the public API) containing a variant of the scenario to test preparation resizing"
+    smaller::S
 end
 
 function Scenario{op,pl_op,pl_fun}(
-    f::F; x::X, y::Y, tang::T, contexts::C, res1::R1, res2::R2, otherscen::S=nothing
+    f::F; x::X, y::Y, tang::T, contexts::C, res1::R1, res2::R2, smaller::S=nothing
 ) where {op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S<:Union{Nothing,Scenario}}
+    @assert smaller isa Union{Nothing,Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2}}
     return Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S}(
-        f, x, y, tang, contexts, res1, res2, otherscen
+        f, x, y, tang, contexts, res1, res2, smaller
     )
 end
 
 function Scenario{op,pl_op}(
-    f, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, otherscen=nothing
+    f, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, smaller=nothing
 ) where {op,pl_op}
     @assert op in ALL_OPS
     @assert pl_op in (:in, :out)
     y = f(x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:out}(f; x, y, tang, contexts, res1, res2, otherscen)
+    return Scenario{op,pl_op,:out}(f; x, y, tang, contexts, res1, res2, smaller)
 end
 
 function Scenario{op,pl_op}(
-    f!, y, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, otherscen=nothing
+    f!, y, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, smaller=nothing
 ) where {op,pl_op}
     @assert op in ALL_OPS
     @assert pl_op in (:in, :out)
-    return Scenario{op,pl_op,:in}(f!; x, y, tang, contexts, res1, res2, otherscen)
+    return Scenario{op,pl_op,:in}(f!; x, y, tang, contexts, res1, res2, smaller)
 end
 
 Base.:(==)(scen1::Scenario, scen2::Scenario) = false
@@ -132,23 +134,17 @@ function Base.show(
 end
 
 function adapt_batchsize(backend::AbstractADType, scen::Scenario)
-    if operator(scen) == :jacobian
-        if ADTypes.mode(backend) isa Union{ADTypes.ForwardMode,ADTypes.ForwardOrReverseMode}
-            return DI.threshold_batchsize(backend, length(scen.x))
-        elseif ADTypes.mode(backend) isa ADTypes.ReverseMode
-            return DI.threshold_batchsize(backend, length(scen.y))
-        elseif ADTypes.mode(backend) isa DI.ForwardAndReverseMode
-            return DI.threshold_batchsize(backend, min(length(scen.x), length(scen.y)))
-        elseif ADTypes.mode(backend) isa ADTypes.SymbolicMode
-            return backend
-        else
-            error("Unknown mode")
-        end
-    elseif operator(scen) == :hessian
-        return DI.threshold_batchsize(backend, length(scen.x))
+    (; x, y) = scen
+    Bmax = if x isa AbstractArray && y isa AbstractArray
+        min(length(x), length(y))
+    elseif x isa AbstractArray
+        length(x)
+    elseif y isa AbstractArray
+        length(y)
     else
-        return backend
+        typemax(Int)
     end
+    return DI.threshold_batchsize(backend, Bmax)
 end
 
 function no_matrices(scens::AbstractVector{<:Scenario})

@@ -48,18 +48,21 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(
-                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
-                    ),
+                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
                     ba,
                     xrand,
                     contextsrand...,
@@ -104,18 +107,21 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(
-                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
-                    ),
+                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
                     ba,
                     xrand,
                     contextsrand...,
@@ -174,22 +180,27 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
-                        new_otherscen.f,
-                        copy(new_otherscen.y),
+                        new_smaller.f,
+                        copy(new_smaller.y),
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
@@ -241,22 +252,27 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
-                        new_otherscen.f,
-                        copy(new_otherscen.y),
+                        new_smaller.f,
+                        copy(new_smaller.y),
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
@@ -317,18 +333,21 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(
-                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
-                    ),
+                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
                     ba,
                     xrand,
                     contextsrand...,
@@ -375,18 +394,21 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(
-                        new_otherscen.f, ba, new_otherscen.x, new_otherscen.contexts...
-                    ),
+                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
                     ba,
                     xrand,
                     contextsrand...,
@@ -448,21 +470,26 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     $prep_op(
-                        new_otherscen.f,
+                        new_smaller.f,
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.tang,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.tang,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
@@ -506,21 +533,26 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     $prep_op(
-                        new_otherscen.f,
+                        new_smaller.f,
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.tang,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.tang,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
@@ -576,23 +608,28 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
-                        new_otherscen.f,
-                        copy(new_otherscen.y),
+                        new_smaller.f,
+                        copy(new_smaller.y),
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.tang,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.tang,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
@@ -646,23 +683,28 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
-                        new_otherscen.f,
-                        copy(new_otherscen.y),
+                        new_smaller.f,
+                        copy(new_smaller.y),
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.tang,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.tang,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
@@ -735,21 +777,26 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, tang, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     $prep_op(
-                        new_otherscen.f,
+                        new_smaller.f,
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.tang,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.tang,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
@@ -793,21 +840,26 @@ for op in ALL_OPS
             scenario_intact::Bool,
             sparsity::Bool,
         )
-            (; f, x, y, tang, res1, res2, contexts, otherscen) = new_scen = deepcopy(scen)
+            (; f, x, y, tang, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_otherscen = isnothing(otherscen) ? deepcopy(scen) : deepcopy(otherscen)
+                new_smaller =
+                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                        deepcopy(scen)
+                    else
+                        deepcopy(smaller)
+                    end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
                     $prep_op(
-                        new_otherscen.f,
+                        new_smaller.f,
                         ba,
-                        new_otherscen.x,
-                        new_otherscen.tang,
-                        new_otherscen.contexts...,
+                        new_smaller.x,
+                        new_smaller.tang,
+                        new_smaller.contexts...,
                     ),
                     ba,
                     xrand,
