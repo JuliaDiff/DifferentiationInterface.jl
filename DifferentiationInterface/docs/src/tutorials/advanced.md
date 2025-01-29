@@ -3,10 +3,12 @@
 We present contexts and sparsity handling with DifferentiationInterface.jl.
 
 ```@example tuto_advanced
+using ADTypes
 using BenchmarkTools
 using DifferentiationInterface
 import ForwardDiff, Zygote
-using SparseConnectivityTracer: TracerSparsityDetector
+using Random
+using SparseConnectivityTracer
 using SparseMatrixColorings
 ```
 
@@ -71,8 +73,8 @@ x = float.(1:8);
 ```
 
 ```@example tuto_advanced
-dense_first_order_backend = AutoForwardDiff()
-J_dense = jacobian(f_sparse_vector, dense_first_order_backend, x)
+dense_forward_backend = AutoForwardDiff()
+J_dense = jacobian(f_sparse_vector, dense_forward_backend, x)
 ```
 
 ```@example tuto_advanced
@@ -89,14 +91,14 @@ Recipe to create a sparse backend: combine a dense backend, a sparsity detector 
 The following are reasonable defaults:
 
 ```@example tuto_advanced
-sparse_first_order_backend = AutoSparse(
-    dense_first_order_backend;
+sparse_forward_backend = AutoSparse(
+    dense_forward_backend;  # any object from ADTypes
     sparsity_detector=TracerSparsityDetector(),
     coloring_algorithm=GreedyColoringAlgorithm(),
 )
 
 sparse_second_order_backend = AutoSparse(
-    dense_second_order_backend;
+    dense_second_order_backend;  # any object from ADTypes or a SecondOrder from DI
     sparsity_detector=TracerSparsityDetector(),
     coloring_algorithm=GreedyColoringAlgorithm(),
 )
@@ -106,7 +108,7 @@ nothing  # hide
 Now the resulting matrices are sparse:
 
 ```@example tuto_advanced
-jacobian(f_sparse_vector, sparse_first_order_backend, x)
+jacobian(f_sparse_vector, sparse_forward_backend, x)
 ```
 
 ```@example tuto_advanced
@@ -123,7 +125,7 @@ Some result analysis functions from [SparseMatrixColorings.jl](https://github.co
 First, it records the sparsity pattern itself (the one returned by the detector).
 
 ```@example tuto_advanced
-jac_prep = prepare_jacobian(f_sparse_vector, sparse_first_order_backend, x)
+jac_prep = prepare_jacobian(f_sparse_vector, sparse_forward_backend, x)
 sparsity_pattern(jac_prep)
 ```
 
@@ -149,20 +151,20 @@ nothing  # hide
 ```
 
 ```@example tuto_advanced
-jac_prep_dense = prepare_jacobian(f_sparse_vector, dense_first_order_backend, zero(xbig))
-@benchmark jacobian($f_sparse_vector, $jac_prep_dense, $dense_first_order_backend, $xbig)
+jac_prep_dense = prepare_jacobian(f_sparse_vector, dense_forward_backend, zero(xbig))
+@benchmark jacobian($f_sparse_vector, $jac_prep_dense, $dense_forward_backend, $xbig)
 ```
 
 ```@example tuto_advanced
-jac_prep_sparse = prepare_jacobian(f_sparse_vector, sparse_first_order_backend, zero(xbig))
-@benchmark jacobian($f_sparse_vector, $jac_prep_sparse, $sparse_first_order_backend, $xbig)
+jac_prep_sparse = prepare_jacobian(f_sparse_vector, sparse_forward_backend, zero(xbig))
+@benchmark jacobian($f_sparse_vector, $jac_prep_sparse, $sparse_forward_backend, $xbig)
 ```
 
 Better memory use can be achieved by pre-allocating the matrix from the preparation result (so that it has the correct structure).
 
 ```@example tuto_advanced
 jac_buffer = similar(sparsity_pattern(jac_prep_sparse), eltype(xbig))
-@benchmark jacobian!($f_sparse_vector, $jac_buffer, $jac_prep_sparse, $sparse_first_order_backend, $xbig)
+@benchmark jacobian!($f_sparse_vector, $jac_buffer, $jac_prep_sparse, $sparse_forward_backend, $xbig)
 ```
 
 And for optimal speed, one should write non-allocating and type-stable functions.
@@ -184,7 +186,38 @@ ybig ≈ f_sparse_vector(xbig)
 In this case, the sparse Jacobian should also become non-allocating (for our specific choice of backend).
 
 ```@example tuto_advanced
-jac_prep_sparse_nonallocating = prepare_jacobian(f_sparse_vector!, zero(ybig), sparse_first_order_backend, zero(xbig))
+jac_prep_sparse_nonallocating = prepare_jacobian(f_sparse_vector!, zero(ybig), sparse_forward_backend, zero(xbig))
 jac_buffer = similar(sparsity_pattern(jac_prep_sparse_nonallocating), eltype(xbig))
-@benchmark jacobian!($f_sparse_vector!, $ybig, $jac_buffer, $jac_prep_sparse_nonallocating, $sparse_first_order_backend, $xbig)
+@benchmark jacobian!($f_sparse_vector!, $ybig, $jac_buffer, $jac_prep_sparse_nonallocating, $sparse_forward_backend, $xbig)
+```
+
+### Mixed mode
+
+Some Jacobians have a structure which includes dense rows and dense columns, like this one:
+
+```@example tuto_advanced
+arrowhead(x) = x .+ x[1] .+ vcat(sum(x), zeros(eltype(x), length(x)-1))
+
+jacobian_sparsity(arrowhead, x, TracerSparsityDetector())
+```
+
+In such cases, sparse AD is only beneficial in "mixed mode", where we combine a forward and a reverse backend.
+This is achieved using the [`MixedMode`](@ref) wrapper, for which we recommend a random coloring order (see [`RandomOrder`](@extref SparseMatrixColorings.RandomOrder)):
+
+```@example tuto_advanced
+sparse_mixed_backend = AutoSparse(
+    MixedMode(AutoForwardDiff(), AutoZygote()),
+    sparsity_detector=TracerSparsityDetector(),
+    coloring_algorithm=GreedyColoringAlgorithm(RandomOrder(MersenneTwister(), 0)),
+)
+```
+
+It unlocks a large speedup compared to pure forward mode, and the same would be true compared to reverse mode:
+
+```@example tuto_advanced
+@benchmark jacobian($arrowhead, prep, $sparse_forward_backend, $xbig) setup=(prep=prepare_jacobian(arrowhead, sparse_forward_backend, xbig))
+```
+
+```@example tuto_advanced
+@benchmark jacobian($arrowhead, prep, $sparse_mixed_backend, $xbig) setup=(prep=prepare_jacobian(arrowhead, sparse_mixed_backend, xbig))
 ```

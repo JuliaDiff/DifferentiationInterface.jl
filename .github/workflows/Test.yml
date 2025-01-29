@@ -31,16 +31,18 @@ jobs:
           - "1.10"
           - "1"
         group:
-          - Misc/Internals
-          - Misc/DifferentiateWith
-          - Misc/FromPrimitive
-          - Misc/SparsityDetector
-          - Misc/ZeroBackends
-          - Back/ChainRulesBackends
+          - Core/Internals
+          - Back/DifferentiateWith
+          - Core/SimpleFiniteDiff
+          - Back/SparsityDetector
+          - Core/ZeroBackends
+          - Back/ChainRules
+          # - Back/Diffractor
           - Back/Enzyme
           - Back/FiniteDiff
           - Back/FiniteDifferences
           - Back/ForwardDiff
+          - Back/GTPSA
           - Back/Mooncake
           - Back/PolyesterForwardDiff
           - Back/ReverseDiff
@@ -52,12 +54,10 @@ jobs:
         skip_lts:
           - ${{ github.event.pull_request.draft }}
         exclude:
-          # - skip_lts: true
-          #   version: "1.10"
+          - skip_lts: true
+            version: "1.10"
           - version: "1"
-            group: Back/ChainRulesBackends
-          - version: "1"
-            group: Back/Enzyme
+            group: Back/ChainRules
     env:
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
     steps:
@@ -76,11 +76,10 @@ jobs:
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           files: lcov.info
           flags: DI
-          name: ${{ matrix.version }} - DI (${{ matrix.group }})
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
@@ -105,9 +104,9 @@ jobs:
           - Weird
         skip_lts:
           - ${{ github.event.pull_request.draft }}
-        # exclude:
-        #   - skip_lts: true
-        #     version: "1.10"
+        exclude:
+          - skip_lts: true
+            version: "1.10"
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
     steps:
@@ -126,10 +125,9 @@ jobs:
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           files: lcov.info
           flags: DIT
-          name: ${{ matrix.version }} - DIT (${{ matrix.group }})
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true

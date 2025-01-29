@@ -56,6 +56,12 @@ Each setting tests/benchmarks a different subset of calls:
 
 - `count_calls=true`: whether to also count function calls during benchmarking
 - `benchmark_test=true`: whether to include tests which succeed iff benchmark doesn't error
+- `benchmark_seconds=1`: how long to run each benchmark for
+- `benchmark_aggregation=minimum`: function used to aggregate sample measurements
+
+**Batch size options**
+
+- `adaptive_batchsize=true`: whether to cap the backend's preset batch size (when it exists) to prevent errors on small inputs
 """
 function test_differentiation(
     backends::Vector{<:AbstractADType},
@@ -87,6 +93,10 @@ function test_differentiation(
     # benchmark options
     count_calls::Bool=true,
     benchmark_test::Bool=true,
+    benchmark_seconds::Real=1,
+    benchmark_aggregation=minimum,
+    # batch size
+    adaptive_batchsize::Bool=true,
 )
     @assert type_stability in (:none, :prepared, :full)
     @assert allocations in (:none, :prepared, :full)
@@ -132,7 +142,11 @@ function test_differentiation(
                             (:nb_contexts, length(scen.contexts)),
                         ],
                     )
-                    adapted_backend = adapt_batchsize(backend, scen)
+                    adapted_backend = if adaptive_batchsize
+                        adapt_batchsize(backend, scen)
+                    else
+                        backend
+                    end
                     correctness && @testset "Correctness" begin
                         test_correctness(
                             adapted_backend,
@@ -173,6 +187,8 @@ function test_differentiation(
                             subset=benchmark,
                             count_calls,
                             benchmark_test,
+                            benchmark_seconds,
+                            benchmark_aggregation,
                         )
                     end
                     yield()
@@ -211,6 +227,10 @@ function benchmark_differentiation(
     logging::Bool=false,
     count_calls::Bool=true,
     benchmark_test::Bool=true,
+    benchmark_seconds::Real=1,
+    benchmark_aggregation=minimum,
+    # batch size
+    adaptive_batchsize::Bool=true,
 )
     return test_differentiation(
         backends,
@@ -223,5 +243,8 @@ function benchmark_differentiation(
         excluded,
         count_calls,
         benchmark_test,
+        benchmark_seconds,
+        benchmark_aggregation,
+        adaptive_batchsize,
     )
 end

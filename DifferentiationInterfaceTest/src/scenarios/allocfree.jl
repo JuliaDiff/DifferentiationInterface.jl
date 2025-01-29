@@ -41,21 +41,21 @@ function copyto!_scenarios(x::AbstractArray; dx::AbstractArray, dy::AbstractArra
 end
 
 """
-    allocfree_scenarios(rng::AbstractRNG=default_rng())
+    allocfree_scenarios()
 
 Create a vector of [`Scenario`](@ref)s with functions that do not allocate.
 
 !!! warning
     At the moment, second-order scenarios are excluded.
 """
-function allocfree_scenarios(rng::AbstractRNG=default_rng())
-    x_ = rand(rng)
-    dx_ = rand(rng)
-    dy_ = rand(rng)
+function allocfree_scenarios()
+    x_ = 0.42
+    dx_ = 3.14
+    dy_ = -1 / 12
 
-    x_6 = rand(rng, 6)
-    dx_6 = rand(rng, 6)
-    dy_6 = rand(rng, 6)
+    x_6 = float.(1:6)
+    dx_6 = float.(-1:-1:-6)
+    dy_6 = float.(-5:2:5)
 
     scens = vcat(
         identity_scenarios(x_; dx=dx_, dy=dy_), #

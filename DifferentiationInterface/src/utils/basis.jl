@@ -37,37 +37,31 @@ function Base.getindex(oe::OneElement{<:CartesianIndex{N}}, ind::Vararg{Int,N}) 
 end
 
 """
-    basis(backend, a::AbstractArray, i)
+    basis(a::AbstractArray, i)
 
-Construct the `i`-th standard basis array in the vector space of `a` with element type `eltype(a)`.
-
-## Note
-
-If an AD backend benefits from a more specialized basis array implementation,
-this function can be extended on the backend type.
+Construct the `i`-th standard basis array in the vector space of `a`.
 """
-basis(::AbstractADType, a::AbstractArray, i) = basis(a, i)
-
-"""
-    multibasis(backend, a::AbstractArray, inds::AbstractVector)
-
-Construct the sum of the `i`-th standard basis arrays in the vector space of `a` with element type `eltype(a)`, for all `i ∈ inds`.
-
-## Note
-
-If an AD backend benefits from a more specialized basis array implementation,
-this function can be extended on the backend type.
-"""
-multibasis(::AbstractADType, a::AbstractArray, inds) = multibasis(a, inds)
-
-function basis(a::AbstractArray{T,N}, i) where {T,N}
-    return zero(a) + OneElement(i, one(T), a)
+function basis(a::AbstractArray{T}, i) where {T}
+    b = similar(a)
+    fill!(b, zero(T))
+    b .+= OneElement(i, one(T), a)
+    if ismutable_array(a)
+        return b
+    else
+        return map(+, zero(a), b)
+    end
 end
 
-function multibasis(a::AbstractArray{T,N}, inds::AbstractVector) where {T,N}
-    seed = zero(a)
+"""
+    multibasis(a::AbstractArray, inds)
+
+Construct the sum of the `i`-th standard basis arrays in the vector space of `a` for all `i ∈ inds`.
+"""
+function multibasis(a::AbstractArray{T}, inds) where {T}
+    b = similar(a)
+    fill!(b, zero(T))
     for i in inds
-        seed += OneElement(i, one(T), a)
+        b .+= OneElement(i, one(T), a)
     end
-    return seed
+    return ismutable_array(a) ? b : map(+, zero(a), b)
 end

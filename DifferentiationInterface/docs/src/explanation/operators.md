@@ -120,18 +120,34 @@ op(f, prep, backend, x, [t])  # fast because it skips preparation
 
 ### Reusing preparation
 
-Deciding whether it is safe to reuse the results of preparation is not easy.
-Here are the general rules that we strive to implement:
+It is not always safe to reuse the results of preparation.
+For different-point preparation, the output `prep` of
 
-For different-point preparation, the output `prep` of `prepare_op(f, b, x, [t])` can be reused in `op(f, prep, b, other_x, [other_t])`, provided that:
+```julia
+prepare_op(f, [y], backend, x, [t, contexts...])
+```
 
-- the inputs `x` and `other_x` have the same types and sizes
-- the tangents in `t` and `other_t` have the same types and sizes
+can be reused in subsequent calls to
 
-For same-point preparation, the output `prep` of `prepare_op_same_point(f, b, x, [t])` can be reused in `op(f, prep, b, x, other_t)`, provided that:
+```julia
+op(f, prep, [other_y], backend, other_x, [other_t, other_contexts...])
+```
 
-- the input `x` remains exactly the same (as well as any [`Constant`](@ref) context)
-- the tangents in `t` and `other_t` have the same types and sizes
+provided that the following conditions all hold:
+
+- `f` and `backend` remain the same
+- `other_x` has the same type and size as `x`
+- `other_y` has the same type and size as `y`
+- `other_t` has the same type and size as `t`
+- all the elements of `other_contexts` have the same type and size as the corresponding elements of `contexts`
+
+For same-point preparation, the same rules hold with two modifications:
+
+- `other_x` must be _equal_ to `x`
+- any element of `other_contexts` with type `Constant` must be _equal_ to the corresponding element of `contexts`
+
+!!! danger
+    Reusing preparation with different types or sizes may work with some backends and error with others, so it is not allowed by the API of DifferentiationInterface.
 
 !!! warning
     These rules hold for the majority of backends, but there are some exceptions.

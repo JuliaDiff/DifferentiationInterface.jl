@@ -68,7 +68,6 @@ jacobian
 jacobian!
 value_and_jacobian
 value_and_jacobian!
-MixedMode
 ```
 
 ## Second order
@@ -125,9 +124,10 @@ DifferentiationInterface.inner
 DifferentiateWith
 ```
 
-### Sparsity detection
+### Sparsity tools
 
 ```@docs
+MixedMode
 DenseSparsityDetector
 ```
 

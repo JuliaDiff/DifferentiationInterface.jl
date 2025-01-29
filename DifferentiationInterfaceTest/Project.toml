@@ -1,7 +1,7 @@
 name = "DifferentiationInterfaceTest"
 uuid = "a82114a7-5aa3-49a8-9643-716bb13727a3"
 authors = ["Guillaume Dalle", "Adrian Hill"]
-version = "0.8.5"
+version = "0.9.3"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -15,6 +15,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [weakdeps]
@@ -46,11 +47,11 @@ DifferentiationInterface = "0.6.0"
 DocStringExtensions = "0.8,0.9"
 ExplicitImports = "1.10.1"
 FiniteDifferences = "0.12"
-Flux = "0.13,0.14"
+Flux = "0.16"
 ForwardDiff = "0.10.36"
 Functors = "0.4, 0.5"
 JET = "0.4 - 0.8, 0.9"
-JLArrays = "0.1"
+JLArrays = "0.1, 0.2"
 JuliaFormatter = "1"
 LinearAlgebra = "<0.0.1,1"
 Lux = "1.1.0"
@@ -61,8 +62,9 @@ SparseArrays = "<0.0.1,1"
 SparseConnectivityTracer = "0.5.0,0.6"
 SparseMatrixColorings = "0.4.9"
 StaticArrays = "1.9"
+Statistics = "1"
 Test = "<0.0.1,1"
-Zygote = "0.6"
+Zygote = "0.6, 0.7"
 julia = "1.10"
 
 [extras]
@@ -91,4 +93,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
-test = ["ADTypes", "Aqua", "ComponentArrays", "DataFrames", "DifferentiationInterface", "ExplicitImports", "FiniteDifferences", "Flux", "ForwardDiff", "JET", "JLArrays", "JuliaFormatter", "Pkg", "Random", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings", "StaticArrays", "Test", "Zygote"]
+test = ["ADTypes", "Aqua", "ComponentArrays", "DataFrames", "DifferentiationInterface", "ExplicitImports", "FiniteDiff", "FiniteDifferences", "Flux", "ForwardDiff", "JET", "JLArrays", "JuliaFormatter", "Pkg", "Random", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings", "StaticArrays", "Test", "Zygote"]

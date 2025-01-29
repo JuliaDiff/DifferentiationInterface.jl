@@ -22,7 +22,7 @@ function reset_count!(cc::CallCounter)
 end
 
 function failed_bench()
-    evals = 0
+    evals = 0.0
     time = NaN
     allocs = NaN
     bytes = NaN
@@ -56,7 +56,7 @@ $(TYPEDFIELDS)
 
 See the documentation of [Chairmarks.jl](https://github.com/LilithHafner/Chairmarks.jl) for more details on the measurement fields.
 """
-Base.@kwdef struct DifferentiationBenchmarkDataRow
+Base.@kwdef struct DifferentiationBenchmarkDataRow{T}
     "backend used for benchmarking"
     backend::AbstractADType
     "scenario used for benchmarking"
@@ -71,16 +71,16 @@ Base.@kwdef struct DifferentiationBenchmarkDataRow
     samples::Int
     "number of evaluations used for averaging in each sample"
     evals::Int
-    "minimum runtime over all samples, in seconds"
-    time::Float64
-    "minimum number of allocations over all samples"
-    allocs::Float64
-    "minimum memory allocated over all samples, in bytes"
-    bytes::Float64
-    "minimum fraction of time spent in garbage collection over all samples, between 0.0 and 1.0"
-    gc_fraction::Float64
-    "minimum fraction of time spent compiling over all samples, between 0.0 and 1.0"
-    compile_fraction::Float64
+    "aggregated runtime over all samples, in seconds"
+    time::T
+    "aggregated number of allocations over all samples"
+    allocs::T
+    "aggregated memory allocated over all samples, in bytes"
+    bytes::T
+    "aggregated fraction of time spent in garbage collection over all samples, between 0.0 and 1.0"
+    gc_fraction::T
+    "aggregated fraction of time spent compiling over all samples, between 0.0 and 1.0"
+    compile_fraction::T
 end
 
 function record!(
@@ -91,8 +91,8 @@ function record!(
     prepared::Union{Nothing,Bool},
     bench::Benchmark,
     calls::Integer,
+    aggregation,
 )
-    bench_min = minimum(bench)
     row = DifferentiationBenchmarkDataRow(;
         backend=backend,
         scenario=scenario,
@@ -100,12 +100,12 @@ function record!(
         prepared=prepared,
         calls=calls,
         samples=length(bench.samples),
-        evals=Int(bench_min.evals),
-        time=bench_min.time,
-        allocs=bench_min.allocs,
-        bytes=bench_min.bytes,
-        gc_fraction=bench_min.gc_fraction,
-        compile_fraction=bench_min.compile_fraction,
+        evals=Int(bench.samples[1].evals),
+        time=aggregation(getfield.(bench.samples, :time)),
+        allocs=aggregation(getfield.(bench.samples, :allocs)),
+        bytes=aggregation(getfield.(bench.samples, :bytes)),
+        gc_fraction=aggregation(getfield.(bench.samples, :gc_fraction)),
+        compile_fraction=aggregation(getfield.(bench.samples, :compile_fraction)),
     )
     return push!(data, row)
 end

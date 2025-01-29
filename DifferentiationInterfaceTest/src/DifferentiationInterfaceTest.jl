@@ -2,15 +2,11 @@
     DifferentiationInterfaceTest
 
 Testing and benchmarking utilities for automatic differentiation in Julia.
-
-# Exports
-
-$(EXPORTS)
 """
 module DifferentiationInterfaceTest
 
-using ADTypes
 using ADTypes:
+    ADTypes,
     AbstractADType,
     AbstractMode,
     AutoSparse,
@@ -22,23 +18,59 @@ using ADTypes:
 using AllocCheck: check_allocs
 using Chairmarks: @be, Benchmark, Sample
 using DataFrames: DataFrame
-using DifferentiationInterface
+import DifferentiationInterface as DI
 using DifferentiationInterface:
-    inner,
-    mode,
-    outer,
-    inplace_support,
-    prepare!_derivative,
-    prepare!_gradient,
-    prepare!_hessian,
-    prepare!_hvp,
-    prepare!_jacobian,
-    prepare!_pullback,
+    prepare_pushforward,
+    prepare_pushforward_same_point,
     prepare!_pushforward,
+    pushforward,
+    pushforward!,
+    value_and_pushforward,
+    value_and_pushforward!,
+    prepare_pullback,
+    prepare_pullback_same_point,
+    prepare!_pullback,
+    pullback,
+    pullback!,
+    value_and_pullback,
+    value_and_pullback!,
+    prepare_derivative,
+    prepare!_derivative,
+    derivative,
+    derivative!,
+    value_and_derivative,
+    value_and_derivative!,
+    prepare_gradient,
+    prepare!_gradient,
+    gradient,
+    gradient!,
+    value_and_gradient,
+    value_and_gradient!,
+    prepare_jacobian,
+    prepare!_jacobian,
+    jacobian,
+    jacobian!,
+    value_and_jacobian,
+    value_and_jacobian!,
+    prepare_second_derivative,
     prepare!_second_derivative,
-    pushforward_performance,
-    pullback_performance,
-    unwrap
+    second_derivative,
+    second_derivative!,
+    value_derivative_and_second_derivative,
+    value_derivative_and_second_derivative!,
+    prepare_hvp,
+    prepare_hvp_same_point,
+    prepare!_hvp,
+    hvp,
+    hvp!,
+    gradient_and_hvp,
+    gradient_and_hvp!,
+    prepare_hessian,
+    prepare!_hessian,
+    hessian,
+    hessian!,
+    value_gradient_and_hessian,
+    value_gradient_and_hessian!
 using DifferentiationInterface:
     DerivativePrep,
     GradientPrep,
@@ -47,12 +79,18 @@ using DifferentiationInterface:
     JacobianPrep,
     PullbackPrep,
     PushforwardPrep,
-    SecondDerivativePrep,
-    MixedMode,
+    SecondDerivativePrep
+using DifferentiationInterface:
     SecondOrder,
-    Rewrap
-import DifferentiationInterface as DI
-using DocStringExtensions
+    MixedMode,
+    inner,
+    mode,
+    outer,
+    inplace_support,
+    pushforward_performance,
+    pullback_performance
+using DifferentiationInterface: Rewrap, Context, Constant, Cache, unwrap
+using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using JET: @test_opt
 using LinearAlgebra: Adjoint, Diagonal, Transpose, dot, parent
 using ProgressMeter: ProgressUnknown, next!
@@ -83,6 +121,7 @@ include("scenarios/scenario.jl")
 include("scenarios/modify.jl")
 include("scenarios/default.jl")
 include("scenarios/sparse.jl")
+include("scenarios/complex.jl")
 include("scenarios/allocfree.jl")
 include("scenarios/extensions.jl")
 
@@ -97,6 +136,7 @@ include("test_differentiation.jl")
 export FIRST_ORDER, SECOND_ORDER
 export Scenario
 export default_scenarios, sparse_scenarios
+export complex_scenarios, complex_sparse_scenarios
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
 # extensions

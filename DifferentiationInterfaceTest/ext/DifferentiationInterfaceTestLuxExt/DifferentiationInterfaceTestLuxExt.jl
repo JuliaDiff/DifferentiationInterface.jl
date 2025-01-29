@@ -1,13 +1,32 @@
 module DifferentiationInterfaceTestLuxExt
 
 using ComponentArrays: ComponentArray
-using DifferentiationInterface
 import DifferentiationInterface as DI
-using DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
 using ForwardDiff: ForwardDiff
-using Lux
-using LuxTestUtils
+using Lux:
+    Lux,
+    BatchNorm,
+    Bilinear,
+    Chain,
+    Conv,
+    ConvTranspose,
+    Dense,
+    GroupNorm,
+    GRUCell,
+    InstanceNorm,
+    LayerNorm,
+    LSTMCell,
+    Maxout,
+    MaxPool,
+    MeanPool,
+    RNNCell,
+    SamePad,
+    Scale,
+    SkipConnection,
+    StatefulRecurrentCell,
+    gelu,
+    relu
 using LuxTestUtils: check_approx
 using Random: AbstractRNG, default_rng
 
@@ -171,17 +190,17 @@ function DIT.lux_scenarios(rng::AbstractRNG=default_rng())
         #! format: on
     ]
 
-    scens = Scenario[]
+    scens = DIT.Scenario[]
 
     for (model, x) in models_and_xs
         ps, st = Lux.setup(rng, model)
         g = DI.gradient(
             ps -> square_loss(ps, model, x, st), DI.AutoForwardDiff(), ComponentArray(ps)
         )
-        scen = Scenario{:gradient,:out}(
+        scen = DIT.Scenario{:gradient,:out}(
             square_loss,
             ComponentArray(ps);
-            contexts=(Constant(model), Constant(x), Constant(st)),
+            contexts=(DI.Constant(model), DI.Constant(x), DI.Constant(st)),
             res1=g,
         )
         push!(scens, scen)

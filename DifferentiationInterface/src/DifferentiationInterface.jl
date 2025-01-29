@@ -23,6 +23,7 @@ using ADTypes:
     AutoFiniteDiff,
     AutoFiniteDifferences,
     AutoForwardDiff,
+    AutoGTPSA,
     AutoMooncake,
     AutoPolyesterForwardDiff,
     AutoReverseDiff,
@@ -41,7 +42,6 @@ include("utils/traits.jl")
 include("utils/basis.jl")
 include("utils/batchsize.jl")
 include("utils/check.jl")
-include("utils/exceptions.jl")
 include("utils/printing.jl")
 include("utils/context.jl")
 include("utils/linalg.jl")
@@ -62,7 +62,9 @@ include("fallbacks/change_prep.jl")
 include("misc/differentiate_with.jl")
 include("misc/from_primitive.jl")
 include("misc/sparsity_detector.jl")
+include("misc/simple_finite_diff.jl")
 include("misc/zero_backends.jl")
+include("misc/overloading.jl")
 
 ## Exported
 
@@ -109,6 +111,7 @@ export AutoFastDifferentiation
 export AutoFiniteDiff
 export AutoFiniteDifferences
 export AutoForwardDiff
+export AutoGTPSA
 export AutoMooncake
 export AutoPolyesterForwardDiff
 export AutoReverseDiff
@@ -121,5 +124,7 @@ export AutoSparse
 ## Public but not exported
 
 @public inner, outer
+
+include("init.jl")
 
 end # module

@@ -2,10 +2,14 @@ using Pkg
 Pkg.add(["ForwardDiff", "ReverseDiff"])  # ForwardDiff already in ReverseDiff's deps
 
 using DifferentiationInterface, DifferentiationInterfaceTest
+import DifferentiationInterface as DI
 using ForwardDiff: ForwardDiff
 using ReverseDiff: ReverseDiff
 using StaticArrays: StaticArrays
 using Test
+
+using ExplicitImports
+check_no_implicit_imports(DifferentiationInterface)
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
@@ -35,3 +39,23 @@ test_differentiation(
     sparsity=true,
     logging=LOGGING,
 );
+
+@testset verbose = true "Overloaded inputs" begin
+    backend = AutoReverseDiff()
+
+    # Derivative
+    x = 1.0
+    @test_skip DI.overloaded_input_type(prepare_derivative(copy, backend, x)) ==
+        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
+
+    # Gradient
+    x = [1.0; 0.0; 0.0]
+    @test DI.overloaded_input_type(prepare_gradient(sum, backend, x)) ==
+        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
+
+    # Jacobian
+    @test DI.overloaded_input_type(prepare_jacobian(copy, backend, x)) ==
+        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
+    @test DI.overloaded_input_type(prepare_jacobian(copyto!, similar(x), backend, x)) ==
+        ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
+end;

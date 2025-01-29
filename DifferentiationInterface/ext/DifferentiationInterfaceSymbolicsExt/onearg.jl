@@ -1,27 +1,22 @@
 ## Pushforward
 
-struct SymbolicsOneArgPushforwardPrep{E1,E1!} <: PushforwardPrep
+struct SymbolicsOneArgPushforwardPrep{E1,E1!} <: DI.PushforwardPrep
     pf_exe::E1
     pf_exe!::E1!
 end
 
-function DI.prepare_pushforward(f, ::AutoSymbolics, x, tx::NTuple)
+function DI.prepare_pushforward(
+    f, ::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+) where {C}
     dx = first(tx)
-    x_var = if x isa Number
-        variable(:x)
-    else
-        variables(:x, axes(x)...)
-    end
-    dx_var = if dx isa Number
-        variable(:dx)
-    else
-        variables(:dx, axes(dx)...)
-    end
+    x_var = variablize(x, :x)
+    dx_var = variablize(dx, :dx)
     t_var = variable(:t)
-    step_der_var = derivative(f(x_var + t_var * dx_var), t_var)
+    context_vars = variablize(contexts)
+    step_der_var = derivative(f(x_var + t_var * dx_var, context_vars...), t_var)
     pf_var = substitute(step_der_var, Dict(t_var => zero(eltype(x))))
 
-    res = build_function(pf_var, vcat(myvec(x_var), myvec(dx_var)); expression=Val(false))
+    res = build_function(pf_var, x_var, dx_var, context_vars...; expression=Val(false))
     (pf_exe, pf_exe!) = if res isa Tuple
         res
     elseif res isa RuntimeGeneratedFunction
@@ -31,30 +26,45 @@ function DI.prepare_pushforward(f, ::AutoSymbolics, x, tx::NTuple)
 end
 
 function DI.pushforward(
-    f, prep::SymbolicsOneArgPushforwardPrep, ::AutoSymbolics, x, tx::NTuple
-)
+    f,
+    prep::SymbolicsOneArgPushforwardPrep,
+    ::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
     ty = map(tx) do dx
-        v_vec = vcat(myvec(x), myvec(dx))
-        dy = prep.pf_exe(v_vec)
+        dy = prep.pf_exe(x, dx, map(DI.unwrap, contexts)...)
     end
     return ty
 end
 
 function DI.pushforward!(
-    f, ty::NTuple, prep::SymbolicsOneArgPushforwardPrep, ::AutoSymbolics, x, tx::NTuple
-)
+    f,
+    ty::NTuple,
+    prep::SymbolicsOneArgPushforwardPrep,
+    ::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        v_vec = vcat(myvec(x), myvec(dx))
-        prep.pf_exe!(dy, v_vec)
+        prep.pf_exe!(dy, x, dx, map(DI.unwrap, contexts)...)
     end
     return ty
 end
 
 function DI.value_and_pushforward(
-    f, prep::SymbolicsOneArgPushforwardPrep, backend::AutoSymbolics, x, tx::NTuple
-)
-    return f(x), DI.pushforward(f, prep, backend, x, tx)
+    f,
+    prep::SymbolicsOneArgPushforwardPrep,
+    backend::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...),
+    DI.pushforward(f, prep, backend, x, tx, contexts...)
 end
 
 function DI.value_and_pushforward!(
@@ -64,22 +74,27 @@ function DI.value_and_pushforward!(
     backend::AutoSymbolics,
     x,
     tx::NTuple,
-)
-    return f(x), DI.pushforward!(f, ty, prep, backend, x, tx)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...),
+    DI.pushforward!(f, ty, prep, backend, x, tx, contexts...)
 end
 
 ## Derivative
 
-struct SymbolicsOneArgDerivativePrep{E1,E1!} <: DerivativePrep
+struct SymbolicsOneArgDerivativePrep{E1,E1!} <: DI.DerivativePrep
     der_exe::E1
     der_exe!::E1!
 end
 
-function DI.prepare_derivative(f, ::AutoSymbolics, x)
-    x_var = variable(:x)
-    der_var = derivative(f(x_var), x_var)
+function DI.prepare_derivative(
+    f, ::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
+    der_var = derivative(f(x_var, context_vars...), x_var)
 
-    res = build_function(der_var, x_var; expression=Val(false))
+    res = build_function(der_var, x_var, context_vars...; expression=Val(false))
     (der_exe, der_exe!) = if res isa Tuple
         res
     elseif res isa RuntimeGeneratedFunction
@@ -88,83 +103,133 @@ function DI.prepare_derivative(f, ::AutoSymbolics, x)
     return SymbolicsOneArgDerivativePrep(der_exe, der_exe!)
 end
 
-function DI.derivative(f, prep::SymbolicsOneArgDerivativePrep, ::AutoSymbolics, x)
-    return prep.der_exe(x)
+function DI.derivative(
+    f,
+    prep::SymbolicsOneArgDerivativePrep,
+    ::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return prep.der_exe(x, map(DI.unwrap, contexts)...)
 end
 
-function DI.derivative!(f, der, prep::SymbolicsOneArgDerivativePrep, ::AutoSymbolics, x)
-    prep.der_exe!(der, x)
+function DI.derivative!(
+    f,
+    der,
+    prep::SymbolicsOneArgDerivativePrep,
+    ::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    prep.der_exe!(der, x, map(DI.unwrap, contexts)...)
     return der
 end
 
 function DI.value_and_derivative(
-    f, prep::SymbolicsOneArgDerivativePrep, backend::AutoSymbolics, x
-)
-    return f(x), DI.derivative(f, prep, backend, x)
+    f,
+    prep::SymbolicsOneArgDerivativePrep,
+    backend::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...),
+    DI.derivative(f, prep, backend, x, contexts...)
 end
 
 function DI.value_and_derivative!(
-    f, der, prep::SymbolicsOneArgDerivativePrep, backend::AutoSymbolics, x
-)
-    return f(x), DI.derivative!(f, der, prep, backend, x)
+    f,
+    der,
+    prep::SymbolicsOneArgDerivativePrep,
+    backend::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...),
+    DI.derivative!(f, der, prep, backend, x, contexts...)
 end
 
 ## Gradient
 
-struct SymbolicsOneArgGradientPrep{E1,E1!} <: GradientPrep
+struct SymbolicsOneArgGradientPrep{E1,E1!} <: DI.GradientPrep
     grad_exe::E1
     grad_exe!::E1!
 end
 
-function DI.prepare_gradient(f, ::AutoSymbolics, x)
-    x_var = variables(:x, axes(x)...)
+function DI.prepare_gradient(
+    f, ::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
     # Symbolic.gradient only accepts vectors
-    grad_var = gradient(f(x_var), vec(x_var))
+    grad_var = gradient(f(x_var, context_vars...), vec(x_var))
 
-    res = build_function(grad_var, vec(x_var); expression=Val(false))
+    res = build_function(grad_var, vec(x_var), context_vars...; expression=Val(false))
     (grad_exe, grad_exe!) = res
     return SymbolicsOneArgGradientPrep(grad_exe, grad_exe!)
 end
 
-function DI.gradient(f, prep::SymbolicsOneArgGradientPrep, ::AutoSymbolics, x)
-    return reshape(prep.grad_exe(vec(x)), size(x))
+function DI.gradient(
+    f, prep::SymbolicsOneArgGradientPrep, ::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+) where {C}
+    return reshape(prep.grad_exe(vec(x), map(DI.unwrap, contexts)...), size(x))
 end
 
-function DI.gradient!(f, grad, prep::SymbolicsOneArgGradientPrep, ::AutoSymbolics, x)
-    prep.grad_exe!(vec(grad), vec(x))
+function DI.gradient!(
+    f,
+    grad,
+    prep::SymbolicsOneArgGradientPrep,
+    ::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    prep.grad_exe!(vec(grad), vec(x), map(DI.unwrap, contexts)...)
     return grad
 end
 
 function DI.value_and_gradient(
-    f, prep::SymbolicsOneArgGradientPrep, backend::AutoSymbolics, x
-)
-    return f(x), DI.gradient(f, prep, backend, x)
+    f,
+    prep::SymbolicsOneArgGradientPrep,
+    backend::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...), DI.gradient(f, prep, backend, x, contexts...)
 end
 
 function DI.value_and_gradient!(
-    f, grad, prep::SymbolicsOneArgGradientPrep, backend::AutoSymbolics, x
-)
-    return f(x), DI.gradient!(f, grad, prep, backend, x)
+    f,
+    grad,
+    prep::SymbolicsOneArgGradientPrep,
+    backend::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...),
+    DI.gradient!(f, grad, prep, backend, x, contexts...)
 end
 
 ## Jacobian
 
-struct SymbolicsOneArgJacobianPrep{E1,E1!} <: JacobianPrep
+struct SymbolicsOneArgJacobianPrep{E1,E1!} <: DI.JacobianPrep
     jac_exe::E1
     jac_exe!::E1!
 end
 
 function DI.prepare_jacobian(
-    f, backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}}, x
-)
-    x_var = variables(:x, axes(x)...)
+    f,
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
     jac_var = if backend isa AutoSparse
-        sparsejacobian(vec(f(x_var)), vec(x_var))
+        sparsejacobian(vec(f(x_var, context_vars...)), vec(x_var))
     else
-        jacobian(f(x_var), x_var)
+        jacobian(f(x_var, context_vars...), x_var)
     end
 
-    res = build_function(jac_var, x_var; expression=Val(false))
+    res = build_function(jac_var, x_var, context_vars...; expression=Val(false))
     (jac_exe, jac_exe!) = res
     return SymbolicsOneArgJacobianPrep(jac_exe, jac_exe!)
 end
@@ -174,8 +239,9 @@ function DI.jacobian(
     prep::SymbolicsOneArgJacobianPrep,
     ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    return prep.jac_exe(x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return prep.jac_exe(x, map(DI.unwrap, contexts)...)
 end
 
 function DI.jacobian!(
@@ -184,8 +250,9 @@ function DI.jacobian!(
     prep::SymbolicsOneArgJacobianPrep,
     ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    prep.jac_exe!(jac, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    prep.jac_exe!(jac, x, map(DI.unwrap, contexts)...)
     return jac
 end
 
@@ -194,8 +261,9 @@ function DI.value_and_jacobian(
     prep::SymbolicsOneArgJacobianPrep,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    return f(x), DI.jacobian(f, prep, backend, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...), DI.jacobian(f, prep, backend, x, contexts...)
 end
 
 function DI.value_and_jacobian!(
@@ -204,31 +272,39 @@ function DI.value_and_jacobian!(
     prep::SymbolicsOneArgJacobianPrep,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    return f(x), DI.jacobian!(f, jac, prep, backend, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return f(x, map(DI.unwrap, contexts)...),
+    DI.jacobian!(f, jac, prep, backend, x, contexts...)
 end
 
 ## Hessian
 
-struct SymbolicsOneArgHessianPrep{G,E2,E2!} <: HessianPrep
+struct SymbolicsOneArgHessianPrep{G,E2,E2!} <: DI.HessianPrep
     gradient_prep::G
     hess_exe::E2
     hess_exe!::E2!
 end
 
-function DI.prepare_hessian(f, backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}}, x)
-    x_var = variables(:x, axes(x)...)
+function DI.prepare_hessian(
+    f,
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
     # Symbolic.hessian only accepts vectors
     hess_var = if backend isa AutoSparse
-        sparsehessian(f(x_var), vec(x_var))
+        sparsehessian(f(x_var, context_vars...), vec(x_var))
     else
-        hessian(f(x_var), vec(x_var))
+        hessian(f(x_var, context_vars...), vec(x_var))
     end
 
-    res = build_function(hess_var, vec(x_var); expression=Val(false))
+    res = build_function(hess_var, vec(x_var), context_vars...; expression=Val(false))
     (hess_exe, hess_exe!) = res
 
-    gradient_prep = DI.prepare_gradient(f, dense_ad(backend), x)
+    gradient_prep = DI.prepare_gradient(f, dense_ad(backend), x, contexts...)
     return SymbolicsOneArgHessianPrep(gradient_prep, hess_exe, hess_exe!)
 end
 
@@ -237,8 +313,9 @@ function DI.hessian(
     prep::SymbolicsOneArgHessianPrep,
     ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    return prep.hess_exe(vec(x))
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return prep.hess_exe(vec(x), map(DI.unwrap, contexts)...)
 end
 
 function DI.hessian!(
@@ -247,8 +324,9 @@ function DI.hessian!(
     prep::SymbolicsOneArgHessianPrep,
     ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    prep.hess_exe!(hess, vec(x))
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    prep.hess_exe!(hess, vec(x), map(DI.unwrap, contexts)...)
     return hess
 end
 
@@ -257,9 +335,12 @@ function DI.value_gradient_and_hessian(
     prep::SymbolicsOneArgHessianPrep,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    y, grad = DI.value_and_gradient(f, prep.gradient_prep, dense_ad(backend), x)
-    hess = DI.hessian(f, prep, backend, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    y, grad = DI.value_and_gradient(
+        f, prep.gradient_prep, dense_ad(backend), x, contexts...
+    )
+    hess = DI.hessian(f, prep, backend, x, contexts...)
     return y, grad, hess
 end
 
@@ -270,117 +351,171 @@ function DI.value_gradient_and_hessian!(
     prep::SymbolicsOneArgHessianPrep,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-)
-    y, _ = DI.value_and_gradient!(f, grad, prep.gradient_prep, dense_ad(backend), x)
-    DI.hessian!(f, hess, prep, backend, x)
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    y, _ = DI.value_and_gradient!(
+        f, grad, prep.gradient_prep, dense_ad(backend), x, contexts...
+    )
+    DI.hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess
 end
 
 ## HVP
 
-struct SymbolicsOneArgHVPPrep{G,E2,E2!} <: HVPPrep
+struct SymbolicsOneArgHVPPrep{G,E2,E2!} <: DI.HVPPrep
     gradient_prep::G
     hvp_exe::E2
     hvp_exe!::E2!
 end
 
-function DI.prepare_hvp(f, backend::AutoSymbolics, x, tx::NTuple)
-    x_var = variables(:x, axes(x)...)
-    dx_var = variables(:dx, axes(x)...)
+function DI.prepare_hvp(
+    f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+) where {C}
+    dx = first(tx)
+    x_var = variablize(x, :x)
+    dx_var = variablize(dx, :dx)
+    context_vars = variablize(contexts)
     # Symbolic.hessian only accepts vectors
-    hess_var = hessian(f(x_var), vec(x_var))
+    hess_var = hessian(f(x_var, context_vars...), vec(x_var))
     hvp_vec_var = hess_var * vec(dx_var)
 
-    res = build_function(hvp_vec_var, vcat(vec(x_var), vec(dx_var)); expression=Val(false))
+    res = build_function(
+        hvp_vec_var, vec(x_var), vec(dx_var), context_vars...; expression=Val(false)
+    )
     (hvp_exe, hvp_exe!) = res
 
-    gradient_prep = DI.prepare_gradient(f, backend, x)
+    gradient_prep = DI.prepare_gradient(f, backend, x, contexts...)
     return SymbolicsOneArgHVPPrep(gradient_prep, hvp_exe, hvp_exe!)
 end
 
-function DI.hvp(f, prep::SymbolicsOneArgHVPPrep, ::AutoSymbolics, x, tx::NTuple)
+function DI.hvp(
+    f,
+    prep::SymbolicsOneArgHVPPrep,
+    ::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
     return map(tx) do dx
-        v_vec = vcat(vec(x), vec(dx))
-        dg_vec = prep.hvp_exe(v_vec)
+        dg_vec = prep.hvp_exe(vec(x), vec(dx), map(DI.unwrap, contexts)...)
         reshape(dg_vec, size(x))
     end
 end
 
 function DI.hvp!(
-    f, tg::NTuple, prep::SymbolicsOneArgHVPPrep, ::AutoSymbolics, x, tx::NTuple
-)
+    f,
+    tg::NTuple,
+    prep::SymbolicsOneArgHVPPrep,
+    ::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
     for b in eachindex(tx, tg)
         dx, dg = tx[b], tg[b]
-        v_vec = vcat(vec(x), vec(dx))
-        prep.hvp_exe!(vec(dg), v_vec)
+        prep.hvp_exe!(vec(dg), vec(x), vec(dx), map(DI.unwrap, contexts)...)
     end
     return tg
 end
 
 function DI.gradient_and_hvp(
-    f, prep::SymbolicsOneArgHVPPrep, backend::AutoSymbolics, x, tx::NTuple
-)
-    tg = DI.hvp(f, prep, backend, x, tx)
-    grad = DI.gradient(f, prep.gradient_prep, backend, x)
+    f,
+    prep::SymbolicsOneArgHVPPrep,
+    backend::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    tg = DI.hvp(f, prep, backend, x, tx, contexts...)
+    grad = DI.gradient(f, prep.gradient_prep, backend, x, contexts...)
     return grad, tg
 end
 
 function DI.gradient_and_hvp!(
-    f, grad, tg::NTuple, prep::SymbolicsOneArgHVPPrep, backend::AutoSymbolics, x, tx::NTuple
-)
-    DI.hvp!(f, tg, prep, backend, x, tx)
-    DI.gradient!(f, grad, prep.gradient_prep, backend, x)
+    f,
+    grad,
+    tg::NTuple,
+    prep::SymbolicsOneArgHVPPrep,
+    backend::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    DI.hvp!(f, tg, prep, backend, x, tx, contexts...)
+    DI.gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
     return grad, tg
 end
 
 ## Second derivative
 
-struct SymbolicsOneArgSecondDerivativePrep{D,E1,E1!} <: SecondDerivativePrep
+struct SymbolicsOneArgSecondDerivativePrep{D,E1,E1!} <: DI.SecondDerivativePrep
     derivative_prep::D
     der2_exe::E1
     der2_exe!::E1!
 end
 
-function DI.prepare_second_derivative(f, backend::AutoSymbolics, x)
-    x_var = variable(:x)
-    der_var = derivative(f(x_var), x_var)
+function DI.prepare_second_derivative(
+    f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+) where {C}
+    x_var = variablize(x, :x)
+    context_vars = variablize(contexts)
+    der_var = derivative(f(x_var, context_vars...), x_var)
     der2_var = derivative(der_var, x_var)
 
-    res = build_function(der2_var, x_var; expression=Val(false))
+    res = build_function(der2_var, x_var, context_vars...; expression=Val(false))
     (der2_exe, der2_exe!) = if res isa Tuple
         res
     elseif res isa RuntimeGeneratedFunction
         res, nothing
     end
-    derivative_prep = DI.prepare_derivative(f, backend, x)
+    derivative_prep = DI.prepare_derivative(f, backend, x, contexts...)
     return SymbolicsOneArgSecondDerivativePrep(derivative_prep, der2_exe, der2_exe!)
 end
 
 function DI.second_derivative(
-    f, prep::SymbolicsOneArgSecondDerivativePrep, ::AutoSymbolics, x
-)
-    return prep.der2_exe(x)
+    f,
+    prep::SymbolicsOneArgSecondDerivativePrep,
+    ::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    return prep.der2_exe(x, map(DI.unwrap, contexts)...)
 end
 
 function DI.second_derivative!(
-    f, der2, prep::SymbolicsOneArgSecondDerivativePrep, ::AutoSymbolics, x
-)
-    prep.der2_exe!(der2, x)
+    f,
+    der2,
+    prep::SymbolicsOneArgSecondDerivativePrep,
+    ::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    prep.der2_exe!(der2, x, map(DI.unwrap, contexts)...)
     return der2
 end
 
 function DI.value_derivative_and_second_derivative(
-    f, prep::SymbolicsOneArgSecondDerivativePrep, backend::AutoSymbolics, x
-)
-    y, der = DI.value_and_derivative(f, prep.derivative_prep, backend, x)
-    der2 = DI.second_derivative(f, prep, backend, x)
+    f,
+    prep::SymbolicsOneArgSecondDerivativePrep,
+    backend::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    y, der = DI.value_and_derivative(f, prep.derivative_prep, backend, x, contexts...)
+    der2 = DI.second_derivative(f, prep, backend, x, contexts...)
     return y, der, der2
 end
 
 function DI.value_derivative_and_second_derivative!(
-    f, der, der2, prep::SymbolicsOneArgSecondDerivativePrep, backend::AutoSymbolics, x
-)
-    y, _ = DI.value_and_derivative!(f, der, prep.derivative_prep, backend, x)
-    DI.second_derivative!(f, der2, prep, backend, x)
+    f,
+    der,
+    der2,
+    prep::SymbolicsOneArgSecondDerivativePrep,
+    backend::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    y, _ = DI.value_and_derivative!(f, der, prep.derivative_prep, backend, x, contexts...)
+    DI.second_derivative!(f, der2, prep, backend, x, contexts...)
     return y, der, der2
 end

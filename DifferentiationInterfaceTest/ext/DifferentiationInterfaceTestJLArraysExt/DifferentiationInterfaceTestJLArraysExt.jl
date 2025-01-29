@@ -1,26 +1,17 @@
 module DifferentiationInterfaceTestJLArraysExt
 
 import DifferentiationInterface as DI
-using DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
 using JLArrays: JLArray, JLVector, JLMatrix, jl
-using Random: AbstractRNG, default_rng
 
+jl_num_to_vec(x::Number) = sin.(jl([1, 2]) .* x)
+jl_num_to_mat(x::Number) = hcat(jl_num_to_vec(x), jl_num_to_vec(3x))
+
+const NTV = typeof(DIT.num_to_vec)
+const NTM = typeof(DIT.num_to_mat)
 myjl(f::Function) = f
-function myjl(::DIT.NumToArr{A}) where {T,N,A<:AbstractArray{T,N}}
-    return DIT.NumToArr(JLArray{T,N})
-end
-
-function (f::DIT.NumToArr{JLVector{T}})(x::Number) where {T}
-    a = JLVector{T}(Vector(1:6))  # avoid mutation
-    return sin.(x .* a)
-end
-
-function (f::DIT.NumToArr{JLMatrix{T}})(x::Number) where {T}
-    a = JLMatrix{T}(Matrix(reshape(1:6, 2, 3)))  # avoid mutation
-    return sin.(x .* a)
-end
-
+myjl(::NTV) = jl_num_to_vec
+myjl(::NTM) = jl_num_to_mat
 myjl(f::DIT.FunctionModifier) = f
 
 myjl(x::Number) = x
@@ -30,9 +21,9 @@ myjl(x::DI.Constant) = DI.Constant(myjl(DI.unwrap(x)))
 myjl(x::DI.Cache) = DI.Cache(myjl(DI.unwrap(x)))
 myjl(::Nothing) = nothing
 
-function myjl(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+function myjl(scen::DIT.Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
     (; f, x, y, tang, contexts, res1, res2) = scen
-    return Scenario{op,pl_op,pl_fun}(
+    return DIT.Scenario{op,pl_op,pl_fun}(
         myjl(f);
         x=myjl(x),
         y=myjl(y),

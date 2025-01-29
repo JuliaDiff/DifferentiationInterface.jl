@@ -1,34 +1,9 @@
 module DifferentiationInterfaceForwardDiffExt
 
-using ADTypes: AbstractADType, AutoForwardDiff
-using Base: Fix1, Fix2
+using ADTypes: AutoForwardDiff
 import DifferentiationInterface as DI
-using DifferentiationInterface:
-    BatchSizeSettings,
-    Cache,
-    Constant,
-    PrepContext,
-    Context,
-    FixTail,
-    DerivativePrep,
-    DifferentiateWith,
-    GradientPrep,
-    HessianPrep,
-    HVPPrep,
-    JacobianPrep,
-    NoDerivativePrep,
-    NoSecondDerivativePrep,
-    PushforwardPrep,
-    Rewrap,
-    SecondOrder,
-    inner,
-    outer,
-    shuffled_gradient,
-    unwrap,
-    with_contexts
-import ForwardDiff.DiffResults as DR
-using ForwardDiff.DiffResults:
-    DiffResults, DiffResult, GradientResult, HessianResult, MutableDiffResult
+import DiffResults as DR
+using DiffResults: DiffResults, DiffResult, GradientResult, HessianResult, MutableDiffResult
 using ForwardDiff:
     Chunk,
     Dual,
@@ -41,17 +16,14 @@ using ForwardDiff:
     derivative,
     derivative!,
     extract_derivative,
-    extract_derivative!,
     gradient,
     gradient!,
     hessian,
     hessian!,
     jacobian,
     jacobian!,
-    npartials,
     partials,
     value
-using LinearAlgebra: dot, mul!
 
 DI.check_available(::AutoForwardDiff) = true
 
@@ -60,5 +32,6 @@ include("onearg.jl")
 include("twoarg.jl")
 include("secondorder.jl")
 include("differentiate_with.jl")
+include("misc.jl")
 
 end # module

@@ -2,39 +2,23 @@ module DifferentiationInterfacePolyesterForwardDiffExt
 
 using ADTypes: AutoForwardDiff, AutoPolyesterForwardDiff
 import DifferentiationInterface as DI
-using DifferentiationInterface:
-    Context,
-    DerivativePrep,
-    GradientPrep,
-    HessianPrep,
-    HVPPrep,
-    JacobianPrep,
-    NoDerivativePrep,
-    NoGradientPrep,
-    NoHessianPrep,
-    NoJacobianPrep,
-    PushforwardPrep,
-    SecondDerivativePrep,
-    SecondOrder,
-    unwrap,
-    with_contexts
 using LinearAlgebra: mul!
 using PolyesterForwardDiff: threaded_gradient!, threaded_jacobian!
 using PolyesterForwardDiff.ForwardDiff: Chunk
 using PolyesterForwardDiff.ForwardDiff.DiffResults: DiffResults
 
 function single_threaded(backend::AutoPolyesterForwardDiff{chunksize,T}) where {chunksize,T}
-    return AutoForwardDiff{chunksize,T}(backend.tag)
+    return AutoForwardDiff(; chunksize, tag=backend.tag)
 end
 
 DI.check_available(::AutoPolyesterForwardDiff) = true
 
-function DI.BatchSizeSettings(backend::AutoPolyesterForwardDiff, x::AbstractArray)
-    return DI.BatchSizeSettings(single_threaded(backend), x)
+function DI.pick_batchsize(backend::AutoPolyesterForwardDiff, x::AbstractArray)
+    return DI.pick_batchsize(single_threaded(backend), x)
 end
 
-function DI.BatchSizeSettings(backend::AutoPolyesterForwardDiff, N::Integer)
-    return DI.BatchSizeSettings(single_threaded(backend), N)
+function DI.pick_batchsize(backend::AutoPolyesterForwardDiff, N::Integer)
+    return DI.pick_batchsize(single_threaded(backend), N)
 end
 
 function DI.threshold_batchsize(

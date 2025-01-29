@@ -1,18 +1,10 @@
-function DI.BatchSizeSettings(::AutoForwardDiff{nothing}, N::Integer)
-    B = ForwardDiff.pickchunksize(N)
-    singlebatch = B == N
-    aligned = N % B == 0
-    return BatchSizeSettings{B,singlebatch,aligned}(N)
+function DI.pick_batchsize(::AutoForwardDiff{nothing}, N::Integer)
+    chunksize = ForwardDiff.pickchunksize(N)
+    return DI.BatchSizeSettings{chunksize}(N)
 end
 
-function DI.BatchSizeSettings(::AutoForwardDiff{chunksize}, N::Integer) where {chunksize}
-    if chunksize > N
-        throw(ArgumentError("Fixed chunksize $chunksize larger than input size $N"))
-    end
-    B = chunksize
-    singlebatch = B == N
-    aligned = N % B == 0
-    return BatchSizeSettings{B,singlebatch,aligned}(N)
+function DI.pick_batchsize(::AutoForwardDiff{chunksize}, N::Integer) where {chunksize}
+    return DI.BatchSizeSettings{chunksize}(N)
 end
 
 function DI.threshold_batchsize(
@@ -31,6 +23,7 @@ function get_tag(f::F, ::AutoForwardDiff{chunksize,Nothing}, x) where {F,chunksi
     return Tag(f, eltype(x))
 end
 
+tag_type(::AutoForwardDiff{chunksize,T}) where {chunksize,T} = T
 tag_type(f::F, backend::AutoForwardDiff, x) where {F} = typeof(get_tag(f, backend, x))
 
 function make_dual_similar(::Type{T}, x::Number, tx::NTuple{B}) where {T,B}
@@ -84,15 +77,22 @@ function mypartials!(::Type{T}, ty::NTuple{B}, ydual) where {T,B}
     return ty
 end
 
-_translate(::Type{T}, ::Val{B}, c::Constant) where {T,B} = unwrap(c)
-_translate(::Type{T}, ::Val{B}, c::PrepContext) where {T,B} = unwrap(c)
+# store preparation result with the right input eltype
+struct PrepContext{T<:DI.Prep} <: DI.Context
+    data::T
+end
 
-function _translate(::Type{T}, ::Val{B}, c::Cache) where {T,B}
-    c0 = unwrap(c)
+function _translate(::Type{T}, ::Val{B}, c::DI.ConstantOrFunctionOrBackend) where {T,B}
+    return DI.unwrap(c)
+end
+_translate(::Type{T}, ::Val{B}, c::PrepContext) where {T,B} = DI.unwrap(c)
+
+function _translate(::Type{T}, ::Val{B}, c::DI.Cache) where {T,B}
+    c0 = DI.unwrap(c)
     return make_dual(T, c0, ntuple(_ -> similar(c0), Val(B)))  # TODO: optimize
 end
 
-function translate(::Type{T}, ::Val{B}, contexts::Vararg{Context,C}) where {T,B,C}
+function translate(::Type{T}, ::Val{B}, contexts::Vararg{DI.Context,C}) where {T,B,C}
     new_contexts = map(contexts) do c
         _translate(T, Val(B), c)
     end

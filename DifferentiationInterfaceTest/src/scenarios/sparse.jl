@@ -320,24 +320,26 @@ end
 ## Gather
 
 """
-    sparse_scenarios(rng=Random.default_rng())
+    sparse_scenarios()
 
 Create a vector of [`Scenario`](@ref)s with sparse array types, focused on sparse Jacobians and Hessians.
 """
-function sparse_scenarios(
-    rng::AbstractRNG=default_rng(); band_sizes=[5, 10, 20], include_constantified=false
-)
+function sparse_scenarios(; band_sizes=[5, 10, 20], include_constantified=false)
+    x_6 = float.(1:6)
+    x_2_3 = float.(reshape(1:6, 2, 3))
+    x_50 = float.(range(1, 2, 50))
+
     scens = vcat(
-        sparse_vec_to_vec_scenarios(rand(rng, 6)),
-        sparse_vec_to_mat_scenarios(rand(rng, 6)),
-        sparse_mat_to_vec_scenarios(rand(rng, 2, 3)),
-        sparse_mat_to_mat_scenarios(rand(rng, 2, 3)),
-        sparse_vec_to_num_scenarios(rand(rng, 6)),
-        sparse_mat_to_num_scenarios(rand(rng, 2, 3)),
+        sparse_vec_to_vec_scenarios(x_6),
+        sparse_vec_to_mat_scenarios(x_6),
+        sparse_mat_to_vec_scenarios(x_2_3),
+        sparse_mat_to_mat_scenarios(x_2_3),
+        sparse_vec_to_num_scenarios(x_6),
+        sparse_mat_to_num_scenarios(x_2_3),
     )
     if !isempty(band_sizes)
-        append!(scens, squarelinearmap_scenarios(rand(rng, 50), band_sizes))
-        append!(scens, squarequadraticform_scenarios(rand(rng, 50), band_sizes))
+        append!(scens, squarelinearmap_scenarios(x_50, band_sizes))
+        append!(scens, squarequadraticform_scenarios(x_50, band_sizes))
     end
     include_constantified && append!(scens, constantify(scens))
     return scens

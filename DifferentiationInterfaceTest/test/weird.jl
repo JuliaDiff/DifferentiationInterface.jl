@@ -39,7 +39,10 @@ static_scenarios(;
 ## Weird arrays
 
 test_differentiation(
-    AutoForwardDiff(), static_scenarios(); benchmark=:full, logging=LOGGING
+    AutoForwardDiff(),
+    DIT.no_matrices(static_scenarios());
+    benchmark=:prepared,
+    logging=LOGGING,
 )
 
 test_differentiation(AutoForwardDiff(), component_scenarios(); logging=LOGGING)

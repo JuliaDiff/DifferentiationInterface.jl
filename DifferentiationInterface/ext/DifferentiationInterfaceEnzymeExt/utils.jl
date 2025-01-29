@@ -1,24 +1,26 @@
 # until https://github.com/EnzymeAD/Enzyme.jl/pull/1545 is merged
-function DI.BatchSizeSettings(::AutoEnzyme, N::Integer)
+function DI.pick_batchsize(::AutoEnzyme, N::Integer)
     B = DI.reasonable_batchsize(N, 16)
-    singlebatch = B == N
-    aligned = N % B == 0
-    return DI.BatchSizeSettings{B,singlebatch,aligned}(N)
+    return DI.BatchSizeSettings{B}(N)
 end
 
 to_val(::DI.BatchSizeSettings{B}) where {B} = Val(B)
 
 ## Annotations
 
-function get_f_and_df(f::F, ::AutoEnzyme{M,Nothing}, ::Val{B}=Val(1)) where {F,M,B}
+@inline function get_f_and_df(
+    f::F, ::AutoEnzyme{M,Nothing}, mode::Mode, ::Val{B}=Val(1)
+) where {F,M,B}
     return f
 end
 
-function get_f_and_df(f::F, ::AutoEnzyme{M,<:Const}, ::Val{B}=Val(1)) where {F,M,B}
+@inline function get_f_and_df(
+    f::F, ::AutoEnzyme{M,<:Const}, mode::Mode, ::Val{B}=Val(1)
+) where {F,M,B}
     return Const(f)
 end
 
-function get_f_and_df(
+@inline function get_f_and_df(
     f::F,
     ::AutoEnzyme{
         M,
@@ -27,10 +29,11 @@ function get_f_and_df(
             MixedDuplicated,
             BatchDuplicated,
             BatchMixedDuplicated,
-            EnzymeCore.DuplicatedNoNeed,
-            EnzymeCore.BatchDuplicatedNoNeed,
+            DuplicatedNoNeed,
+            BatchDuplicatedNoNeed,
         },
     },
+    mode::Mode,
     ::Val{B}=Val(1),
 ) where {F,M,B}
     # TODO: needs more sophistication for mixed activities
@@ -44,7 +47,26 @@ end
 force_annotation(f::F) where {F<:Annotation} = f
 force_annotation(f::F) where {F} = Const(f)
 
-translate(c::DI.Constant) = Const(DI.unwrap(c))
+@inline function _translate(
+    ::AutoEnzyme, ::Mode, ::Val{B}, c::Union{DI.Constant,DI.BackendContext}
+) where {B}
+    return Const(DI.unwrap(c))
+end
+
+@inline function _translate(
+    backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.FunctionContext
+) where {B}
+    return force_annotation(get_f_and_df(DI.unwrap(c), backend, mode, Val(B)))
+end
+
+@inline function translate(
+    backend::AutoEnzyme, mode::Mode, ::Val{B}, contexts::Vararg{DI.Context,C}
+) where {B,C}
+    new_contexts = map(contexts) do c
+        _translate(backend, mode, Val(B), c)
+    end
+    return new_contexts
+end
 
 ## Modes
 
@@ -60,9 +82,12 @@ reverse_noprimal(::AutoEnzyme{Nothing}) = Reverse
 reverse_withprimal(backend::AutoEnzyme{<:ReverseMode}) = WithPrimal(backend.mode)
 reverse_withprimal(::AutoEnzyme{Nothing}) = ReverseWithPrimal
 
-function reverse_split_withprimal(backend::AutoEnzyme)
-    mode = ReverseSplitWithPrimal
-    return set_err(mode, backend)
+function reverse_split_withprimal(backend::AutoEnzyme{<:ReverseMode})
+    return set_err(WithPrimal(Split(backend.mode)), backend)
+end
+
+function reverse_split_withprimal(backend::AutoEnzyme{Nothing})
+    return set_err(ReverseSplitWithPrimal, backend)
 end
 
 set_err(mode::Mode, ::AutoEnzyme{<:Any,Nothing}) = EnzymeCore.set_err_if_func_written(mode)

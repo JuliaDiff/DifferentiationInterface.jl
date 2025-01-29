@@ -6,7 +6,7 @@ Configuration for the batch size deduced from a backend and a sample array of le
 # Type parameters
 
 - `B::Int`: batch size
-- `singlebatch::Bool`: whether `B > N`
+- `singlebatch::Bool`: whether `B == N` (`B > N` is not allowed)
 - `aligned::Bool`: whether `N % B == 0`
 
 # Fields
@@ -22,24 +22,51 @@ struct BatchSizeSettings{B,singlebatch,aligned}
 end
 
 function BatchSizeSettings{B,singlebatch,aligned}(N::Integer) where {B,singlebatch,aligned}
+    B > N && throw(ArgumentError("Batch size $B larger than input size $N"))
     A = div(N, B, RoundUp)
     B_last = N % B
     return BatchSizeSettings{B,singlebatch,aligned}(N, A, B_last)
 end
 
-function BatchSizeSettings(::AbstractADType, N::Integer)
+function BatchSizeSettings{B}(::Val{N}) where {B,N}
+    singlebatch = B == N
+    aligned = N % B == 0
+    return BatchSizeSettings{B,singlebatch,aligned}(N)
+end
+
+function BatchSizeSettings{B}(N::Integer) where {B}
+    # type-unstable
+    singlebatch = B == N
+    aligned = N % B == 0
+    return BatchSizeSettings{B,singlebatch,aligned}(N)
+end
+
+"""
+    pick_batchsize(backend, N::Integer)
+
+Return a [`BatchSizeSettings`](@ref) appropriate for arrays of length `N` with a given `backend`.
+"""
+function pick_batchsize(backend::AbstractADType, N::Integer)
+    check_batchsize_pickable(backend)
     B = 1
     singlebatch = false
     aligned = true
     return BatchSizeSettings{B,singlebatch,aligned}(N)
 end
 
-function BatchSizeSettings(backend::AbstractADType, x::AbstractArray)
-    N = length(x)
-    return BatchSizeSettings(backend, N)
+"""
+    pick_batchsize(backend, x_or_y::AbstractArray)
+
+Return a [`BatchSizeSettings`](@ref) appropriate for arrays of the same length as `x_or_y` with a given `backend`.
+
+Note that the array in question can be either the input or the output of the function, depending on whether the backend performs forward- or reverse-mode AD.
+"""
+function pick_batchsize(backend::AbstractADType, x::AbstractArray)
+    check_batchsize_pickable(backend)
+    return pick_batchsize(backend, length(x))
 end
 
-function pick_batchsize(backend::AbstractADType, x_or_N::Union{AbstractArray,Integer})
+function check_batchsize_pickable(backend::AbstractADType)
     if backend isa SecondOrder
         throw(
             ArgumentError(
@@ -58,8 +85,6 @@ function pick_batchsize(backend::AbstractADType, x_or_N::Union{AbstractArray,Int
                 "You should select the batch size for the forward or reverse backend of $backend",
             ),
         )
-    else
-        return BatchSizeSettings(backend, x_or_N)
     end
 end
 
@@ -76,6 +101,13 @@ end
 function threshold_batchsize(backend::SecondOrder, B::Integer)
     return SecondOrder(
         threshold_batchsize(outer(backend), B), threshold_batchsize(inner(backend), B)
+    )
+end
+
+function threshold_batchsize(backend::MixedMode, B::Integer)
+    return MixedMode(
+        threshold_batchsize(forward_backend(backend), B),
+        threshold_batchsize(reverse_backend(backend), B),
     )
 end
 

@@ -14,6 +14,7 @@ function Base.zero(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
         contexts=scen.contexts,
         res1=myzero(scen.res1),
         res2=myzero(scen.res2),
+        smaller=isnothing(scen.smaller) ? nothing : zero(scen.smaller),
     )
 end
 
@@ -22,7 +23,9 @@ end
 
 Return a new `Scenario` identical to `scen` except for the function `f` which is changed to `new_f`.
 """
-function change_function(scen::Scenario{op,pl_op,pl_fun}, new_f) where {op,pl_op,pl_fun}
+function change_function(
+    scen::Scenario{op,pl_op,pl_fun}, new_f; keep_smaller
+) where {op,pl_op,pl_fun}
     return Scenario{op,pl_op,pl_fun}(
         new_f;
         x=scen.x,
@@ -31,6 +34,11 @@ function change_function(scen::Scenario{op,pl_op,pl_fun}, new_f) where {op,pl_op
         contexts=scen.contexts,
         res1=scen.res1,
         res2=scen.res2,
+        smaller=if isnothing(scen.smaller) || !keep_smaller
+            nothing
+        else
+            change_function(scen.smaller, new_f; keep_smaller=false)
+        end,
     )
 end
 
@@ -42,18 +50,32 @@ Return a new `Scenario` identical to `scen` except for the tangents `tang` and a
 Only works if `scen` is a `pushforward`, `pullback` or `hvp` scenario.
 """
 function batchify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
-    (; f, x, y, tang, contexts, res1, res2) = scen
+    (; f, x, y, tang, contexts, res1, res2, smaller) = scen
     if op == :pushforward || op == :pullback
         new_tang = (only(tang), -only(tang))
         new_res1 = (only(res1), -only(res1))
         return Scenario{op,pl_op,pl_fun}(
-            f; x, y, tang=new_tang, contexts, res1=new_res1, res2
+            f;
+            x,
+            y,
+            tang=new_tang,
+            contexts,
+            res1=new_res1,
+            res2,
+            smaller=isnothing(smaller) ? nothing : batchify(smaller),
         )
     elseif op == :hvp
         new_tang = (only(tang), -only(tang))
         new_res2 = (only(res2), -only(res2))
         return Scenario{op,pl_op,pl_fun}(
-            f; x, y, tang=new_tang, contexts, res1, res2=new_res2
+            f;
+            x,
+            y,
+            tang=new_tang,
+            contexts,
+            res1,
+            res2=new_res2,
+            smaller=isnothing(smaller) ? nothing : batchify(smaller),
         )
     end
 end
@@ -96,7 +118,7 @@ function closurify(scen::Scenario)
     x_buffer = [zero(x)]
     y_buffer = [zero(y)]
     closure_f = WritableClosure{function_place(scen)}(f, x_buffer, y_buffer)
-    return change_function(scen, closure_f)
+    return change_function(scen, closure_f; keep_smaller=false)
 end
 
 struct MultiplyByConstant{pl_fun,F} <: FunctionModifier
@@ -137,6 +159,7 @@ function constantify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
         contexts=(Constant(a),),
         res1=mymultiply(scen.res1, a),
         res2=mymultiply(scen.res2, a),
+        smaller=isnothing(scen.smaller) ? nothing : constantify(scen.smaller),
     )
 end
 
@@ -189,6 +212,7 @@ function cachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
         contexts=(Cache(y_cache),),
         res1=scen.res1,
         res2=scen.res2,
+        smaller=isnothing(scen.smaller) ? nothing : cachify(scen.smaller),
     )
 end
 
@@ -200,3 +224,19 @@ end
 closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
 cachify(scens::AbstractVector{<:Scenario}) = cachify.(scens)
+
+function set_smaller(
+    scen::Scenario{op,pl_op,pl_fun}, smaller::Scenario
+) where {op,pl_op,pl_fun}
+    @assert scen.f == smaller.f
+    return Scenario{op,pl_op,pl_fun}(
+        scen.f;
+        x=scen.x,
+        y=scen.y,
+        tang=scen.tang,
+        contexts=scen.contexts,
+        res1=scen.res1,
+        res2=scen.res2,
+        smaller=smaller,
+    )
+end

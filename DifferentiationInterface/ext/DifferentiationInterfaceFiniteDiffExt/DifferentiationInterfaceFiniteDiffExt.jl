@@ -2,22 +2,6 @@ module DifferentiationInterfaceFiniteDiffExt
 
 using ADTypes: AutoFiniteDiff
 import DifferentiationInterface as DI
-using DifferentiationInterface:
-    Context,
-    DerivativePrep,
-    GradientPrep,
-    HessianPrep,
-    JacobianPrep,
-    PullbackPrep,
-    PushforwardPrep,
-    NoDerivativePrep,
-    NoGradientPrep,
-    NoHessianPrep,
-    NoJacobianPrep,
-    NoPullbackPrep,
-    NoPushforwardPrep,
-    unwrap,
-    with_contexts
 using FiniteDiff:
     DerivativeCache,
     GradientCache,
@@ -29,7 +13,8 @@ using FiniteDiff:
     finite_difference_hessian,
     finite_difference_hessian!,
     finite_difference_jacobian,
-    finite_difference_jacobian!
+    finite_difference_jacobian!,
+    default_relstep
 using LinearAlgebra: dot, mul!
 
 DI.check_available(::AutoFiniteDiff) = true

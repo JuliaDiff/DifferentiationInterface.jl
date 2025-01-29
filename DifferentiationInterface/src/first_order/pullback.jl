@@ -126,7 +126,7 @@ function _prepare_pullback_aux(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = x isa Number ? one(x) : basis(backend, x, first(CartesianIndices(x)))
+    dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f, backend, x, (dx,), contexts...)
     return PushforwardPullbackPrep(pushforward_prep)
 end
@@ -140,21 +140,9 @@ function _prepare_pullback_aux(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = x isa Number ? one(x) : basis(backend, x, first(CartesianIndices(x)))
+    dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f!, y, backend, x, (dx,), contexts...)
     return PushforwardPullbackPrep(pushforward_prep)
-end
-
-function _prepare_pullback_aux(
-    ::PullbackFast, f, backend::AbstractADType, x, ty::NTuple, contexts::Vararg{Context}
-)
-    throw(MissingBackendError(backend))
-end
-
-function _prepare_pullback_aux(
-    ::PullbackFast, f!, y, backend::AbstractADType, x, ty::NTuple, contexts::Vararg{Context}
-)
-    throw(MissingBackendError(backend))
 end
 
 ## One argument
@@ -167,8 +155,8 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    t = pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...)
-    dx = dot(dy, only(t))
+    t1 = pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...)
+    dx = dot(only(t1), dy)
     return dx
 end
 
@@ -180,10 +168,9 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = map(x, CartesianIndices(x)) do xj, j
-        bj = basis(backend, x, j)
-        tj = pushforward(f, pushforward_prep, backend, x, (bj,), contexts...)
-        dot(dy, only(tj))
+    dx = map(CartesianIndices(x)) do j
+        t1 = pushforward(f, pushforward_prep, backend, x, (basis(x, j),), contexts...)
+        convert(eltype(x), dot(only(t1), dy))
     end
     return dx
 end
@@ -253,8 +240,8 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    t = pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...)
-    dx = dot(dy, only(t))
+    t1 = pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...)
+    dx = dot(only(t1), dy)
     return dx
 end
 
@@ -267,10 +254,9 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = map(x, CartesianIndices(x)) do xj, j  # preserve shape
-        bj = basis(backend, x, j)
-        tj = pushforward(f!, y, pushforward_prep, backend, x, (bj,), contexts...)
-        dot(dy, only(tj))
+    dx = map(CartesianIndices(x)) do j  # preserve shape
+        t1 = pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...)
+        convert(eltype(x), dot(only(t1), dy))
     end
     return dx
 end

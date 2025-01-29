@@ -9,7 +9,7 @@ import ForwardDiff, Zygote
 
 ## Introduction
 
-The AD backends we want to compare are [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl) and [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl).
+The AD backends we want to compare are [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl) and [Zygote.jl](https://github.com/FluxML/Zygote.jl).
 
 ```@example tuto
 backends = [AutoForwardDiff(), AutoZygote()]
@@ -59,8 +59,6 @@ test_differentiation(
     detailed=true,  # prints a detailed test set
 )
 ```
-
-If you are too lazy to manually specify the reference, you can also provide an AD backend as the `ref_backend` keyword argument, which will serve as the ground truth for comparison.
 
 ## Benchmarking
 
