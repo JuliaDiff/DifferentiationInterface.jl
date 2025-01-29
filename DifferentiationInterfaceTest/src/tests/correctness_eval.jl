@@ -149,12 +149,12 @@ for op in ALL_OPS
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
-                    @test res1_in1_val ≈ scen.res1
-                    @test res1_in2_val ≈ scen.res1
+                    @test res1_in1_val === res1_out1_val
+                    @test res1_in2_val === res1_out2_val
                     @test res1_out1_val ≈ scen.res1
                     @test res1_out2_val ≈ scen.res1
-                    @test res1_in1_noval ≈ scen.res1
-                    @test res1_in2_noval ≈ scen.res1
+                    @test res1_in1_noval === res1_out1_noval
+                    @test res1_in2_noval === res1_out2_noval
                     @test res1_out1_noval ≈ scen.res1
                     @test res1_out2_noval ≈ scen.res1
                 end
@@ -223,8 +223,8 @@ for op in ALL_OPS
                 res1_out2_noval = $op(f, y_in2_noval, preptup_noval..., ba, x, contexts...)
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
-                    @test y_in1_val ≈ scen.y
-                    @test y_in2_val ≈ scen.y
+                    @test y_in1_val === y_out1_val
+                    @test y_in2_val === y_out2_val
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
                     @test res1_out1_val ≈ scen.res1
@@ -299,16 +299,16 @@ for op in ALL_OPS
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
-                    @test y_in1_val ≈ scen.y
-                    @test y_in2_val ≈ scen.y
+                    @test y_in1_val === y_out1_val
+                    @test y_in2_val === y_out2_val
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
-                    @test res1_in1_val ≈ scen.res1
-                    @test res1_in2_val ≈ scen.res1
+                    @test res1_in1_val === res1_out1_val
+                    @test res1_in2_val === res1_out2_val
                     @test res1_out1_val ≈ scen.res1
                     @test res1_out2_val ≈ scen.res1
-                    @test res1_in1_noval ≈ scen.res1
-                    @test res1_in2_noval ≈ scen.res1
+                    @test res1_in1_noval === res1_out1_noval
+                    @test res1_in2_noval === res1_out2_noval
                     @test res1_out1_noval ≈ scen.res1
                     @test res1_out2_noval ≈ scen.res1
                 end
@@ -436,16 +436,16 @@ for op in ALL_OPS
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
-                    @test res1_in1_val ≈ scen.res1
-                    @test res1_in2_val ≈ scen.res1
+                    @test res1_in1_val === res1_out1_val
+                    @test res1_in2_val === res1_out2_val
                     @test res1_out1_val ≈ scen.res1
                     @test res1_out2_val ≈ scen.res1
-                    @test res2_in1_val ≈ scen.res2
-                    @test res2_in2_val ≈ scen.res2
+                    @test res2_in1_val === res2_out1_val
+                    @test res2_in2_val === res2_out2_val
                     @test res2_out1_val ≈ scen.res2
                     @test res2_out2_val ≈ scen.res2
-                    @test res2_in1_noval ≈ scen.res2
-                    @test res2_in2_noval ≈ scen.res2
+                    @test res2_in1_noval === res2_out1_noval
+                    @test res2_in2_noval === res2_out2_noval
                     @test res2_out1_noval ≈ scen.res2
                     @test res2_out2_noval ≈ scen.res2
                 end
@@ -584,12 +584,12 @@ for op in ALL_OPS
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
                     for b in eachindex(scen.res1)
-                        @test res1_in1_val[b] ≈ scen.res1[b]
-                        @test res1_in2_val[b] ≈ scen.res1[b]
+                        @test res1_in1_val[b] === res1_out1_val[b]
+                        @test res1_in2_val[b] === res1_out2_val[b]
                         @test res1_out1_val[b] ≈ scen.res1[b]
                         @test res1_out2_val[b] ≈ scen.res1[b]
-                        @test res1_in1_noval[b] ≈ scen.res1[b]
-                        @test res1_in2_noval[b] ≈ scen.res1[b]
+                        @test res1_in1_noval[b] === res1_out1_noval[b]
+                        @test res1_in2_noval[b] === res1_out2_noval[b]
                         @test res1_out1_noval[b] ≈ scen.res1[b]
                         @test res1_out2_noval[b] ≈ scen.res1[b]
                     end
@@ -658,8 +658,8 @@ for op in ALL_OPS
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
-                    @test y_in1_val ≈ scen.y
-                    @test y_in2_val ≈ scen.y
+                    @test y_in1_val === y_out1_val
+                    @test y_in2_val === y_out2_val
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
                     for b in eachindex(scen.res1)
@@ -747,17 +747,17 @@ for op in ALL_OPS
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
-                    @test y_in1_val ≈ scen.y
-                    @test y_in2_val ≈ scen.y
+                    @test y_in1_val === y_out1_val
+                    @test y_in2_val === y_out2_val
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
                     for b in eachindex(scen.res1)
-                        @test res1_in1_val[b] ≈ scen.res1[b]
-                        @test res1_in2_val[b] ≈ scen.res1[b]
+                        @test res1_in1_val[b] === res1_out1_val[b]
+                        @test res1_in2_val[b] === res1_out2_val[b]
                         @test res1_out1_val[b] ≈ scen.res1[b]
                         @test res1_out2_val[b] ≈ scen.res1[b]
-                        @test res1_in1_noval[b] ≈ scen.res1[b]
-                        @test res1_in2_noval[b] ≈ scen.res1[b]
+                        @test res1_in1_noval[b] === res1_out1_noval[b]
+                        @test res1_in2_noval[b] === res1_out2_noval[b]
                         @test res1_out1_noval[b] ≈ scen.res1[b]
                         @test res1_out2_noval[b] ≈ scen.res1[b]
                     end
@@ -902,17 +902,17 @@ for op in ALL_OPS
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
-                    @test res1_in1_val ≈ scen.res1
-                    @test res1_in2_val ≈ scen.res1
+                    @test res1_in1_val === res1_out1_val
+                    @test res1_in2_val === res1_out2_val
                     @test res1_out1_val ≈ scen.res1
                     @test res1_out2_val ≈ scen.res1
                     for b in eachindex(scen.res2)
-                        @test res2_in1_noval[b] ≈ scen.res2[b]
-                        @test res2_in2_noval[b] ≈ scen.res2[b]
+                        @test res2_in1_noval[b] === res2_out1_noval[b]
+                        @test res2_in2_noval[b] === res2_out2_noval[b]
                         @test res2_out1_noval[b] ≈ scen.res2[b]
                         @test res2_out2_noval[b] ≈ scen.res2[b]
-                        @test res2_in1_val[b] ≈ scen.res2[b]
-                        @test res2_in2_val[b] ≈ scen.res2[b]
+                        @test res2_in1_val[b] === res2_out1_val[b]
+                        @test res2_in2_val[b] === res2_out2_val[b]
                         @test res2_out1_val[b] ≈ scen.res2[b]
                         @test res2_out2_val[b] ≈ scen.res2[b]
                     end

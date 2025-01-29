@@ -5,10 +5,13 @@ import DifferentiationInterfaceTest as DIT
 using SparseArrays: SparseArrays, SparseMatrixCSC, nnz, spdiagm
 using StaticArrays: MArray, MMatrix, MVector, SArray, SMatrix, SVector
 
-mystatic(f::Function) = f
-mystatic(::DIT.NumToArr{A}) where {T,A<:AbstractVector{T}} = DIT.NumToArr(SVector{6,T})
-mystatic(::DIT.NumToArr{A}) where {T,A<:AbstractMatrix{T}} = DIT.NumToArr(SMatrix{2,3,T,6})
-mystatic(f::DIT.FunctionModifier) = f
+static_num_to_vec(x::Number) = SVector(sin(x), cos(2x))
+static_num_to_mat(x::Number) = hcat(static_num_to_vec(x), static_num_to_vec(3x))
+
+mystatic(f::Function)              = f
+mystatic(::typeof(DIT.num_to_vec)) = static_num_to_vec
+mystatic(::typeof(DIT.num_to_mat)) = static_num_to_mat
+mystatic(f::DIT.FunctionModifier)  = f
 
 mystatic(x::Number) = x
 mymutablestatic(x::Number) = x
