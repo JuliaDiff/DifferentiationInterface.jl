@@ -28,8 +28,7 @@ function DI.prepare_pullback_same_point(
     ty::NTuple,
     contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    y, pb = forward(fc, x)
+    y, pb = forward(f, x, map(DI.unwrap, contexts)...)
     return TrackerPullbackPrepSamePoint(y, pb)
 end
 
@@ -41,8 +40,7 @@ function DI.value_and_pullback(
     ty::NTuple,
     contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    y, pb = forward(fc, x)
+    y, pb = forward(f, x, map(DI.unwrap, contexts)...)
     tx = map(ty) do dy
         data(first(pb(dy)))
     end
@@ -94,8 +92,7 @@ function DI.value_and_gradient(
     x,
     contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    (; val, grad) = withgradient(fc, x)
+    (; val, grad) = withgradient(f, x, map(DI.unwrap, contexts)...)
     return val, data(first(grad))
 end
 
@@ -106,8 +103,7 @@ function DI.gradient(
     x,
     contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    (; grad) = withgradient(fc, x)
+    (; grad) = withgradient(f, x, map(DI.unwrap, contexts)...)
     return data(first(grad))
 end
 
