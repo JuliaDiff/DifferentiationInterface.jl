@@ -1,6 +1,6 @@
 ## Pullback
 
-struct EnzymeReverseTwoArgPullbackPrep{TY}
+struct EnzymeReverseTwoArgPullbackPrep{TY} <: DI.PullbackPrep
     ty_copy::TY
 end
 
