@@ -100,9 +100,9 @@ function prepare_jacobian(
     perf = pushforward_performance(backend)
     # type-unstable
     if perf isa PushforwardFast
-        batch_size_settings = BatchSizeSettings(backend, x)
+        batch_size_settings = pick_batchsize(backend, x)
     else
-        batch_size_settings = BatchSizeSettings(backend, y)
+        batch_size_settings = pick_batchsize(backend, y)
     end
     # function barrier
     return _prepare_jacobian_aux(
@@ -116,9 +116,9 @@ function prepare_jacobian(
     perf = pushforward_performance(backend)
     # type-unstable
     if perf isa PushforwardFast
-        batch_size_settings = BatchSizeSettings(backend, x)
+        batch_size_settings = pick_batchsize(backend, x)
     else
-        batch_size_settings = BatchSizeSettings(backend, y)
+        batch_size_settings = pick_batchsize(backend, y)
     end
     # function barrier
     return _prepare_jacobian_aux(

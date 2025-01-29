@@ -19,12 +19,12 @@ ADTypes.mode(::AutoSimpleFiniteDiff) = ForwardMode()
 check_available(::AutoSimpleFiniteDiff) = true
 inplace_support(::AutoSimpleFiniteDiff) = InPlaceSupported()
 
-function BatchSizeSettings(::AutoSimpleFiniteDiff{nothing}, N::Integer)
+function pick_batchsize(::AutoSimpleFiniteDiff{nothing}, N::Integer)
     B = reasonable_batchsize(N, 12)
     return BatchSizeSettings{B}(N)
 end
 
-function BatchSizeSettings(::AutoSimpleFiniteDiff{chunksize}, N::Integer) where {chunksize}
+function pick_batchsize(::AutoSimpleFiniteDiff{chunksize}, N::Integer) where {chunksize}
     return BatchSizeSettings{chunksize}(N)
 end
 

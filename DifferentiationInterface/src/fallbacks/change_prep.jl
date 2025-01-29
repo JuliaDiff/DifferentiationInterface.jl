@@ -43,14 +43,14 @@ for op in [
     if op in (:derivative, :gradient, :jacobian)
         # 1-arg
         @eval function $prep_op!(
-            f::F, ::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
+            f::F, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
             return $prep_op(f, backend, x, contexts...)
         end
         op == :gradient && continue
         # 2-arg
         @eval function $prep_op!(
-            f!::F, y, ::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
+            f!::F, y, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
             return $prep_op(f!, y, backend, x, contexts...)
         end
@@ -58,7 +58,7 @@ for op in [
     elseif op in (:second_derivative, :hessian)
         # 1-arg
         @eval function $prep_op!(
-            f::F, ::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
+            f::F, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
             return $prep_op(f, backend, x, contexts...)
         end
@@ -67,7 +67,7 @@ for op in [
         # 1-arg
         @eval function $prep_op!(
             f::F,
-            ::$P,
+            old_prep::$P,
             backend::AbstractADType,
             x,
             seed::NTuple,
@@ -96,7 +96,7 @@ for op in [
         @eval function $prep_op!(
             f!::F,
             y,
-            ::$P,
+            old_prep::$P,
             backend::AbstractADType,
             x,
             seed::NTuple,

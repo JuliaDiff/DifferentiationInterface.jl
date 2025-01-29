@@ -1,5 +1,5 @@
 # until https://github.com/EnzymeAD/Enzyme.jl/pull/1545 is merged
-function DI.BatchSizeSettings(::AutoEnzyme, N::Integer)
+function DI.pick_batchsize(::AutoEnzyme, N::Integer)
     B = DI.reasonable_batchsize(N, 16)
     return DI.BatchSizeSettings{B}(N)
 end

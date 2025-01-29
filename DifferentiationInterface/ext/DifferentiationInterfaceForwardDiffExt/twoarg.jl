@@ -199,6 +199,23 @@ function DI.prepare_derivative(
     return ForwardDiffTwoArgDerivativePrep(config)
 end
 
+function DI.prepare!_derivative(
+    f!::F,
+    y,
+    old_prep::ForwardDiffTwoArgDerivativePrep,
+    backend::AutoForwardDiff,
+    x,
+    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+) where {F,C}
+    if y isa Vector
+        (; config) = old_prep
+        resize!(config.duals, length(y))
+        return old_prep
+    else
+        return DI.prepare_derivative(f!, y, backend, x, contexts...)
+    end
+end
+
 function DI.value_and_derivative(
     f!::F,
     y,
@@ -350,6 +367,25 @@ function DI.prepare_jacobian(
     tag = get_tag(fc!, backend, x)
     config = JacobianConfig(fc!, y, x, chunk, tag)
     return ForwardDiffTwoArgJacobianPrep(config)
+end
+
+function DI.prepare!_jacobian(
+    f!::F,
+    y,
+    old_prep::ForwardDiffTwoArgJacobianPrep,
+    backend::AutoForwardDiff,
+    x,
+    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+) where {F,C}
+    if x isa Vector && y isa Vector
+        (; config) = old_prep
+        (yduals, xduals) = config.duals
+        resize!(yduals, length(y))
+        resize!(xduals, length(x))
+        return old_prep
+    else
+        return DI.prepare_jacobian(f!, y, backend, x, contexts...)
+    end
 end
 
 function DI.value_and_jacobian(

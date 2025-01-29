@@ -3,8 +3,8 @@ abstract type FromPrimitive <: AbstractADType end
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
 inplace_support(fromprim::FromPrimitive) = inplace_support(fromprim.backend)
 
-function pick_batchsize(fromprim::FromPrimitive, x_or_N::Union{AbstractArray,Integer})
-    return pick_batchsize(fromprim.backend, x_or_N)
+function pick_batchsize(fromprim::FromPrimitive, N::Integer)
+    return pick_batchsize(fromprim.backend, N)
 end
 
 struct AutoReverseFromPrimitive{B} <: FromPrimitive
