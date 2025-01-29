@@ -95,7 +95,7 @@ function _prepare_hvp_aux(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         outer_pushforward_prep = prepare_pushforward(
             shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
         )
@@ -120,7 +120,7 @@ function hvp(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return pushforward(
             shuffled_gradient!,
             grad_buffer,
@@ -156,7 +156,7 @@ function hvp!(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return pushforward!(
             shuffled_gradient!,
             grad_buffer,
@@ -193,7 +193,7 @@ function gradient_and_hvp(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         y, tg = value_and_pushforward(
             shuffled_gradient!,
             grad_buffer,
@@ -231,7 +231,7 @@ function gradient_and_hvp!(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return value_and_pushforward!(
             shuffled_gradient!,
             grad,
@@ -277,7 +277,7 @@ function _prepare_hvp_aux(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         outer_pushforward_prep = prepare_pushforward(
             shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
         )
@@ -302,7 +302,7 @@ function hvp(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return pushforward(
             shuffled_gradient!,
             grad_buffer,
@@ -338,7 +338,7 @@ function hvp!(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return pushforward!(
             shuffled_gradient!,
             grad_buffer,
@@ -375,7 +375,7 @@ function gradient_and_hvp(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         y, tg = value_and_pushforward(
             shuffled_gradient!,
             grad_buffer,
@@ -413,7 +413,7 @@ function gradient_and_hvp!(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return value_and_pushforward!(
             shuffled_gradient!,
             grad,
@@ -572,7 +572,7 @@ function _prepare_hvp_aux(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         outer_pullback_prep = prepare_pullback(
             shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
         )
@@ -597,7 +597,7 @@ function hvp(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return pullback(
             shuffled_gradient!,
             grad_buffer,
@@ -628,7 +628,7 @@ function hvp!(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return pullback!(
             shuffled_gradient!,
             grad_buffer,
@@ -665,7 +665,7 @@ function gradient_and_hvp(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         y, tg = value_and_pullback(
             shuffled_gradient!,
             grad_buffer,
@@ -698,7 +698,7 @@ function gradient_and_hvp!(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(backend)
+    if check_inplace(outer(backend))
         return value_and_pullback!(
             shuffled_gradient!,
             grad,
