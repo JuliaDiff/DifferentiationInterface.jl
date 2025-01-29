@@ -115,6 +115,7 @@ function DI.value_and_pullback!(
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode)
     dx_sametype = convert(typeof(x), only(tx))
+    make_zero!(dx_sametype)
     dy_sametype = convert(typeof(y), only(prep.ty_copy))
     x_and_dx = Duplicated(x, dx_sametype)
     y_and_dy = Duplicated(y, dy_sametype)
