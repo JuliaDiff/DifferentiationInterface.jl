@@ -72,7 +72,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoReverseDiff`          | ✅                  | ❌               |
 | `AutoSymbolics`            | ✅                  | ❌               |
 | `AutoTracker`              | ✅                  | ❌               |
-| `AutoZygote`               | ✅                  | ❌               |
+| `AutoZygote`               | ✅                  | 🔀               |
 
 ## Second order
 
