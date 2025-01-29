@@ -1,7 +1,10 @@
-struct ForwardDiffOverSomethingHVPPrep{E1<:DI.GradientPrep,E2<:DI.PushforwardPrep} <:
-       DI.HVPPrep
+struct ForwardDiffOverSomethingHVPPrep{
+    G,E1<:DI.GradientPrep,E2<:DI.PushforwardPrep,E2IP<:DI.PushforwardPrep
+} <: DI.HVPPrep
+    grad_buffer::G
     inner_gradient_prep::E1
     outer_pushforward_prep::E2
+    outer_pushforward_prep_inplace::E2IP
 end
 
 function DI.prepare_hvp(
@@ -22,10 +25,19 @@ function DI.prepare_hvp(
         DI.Constant(rewrap),
         contexts...,
     )
+    grad_buffer = similar(x)
     outer_pushforward_prep = DI.prepare_pushforward(
         DI.shuffled_gradient, DI.outer(backend), x, tx, new_contexts...
     )
-    return ForwardDiffOverSomethingHVPPrep(inner_gradient_prep, outer_pushforward_prep)
+    outer_pushforward_prep_inplace = DI.prepare_pushforward(
+        DI.shuffled_gradient!, grad_buffer, DI.outer(backend), x, tx, new_contexts...
+    )
+    return ForwardDiffOverSomethingHVPPrep(
+        grad_buffer,
+        inner_gradient_prep,
+        outer_pushforward_prep,
+        outer_pushforward_prep_inplace,
+    )
 end
 
 function DI.hvp(
@@ -64,7 +76,7 @@ function DI.hvp!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    (; inner_gradient_prep, outer_pushforward_prep) = prep
+    (; grad_buffer, inner_gradient_prep, outer_pushforward_prep_inplace) = prep
     rewrap = DI.Rewrap(contexts...)
     new_contexts = (
         DI.FunctionContext(f),
@@ -74,9 +86,10 @@ function DI.hvp!(
         contexts...,
     )
     return DI.pushforward!(
-        DI.shuffled_gradient,
+        DI.shuffled_gradient!,
+        grad_buffer,
         tg,
-        outer_pushforward_prep,
+        outer_pushforward_prep_inplace,
         DI.outer(backend),
         x,
         tx,
@@ -122,7 +135,7 @@ function DI.gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    (; inner_gradient_prep, outer_pushforward_prep) = prep
+    (; inner_gradient_prep, outer_pushforward_prep_inplace) = prep
     rewrap = DI.Rewrap(contexts...)
     new_contexts = (
         DI.FunctionContext(f),
@@ -131,14 +144,14 @@ function DI.gradient_and_hvp!(
         DI.Constant(rewrap),
         contexts...,
     )
-    new_grad, _ = DI.value_and_pushforward!(
-        DI.shuffled_gradient,
+    return DI.value_and_pushforward!(
+        DI.shuffled_gradient!,
+        grad,
         tg,
-        outer_pushforward_prep,
+        outer_pushforward_prep_inplace,
         DI.outer(backend),
         x,
         tx,
         new_contexts...,
     )
-    return copyto!(grad, new_grad), tg
 end

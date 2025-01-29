@@ -76,10 +76,11 @@ end
 
 ## Forward over forward
 
-struct ForwardOverForwardHVPPrep{G,E2<:PushforwardPrep} <: HVPPrep
+struct ForwardOverForwardHVPPrep{G,E2<:PushforwardPrep,E2IP} <: HVPPrep
     grad_buffer::G
     # pushforward of many pushforwards in theory, but pushforward of gradient in practice
     outer_pushforward_prep::E2
+    outer_pushforward_prep_inplace::E2IP
 end
 
 function _prepare_hvp_aux(
@@ -95,16 +96,19 @@ function _prepare_hvp_aux(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
-    if check_inplace(outer(backend))
-        outer_pushforward_prep = prepare_pushforward(
+    outer_pushforward_prep_inplace = if check_inplace(outer(backend))
+        prepare_pushforward(
             shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
         )
     else
-        outer_pushforward_prep = prepare_pushforward(
-            shuffled_gradient, outer(backend), x, tx, new_contexts...
-        )
+        nothing
     end
-    return ForwardOverForwardHVPPrep(grad_buffer, outer_pushforward_prep)
+    outer_pushforward_prep = prepare_pushforward(
+        shuffled_gradient, outer(backend), x, tx, new_contexts...
+    )
+    return ForwardOverForwardHVPPrep(
+        grad_buffer, outer_pushforward_prep, outer_pushforward_prep_inplace
+    )
 end
 
 function hvp(
@@ -115,31 +119,14 @@ function hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pushforward_prep) = prep
+    (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(outer(backend))
-        return pushforward(
-            shuffled_gradient!,
-            grad_buffer,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-    else
-        return pushforward(
-            shuffled_gradient,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-    end
+    return pushforward(
+        shuffled_gradient, outer_pushforward_prep, outer(backend), x, tx, new_contexts...
+    )
 end
 
 function hvp!(
@@ -151,7 +138,7 @@ function hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pushforward_prep) = prep
+    (; grad_buffer, outer_pushforward_prep, outer_pushforward_prep_inplace) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
@@ -161,7 +148,7 @@ function hvp!(
             shuffled_gradient!,
             grad_buffer,
             tg,
-            outer_pushforward_prep,
+            outer_pushforward_prep_inplace,
             outer(backend),
             x,
             tx,
@@ -188,32 +175,14 @@ function gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pushforward_prep) = prep
+    (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(outer(backend))
-        y, tg = value_and_pushforward(
-            shuffled_gradient!,
-            grad_buffer,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-        return copy(y), tg
-    else
-        return value_and_pushforward(
-            shuffled_gradient,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-    end
+    return value_and_pushforward(
+        shuffled_gradient, outer_pushforward_prep, outer(backend), x, tx, new_contexts...
+    )
 end
 
 function gradient_and_hvp!(
@@ -226,7 +195,7 @@ function gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; outer_pushforward_prep) = prep
+    (; outer_pushforward_prep, outer_pushforward_prep_inplace) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
@@ -236,7 +205,7 @@ function gradient_and_hvp!(
             shuffled_gradient!,
             grad,
             tg,
-            outer_pushforward_prep,
+            outer_pushforward_prep_inplace,
             outer(backend),
             x,
             tx,
@@ -258,10 +227,11 @@ end
 
 ## Forward over reverse
 
-struct ForwardOverReverseHVPPrep{G,E2<:PushforwardPrep} <: HVPPrep
+struct ForwardOverReverseHVPPrep{G,E2<:PushforwardPrep,E2IP} <: HVPPrep
     grad_buffer::G
     # pushforward of gradient
     outer_pushforward_prep::E2
+    outer_pushforward_prep_inplace::E2IP
 end
 
 function _prepare_hvp_aux(
@@ -277,16 +247,19 @@ function _prepare_hvp_aux(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
-    if check_inplace(outer(backend))
-        outer_pushforward_prep = prepare_pushforward(
+    outer_pushforward_prep_inplace = if check_inplace(outer(backend))
+        prepare_pushforward(
             shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
         )
     else
-        outer_pushforward_prep = prepare_pushforward(
-            shuffled_gradient, outer(backend), x, tx, new_contexts...
-        )
+        nothing
     end
-    return ForwardOverReverseHVPPrep(grad_buffer, outer_pushforward_prep)
+    outer_pushforward_prep = prepare_pushforward(
+        shuffled_gradient, outer(backend), x, tx, new_contexts...
+    )
+    return ForwardOverReverseHVPPrep(
+        grad_buffer, outer_pushforward_prep, outer_pushforward_prep_inplace
+    )
 end
 
 function hvp(
@@ -297,31 +270,14 @@ function hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pushforward_prep) = prep
+    (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(outer(backend))
-        return pushforward(
-            shuffled_gradient!,
-            grad_buffer,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-    else
-        return pushforward(
-            shuffled_gradient,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-    end
+    return pushforward(
+        shuffled_gradient, outer_pushforward_prep, outer(backend), x, tx, new_contexts...
+    )
 end
 
 function hvp!(
@@ -333,7 +289,7 @@ function hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pushforward_prep) = prep
+    (; grad_buffer, outer_pushforward_prep, outer_pushforward_prep_inplace) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
@@ -343,7 +299,7 @@ function hvp!(
             shuffled_gradient!,
             grad_buffer,
             tg,
-            outer_pushforward_prep,
+            outer_pushforward_prep_inplace,
             outer(backend),
             x,
             tx,
@@ -370,32 +326,14 @@ function gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pushforward_prep) = prep
+    (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(outer(backend))
-        y, tg = value_and_pushforward(
-            shuffled_gradient!,
-            grad_buffer,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-        return copy(y), tg
-    else
-        return value_and_pushforward(
-            shuffled_gradient,
-            outer_pushforward_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-    end
+    return value_and_pushforward(
+        shuffled_gradient, outer_pushforward_prep, outer(backend), x, tx, new_contexts...
+    )
 end
 
 function gradient_and_hvp!(
@@ -408,7 +346,7 @@ function gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; outer_pushforward_prep) = prep
+    (; outer_pushforward_prep, outer_pushforward_prep_inplace) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
@@ -418,7 +356,7 @@ function gradient_and_hvp!(
             shuffled_gradient!,
             grad,
             tg,
-            outer_pushforward_prep,
+            outer_pushforward_prep_inplace,
             outer(backend),
             x,
             tx,
@@ -553,10 +491,11 @@ end
 
 ## Reverse over reverse
 
-struct ReverseOverReverseHVPPrep{G,E2<:PullbackPrep} <: HVPPrep
+struct ReverseOverReverseHVPPrep{G,E2<:PullbackPrep,E2IP} <: HVPPrep
     grad_buffer::G
     # pullback of gradient
     outer_pullback_prep::E2
+    outer_pullback_prep_inplace::E2IP
 end
 
 function _prepare_hvp_aux(
@@ -572,16 +511,19 @@ function _prepare_hvp_aux(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
-    if check_inplace(outer(backend))
-        outer_pullback_prep = prepare_pullback(
+    outer_pullback_prep_inplace = if check_inplace(outer(backend))
+        prepare_pullback(
             shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
         )
     else
-        outer_pullback_prep = prepare_pullback(
-            shuffled_gradient, outer(backend), x, tx, new_contexts...
-        )
+        nothing
     end
-    return ReverseOverReverseHVPPrep(grad_buffer, outer_pullback_prep)
+    outer_pullback_prep = prepare_pullback(
+        shuffled_gradient, outer(backend), x, tx, new_contexts...
+    )
+    return ReverseOverReverseHVPPrep(
+        grad_buffer, outer_pullback_prep, outer_pullback_prep_inplace
+    )
 end
 
 function hvp(
@@ -592,26 +534,14 @@ function hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pullback_prep) = prep
+    (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(outer(backend))
-        return pullback(
-            shuffled_gradient!,
-            grad_buffer,
-            outer_pullback_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-    else
-        return pullback(
-            shuffled_gradient, outer_pullback_prep, outer(backend), x, tx, new_contexts...
-        )
-    end
+    return pullback(
+        shuffled_gradient, outer_pullback_prep, outer(backend), x, tx, new_contexts...
+    )
 end
 
 function hvp!(
@@ -623,7 +553,7 @@ function hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pullback_prep) = prep
+    (; grad_buffer, outer_pullback_prep, outer_pullback_prep_inplace) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
@@ -633,7 +563,7 @@ function hvp!(
             shuffled_gradient!,
             grad_buffer,
             tg,
-            outer_pullback_prep,
+            outer_pullback_prep_inplace,
             outer(backend),
             x,
             tx,
@@ -660,27 +590,14 @@ function gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; grad_buffer, outer_pullback_prep) = prep
+    (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    if check_inplace(outer(backend))
-        y, tg = value_and_pullback(
-            shuffled_gradient!,
-            grad_buffer,
-            outer_pullback_prep,
-            outer(backend),
-            x,
-            tx,
-            new_contexts...,
-        )
-        return copy(y), tg
-    else
-        return value_and_pullback(
-            shuffled_gradient, outer_pullback_prep, outer(backend), x, tx, new_contexts...
-        )
-    end
+    return value_and_pullback(
+        shuffled_gradient, outer_pullback_prep, outer(backend), x, tx, new_contexts...
+    )
 end
 
 function gradient_and_hvp!(
@@ -693,7 +610,7 @@ function gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    (; outer_pullback_prep) = prep
+    (; outer_pullback_prep, outer_pullback_prep_inplace) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
@@ -703,7 +620,7 @@ function gradient_and_hvp!(
             shuffled_gradient!,
             grad,
             tg,
-            outer_pullback_prep,
+            outer_pullback_prep_inplace,
             outer(backend),
             x,
             tx,
