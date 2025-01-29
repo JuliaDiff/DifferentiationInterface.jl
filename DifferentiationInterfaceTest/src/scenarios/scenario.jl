@@ -101,7 +101,7 @@ function order(scen::Scenario)
 end
 
 function compatible(backend::AbstractADType, scen::Scenario)
-    place_compatible = function_place(scen) == :out || Bool(inplace_support(backend))
+    place_compatible = function_place(scen) == :out || check_inplace(backend)
     sparse_compatible = operator(scen) in (:jacobian, :hessian) || !isa(backend, AutoSparse)
     secondorder_compatible =
         order(scen) == 2 || !isa(backend, Union{SecondOrder,AutoSparse{<:SecondOrder}})

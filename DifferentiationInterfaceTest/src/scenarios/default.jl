@@ -266,8 +266,8 @@ end
 
 ## Array to number
 
-const α = 4
-const β = 6
+const α = 3
+const β = 4
 
 arr_to_num_linalg(x::AbstractArray) = sum(vec(x .^ α) .* transpose(vec(x .^ β)))
 

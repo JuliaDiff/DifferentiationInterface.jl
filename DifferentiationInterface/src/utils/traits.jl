@@ -1,46 +1,43 @@
-## Mutation
-
-abstract type InPlaceBehavior end
+## Availability
 
 """
-    InPlaceSupported
+    check_available(backend)
 
-Trait identifying backends that support in-place functions `f!(y, x)`.
+Check whether `backend` is available (i.e. whether the extension is loaded).
 """
-struct InPlaceSupported <: InPlaceBehavior end
+check_available(backend::AbstractADType) = false
 
-"""
-    InPlaceNotSupported
-
-Trait identifying backends that do not support in-place functions `f!(y, x)`.
-"""
-struct InPlaceNotSupported <: InPlaceBehavior end
-
-"""
-    inplace_support(backend)
-
-Return [`InPlaceSupported`](@ref) or [`InPlaceNotSupported`](@ref) in a statically predictable way.
-"""
-inplace_support(::AbstractADType) = InPlaceSupported()
-
-function inplace_support(backend::SecondOrder)
-    if inplace_support(inner(backend)) isa InPlaceSupported &&
-        inplace_support(outer(backend)) isa InPlaceSupported
-        return InPlaceSupported()
-    else
-        return InPlaceNotSupported()
-    end
+function check_available(backend::SecondOrder)
+    return check_available(inner(backend)) && check_available(outer(backend))
 end
 
-inplace_support(backend::AutoSparse) = inplace_support(dense_ad(backend))
+check_available(backend::AutoSparse) = check_available(dense_ad(backend))
 
-function inplace_support(backend::MixedMode)
-    if Bool(inplace_support(forward_backend(backend))) &&
-        Bool(inplace_support(reverse_backend(backend)))
-        return InPlaceSupported()
-    else
-        return InPlaceNotSupported()
-    end
+function check_available(backend::MixedMode)
+    return check_available(forward_backend(backend)) &&
+           check_available(reverse_backend(backend))
+end
+
+## Mutation
+
+"""
+    check_inplace(backend)
+
+Check whether `backend` supports differentiation of in-place functions.
+
+Returns `true` or `false` in a statically predictable way.
+"""
+check_inplace(::AbstractADType) = true
+
+function check_inplace(backend::SecondOrder)
+    return check_inplace(inner(backend)) && check_inplace(outer(backend))
+end
+
+check_inplace(backend::AutoSparse) = check_inplace(dense_ad(backend))
+
+function check_inplace(backend::MixedMode)
+    return check_inplace(forward_backend(backend)) &&
+           check_inplace(reverse_backend(backend))
 end
 
 ## Pushforward
@@ -160,9 +157,6 @@ function hvp_mode(backend::AutoSparse)
 end
 
 ## Conversions
-
-Base.Bool(::InPlaceSupported) = true
-Base.Bool(::InPlaceNotSupported) = false
 
 Base.Bool(::PushforwardFast) = true
 Base.Bool(::PushforwardSlow) = false

@@ -5,7 +5,7 @@ import DifferentiationInterface as DI
 using Tracker: Tracker, back, data, forward, gradient, jacobian, param, withgradient
 
 DI.check_available(::AutoTracker) = true
-DI.inplace_support(::AutoTracker) = DI.InPlaceNotSupported()
+DI.check_inplace(::AutoTracker) = false
 
 ## Pullback
 

@@ -1,7 +1,7 @@
 abstract type FromPrimitive <: AbstractADType end
 
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
-inplace_support(fromprim::FromPrimitive) = inplace_support(fromprim.backend)
+check_inplace(fromprim::FromPrimitive) = check_inplace(fromprim.backend)
 
 function pick_batchsize(fromprim::FromPrimitive, N::Integer)
     return pick_batchsize(fromprim.backend, N)

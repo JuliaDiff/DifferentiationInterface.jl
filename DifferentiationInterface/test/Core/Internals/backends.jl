@@ -8,7 +8,7 @@ using DifferentiationInterface:
     outer,
     forward_backend,
     reverse_backend,
-    inplace_support,
+    check_inplace,
     pushforward_performance,
     pullback_performance,
     hvp_mode
@@ -24,7 +24,7 @@ rb = AutoReverseFromPrimitive(AutoSimpleFiniteDiff())
     @test outer(backend) isa AutoSimpleFiniteDiff
     @test inner(backend) isa AutoReverseFromPrimitive
     @test mode(backend) isa ADTypes.ForwardMode
-    @test Bool(inplace_support(backend))
+    @test check_inplace(backend)
     @test_throws ArgumentError pushforward_performance(backend)
     @test_throws ArgumentError pullback_performance(backend)
 end
@@ -35,7 +35,7 @@ end
     @test mode(backend) isa DifferentiationInterface.ForwardAndReverseMode
     @test forward_backend(backend) isa AutoSimpleFiniteDiff
     @test reverse_backend(backend) isa AutoReverseFromPrimitive
-    @test Bool(inplace_support(backend))
+    @test check_inplace(backend)
     @test_throws MethodError pushforward_performance(backend)
     @test_throws MethodError pullback_performance(backend)
 end
@@ -44,7 +44,7 @@ end
     for dense_backend in [fb, rb]
         backend = AutoSparse(dense_backend)
         @test mode(backend) == ADTypes.mode(dense_backend)
-        @test Bool(inplace_support(backend))
+        @test check_inplace(backend)
         @test_throws ArgumentError pushforward_performance(backend)
         @test_throws ArgumentError pullback_performance(backend)
         @test_throws ArgumentError hvp_mode(backend)

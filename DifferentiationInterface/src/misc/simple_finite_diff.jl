@@ -17,7 +17,6 @@ end
 
 ADTypes.mode(::AutoSimpleFiniteDiff) = ForwardMode()
 check_available(::AutoSimpleFiniteDiff) = true
-inplace_support(::AutoSimpleFiniteDiff) = InPlaceSupported()
 
 function pick_batchsize(::AutoSimpleFiniteDiff{nothing}, N::Integer)
     B = reasonable_batchsize(N, 12)

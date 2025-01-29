@@ -5,7 +5,7 @@ import DifferentiationInterface as DI
 using Diffractor: DiffractorRuleConfig, TaylorTangentIndex, ZeroBundle, bundle, ∂☆
 
 DI.check_available(::AutoDiffractor) = true
-DI.inplace_support(::AutoDiffractor) = DI.InPlaceNotSupported()
+DI.check_inplace(::AutoDiffractor) = false
 DI.pullback_performance(::AutoDiffractor) = DI.PullbackSlow()
 
 ## Pushforward

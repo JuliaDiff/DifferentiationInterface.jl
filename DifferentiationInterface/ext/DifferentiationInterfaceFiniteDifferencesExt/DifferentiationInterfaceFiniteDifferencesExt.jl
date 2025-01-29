@@ -6,7 +6,7 @@ using FiniteDifferences: FiniteDifferences, grad, jacobian, jvp, j′vp
 using LinearAlgebra: dot
 
 DI.check_available(::AutoFiniteDifferences) = true
-DI.inplace_support(::AutoFiniteDifferences) = DI.InPlaceNotSupported()
+DI.check_inplace(::AutoFiniteDifferences) = false
 
 ## Pushforward
 

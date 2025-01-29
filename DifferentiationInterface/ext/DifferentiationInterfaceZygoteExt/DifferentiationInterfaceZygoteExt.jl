@@ -25,7 +25,7 @@ check_nothing(::Nothing, f, x, contexts) = throw(ZygoteNothingError(f, x, contex
 check_nothing(::Any, f, x, contexts) = nothing
 
 DI.check_available(::AutoZygote) = true
-DI.inplace_support(::AutoZygote) = DI.InPlaceNotSupported()
+DI.check_inplace(::AutoZygote) = false
 
 ## Pullback
 
