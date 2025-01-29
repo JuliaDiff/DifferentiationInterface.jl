@@ -100,27 +100,27 @@ end
 
 ## Number to vector
 
-num_to_vec(x::Number) = [sin(x), cos(2x)]
-num_to_vec_derivative(x) = [cos(x), -2sin(2x)]
-num_to_vec_second_derivative(x) = [-sin(x), -4cos(2x)]
+num_to_vec(x::Number) = vcat(sin(x), cos(2 * x))
+num_to_vec_derivative(x) = [cos(x), -2sin(2 * x)]
+num_to_vec_second_derivative(x) = [-sin(x), -4cos(2 * x)]
 num_to_vec_pushforward(x, dx) = dx .* num_to_vec_derivative(x)
 num_to_vec_pullback(x, dy) = sum(conj(num_to_vec_derivative(x)) .* dy)
 
 function num_to_vec!(y::AbstractVector, x::Number)
     n = length(y)
     y[1:(n ÷ 2)] .= sin(x)
-    y[((n ÷ 2) + 1):end] .= cos(2x)
+    y[((n ÷ 2) + 1):end] .= cos(2 * x)
     return nothing
 end
 
 function num_to_vec!_derivative(x; y)
     n = length(y)
-    return vcat(fill(cos(x), n ÷ 2), fill(-2sin(2x), n - n ÷ 2))
+    return vcat(fill(cos(x), n ÷ 2), fill(-2sin(2 * x), n - n ÷ 2))
 end
 
 function num_to_vec!_second_derivative(x; y)
     n = length(y)
-    return vcat(fill(-sin(x), n ÷ 2), fill(-4cos(2x), n - n ÷ 2))
+    return vcat(fill(-sin(x), n ÷ 2), fill(-4cos(2 * x), n - n ÷ 2))
 end
 
 num_to_vec!_pushforward(x, dx; y) = dx .* num_to_vec!_derivative(x; y)
@@ -183,38 +183,38 @@ end
 
 ## Number to matrix
 
-num_to_mat(x::Number) = hcat(num_to_vec(x), num_to_vec(3x))
+num_to_mat(x::Number) = hcat(num_to_vec(x), num_to_vec(3 * x))
 
-num_to_mat_derivative(x) = hcat(num_to_vec_derivative(x), 3 * num_to_vec_derivative(3x))
+num_to_mat_derivative(x) = hcat(num_to_vec_derivative(x), 3 .* num_to_vec_derivative(3 * x))
 function num_to_mat_second_derivative(x)
-    return hcat(num_to_vec_second_derivative(x), 9 * num_to_vec_second_derivative(3x))
+    return hcat(num_to_vec_second_derivative(x), 9 .* num_to_vec_second_derivative(3 * x))
 end
 function num_to_mat_pushforward(x, dx)
-    return hcat(num_to_vec_pushforward(x, dx), 3 * num_to_vec_pushforward(3x, dx))
+    return hcat(num_to_vec_pushforward(x, dx), 3 .* num_to_vec_pushforward(3 * x, dx))
 end
 function num_to_mat_pullback(x, dy)
-    return num_to_vec_pullback(x, dy[:, 1]) + 3 * num_to_vec_pullback(3x, dy[:, 2])
+    return num_to_vec_pullback(x, dy[:, 1]) + 3 * num_to_vec_pullback(3 * x, dy[:, 2])
 end
 
 function num_to_mat!(y::AbstractMatrix, x::Number)
     num_to_vec!(view(y, :, 1), x)
-    num_to_vec!(view(y, :, 2), 3x)
+    num_to_vec!(view(y, :, 2), 3 * x)
     return nothing
 end
 
 function num_to_mat!_derivative(x; y)
     return hcat(
-        num_to_vec!_derivative(x; y=y[:, 1]), 3 * num_to_vec!_derivative(3x; y=y[:, 2])
+        num_to_vec!_derivative(x; y=y[:, 1]), 3 .* num_to_vec!_derivative(3 * x; y=y[:, 2])
     )
 end
 function num_to_mat!_pushforward(x, dx; y)
     return hcat(
         num_to_vec!_pushforward(x, dx; y=y[:, 1]),
-        3 * num_to_vec!_pushforward(3x, dx; y=y[:, 2]),
+        3 .* num_to_vec!_pushforward(3 * x, dx; y=y[:, 2]),
     )
 end
 function num_to_mat!_pullback(x, dy)
-    return num_to_vec!_pullback(x, dy[:, 1]) + 3 * num_to_vec!_pullback(3x, dy[:, 2])
+    return num_to_vec!_pullback(x, dy[:, 1]) + 3 * num_to_vec!_pullback(3 * x, dy[:, 2])
 end
 
 function num_to_mat_scenarios_onearg(x::Number; dx::Number, dy::AbstractArray)
