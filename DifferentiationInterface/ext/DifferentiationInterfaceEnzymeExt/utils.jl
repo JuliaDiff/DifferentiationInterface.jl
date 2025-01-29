@@ -111,3 +111,10 @@ end
 
 batchify_activity(::Type{Active{T}}, ::Val{B}) where {T,B} = Active{T}
 batchify_activity(::Type{Duplicated{T}}, ::Val{B}) where {T,B} = BatchDuplicated{T,B}
+
+@inline function copyto_if_different_addresses!(dst, src)
+    if dst !== src
+        copyto!(dst, src)
+    end
+    return dst
+end

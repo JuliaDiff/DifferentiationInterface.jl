@@ -67,15 +67,22 @@ end
 function DI.value_and_pushforward!(
     f!::F,
     y,
-    ty::NTuple,
-    prep::DI.NoPushforwardPrep,
+    ty::NTuple{B},
+    ::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
-    tx::NTuple,
+    tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,C}
-    y, new_ty = DI.value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
-    foreach(copyto!, ty, new_ty)
+) where {F,B,C}
+    mode = forward_noprimal(backend)
+    f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))
+    tx_sametype = map(Fix1(convert, typeof(x)), tx)
+    ty_sametype = map(Fix1(convert, typeof(y)), ty)
+    x_and_tx = BatchDuplicated(x, tx_sametype)
+    y_and_ty = BatchDuplicated(y, ty_sametype)
+    annotated_contexts = translate(backend, mode, Val(B), contexts...)
+    autodiff(mode, f!_and_df!, Const, y_and_ty, x_and_tx, annotated_contexts...)
+    foreach(copyto_if_different_addresses!, ty_sametype, ty)
     return y, ty
 end
 
@@ -89,7 +96,6 @@ function DI.pushforward!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    new_ty = DI.pushforward(f!, y, prep, backend, x, tx, contexts...)
-    foreach(copyto!, ty, new_ty)
+    DI.value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
     return ty
 end

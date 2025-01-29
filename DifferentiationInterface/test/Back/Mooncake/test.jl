@@ -19,7 +19,7 @@ end
 
 test_differentiation(
     backends,
-    default_scenarios(; include_constantified=true);
+    default_scenarios(; include_constantified=true, include_cachified=true);
     excluded=SECOND_ORDER,
     logging=LOGGING,
 );

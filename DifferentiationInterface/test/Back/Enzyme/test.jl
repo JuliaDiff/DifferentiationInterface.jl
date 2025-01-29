@@ -23,10 +23,10 @@ function remove_matrix_inputs(scens::Vector{<:Scenario})  # TODO: remove
 end
 
 backends = [
-    AutoEnzyme(; mode=nothing),
+    # AutoEnzyme(; mode=nothing),
     AutoEnzyme(; mode=Enzyme.Forward),
     AutoEnzyme(; mode=Enzyme.Reverse),
-    AutoEnzyme(; mode=nothing, function_annotation=Enzyme.Const),
+    # AutoEnzyme(; mode=nothing, function_annotation=Enzyme.Const),
 ]
 
 duplicated_backends = [

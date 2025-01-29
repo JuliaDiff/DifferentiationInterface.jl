@@ -67,7 +67,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoFiniteDifferences`    | ✅                  | ✅               |
 | `AutoForwardDiff`          | ✅                  | ✅               |
 | `AutoGTPSA`                | ✅                  | ❌               |
-| `AutoMooncake`             | ✅                  | ❌               |
+| `AutoMooncake`             | ✅                  | ✅               |
 | `AutoPolyesterForwardDiff` | ✅                  | ✅               |
 | `AutoReverseDiff`          | ✅                  | ❌               |
 | `AutoSymbolics`            | ✅                  | ❌               |
