@@ -82,7 +82,7 @@ function DI.value_and_pushforward!(
     y_and_ty = BatchDuplicated(y, ty_sametype)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
     autodiff(mode, f!_and_df!, Const, y_and_ty, x_and_tx, annotated_contexts...)
-    foreach(copyto_if_different_addresses!, ty_sametype, ty)
+    foreach(copyto_if_different_addresses!, ty, ty_sametype)
     return y, ty
 end
 

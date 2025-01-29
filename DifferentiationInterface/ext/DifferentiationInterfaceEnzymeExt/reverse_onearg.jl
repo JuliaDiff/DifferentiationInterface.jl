@@ -49,6 +49,10 @@ end
 
 ## Pullback
 
+struct EnzymeReverseOneArgPullbackPrep{Y} <: DI.PullbackPrep
+    y_example::Y  # useful to create return activity
+end
+
 function DI.prepare_pullback(
     f::F,
     ::AutoEnzyme{<:Union{ReverseMode,Nothing}},
@@ -56,14 +60,15 @@ function DI.prepare_pullback(
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    return DI.NoPullbackPrep()
+    y = f(x, map(DI.unwrap, contexts)...)
+    return EnzymeReverseOneArgPullbackPrep(y)
 end
 
 ### Out-of-place
 
 function DI.value_and_pullback(
     f::F,
-    ::DI.NoPullbackPrep,
+    prep::EnzymeReverseOneArgPullbackPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple{1},
@@ -72,7 +77,7 @@ function DI.value_and_pullback(
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode))
     IA = guess_activity(typeof(x), mode)
-    RA = guess_activity(eltype(ty), mode)
+    RA = guess_activity(typeof(prep.y_example), mode)
     dx = make_zero(x)
     annotated_contexts = translate(backend, mode, Val(1), contexts...)
     dinputs, result = seeded_autodiff_thunk(
@@ -88,7 +93,7 @@ end
 
 function DI.value_and_pullback(
     f::F,
-    ::DI.NoPullbackPrep,
+    prep::EnzymeReverseOneArgPullbackPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple{B},
@@ -97,7 +102,7 @@ function DI.value_and_pullback(
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode, Val(B)))
     IA = batchify_activity(guess_activity(typeof(x), mode), Val(B))
-    RA = batchify_activity(guess_activity(eltype(ty), mode), Val(B))
+    RA = batchify_activity(guess_activity(typeof(prep.y_example), mode), Val(B))
     tx = ntuple(_ -> make_zero(x), Val(B))
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
     dinputs, result = batch_seeded_autodiff_thunk(
@@ -113,7 +118,7 @@ end
 
 function DI.pullback(
     f::F,
-    prep::DI.NoPullbackPrep,
+    prep::EnzymeReverseOneArgPullbackPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple,
@@ -127,7 +132,7 @@ end
 function DI.value_and_pullback!(
     f::F,
     tx::NTuple{1},
-    ::DI.NoPullbackPrep,
+    prep::EnzymeReverseOneArgPullbackPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple{1},
@@ -135,7 +140,7 @@ function DI.value_and_pullback!(
 ) where {F,C}
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode))
-    RA = guess_activity(eltype(ty), mode)
+    RA = guess_activity(typeof(prep.y_example), mode)
     dx_righttype = convert(typeof(x), only(tx))
     make_zero!(dx_righttype)
     annotated_contexts = translate(backend, mode, Val(1), contexts...)
@@ -149,7 +154,7 @@ end
 function DI.value_and_pullback!(
     f::F,
     tx::NTuple{B},
-    ::DI.NoPullbackPrep,
+    prep::EnzymeReverseOneArgPullbackPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple{B},
@@ -157,7 +162,7 @@ function DI.value_and_pullback!(
 ) where {F,B,C}
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode, Val(B)))
-    RA = batchify_activity(guess_activity(eltype(ty), mode), Val(B))
+    RA = batchify_activity(guess_activity(typeof(prep.y_example), mode), Val(B))
     tx_righttype = map(Fix1(convert, typeof(x)), tx)
     make_zero!(tx_righttype)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
@@ -171,7 +176,7 @@ end
 function DI.pullback!(
     f::F,
     tx::NTuple,
-    prep::DI.NoPullbackPrep,
+    prep::EnzymeReverseOneArgPullbackPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple,
