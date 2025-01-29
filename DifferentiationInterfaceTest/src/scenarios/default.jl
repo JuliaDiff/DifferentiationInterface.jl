@@ -630,7 +630,7 @@ function default_scenarios(;
         ),
     )
 
-    scens = map(initialscens, initialscens) do s1, s2
+    scens = map(initialscens, smallerscens) do s1, s2
         set_smaller(s1, s2)
     end
 
