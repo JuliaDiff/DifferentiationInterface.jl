@@ -4,12 +4,14 @@ import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using JLArrays: JLArray, JLVector, JLMatrix, jl
 
-jl_num_to_vec(x::Number) = jl([sin(x), cos(2x)])
+jl_num_to_vec(x::Number) = sin.(jl([1, 2]) .* x)
 jl_num_to_mat(x::Number) = hcat(jl_num_to_vec(x), jl_num_to_vec(3x))
 
+const NTV = typeof(DIT.num_to_vec)
+const NTM = typeof(DIT.num_to_mat)
 myjl(f::Function) = f
-myjl(::typeof(DIT.num_to_vec)) = jl_num_to_vec
-myjl(::typeof(DIT.num_to_mat)) = jl_num_to_mat
+myjl(::NTV) = jl_num_to_vec
+myjl(::NTM) = jl_num_to_mat
 myjl(f::DIT.FunctionModifier) = f
 
 myjl(x::Number) = x

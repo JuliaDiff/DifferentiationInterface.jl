@@ -14,11 +14,11 @@ end
 DI.check_available(::AutoPolyesterForwardDiff) = true
 
 function DI.pick_batchsize(backend::AutoPolyesterForwardDiff, x::AbstractArray)
-    return DI.BatchSizeSettings(single_threaded(backend), x)
+    return DI.pick_batchsize(single_threaded(backend), x)
 end
 
 function DI.pick_batchsize(backend::AutoPolyesterForwardDiff, N::Integer)
-    return DI.BatchSizeSettings(single_threaded(backend), N)
+    return DI.pick_batchsize(single_threaded(backend), N)
 end
 
 function DI.threshold_batchsize(

@@ -207,9 +207,9 @@ function DI.prepare!_derivative(
     x,
     contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
 ) where {F,C}
-    if x isa Vector
+    if y isa Vector
         (; config) = old_prep
-        resize!(config.duals, length(x))
+        resize!(config.duals, length(y))
         return old_prep
     else
         return DI.prepare_derivative(f!, y, backend, x, contexts...)
