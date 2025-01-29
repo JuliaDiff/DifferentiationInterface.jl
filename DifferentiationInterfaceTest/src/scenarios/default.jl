@@ -100,7 +100,7 @@ end
 
 ## Number to vector
 
-num_to_vec(x::Number) = vcat(sin(x), cos(2 * x))
+num_to_vec(x::Number) = [sin(x), cos(2 * x)]
 num_to_vec_derivative(x) = [cos(x), -2sin(2 * x)]
 num_to_vec_second_derivative(x) = [-sin(x), -4cos(2 * x)]
 num_to_vec_pushforward(x, dx) = dx .* num_to_vec_derivative(x)
