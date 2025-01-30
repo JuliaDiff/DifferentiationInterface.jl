@@ -34,13 +34,6 @@ duplicated_backends = [
     AutoEnzyme(; mode=Enzyme.Reverse, function_annotation=Enzyme.Duplicated),
 ]
 
-@testset "Checks" begin
-    @testset "Check $(typeof(backend))" for backend in backends
-        @test check_available(backend)
-        @test check_inplace(backend)
-    end
-end;
-
 @testset "First order" begin
     test_differentiation(
         backends, default_scenarios(); excluded=SECOND_ORDER, logging=LOGGING

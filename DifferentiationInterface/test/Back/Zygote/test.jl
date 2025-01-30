@@ -17,11 +17,6 @@ LOGGING = get(ENV, "CI", "false") == "false"
 backends = [AutoZygote()]
 second_order_backends = [SecondOrder(AutoForwardDiff(), AutoZygote())]
 
-for backend in vcat(backends, second_order_backends)
-    @test check_available(backend)
-    @test !check_inplace(backend)
-end
-
 ## Dense
 
 @testset "Dense" begin

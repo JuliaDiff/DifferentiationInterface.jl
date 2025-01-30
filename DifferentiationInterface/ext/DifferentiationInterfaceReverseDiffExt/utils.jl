@@ -8,7 +8,7 @@ function DI.overloaded_input(
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    return copy(ReverseDiff.track(x))
+    return nothing
 end
 
 function DI.overloaded_input(
@@ -20,7 +20,7 @@ function DI.overloaded_input(
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    return copy(ReverseDiff.track(x))
+    return nothing
 end
 
 ## Gradient

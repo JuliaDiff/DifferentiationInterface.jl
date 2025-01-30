@@ -66,7 +66,7 @@ The initial values present inside the cache do not matter.
 !!! warning
     Most backends require any `Cache` context to be an `AbstractArray`.
 """
-struct Cache{T} <: Context
+struct Cache{T} <: GeneralizedCache
     data::T
 end
 

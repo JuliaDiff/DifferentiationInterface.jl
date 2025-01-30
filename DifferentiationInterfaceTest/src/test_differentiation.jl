@@ -117,6 +117,7 @@ function test_differentiation(
 
     @testset verbose = true "$title" begin
         @testset verbose = detailed "$backend" for (i, backend) in enumerate(backends)
+            @test DI.check_available(backend)
             filtered_scenarios = filter(s -> compatible(backend, s), scenarios)
             grouped_scenarios = group_by_operator(filtered_scenarios)
             @testset verbose = detailed "$op" for (j, (op, op_group)) in
