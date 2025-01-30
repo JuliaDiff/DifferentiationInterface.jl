@@ -1,13 +1,4 @@
-"""
-    overloaded_input(prep)
-
-If it can be deduced, return the overloaded input which will be passed to the differentiated function when preparation result `prep` is reused.
-
-!!! danger
-    This function is experimental and not part of the public API.
-"""
 function overloaded_input end
-
 function overloaded_input_type end
 
 function error_if_overloading(backend)
