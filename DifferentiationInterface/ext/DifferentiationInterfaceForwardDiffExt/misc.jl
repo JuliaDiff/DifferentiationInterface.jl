@@ -37,7 +37,7 @@ DI.overloaded_input_type(prep::ForwardDiffTwoArgPushforwardPrep) = typeof(prep.x
 ## Derivative
 
 function DI.overloaded_input_type(prep::ForwardDiffOneArgDerivativePrep)
-    return DI.overloaded_input(prep.pushforward_prep)
+    return DI.overloaded_input_type(prep.pushforward_prep)
 end
 function DI.overloaded_input_type(prep::ForwardDiffTwoArgDerivativePrep)
     return typeof(prep.config.duals)
