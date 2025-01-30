@@ -54,6 +54,16 @@ force_annotation(f::F) where {F} = Const(f)
 end
 
 @inline function _translate(
+    backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.Cache
+) where {B}
+    if B == 1
+        return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))
+    else
+        return BatchDuplicated(DI.unwrap(c), ntuple(_ -> make_zero(DI.unwrap(c)), Val(B)))
+    end
+end
+
+@inline function _translate(
     backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.FunctionContext
 ) where {B}
     return force_annotation(get_f_and_df(DI.unwrap(c), backend, mode, Val(B)))

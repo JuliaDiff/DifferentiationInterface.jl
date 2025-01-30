@@ -119,8 +119,11 @@ function EnzymeForwardGradientPrep(::Val{B}, shadows::O) where {B,O}
 end
 
 function DI.prepare_gradient(
-    f::F, backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}}, x
-) where {F}
+    f::F,
+    backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
+    x,
+    contexts::Vararg{DI.Constant,C},
+) where {F,C}
     valB = to_val(DI.pick_batchsize(backend, x))
     shadows = create_shadows(valB, x)
     return EnzymeForwardGradientPrep(valB, shadows)
@@ -131,11 +134,15 @@ function DI.gradient(
     prep::EnzymeForwardGradientPrep{B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
-) where {F,B}
+    contexts::Vararg{DI.Constant,C},
+) where {F,B,C}
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
-    derivs = gradient(mode, f_and_df, x; chunk=Val(B), shadows=prep.shadows)
-    return only(derivs)
+    annotated_contexts = translate(backend, mode, Val(B), contexts...)
+    derivs = gradient(
+        mode, f_and_df, x, annotated_contexts...; chunk=Val(B), shadows=prep.shadows
+    )
+    return first(derivs)
 end
 
 function DI.value_and_gradient(
@@ -143,11 +150,15 @@ function DI.value_and_gradient(
     prep::EnzymeForwardGradientPrep{B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
-) where {F,B}
+    contexts::Vararg{DI.Constant,C},
+) where {F,B,C}
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
-    (; derivs, val) = gradient(mode, f_and_df, x; chunk=Val(B), shadows=prep.shadows)
-    return val, only(derivs)
+    annotated_contexts = translate(backend, mode, Val(B), contexts...)
+    (; derivs, val) = gradient(
+        mode, f_and_df, x, annotated_contexts...; chunk=Val(B), shadows=prep.shadows
+    )
+    return val, first(derivs)
 end
 
 function DI.gradient!(
@@ -156,8 +167,9 @@ function DI.gradient!(
     prep::EnzymeForwardGradientPrep{B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
-) where {F,B}
-    return copyto!(grad, DI.gradient(f, prep, backend, x))
+    contexts::Vararg{DI.Constant,C},
+) where {F,B,C}
+    return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 
 function DI.value_and_gradient!(
@@ -166,8 +178,9 @@ function DI.value_and_gradient!(
     prep::EnzymeForwardGradientPrep{B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
-) where {F,B}
-    y, new_grad = DI.value_and_gradient(f, prep, backend, x)
+    contexts::Vararg{DI.Constant,C},
+) where {F,B,C}
+    y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
     return y, copyto!(grad, new_grad)
 end
 
@@ -185,9 +198,12 @@ function EnzymeForwardOneArgJacobianPrep(
 end
 
 function DI.prepare_jacobian(
-    f::F, backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}}, x
-) where {F}
-    y = f(x)
+    f::F,
+    backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
+    x,
+    contexts::Vararg{DI.Constant,C},
+) where {F,C}
+    y = f(x, map(DI.unwrap, contexts)...)
     valB = to_val(DI.pick_batchsize(backend, x))
     shadows = create_shadows(valB, x)
     return EnzymeForwardOneArgJacobianPrep(valB, shadows, length(y))
@@ -198,11 +214,15 @@ function DI.jacobian(
     prep::EnzymeForwardOneArgJacobianPrep{B},
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
-) where {F,B}
+    contexts::Vararg{DI.Constant,C},
+) where {F,B,C}
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
-    derivs = jacobian(mode, f_and_df, x; chunk=Val(B), shadows=prep.shadows)
-    jac_tensor = only(derivs)
+    annotated_contexts = translate(backend, mode, Val(B), contexts...)
+    derivs = jacobian(
+        mode, f_and_df, x, annotated_contexts...; chunk=Val(B), shadows=prep.shadows
+    )
+    jac_tensor = first(derivs)
     return maybe_reshape(jac_tensor, prep.output_length, length(x))
 end
 
@@ -211,11 +231,15 @@ function DI.value_and_jacobian(
     prep::EnzymeForwardOneArgJacobianPrep{B},
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
-) where {F,B}
+    contexts::Vararg{DI.Constant,C},
+) where {F,B,C}
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
-    (; derivs, val) = jacobian(mode, f_and_df, x; chunk=Val(B), shadows=prep.shadows)
-    jac_tensor = only(derivs)
+    annotated_contexts = translate(backend, mode, Val(B), contexts...)
+    (; derivs, val) = jacobian(
+        mode, f_and_df, x, annotated_contexts...; chunk=Val(B), shadows=prep.shadows
+    )
+    jac_tensor = first(derivs)
     return val, maybe_reshape(jac_tensor, prep.output_length, length(x))
 end
 
@@ -225,8 +249,9 @@ function DI.jacobian!(
     prep::EnzymeForwardOneArgJacobianPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
-) where {F}
-    return copyto!(jac, DI.jacobian(f, prep, backend, x))
+    contexts::Vararg{DI.Constant,C},
+) where {F,C}
+    return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
 end
 
 function DI.value_and_jacobian!(
@@ -235,7 +260,8 @@ function DI.value_and_jacobian!(
     prep::EnzymeForwardOneArgJacobianPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
-) where {F}
-    y, new_jac = DI.value_and_jacobian(f, prep, backend, x)
+    contexts::Vararg{DI.Constant,C},
+) where {F,C}
+    y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)
     return y, copyto!(jac, new_jac)
 end

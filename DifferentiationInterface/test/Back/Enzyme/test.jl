@@ -54,6 +54,13 @@ end;
     )
 
     test_differentiation(
+        backends[2],
+        default_scenarios(; include_normal=false, include_cachified=true);
+        excluded=SECOND_ORDER,
+        logging=LOGGING,
+    )
+
+    test_differentiation(
         duplicated_backends,
         default_scenarios(; include_normal=false, include_closurified=true);
         excluded=SECOND_ORDER,
