@@ -15,7 +15,7 @@ function DI.value_and_pullback(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    y = fc(x)
+    y = value(fc(x))
     dotclosure(z, dy) = dot(fc(z), dy)
     tx = map(ty) do dy
         if y isa Number
@@ -37,7 +37,7 @@ function DI.value_and_pullback!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    y = fc(x)
+    y = value(fc(x))
     dotclosure(z, dy) = dot(fc(z), dy)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]

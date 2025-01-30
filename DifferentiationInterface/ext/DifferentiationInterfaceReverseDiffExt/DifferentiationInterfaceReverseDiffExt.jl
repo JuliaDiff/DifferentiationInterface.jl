@@ -22,7 +22,8 @@ using ReverseDiff:
     hessian,
     hessian!,
     jacobian,
-    jacobian!
+    jacobian!,
+    value
 
 DI.check_available(::AutoReverseDiff) = true
 DI.check_operator_overloading(::AutoReverseDiff) = true
