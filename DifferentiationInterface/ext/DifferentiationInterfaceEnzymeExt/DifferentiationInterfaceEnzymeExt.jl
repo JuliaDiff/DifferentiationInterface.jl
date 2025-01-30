@@ -44,6 +44,7 @@ using Enzyme:
     onehot
 
 DI.check_available(::AutoEnzyme) = true
+DI.check_operator_overloading(::AutoEnzyme) = false
 
 include("utils.jl")
 

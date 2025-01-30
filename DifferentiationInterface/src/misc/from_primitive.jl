@@ -2,6 +2,9 @@ abstract type FromPrimitive <: AbstractADType end
 
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
 check_inplace(fromprim::FromPrimitive) = check_inplace(fromprim.backend)
+function check_operator_overloading(fromprim::FromPrimitive)
+    return check_operator_overloading(fromprim.backend)
+end
 
 function pick_batchsize(fromprim::FromPrimitive, N::Integer)
     return pick_batchsize(fromprim.backend, N)

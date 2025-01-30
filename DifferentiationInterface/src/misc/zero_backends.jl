@@ -18,6 +18,7 @@ struct AutoZeroForward <: AbstractADType end
 
 ADTypes.mode(::AutoZeroForward) = ForwardMode()
 check_available(::AutoZeroForward) = true
+check_operator_overloading(::AutoZeroForward) = false
 
 function prepare_pushforward(
     f::F, ::AutoZeroForward, x, tx::NTuple, contexts::Vararg{Context,C}
@@ -103,6 +104,7 @@ struct AutoZeroReverse <: AbstractADType end
 
 ADTypes.mode(::AutoZeroReverse) = ReverseMode()
 check_available(::AutoZeroReverse) = true
+check_operator_overloading(::AutoZeroReverse) = false
 
 function prepare_pullback(
     f::F, ::AutoZeroReverse, x, ty::NTuple, contexts::Vararg{Context,C}

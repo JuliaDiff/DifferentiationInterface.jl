@@ -40,6 +40,17 @@ function check_inplace(backend::MixedMode)
            check_inplace(reverse_backend(backend))
 end
 
+## Operator overloading
+
+"""
+    check_operator_overloading(backend)
+
+Check whether backend relies on operator overloading.
+
+Returns `true` or `false` in a statically predictable way.
+"""
+function check_operator_overloading end
+
 ## Pushforward
 
 abstract type PushforwardPerformance end

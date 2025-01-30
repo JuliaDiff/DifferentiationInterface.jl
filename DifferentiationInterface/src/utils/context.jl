@@ -1,12 +1,3 @@
-struct FixTail{F,A<:Tuple}
-    f::F
-    tail_args::A
-end
-
-function (ft::FixTail)(args::Vararg{Any,N}) where {N}
-    return ft.f(args..., ft.tail_args...)
-end
-
 """
     Context
 
@@ -22,12 +13,15 @@ abstract type Context end
 unwrap(c::Context) = c.data
 Base.:(==)(c1::Context, c2::Context) = unwrap(c1) == unwrap(c2)
 
+abstract type GeneralizedConstant <: Context end
+abstract type GeneralizedCache <: Context end
+
 ## Public contexts
 
 """
     Constant
 
-Concrete type of [`Context`](@ref) argument which is kept constant during differentiation.
+Concrete subtype of [`Context`](@ref) argument which is kept constant during differentiation.
 
 Note that an operator can be prepared with an arbitrary value of the constant.
 However, same-point preparation must occur with the exact value that will be reused later.
@@ -55,7 +49,7 @@ julia> gradient(f, AutoForwardDiff(), [1.0, 2.0], Constant(100))
  400.0
 ```
 """
-struct Constant{T} <: Context
+struct Constant{T} <: GeneralizedConstant
     data::T
 end
 
@@ -65,7 +59,7 @@ maker(::Constant) = constant_maker
 """
     Cache
 
-Concrete type of [`Context`](@ref) argument which can be mutated with active values during differentiation.
+Concrete subtype of [`Context`](@ref) argument which can be mutated with active values during differentiation.
 
 The initial values present inside the cache do not matter.
 
@@ -81,15 +75,47 @@ maker(::Cache) = cache_maker
 
 ## Internal contexts for passing stuff around
 
-struct FunctionContext{T} <: Context
+"""
+    FunctionContext
+
+Concrete subtype of [`Context`](@ref) argument designed to contain functions, for internal use only.
+
+It is mostly similar to [`Constant`](@ref).
+"""
+struct FunctionContext{T} <: GeneralizedConstant
     data::T
 end
 
-struct BackendContext{T} <: Context
+"""
+    BackendContext
+
+Concrete subtype of [`Context`](@ref) argument designed to contain backend objects, for internal use only.
+
+It is mostly similar to [`Constant`](@ref).
+"""
+struct BackendContext{T<:AbstractADType} <: GeneralizedConstant
     data::T
 end
 
-const ConstantOrFunctionOrBackend = Union{Constant,FunctionContext,BackendContext}
+"""
+    PrepContext <: Context
+
+Concrete subtype of [`Context`](@ref) argument designed to contain preparation objects, for internal use only.
+
+It is mostly similar to [`Cache`](@ref).
+"""
+struct PrepContext{T<:Prep} <: GeneralizedCache
+    data::T
+end
+
+"""
+    UnknownContext <: Context
+
+Concrete subtype of [`Context`](@ref) argument designed as a placeholder for when a future context value is not yet known, for internal use only.
+
+It is relevant in second-order preparation.
+"""
+struct UnknownContext <: Context end
 
 ## Context manipulation
 
@@ -107,6 +133,15 @@ function (r::Rewrap{C,T})(unannotated_contexts::Vararg{Any,C}) where {C,T}
     return map(r.context_makers, unannotated_contexts) do maker, c
         maker(c)
     end
+end
+
+struct FixTail{F,A<:Tuple}
+    f::F
+    tail_args::A
+end
+
+function (ft::FixTail)(args::Vararg{Any,N}) where {N}
+    return ft.f(args..., ft.tail_args...)
 end
 
 with_contexts(f) = f

@@ -12,6 +12,7 @@ function single_threaded(backend::AutoPolyesterForwardDiff{chunksize,T}) where {
 end
 
 DI.check_available(::AutoPolyesterForwardDiff) = true
+DI.check_operator_overloading(::AutoPolyesterForwardDiff) = true
 
 function DI.pick_batchsize(backend::AutoPolyesterForwardDiff, x::AbstractArray)
     return DI.pick_batchsize(single_threaded(backend), x)

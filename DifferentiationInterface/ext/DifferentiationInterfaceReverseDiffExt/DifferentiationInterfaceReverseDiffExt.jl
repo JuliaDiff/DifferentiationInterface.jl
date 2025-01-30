@@ -25,6 +25,7 @@ using ReverseDiff:
     jacobian!
 
 DI.check_available(::AutoReverseDiff) = true
+DI.check_operator_overloading(::AutoReverseDiff) = true
 
 include("onearg.jl")
 include("twoarg.jl")
