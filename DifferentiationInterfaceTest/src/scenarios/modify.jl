@@ -173,20 +173,24 @@ end
 
 Base.show(io::IO, f::StoreInCache) = print(io, "StoreInCache($(f.f))")
 
-function (sc::StoreInCache{:out})(x, y_cache)
-    y = sc.f(x)
-    if y isa Number
-        y_cache[1] = y
-        return y_cache[1]
+function (sc::StoreInCache{:out})(x, x_cache)
+    if x isa Number
+        x_cache[1] = x
+        return sc.f(x_cache[1])
     else
-        copyto!(y_cache, y)
-        return copy(y_cache)
+        copyto!(x_cache, x)
+        return sc.f(x_cache)
     end
 end
 
-function (sc::StoreInCache{:in})(y, x, y_cache)
-    sc.f(y_cache, x)
-    copyto!(y, y_cache)
+function (sc::StoreInCache{:in})(y, x, x_cache)
+    if x isa Number
+        x_cache[1] = x
+        sc.f(y, x_cache[1])
+    else
+        copyto!(x_cache, x)
+        sc.f(y, x_cache)
+    end
     return nothing
 end
 
@@ -199,10 +203,10 @@ function cachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
     (; f,) = scen
     @assert isempty(scen.contexts)
     cache_f = StoreInCache{pl_fun}(f)
-    y_cache = if scen.y isa Number
-        [myzero(scen.y)]
+    y_cache = if scen.x isa Number
+        [myzero(scen.x)]
     else
-        mysimilar(scen.y)
+        mysimilar(scen.x)
     end
     return Scenario{op,pl_op,pl_fun}(
         cache_f;

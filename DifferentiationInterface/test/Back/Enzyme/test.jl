@@ -47,7 +47,7 @@ duplicated_backends = [
     )
 
     test_differentiation(
-        backends[2],
+        backends[2:3],
         default_scenarios(; include_normal=false, include_cachified=true);
         excluded=SECOND_ORDER,
         logging=LOGGING,
@@ -60,6 +60,13 @@ duplicated_backends = [
         logging=LOGGING,
     )
 end
+
+test_differentiation(
+    AutoEnzyme(mode=Enzyme.Reverse),
+    default_scenarios(; include_normal=false, include_cachified=true);
+    excluded=vcat(SECOND_ORDER, :jacobian, :gradient, :pushforward, :derivative),
+    logging=LOGGING,
+)
 
 #=
 # TODO: reactivate type stability tests

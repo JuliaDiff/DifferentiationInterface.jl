@@ -57,9 +57,11 @@ end
     backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.GeneralizedCache
 ) where {B}
     if B == 1
-        return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))
+        return DuplicatedNoNeed(DI.unwrap(c), make_zero(DI.unwrap(c)))
     else
-        return BatchDuplicated(DI.unwrap(c), ntuple(_ -> make_zero(DI.unwrap(c)), Val(B)))
+        return BatchDuplicatedNoNeed(
+            DI.unwrap(c), ntuple(_ -> make_zero(DI.unwrap(c)), Val(B))
+        )
     end
 end
 
