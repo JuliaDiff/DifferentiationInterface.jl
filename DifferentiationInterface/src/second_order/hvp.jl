@@ -97,10 +97,9 @@ function _prepare_hvp_aux(
         Constant(rewrap),
         contexts...,
     )
-    xo = overloaded_input_example(
+    xo = overloaded_input(
         pushforward, shuffled_gradient, outer(backend), x, tx, new_contexts_unknown_prep...
     )
-    copyto!(xo, x)
     inner_gradient_prep = prepare_gradient(f, inner(backend), xo, contexts...)
     new_contexts = (
         FunctionContext(f),
@@ -354,10 +353,9 @@ function _prepare_hvp_aux(
         Constant(rewrap),
         contexts...,
     )
-    xo = overloaded_input_example(
+    xo = overloaded_input(
         pullback, shuffled_gradient, backend, x, tx, new_contexts_unknown_prep...
     )
-    copyto!(xo, x)
     inner_gradient_prep = prepare_gradient(f, backend, xo, contexts...)
     new_contexts = (
         FunctionContext(f),

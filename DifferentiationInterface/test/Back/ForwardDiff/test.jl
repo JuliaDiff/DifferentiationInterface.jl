@@ -112,23 +112,22 @@ end;
     # Derivative
     x = 1.0
     y = [1.0, 1.0]
-    @test DI.overloaded_input_example(prepare_derivative(copy, backend, x)) isa
+    @test DI.overloaded_input(prepare_derivative(copy, backend, x)) isa
         ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy),Float64},Float64,1}
-    @test DI.overloaded_input_example(prepare_derivative(copyto!, y, backend, x)) isa
+    @test DI.overloaded_input(prepare_derivative(copyto!, y, backend, x)) isa
         Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,1}}
 
     # Gradient
     x = [1.0, 1.0]
-    @test DI.overloaded_input_example(prepare_gradient(sum, backend, x)) isa
+    @test DI.overloaded_input(prepare_gradient(sum, backend, x)) isa
         Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(sum),Float64},Float64,2}}
 
     # Jacobian
     x = [1.0, 0.0, 0.0]
-    @test DI.overloaded_input_example(prepare_jacobian(copy, backend, x)) isa
+    @test DI.overloaded_input(prepare_jacobian(copy, backend, x)) isa
         ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy),Float64},Float64,3}
-    @test DI.overloaded_input_example(prepare_jacobian(copyto!, similar(x), backend, x)) isa
+    @test DI.overloaded_input(prepare_jacobian(copyto!, similar(x), backend, x)) isa
         Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,3}}
-    @test DI.overloaded_input_example(
-        prepare_jacobian(copyto!, similar(x), sparse_backend, x)
-    ) isa Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,1}}
+    @test DI.overloaded_input(prepare_jacobian(copyto!, similar(x), sparse_backend, x)) isa
+        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,1}}
 end;

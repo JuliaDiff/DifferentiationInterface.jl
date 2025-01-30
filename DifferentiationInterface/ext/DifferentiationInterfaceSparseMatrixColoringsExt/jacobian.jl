@@ -335,6 +335,6 @@ end
 
 ## Operator overloading
 
-function DI.overloaded_input_example(prep::PushforwardSparseJacobianPrep)
-    return DI.overloaded_input_example(prep.pushforward_prep)
+function DI.overloaded_input(prep::PushforwardSparseJacobianPrep)
+    return DI.overloaded_input(prep.pushforward_prep)
 end
