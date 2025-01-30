@@ -1,8 +1,18 @@
+"""
+    overloaded_input_example(prep)
+
+If it exists, return an example of overloaded input which will be passed to the differentiated function when preparation result `prep` is reused.
+
+!!! danger
+    This function is experimental and not part of the public API.
+"""
+function overloaded_input_example end
+
 function error_if_overloading(backend)
     if check_operator_overloading(backend)
         throw(
             ArgumentError(
-                "The current backend is based on operator overloading, a custom method for `overloaded_input_type` is therefore necessary. Please open an issue on DifferentiationInterface.jl if you encounter this error.",
+                "The current backend is based on operator overloading, a custom method for `overloaded_input_example` is therefore necessary. Please open an issue on DifferentiationInterface.jl if you encounter this error.",
             ),
         )
     end
@@ -19,30 +29,30 @@ for op in [
     :hvp,
 ]
     if op in (:derivative, :jacobian, :gradient)
-        @eval function overloaded_input_type(
+        @eval function overloaded_input_example(
             ::typeof($op), f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
             error_if_overloading(backend)
-            return typeof(x)
+            return copy(x)
         end
         op == :gradient && continue
-        @eval function overloaded_input_type(
+        @eval function overloaded_input_example(
             ::typeof($op), f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
             error_if_overloading(backend)
-            return typeof(x)
+            return copy(x)
         end
 
     elseif op in (:second_derivative, :hessian)
-        @eval function overloaded_input_type(
+        @eval function overloaded_input_example(
             ::typeof($op), f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
             error_if_overloading(backend)
-            return typeof(x)
+            return copy(x)
         end
 
     elseif op in (:pushforward, :pullback, :hvp)
-        @eval function overloaded_input_type(
+        @eval function overloaded_input_example(
             ::typeof($op),
             f::F,
             backend::AbstractADType,
@@ -51,10 +61,10 @@ for op in [
             contexts::Vararg{Context,C},
         ) where {F,C}
             error_if_overloading(backend)
-            return typeof(x)
+            return copy(x)
         end
         op == :hvp && continue
-        @eval function overloaded_input_type(
+        @eval function overloaded_input_example(
             ::typeof($op),
             f!::F,
             y,
@@ -64,7 +74,7 @@ for op in [
             contexts::Vararg{Context,C},
         ) where {F,C}
             error_if_overloading(backend)
-            return typeof(x)
+            return copy(x)
         end
     end
 end
