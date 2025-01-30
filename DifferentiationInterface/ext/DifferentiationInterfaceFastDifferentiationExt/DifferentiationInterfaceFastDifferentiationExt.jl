@@ -17,7 +17,7 @@ using LinearAlgebra: dot
 using FastDifferentiation.RuntimeGeneratedFunctions: RuntimeGeneratedFunction
 
 DI.check_available(::AutoFastDifferentiation) = true
-DI.operator_overloading(::AutoFastDifferentiation) = false
+DI.check_operator_overloading(::AutoFastDifferentiation) = false
 
 myvec(x::Number) = [x]
 myvec(x::AbstractArray) = vec(x)
