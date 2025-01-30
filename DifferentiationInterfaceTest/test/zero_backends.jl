@@ -44,6 +44,7 @@ data1 = benchmark_differentiation(
 
 struct FakeBackend <: ADTypes.AbstractADType end
 ADTypes.mode(::FakeBackend) = ADTypes.ForwardMode()
+DifferentiationInterface.check_available(::FakeBackend) = true
 
 data2 = benchmark_differentiation(
     FakeBackend(),

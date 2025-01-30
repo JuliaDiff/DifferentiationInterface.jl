@@ -11,11 +11,6 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 zero_backends = [AutoZeroForward(), AutoZeroReverse()]
 
-for backend in zero_backends
-    @test check_available(backend)
-    @test check_inplace(backend)
-end
-
 @testset "Type stability" begin
     test_differentiation(
         AutoZeroForward(),
