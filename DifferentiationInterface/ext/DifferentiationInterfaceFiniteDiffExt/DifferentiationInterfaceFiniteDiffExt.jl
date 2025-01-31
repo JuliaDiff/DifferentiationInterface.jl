@@ -7,6 +7,7 @@ using FiniteDiff:
     GradientCache,
     HessianCache,
     JacobianCache,
+    JVPCache,
     finite_difference_derivative,
     finite_difference_gradient,
     finite_difference_gradient!,
@@ -14,6 +15,8 @@ using FiniteDiff:
     finite_difference_hessian!,
     finite_difference_jacobian,
     finite_difference_jacobian!,
+    finite_difference_jvp,
+    finite_difference_jvp!,
     default_relstep
 using LinearAlgebra: dot, mul!
 

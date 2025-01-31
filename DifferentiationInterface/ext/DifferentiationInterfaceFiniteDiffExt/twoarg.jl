@@ -1,6 +1,7 @@
 ## Pushforward
 
-struct FiniteDiffTwoArgPushforwardPrep{R,A} <: DI.PushforwardPrep
+struct FiniteDiffTwoArgPushforwardPrep{C,R,A} <: DI.PushforwardPrep
+    cache::C
     relstep::R
     absstep::A
 end
@@ -8,6 +9,11 @@ end
 function DI.prepare_pushforward(
     f!, y, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
+    cache = if x isa Number
+        nothing
+    else
+        JVPCache(similar(x), similar(y), fdtype(backend))
+    end
     relstep = if isnothing(backend.relstep)
         default_relstep(fdtype(backend), eltype(x))
     else
@@ -18,14 +24,13 @@ function DI.prepare_pushforward(
     else
         backend.relstep
     end
-    return FiniteDiffTwoArgPushforwardPrep(relstep, absstep)
-    return DI.NoPushforwardPrep()
+    return FiniteDiffTwoArgPushforwardPrep(cache, relstep, absstep)
 end
 
 function DI.value_and_pushforward(
     f!,
     y,
-    prep::FiniteDiffTwoArgPushforwardPrep,
+    prep::FiniteDiffTwoArgPushforwardPrep{Nothing},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
@@ -49,6 +54,84 @@ function DI.value_and_pushforward(
         )
     end
     f!(y, x, map(DI.unwrap, contexts)...)
+    return y, ty
+end
+
+function DI.pushforward(
+    f!,
+    y,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    ::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    fc! = DI.with_contexts(f!, contexts...)
+    ty = map(tx) do dx
+        dy = similar(y)
+        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep)
+        dy
+    end
+    return ty
+end
+
+function DI.value_and_pushforward(
+    f!,
+    y,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    ::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    fc! = DI.with_contexts(f!, contexts...)
+    ty = map(tx) do dx
+        dy = similar(y)
+        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep)
+        dy
+    end
+    fc!(y, x)
+    return y, ty
+end
+
+function DI.pushforward!(
+    f!,
+    y,
+    ty::NTuple,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    ::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    fc! = DI.with_contexts(f!, contexts...)
+    for b in eachindex(tx, ty)
+        dx, dy = tx[b], ty[b]
+        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep)
+    end
+    return ty
+end
+
+function DI.value_and_pushforward!(
+    f!,
+    y,
+    ty::NTuple,
+    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    ::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    fc! = DI.with_contexts(f!, contexts...)
+    for b in eachindex(tx, ty)
+        dx, dy = tx[b], ty[b]
+        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep)
+    end
+    fc!(y, x)
     return y, ty
 end
 

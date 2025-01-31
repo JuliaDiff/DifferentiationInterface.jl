@@ -1,6 +1,7 @@
 ## Pushforward
 
-struct FiniteDiffOneArgPushforwardPrep{R,A} <: DI.PushforwardPrep
+struct FiniteDiffOneArgPushforwardPrep{C,R,A} <: DI.PushforwardPrep
+    cache::C
     relstep::R
     absstep::A
 end
@@ -8,6 +9,13 @@ end
 function DI.prepare_pushforward(
     f, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
+    fc = DI.with_contexts(f, contexts...)
+    y = fc(x)
+    cache = if x isa Number || y isa Number
+        nothing
+    else
+        JVPCache(similar(x), y, fdtype(backend))
+    end
     relstep = if isnothing(backend.relstep)
         default_relstep(fdtype(backend), eltype(x))
     else
@@ -18,12 +26,12 @@ function DI.prepare_pushforward(
     else
         backend.relstep
     end
-    return FiniteDiffOneArgPushforwardPrep(relstep, absstep)
+    return FiniteDiffOneArgPushforwardPrep(cache, relstep, absstep)
 end
 
 function DI.pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep,
+    prep::FiniteDiffOneArgPushforwardPrep{Nothing},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
@@ -41,7 +49,7 @@ end
 
 function DI.value_and_pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep,
+    prep::FiniteDiffOneArgPushforwardPrep{Nothing},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
@@ -60,6 +68,39 @@ function DI.value_and_pushforward(
             relstep,
             absstep,
         )
+    end
+    return y, ty
+end
+
+function DI.pushforward(
+    f,
+    prep::FiniteDiffOneArgPushforwardPrep{<:JVPCache},
+    ::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    fc = DI.with_contexts(f, contexts...)
+    ty = map(tx) do dx
+        finite_difference_jvp(fc, x, dx, prep.cache; relstep, absstep)
+    end
+    return ty
+end
+
+function DI.value_and_pushforward(
+    f,
+    prep::FiniteDiffOneArgPushforwardPrep{<:JVPCache},
+    ::AutoFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    (; relstep, absstep) = prep
+    fc = DI.with_contexts(f, contexts...)
+    y = fc(x)
+    ty = map(tx) do dx
+        finite_difference_jvp(fc, x, dx, prep.cache, y; relstep, absstep)
     end
     return y, ty
 end
