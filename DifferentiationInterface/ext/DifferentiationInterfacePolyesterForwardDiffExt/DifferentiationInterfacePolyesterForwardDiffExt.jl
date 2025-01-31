@@ -40,7 +40,9 @@ function DI.overloaded_input(
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
-    return DI.overloaded_input(pushforward, f, single_threaded(backend), x, tx, contexts...)
+    return DI.overloaded_input(
+        DI.pushforward, f, single_threaded(backend), x, tx, contexts...
+    )
 end
 
 end # module
