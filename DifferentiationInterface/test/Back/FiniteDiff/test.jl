@@ -1,5 +1,5 @@
 using Pkg
-Pkg.add(; url="https://github.com/JuliaDiff/FiniteDiff.jl", rev="os/finite_difference_jvp`")
+Pkg.add("FiniteDiff")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using DifferentiationInterface: DenseSparsityDetector
