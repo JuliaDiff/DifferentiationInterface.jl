@@ -56,10 +56,15 @@ end
 end
 
 struct FakeBackend <: AbstractADType end
+struct FakeOOBackend <: AbstractADType end
+DI.check_operator_overloading(::FakeOOBackend) = true
 
 @testset "Fake" begin
     backend = FakeBackend()
     @test !check_available(backend)
     @test check_inplace(backend)
     @test !check_operator_overloading(backend)
+    @test_throws ArgumentError DI.overloaded_input(
+        pushforward, identity, FakeOOBackend(), 1.0, (1.0,)
+    )
 end
