@@ -74,9 +74,9 @@ test_differentiation(AutoForwardDiff(), static_scenarios(); logging=LOGGING)
 @testset verbose = true "StaticArrays" begin
     @testset "Batch size" begin
         @test DI.pick_batchsize(AutoForwardDiff(), rand(7)) isa DI.BatchSizeSettings{7}
-        @test DI.pick_batchsize(AutoForwardDiff(; chunksize=5), rand(7)) ==
+        @test DI.pick_batchsize(AutoForwardDiff(; chunksize=5), rand(7)) isa
             DI.BatchSizeSettings{5}
-        @test (@inferred DI.pick_batchsize(AutoForwardDiff(), @SVector(rand(7)))) ==
+        @test (@inferred DI.pick_batchsize(AutoForwardDiff(), @SVector(rand(7)))) isa
             DI.BatchSizeSettings{7}
         @test (@inferred DI.pick_batchsize(
             AutoForwardDiff(; chunksize=5), @SVector(rand(7))
