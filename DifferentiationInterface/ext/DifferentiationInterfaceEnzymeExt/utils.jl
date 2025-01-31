@@ -1,5 +1,5 @@
 # until https://github.com/EnzymeAD/Enzyme.jl/pull/1545 is merged
-function DI.BatchSizeSettings(::AutoEnzyme, N::Integer)
+function DI.pick_batchsize(::AutoEnzyme, N::Integer)
     B = DI.reasonable_batchsize(N, 16)
     return DI.BatchSizeSettings{B}(N)
 end
@@ -51,6 +51,16 @@ force_annotation(f::F) where {F} = Const(f)
     ::AutoEnzyme, ::Mode, ::Val{B}, c::Union{DI.Constant,DI.BackendContext}
 ) where {B}
     return Const(DI.unwrap(c))
+end
+
+@inline function _translate(
+    backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.Cache
+) where {B}
+    if B == 1
+        return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))
+    else
+        return BatchDuplicated(DI.unwrap(c), ntuple(_ -> make_zero(DI.unwrap(c)), Val(B)))
+    end
 end
 
 @inline function _translate(
@@ -111,3 +121,10 @@ end
 
 batchify_activity(::Type{Active{T}}, ::Val{B}) where {T,B} = Active{T}
 batchify_activity(::Type{Duplicated{T}}, ::Val{B}) where {T,B} = BatchDuplicated{T,B}
+
+@inline function copyto_if_different_addresses!(dst, src)
+    if dst !== src
+        copyto!(dst, src)
+    end
+    return dst
+end

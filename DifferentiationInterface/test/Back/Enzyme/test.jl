@@ -54,6 +54,13 @@ end;
     )
 
     test_differentiation(
+        backends[2],
+        default_scenarios(; include_normal=false, include_cachified=true);
+        excluded=SECOND_ORDER,
+        logging=LOGGING,
+    )
+
+    test_differentiation(
         duplicated_backends,
         default_scenarios(; include_normal=false, include_closurified=true);
         excluded=SECOND_ORDER,
@@ -123,4 +130,45 @@ end
         excluded=SECOND_ORDER,
         logging=LOGGING,
     )
+end
+
+@testset "Wrong type tangent" begin
+    x, y = [1.0], [1.0]
+    # pushforward
+    dx, dy = [2.0f0], [0.0f0]
+    @test pushforward!(
+        copy, (similar(dy),), AutoEnzyme(; mode=Enzyme.Forward), x, (dx,)
+    )[1] == [2]
+    @test pushforward!(
+        copy, (similar(dy), similar(dy)), AutoEnzyme(; mode=Enzyme.Forward), x, (dx, -dx)
+    )[2] == -[2]
+    @test pushforward!(
+        copyto!, y, (similar(dy),), AutoEnzyme(; mode=Enzyme.Forward), x, (dx,)
+    )[1] == [2]
+    @test pushforward!(
+        copyto!,
+        y,
+        (similar(dy), similar(dy)),
+        AutoEnzyme(; mode=Enzyme.Forward),
+        x,
+        (dx, -dx),
+    )[2] == -[2]
+    # pullback
+    dy, dx = [2.0f0], [0.0f0]
+    @test pullback!(copy, (similar(dx),), AutoEnzyme(; mode=Enzyme.Reverse), x, (dy,))[1] ==
+        [2]
+    @test pullback!(
+        copy, (similar(dx), similar(dx)), AutoEnzyme(; mode=Enzyme.Reverse), x, (dy, -dy)
+    )[2] == -[2]
+    @test pullback!(
+        copyto!, y, (similar(dx),), AutoEnzyme(; mode=Enzyme.Reverse), x, (dy,)
+    )[1] == [2]
+    @test pullback!(
+        copyto!,
+        y,
+        (similar(dx), similar(dx)),
+        AutoEnzyme(; mode=Enzyme.Reverse),
+        x,
+        (dy, -dy),
+    )[2] == -[2]
 end

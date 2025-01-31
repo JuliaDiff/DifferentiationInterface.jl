@@ -88,6 +88,9 @@ end
         ),
         2,
     ) isa SecondOrder{<:AutoSimpleFiniteDiff{2},<:AutoSimpleFiniteDiff{1}}
+    @test threshold_batchsize(
+        MixedMode(AutoSimpleFiniteDiff(; chunksize=4), AutoZygote()), 2
+    ) isa MixedMode{<:AutoSimpleFiniteDiff{2},<:AutoZygote}
 end
 
 @testset "Reasonable" begin

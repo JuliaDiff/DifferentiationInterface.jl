@@ -61,18 +61,18 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoChainRules`           | ✅                  | ❌               |
 | `AutoDiffractor`           | ❌                  | ❌               |
 | `AutoEnzyme` (forward)     | ✅                  | ✅               |
-| `AutoEnzyme` (reverse)     | ✅                  | ✅               |
+| `AutoEnzyme` (reverse)     | ✅                  | ❌ (soon)        |
 | `AutoFastDifferentiation`  | ✅                  | ✅               |
 | `AutoFiniteDiff`           | ✅                  | ✅               |
 | `AutoFiniteDifferences`    | ✅                  | ✅               |
 | `AutoForwardDiff`          | ✅                  | ✅               |
 | `AutoGTPSA`                | ✅                  | ❌               |
-| `AutoMooncake`             | ✅                  | ❌               |
+| `AutoMooncake`             | ✅                  | ✅               |
 | `AutoPolyesterForwardDiff` | ✅                  | ✅               |
 | `AutoReverseDiff`          | ✅                  | ❌               |
 | `AutoSymbolics`            | ✅                  | ❌               |
 | `AutoTracker`              | ✅                  | ❌               |
-| `AutoZygote`               | ✅                  | ❌               |
+| `AutoZygote`               | ✅                  | 🔀               |
 
 ## Second order
 

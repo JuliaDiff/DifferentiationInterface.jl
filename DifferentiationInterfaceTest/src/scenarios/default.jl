@@ -17,14 +17,7 @@ num_to_num_second_derivative(x) = -sin(x)
 num_to_num_pushforward(x, dx) = num_to_num_derivative(x) * dx
 num_to_num_pullback(x, dy) = conj(num_to_num_derivative(x)) * dy
 
-num_to_num_vec(x) = sin.(x)
-
-function num_to_num_vec!(y, x)
-    map!(sin, y, x)
-    return nothing
-end
-
-function num_to_num_scenarios(x::Number; dx::Number, dy::Number, add_vectors=true)
+function num_to_num_scenarios(x::Number; dx::Number, dy::Number)
     f = num_to_num
     y = f(x)
     dy_from_dx = num_to_num_pushforward(x, dx)
@@ -39,88 +32,104 @@ function num_to_num_scenarios(x::Number; dx::Number, dy::Number, add_vectors=tru
         Scenario{:derivative,:out}(f, x; res1=der),
         Scenario{:second_derivative,:out}(f, x; res1=der, res2=der2),
     ]
+    return scens
+end
 
-    if add_vectors
-        # add scenarios [x] -> [y] to test 1-sized everything
+onevec_to_onevec(x) = sin.(x)
 
-        jac = fill(der, 1, 1)
+function onevec_to_onevec!(y, x)
+    map!(sin, y, x)
+    return nothing
+end
 
-        for pl_op in (:out, :in)
-            append!(
-                scens,
-                [
-                    Scenario{:pushforward,pl_op}(
-                        num_to_num_vec, [x]; tang=([dx],), res1=([dy_from_dx],)
-                    ),
-                    Scenario{:pushforward,pl_op}(
-                        num_to_num_vec!, [y], [x]; tang=([dx],), res1=([dy_from_dx],)
-                    ),
-                    Scenario{:pullback,pl_op}(
-                        num_to_num_vec, [x]; tang=([dy],), res1=([dx_from_dy],)
-                    ),
-                    Scenario{:pullback,pl_op}(
-                        num_to_num_vec!, [y], [x]; tang=([dy],), res1=([dx_from_dy],)
-                    ),
-                    Scenario{:jacobian,pl_op}(num_to_num_vec, [x]; res1=jac),
-                    Scenario{:jacobian,pl_op}(num_to_num_vec!, [y], [x]; res1=jac),
-                ],
-            )
-        end
+function onevec_to_onevec_scenarios_onearg(x::Number; dx::Number, dy::Number)
+    f = num_to_num
+    y = f(x)
+    dy_from_dx = num_to_num_pushforward(x, dx)
+    dx_from_dy = num_to_num_pullback(x, dy)
+    der = num_to_num_derivative(x)
+
+    jac = fill(der, 1, 1)
+
+    scens = Scenario[]
+    for pl_op in (:out, :in)
+        append!(
+            scens,
+            [
+                Scenario{:pushforward,pl_op}(
+                    onevec_to_onevec, [x]; tang=([dx],), res1=([dy_from_dx],)
+                ),
+                Scenario{:pullback,pl_op}(
+                    onevec_to_onevec, [x]; tang=([dy],), res1=([dx_from_dy],)
+                ),
+                Scenario{:jacobian,pl_op}(onevec_to_onevec, [x]; res1=jac),
+            ],
+        )
     end
 
     return scens
 end
 
-## Number to array
+function onevec_to_onevec_scenarios_twoarg(x::Number; dx::Number, dy::Number)
+    f = num_to_num
+    y = f(x)
+    dy_from_dx = num_to_num_pushforward(x, dx)
+    dx_from_dy = num_to_num_pullback(x, dy)
+    der = num_to_num_derivative(x)
 
-multiplicator(::Type{A}) where {A<:AbstractVector} = A(1:6)
-multiplicator(::Type{A}) where {A<:AbstractMatrix} = A(reshape(1:6, 2, 3))
+    jac = fill(der, 1, 1)
 
-struct NumToArr{A} end
-NumToArr(::Type{A}) where {A} = NumToArr{A}()
-Base.eltype(::NumToArr{A}) where {A} = eltype(A)
+    scens = Scenario[]
+    for pl_op in (:out, :in)
+        append!(
+            scens,
+            [
+                Scenario{:pushforward,pl_op}(
+                    onevec_to_onevec!, [y], [x]; tang=([dx],), res1=([dy_from_dx],)
+                ),
+                Scenario{:pullback,pl_op}(
+                    onevec_to_onevec!, [y], [x]; tang=([dy],), res1=([dx_from_dy],)
+                ),
+                Scenario{:jacobian,pl_op}(onevec_to_onevec!, [y], [x]; res1=jac),
+            ],
+        )
+    end
 
-Base.show(io::IO, ::NumToArr{A}) where {A} = print(io, "num_to_arr{$A}")
-
-function (f::NumToArr{A})(x::Number) where {A}
-    a = multiplicator(A)
-    return sin.(x .* a)
+    return scens
 end
 
-function (f!::NumToArr{A})(y::AbstractArray, x::Number)::Nothing where {A}
-    a = multiplicator(A)
-    y .= sin.(x .* a)
+## Number to vector
+
+num_to_vec(x::Number) = sin.([1, 2] .* x)
+num_to_vec_derivative(x) = [1, 2] .* cos.([1, 2] .* x)
+num_to_vec_second_derivative(x) = [1, 2] .^ 2 .* (.-sin.([1, 2] .* x))
+num_to_vec_pushforward(x, dx) = dx .* num_to_vec_derivative(x)
+num_to_vec_pullback(x, dy) = sum(conj(num_to_vec_derivative(x)) .* dy)
+
+function num_to_vec!(y::AbstractVector, x::Number)
+    n = length(y)
+    y[1:(n ÷ 2)] .= sin(x)
+    y[((n ÷ 2) + 1):end] .= sin(2x)
     return nothing
 end
 
-function num_to_arr_derivative(x, ::Type{A}) where {A}
-    a = multiplicator(A)
-    return a .* cos.(a .* x)
+function num_to_vec!_derivative(x; y)
+    n = length(y)
+    return vcat(fill(cos(x), n ÷ 2), fill(2cos(2x), n - n ÷ 2))
 end
 
-function num_to_arr_second_derivative(x, ::Type{A}) where {A}
-    a = multiplicator(A)
-    return -(a .^ 2) .* sin.(a .* x)
+num_to_vec!_pushforward(x, dx; y) = dx .* num_to_vec!_derivative(x; y)
+
+function num_to_vec!_pullback(x, dy)
+    return sum(conj(num_to_vec!_derivative(x; y=similar(dy))) .* dy)
 end
 
-function num_to_arr_pushforward(x, dx, ::Type{A}) where {A}
-    a = multiplicator(A)
-    return a .* cos.(a .* x) .* dx
-end
-
-function num_to_arr_pullback(x, dy, ::Type{A}) where {A}
-    a = multiplicator(A)
-    return sum(conj(a .* cos.(a .* x)) .* dy)
-end
-
-function num_to_arr_scenarios_onearg(
-    x::Number, ::Type{A}; dx::Number, dy::AbstractArray
-) where {A<:AbstractArray}
-    f = NumToArr(A)
-    dy_from_dx = num_to_arr_pushforward(x, dx, A)
-    dx_from_dy = num_to_arr_pullback(x, dy, A)
-    der = num_to_arr_derivative(x, A)
-    der2 = num_to_arr_second_derivative(x, A)
+function num_to_vec_scenarios_onearg(x::Number; dx::Number, dy::AbstractArray)
+    f = num_to_vec
+    dy_from_dx = num_to_vec_pushforward(x, dx)
+    dx_from_dy = num_to_vec_pullback(x, dy)
+    der = num_to_vec_derivative(x)
+    der2 = num_to_vec_second_derivative(x)
 
     # pullback stays out of place
     scens = Scenario[]
@@ -140,15 +149,101 @@ function num_to_arr_scenarios_onearg(
     return scens
 end
 
-function num_to_arr_scenarios_twoarg(
-    x::Number, ::Type{A}; dx::Number, dy::AbstractArray
-) where {A<:AbstractArray}
-    f! = NumToArr(A)
-    y = similar(NumToArr(A)(x))
+function num_to_vec_scenarios_twoarg(x::Number; dx::Number, dy::AbstractArray)
+    f! = num_to_vec!
+    y = similar(dy)
     f!(y, x)
-    dy_from_dx = num_to_arr_pushforward(x, dx, A)
-    dx_from_dy = num_to_arr_pullback(x, dy, A)
-    der = num_to_arr_derivative(x, A)
+    dy_from_dx = num_to_vec!_pushforward(x, dx; y)
+    dx_from_dy = num_to_vec!_pullback(x, dy)
+    der = num_to_vec!_derivative(x; y)
+
+    # pullback stays out of place
+    scens = Scenario[]
+    for pl_op in (:out, :in)
+        append!(
+            scens,
+            [
+                Scenario{:pushforward,pl_op}(f!, y, x; tang=(dx,), res1=(dy_from_dx,)),
+                Scenario{:derivative,pl_op}(f!, y, x; res1=der),
+            ],
+        )
+    end
+    for pl_op in (:out,)
+        append!(
+            scens, [Scenario{:pullback,pl_op}(f!, y, x; tang=(dy,), res1=(dx_from_dy,))]
+        )
+    end
+    return scens
+end
+
+## Number to matrix
+
+num_to_mat(x::Number) = hcat(num_to_vec(x), num_to_vec(3x))
+
+num_to_mat_derivative(x) = hcat(num_to_vec_derivative(x), 3 .* num_to_vec_derivative(3x))
+function num_to_mat_second_derivative(x)
+    return hcat(num_to_vec_second_derivative(x), 9 .* num_to_vec_second_derivative(3x))
+end
+function num_to_mat_pushforward(x, dx)
+    return hcat(num_to_vec_pushforward(x, dx), 3 .* num_to_vec_pushforward(3x, dx))
+end
+function num_to_mat_pullback(x, dy)
+    return num_to_vec_pullback(x, dy[:, 1]) + 3 * num_to_vec_pullback(3x, dy[:, 2])
+end
+
+function num_to_mat!(y::AbstractMatrix, x::Number)
+    num_to_vec!(view(y, :, 1), x)
+    num_to_vec!(view(y, :, 2), 3x)
+    return nothing
+end
+
+function num_to_mat!_derivative(x; y)
+    return hcat(
+        num_to_vec!_derivative(x; y=y[:, 1]), 3 .* num_to_vec!_derivative(3x; y=y[:, 2])
+    )
+end
+function num_to_mat!_pushforward(x, dx; y)
+    return hcat(
+        num_to_vec!_pushforward(x, dx; y=y[:, 1]),
+        3 .* num_to_vec!_pushforward(3x, dx; y=y[:, 2]),
+    )
+end
+function num_to_mat!_pullback(x, dy)
+    return num_to_vec!_pullback(x, dy[:, 1]) + 3 * num_to_vec!_pullback(3x, dy[:, 2])
+end
+
+function num_to_mat_scenarios_onearg(x::Number; dx::Number, dy::AbstractArray)
+    f = num_to_mat
+    dy_from_dx = num_to_mat_pushforward(x, dx)
+    dx_from_dy = num_to_mat_pullback(x, dy)
+    der = num_to_mat_derivative(x)
+    der2 = num_to_mat_second_derivative(x)
+
+    # pullback stays out of place
+    scens = Scenario[]
+    for pl_op in (:out, :in)
+        append!(
+            scens,
+            [
+                Scenario{:pushforward,pl_op}(f, x; tang=(dx,), res1=(dy_from_dx,)),
+                Scenario{:derivative,pl_op}(f, x; res1=der),
+                Scenario{:second_derivative,pl_op}(f, x; res1=der, res2=der2),
+            ],
+        )
+    end
+    for pl_op in (:out,)
+        append!(scens, [Scenario{:pullback,pl_op}(f, x; tang=(dy,), res1=(dx_from_dy,))])
+    end
+    return scens
+end
+
+function num_to_mat_scenarios_twoarg(x::Number; dx::Number, dy::AbstractArray)
+    f! = num_to_mat!
+    y = similar(dy)
+    f!(y, x)
+    dy_from_dx = num_to_mat!_pushforward(x, dx; y)
+    dx_from_dy = num_to_mat!_pullback(x, dy)
+    der = num_to_mat!_derivative(x; y)
 
     # pullback stays out of place
     scens = Scenario[]
@@ -475,19 +570,19 @@ function default_scenarios(;
     x_2_3 = float.(reshape(1:6, 2, 3))
     dx_2_3 = float.(reshape(-1:-1:-6, 2, 3))
 
+    dy_2 = [-3.0, 4.0]
     dy_6 = float.(-5:2:5)
     dy_12 = float.(-11:2:11)
+    dy_2_2 = [-3.0 4.0; 7.0 -1.0]
     dy_2_3 = float.(reshape(-5:2:5, 2, 3))
     dy_6_2 = float.(reshape(-11:2:11, 6, 2))
 
-    V = Vector{Float64}
-    M = Matrix{Float64}
-
-    scens = vcat(
+    initialscens = vcat(
         # one argument
         num_to_num_scenarios(x_; dx=dx_, dy=dy_),
-        num_to_arr_scenarios_onearg(x_, V; dx=dx_, dy=dy_6),
-        num_to_arr_scenarios_onearg(x_, M; dx=dx_, dy=dy_2_3),
+        onevec_to_onevec_scenarios_onearg(x_; dx=dx_, dy=dy_),
+        num_to_vec_scenarios_onearg(x_; dx=dx_, dy=dy_2),
+        num_to_mat_scenarios_onearg(x_; dx=dx_, dy=dy_2_2),
         arr_to_num_scenarios_onearg(x_6; dx=dx_6, dy=dy_, linalg),
         arr_to_num_scenarios_onearg(x_2_3; dx=dx_2_3, dy=dy_, linalg),
         vec_to_vec_scenarios_onearg(x_6; dx=dx_6, dy=dy_12),
@@ -495,13 +590,44 @@ function default_scenarios(;
         mat_to_vec_scenarios_onearg(x_2_3; dx=dx_2_3, dy=dy_12),
         mat_to_mat_scenarios_onearg(x_2_3; dx=dx_2_3, dy=dy_6_2),
         # two arguments
-        num_to_arr_scenarios_twoarg(x_, V; dx=dx_, dy=dy_6),
-        num_to_arr_scenarios_twoarg(x_, M; dx=dx_, dy=dy_2_3),
+        onevec_to_onevec_scenarios_twoarg(x_; dx=dx_, dy=dy_),
+        num_to_vec_scenarios_twoarg(x_; dx=dx_, dy=dy_6),
+        num_to_mat_scenarios_twoarg(x_; dx=dx_, dy=dy_6_2),
         vec_to_vec_scenarios_twoarg(x_6; dx=dx_6, dy=dy_12),
         vec_to_mat_scenarios_twoarg(x_6; dx=dx_6, dy=dy_6_2),
         mat_to_vec_scenarios_twoarg(x_2_3; dx=dx_2_3, dy=dy_12),
         mat_to_mat_scenarios_twoarg(x_2_3; dx=dx_2_3, dy=dy_6_2),
     )
+
+    smallerscens = vcat(
+        # one argument
+        num_to_num_scenarios(x_; dx=dx_, dy=dy_),
+        onevec_to_onevec_scenarios_onearg(x_; dx=dx_, dy=dy_),
+        num_to_vec_scenarios_onearg(x_; dx=dx_, dy=dy_2),
+        num_to_mat_scenarios_onearg(x_; dx=dx_, dy=dy_2_2),
+        arr_to_num_scenarios_onearg(x_6[1:3]; dx=dx_6[1:3], dy=dy_, linalg),
+        arr_to_num_scenarios_onearg(x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_, linalg),
+        vec_to_vec_scenarios_onearg(x_6[1:3]; dx=dx_6[1:3], dy=dy_12[1:6]),
+        vec_to_mat_scenarios_onearg(x_6[1:3]; dx=dx_6[1:3], dy=dy_6_2[1:3, :]),
+        mat_to_vec_scenarios_onearg(x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_12[1:4]),
+        mat_to_mat_scenarios_onearg(
+            x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_6_2[1:2, :]
+        ),
+        # two arguments
+        onevec_to_onevec_scenarios_twoarg(x_; dx=dx_, dy=dy_),
+        num_to_vec_scenarios_twoarg(x_; dx=dx_, dy=dy_6[1:3]),
+        num_to_mat_scenarios_twoarg(x_; dx=dx_, dy=dy_6_2[1:3, :]),
+        vec_to_vec_scenarios_twoarg(x_6[1:3]; dx=dx_6[1:3], dy=dy_12[1:6]),
+        vec_to_mat_scenarios_twoarg(x_6[1:3]; dx=dx_6[1:3], dy=dy_6_2[1:3, :]),
+        mat_to_vec_scenarios_twoarg(x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_12[1:4]),
+        mat_to_mat_scenarios_twoarg(
+            x_2_3[1:1, 1:2]; dx=dx_2_3[1:1, 1:2], dy=dy_6_2[1:2, :]
+        ),
+    )
+
+    scens = map(initialscens, smallerscens) do s1, s2
+        set_smaller(s1, s2)
+    end
 
     include_batchified && append!(scens, batchify(scens))
 
