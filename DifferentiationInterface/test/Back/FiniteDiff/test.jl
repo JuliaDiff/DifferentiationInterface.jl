@@ -17,30 +17,32 @@ for backend in [AutoFiniteDiff()]
     @test check_inplace(backend)
 end
 
-test_differentiation(
-    [AutoFiniteDiff(; fdtype=Val(:forward)), AutoFiniteDiff(; fdtype=Val(:central))],
-    default_scenarios(; include_constantified=true);
-    excluded=[
-        :second_derivative, :hvp, :hessian, :jacobian, :derivative, :gradient, :pullback
-    ],
-    logging=LOGGING,
-);
+@testset "Dense" begin
+    test_differentiation(
+        AutoFiniteDiff(),
+        default_scenarios(; include_constantified=true, include_cachified=true);
+        excluded=[:second_derivative, :hvp],
+        logging=LOGGING,
+    )
 
-test_differentiation(
-    AutoFiniteDiff(),
-    default_scenarios(; include_constantified=true, include_cachified=true);
-    excluded=[:second_derivative, :hvp],
-    logging=LOGGING,
-);
+    test_differentiation(
+        [
+            AutoFiniteDiff(; relstep=cbrt(eps(Float64))),
+            AutoFiniteDiff(; relstep=cbrt(eps(Float64)), absstep=cbrt(eps(Float64))),
+        ];
+        excluded=[:second_derivative, :hvp],
+        logging=LOGGING,
+    )
+end
 
-test_differentiation(
-    [
-        AutoFiniteDiff(; relstep=cbrt(eps(Float64))),
-        AutoFiniteDiff(; relstep=cbrt(eps(Float64)), absstep=cbrt(eps(Float64))),
-    ];
-    excluded=[:second_derivative, :hvp],
-    logging=LOGGING,
-);
+@testset "Sparse" begin
+    test_differentiation(
+        MyAutoSparse(AutoFiniteDiff()),
+        sparse_scenarios();
+        excluded=SECOND_ORDER,
+        logging=LOGGING,
+    )
+end
 
 @testset "Complex" begin
     test_differentiation(AutoFiniteDiff(), complex_scenarios(); logging=LOGGING)
