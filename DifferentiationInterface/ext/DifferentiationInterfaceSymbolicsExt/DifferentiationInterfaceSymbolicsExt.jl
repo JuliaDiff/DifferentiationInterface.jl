@@ -19,7 +19,6 @@ using Symbolics:
 using Symbolics.RuntimeGeneratedFunctions: RuntimeGeneratedFunction
 
 DI.check_available(::AutoSymbolics) = true
-DI.check_operator_overloading(::AutoSymbolics) = false
 DI.pullback_performance(::AutoSymbolics) = DI.PullbackSlow()
 
 dense_ad(backend::AutoSymbolics) = backend

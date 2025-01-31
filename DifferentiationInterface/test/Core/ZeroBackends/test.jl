@@ -11,6 +11,10 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 zero_backends = [AutoZeroForward(), AutoZeroReverse()]
 
+@testset "Correctness" begin
+    test_differentiation(zero_backends, map(zero, default_scenarios()); logging=LOGGING)
+end
+
 @testset "Type stability" begin
     test_differentiation(
         AutoZeroForward(),

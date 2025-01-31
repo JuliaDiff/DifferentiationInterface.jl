@@ -26,6 +26,9 @@ end
 Check whether `backend` supports differentiation of in-place functions.
 
 Returns `true` or `false` in a statically predictable way.
+
+!!! warning
+    This function defaults to `true` if the backend is not loaded.
 """
 check_inplace(::AbstractADType) = true
 
@@ -48,8 +51,31 @@ end
 Check whether backend relies on operator overloading.
 
 Returns `true` or `false` in a statically predictable way.
+
+!!! warning
+    This function defaults to `false` if the backend is not loaded.
 """
-function check_operator_overloading end
+check_operator_overloading(::AbstractADType) = false
+
+function check_operator_overloading(::SecondOrder)
+    return throw(
+        ArgumentError(
+            "Operator overloading check does not make sense for second-order backend"
+        ),
+    )
+end
+
+function check_operator_overloading(backend::AutoSparse)
+    return check_operator_overloading(dense_ad(backend))
+end
+
+function check_operator_overloading(::MixedMode)
+    return throw(
+        ArgumentError(
+            "Operator overloading check does not make sense for mixed-mode backend"
+        ),
+    )
+end
 
 ## Pushforward
 

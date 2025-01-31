@@ -129,6 +129,7 @@ function shuffled_gradient(
     return gradient(f, backend, x, rewrap(unannotated_contexts...)...)
 end
 
+#=
 function shuffled_gradient!(
     grad,
     x,
@@ -139,6 +140,7 @@ function shuffled_gradient!(
 ) where {F,C}
     return gradient!(f, grad, backend, x, rewrap(unannotated_contexts...)...)
 end
+=#
 
 function shuffled_gradient(
     x,
@@ -151,6 +153,7 @@ function shuffled_gradient(
     return gradient(f, prep, backend, x, rewrap(unannotated_contexts...)...)
 end
 
+#=
 function shuffled_gradient!(
     grad,
     x,
@@ -162,3 +165,4 @@ function shuffled_gradient!(
 ) where {F,C}
     return gradient!(f, grad, prep, backend, x, rewrap(unannotated_contexts...)...)
 end
+=#

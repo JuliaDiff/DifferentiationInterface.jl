@@ -18,7 +18,6 @@ using FiniteDiff:
 using LinearAlgebra: dot, mul!
 
 DI.check_available(::AutoFiniteDiff) = true
-DI.check_operator_overloading(::AutoFiniteDiff) = false
 
 # see https://github.com/SciML/ADTypes.jl/issues/33
 

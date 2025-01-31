@@ -9,6 +9,7 @@ using DifferentiationInterface:
     forward_backend,
     reverse_backend,
     check_inplace,
+    check_operator_overloading,
     pushforward_performance,
     pullback_performance,
     hvp_mode
@@ -25,6 +26,7 @@ rb = AutoReverseFromPrimitive(AutoSimpleFiniteDiff())
     @test inner(backend) isa AutoReverseFromPrimitive
     @test mode(backend) isa ADTypes.ForwardMode
     @test check_inplace(backend)
+    @test_throws ArgumentError check_operator_overloading(backend)
     @test_throws ArgumentError pushforward_performance(backend)
     @test_throws ArgumentError pullback_performance(backend)
 end
@@ -36,6 +38,7 @@ end
     @test forward_backend(backend) isa AutoSimpleFiniteDiff
     @test reverse_backend(backend) isa AutoReverseFromPrimitive
     @test check_inplace(backend)
+    @test_throws ArgumentError check_operator_overloading(backend)
     @test_throws MethodError pushforward_performance(backend)
     @test_throws MethodError pullback_performance(backend)
 end
@@ -45,8 +48,18 @@ end
         backend = AutoSparse(dense_backend)
         @test mode(backend) == ADTypes.mode(dense_backend)
         @test check_inplace(backend)
+        @test !check_operator_overloading(backend)
         @test_throws ArgumentError pushforward_performance(backend)
         @test_throws ArgumentError pullback_performance(backend)
         @test_throws ArgumentError hvp_mode(backend)
     end
+end
+
+struct FakeBackend <: AbstractADType end
+
+@testset "Fake" begin
+    backend = FakeBackend()
+    @test !check_available(backend)
+    @test check_inplace(backend)
+    @test !check_operator_overloading(backend)
 end

@@ -7,7 +7,6 @@ using LinearAlgebra: dot
 
 DI.check_available(::AutoFiniteDifferences) = true
 DI.check_inplace(::AutoFiniteDifferences) = false
-DI.check_operator_overloading(::AutoFiniteDifferences) = false
 
 ## Pushforward
 

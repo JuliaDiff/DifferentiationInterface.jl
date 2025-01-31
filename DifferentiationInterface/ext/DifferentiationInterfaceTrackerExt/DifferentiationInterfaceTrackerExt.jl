@@ -6,7 +6,6 @@ using Tracker: Tracker, back, data, forward, gradient, jacobian, param, withgrad
 
 DI.check_available(::AutoTracker) = true
 DI.check_inplace(::AutoTracker) = false
-DI.check_operator_overloading(::AutoTracker) = true
 
 ## Pullback
 

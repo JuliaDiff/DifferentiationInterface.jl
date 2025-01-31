@@ -12,7 +12,7 @@ function DI.overloaded_input(
     xdual = make_dual(T, x, tx)
     return xdual
 end
-
+#=
 function DI.overloaded_input(
     ::typeof(DI.pushforward),
     f!::F,
@@ -30,6 +30,7 @@ function DI.overloaded_input(
     end
     return xdual
 end
+=#
 
 DI.overloaded_input_type(prep::ForwardDiffOneArgPushforwardPrep) = typeof(prep.xdual_tmp)
 DI.overloaded_input_type(prep::ForwardDiffTwoArgPushforwardPrep) = typeof(prep.xdual_tmp)

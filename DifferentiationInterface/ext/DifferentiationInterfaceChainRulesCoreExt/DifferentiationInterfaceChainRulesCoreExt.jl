@@ -19,7 +19,6 @@ const AutoReverseChainRules = AutoChainRules{<:RuleConfig{>:HasReverseMode}}
 
 DI.check_available(::AutoChainRules) = true
 DI.check_inplace(::AutoChainRules) = false
-DI.check_operator_overloading(::AutoChainRules) = false
 
 include("reverse_onearg.jl")
 include("differentiate_with.jl")

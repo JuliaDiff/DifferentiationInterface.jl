@@ -6,7 +6,6 @@ using Diffractor: DiffractorRuleConfig, TaylorTangentIndex, ZeroBundle, bundle, 
 
 DI.check_available(::AutoDiffractor) = true
 DI.check_inplace(::AutoDiffractor) = false
-DI.check_operator_overloading(::AutoDiffractor) = false
 DI.pullback_performance(::AutoDiffractor) = DI.PullbackSlow()
 
 ## Pushforward
