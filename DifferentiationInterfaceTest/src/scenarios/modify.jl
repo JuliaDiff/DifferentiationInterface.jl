@@ -15,6 +15,7 @@ function Base.zero(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
         res1=myzero(scen.res1),
         res2=myzero(scen.res2),
         smaller=isnothing(scen.smaller) ? nothing : zero(scen.smaller),
+        name=isnothing(scen.name) ? nothing : scen.name * " [zero]",
     )
 end
 
@@ -39,6 +40,7 @@ function change_function(
         else
             change_function(scen.smaller, new_f; keep_smaller=false)
         end,
+        name=isnothing(scen.name) ? nothing : scen.name * " [new function]",
     )
 end
 
@@ -63,6 +65,7 @@ function batchify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
             res1=new_res1,
             res2,
             smaller=isnothing(smaller) ? nothing : batchify(smaller),
+            name=isnothing(scen.name) ? nothing : scen.name * " [batchified]",
         )
     elseif op == :hvp
         new_tang = (only(tang), -only(tang))
@@ -76,6 +79,7 @@ function batchify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
             res1,
             res2=new_res2,
             smaller=isnothing(smaller) ? nothing : batchify(smaller),
+            name=isnothing(scen.name) ? nothing : scen.name * " [batchified]",
         )
     end
 end
@@ -160,6 +164,7 @@ function constantify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
         res1=mymultiply(scen.res1, a),
         res2=mymultiply(scen.res2, a),
         smaller=isnothing(scen.smaller) ? nothing : constantify(scen.smaller),
+        name=isnothing(scen.name) ? nothing : scen.name * " [constantified]",
     )
 end
 
@@ -213,6 +218,7 @@ function cachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
         res1=scen.res1,
         res2=scen.res2,
         smaller=isnothing(scen.smaller) ? nothing : cachify(scen.smaller),
+        name=isnothing(scen.name) ? nothing : scen.name * " [cachified]",
     )
 end
 

@@ -14,6 +14,9 @@ GROUP = get(ENV, "JULIA_DIT_TEST_GROUP", "All")
         @testset verbose = true "Formalities" begin
             include("formalities.jl")
         end
+        @testset verbose = true "Scenarios" begin
+            include("scenario.jl")
+        end
     end
 
     if GROUP == "Zero" || GROUP == "All"
