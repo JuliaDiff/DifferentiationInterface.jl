@@ -17,6 +17,8 @@ This function always creates and runs a `@testset`, though its contents may vary
 
 # Keyword arguments
 
+- `testset_name=nothing`: how to display the test set
+
 **Test categories:**
 
 - `correctness=true`: whether to compare the differentiation results with the theoretical values specified in each scenario
@@ -66,6 +68,7 @@ Each setting tests/benchmarks a different subset of calls:
 function test_differentiation(
     backends::Vector{<:AbstractADType},
     scenarios::Vector{<:Scenario}=default_scenarios();
+    testset_name::Union{String,Nothing}=nothing,
     # test categories
     correctness::Bool=true,
     type_stability::Symbol=:none,
@@ -105,11 +108,15 @@ function test_differentiation(
     scenarios = filter(s -> !(operator(s) in excluded), scenarios)
     scenarios = sort(scenarios; by=s -> (operator(s), string(s.f)))
 
-    title_additions =
-        (correctness ? " + correctness" : "") *
-        ((type_stability != :none) ? " + type stability" : "") *
-        ((benchmark != :none) ? " + benchmarks" : "")
-    title = "Testing" * title_additions[3:end]
+    if isnothing(testset_name)
+        title_additions =
+            (correctness ? " + correctness" : "") *
+            ((type_stability != :none) ? " + type stability" : "") *
+            ((benchmark != :none) ? " + benchmarks" : "")
+        title = "Testing" * title_additions[3:end]
+    else
+        title = testset_name
+    end
 
     benchmark_data = DifferentiationBenchmarkDataRow[]
 
@@ -222,6 +229,7 @@ Specifying the set of scenarios is mandatory for this function.
 function benchmark_differentiation(
     backends,
     scenarios::Vector{<:Scenario};
+    testset_name::Union{String,Nothing}=nothing,
     benchmark::Symbol=:prepared,
     excluded::Vector{Symbol}=Symbol[],
     logging::Bool=false,
@@ -235,6 +243,7 @@ function benchmark_differentiation(
     return test_differentiation(
         backends,
         scenarios;
+        testset_name,
         correctness=false,
         type_stability=:none,
         allocations=:none,

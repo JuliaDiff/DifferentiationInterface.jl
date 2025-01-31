@@ -13,8 +13,8 @@ This generic type should never be used directly: use the specific constructor co
 
 # Constructors
 
-    Scenario{op,pl_op}(f, x; tang, contexts, res1, res2)
-    Scenario{op,pl_op}(f!, y, x; tang, contexts, res1, res2)
+    Scenario{op,pl_op}(f, x; tang, contexts, res1, res2, name)
+    Scenario{op,pl_op}(f!, y, x; tang, contexts, res1, res2, name)
 
 # Fields
 
@@ -37,32 +37,57 @@ struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,S}
     res2::R2
     "private field (not part of the public API) containing a variant of the scenario to test preparation resizing"
     smaller::S
+    "name of the scenario for display in test sets and dataframes"
+    name::Union{String,Nothing}
 end
 
 function Scenario{op,pl_op,pl_fun}(
-    f::F; x::X, y::Y, tang::T, contexts::C, res1::R1, res2::R2, smaller::S=nothing
+    f::F;
+    x::X,
+    y::Y,
+    tang::T,
+    contexts::C,
+    res1::R1,
+    res2::R2,
+    smaller::S=nothing,
+    name=nothing,
 ) where {op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S<:Union{Nothing,Scenario}}
     @assert smaller isa Union{Nothing,Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2}}
     return Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S}(
-        f, x, y, tang, contexts, res1, res2, smaller
+        f, x, y, tang, contexts, res1, res2, smaller, name
     )
 end
 
 function Scenario{op,pl_op}(
-    f, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, smaller=nothing
+    f,
+    x;
+    tang=nothing,
+    contexts=(),
+    res1=nothing,
+    res2=nothing,
+    smaller=nothing,
+    name=nothing,
 ) where {op,pl_op}
     @assert op in ALL_OPS
     @assert pl_op in (:in, :out)
     y = f(x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:out}(f; x, y, tang, contexts, res1, res2, smaller)
+    return Scenario{op,pl_op,:out}(f; x, y, tang, contexts, res1, res2, smaller, name)
 end
 
 function Scenario{op,pl_op}(
-    f!, y, x; tang=nothing, contexts=(), res1=nothing, res2=nothing, smaller=nothing
+    f!,
+    y,
+    x;
+    tang=nothing,
+    contexts=(),
+    res1=nothing,
+    res2=nothing,
+    smaller=nothing,
+    name=nothing,
 ) where {op,pl_op}
     @assert op in ALL_OPS
     @assert pl_op in (:in, :out)
-    return Scenario{op,pl_op,:in}(f!; x, y, tang, contexts, res1, res2, smaller)
+    return Scenario{op,pl_op,:in}(f!; x, y, tang, contexts, res1, res2, smaller, name)
 end
 
 Base.:(==)(scen1::Scenario, scen2::Scenario) = false
@@ -85,7 +110,8 @@ function Base.:(==)(
     )
     eq_res1 = scen1.res1 == scen2.res1
     eq_res2 = scen1.res2 == scen2.res2
-    return (eq_x && eq_y && eq_tang && eq_contexts && eq_res1 && eq_res2)
+    eq_name = scen1.name == scen2.name
+    return (eq_x && eq_y && eq_tang && eq_contexts && eq_res1 && eq_res2 && eq_name)
 end
 
 operator(::Scenario{op}) where {op} = op
@@ -123,12 +149,16 @@ end
 function Base.show(
     io::IO, scen::Scenario{op,pl_op,pl_fun,F,X,Y,T}
 ) where {op,pl_op,pl_fun,F,X,Y,T}
-    print(io, "Scenario{$(repr(op)),$(repr(pl_op))} $(string(scen.f)) : $X -> $Y")
-    if op in (:pushforward, :pullback, :hvp)
-        print(io, " ($(length(scen.tang)) tangents)")
-    end
-    if length(scen.contexts) > 0
-        print(io, " ($(length(scen.contexts)) contexts)")
+    if isnothing(scen.name)
+        print(io, "Scenario{$(repr(op)),$(repr(pl_op))} $(string(scen.f)) : $X -> $Y")
+        if op in (:pushforward, :pullback, :hvp)
+            print(io, " ($(length(scen.tang)) tangents)")
+        end
+        if length(scen.contexts) > 0
+            print(io, " ($(length(scen.contexts)) contexts)")
+        end
+    else
+        print(io, scen.name)
     end
     return nothing
 end
