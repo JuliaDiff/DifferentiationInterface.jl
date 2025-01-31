@@ -32,4 +32,15 @@ end
 include("onearg.jl")
 include("twoarg.jl")
 
+function DI.overloaded_input(
+    ::typeof(DI.pushforward),
+    f::F,
+    backend::AutoPolyesterForwardDiff,
+    x,
+    tx::NTuple{B},
+    contexts::Vararg{DI.Context,C},
+) where {F,B,C}
+    return DI.overloaded_input(pushforward, f, single_threaded(backend), x, tx, contexts...)
+end
+
 end # module
