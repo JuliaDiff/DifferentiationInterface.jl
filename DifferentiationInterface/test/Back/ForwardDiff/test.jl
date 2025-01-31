@@ -23,11 +23,6 @@ backends = [
     AutoForwardDiff(; tag=ForwardDiff.Tag(MyTag(), Float64)),
 ]
 
-for backend in backends
-    @test check_available(backend)
-    @test check_inplace(backend)
-end
-
 ## Dense
 
 test_differentiation(

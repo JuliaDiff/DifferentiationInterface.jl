@@ -17,11 +17,6 @@ backends = [
     AutoPolyesterForwardDiff(; chunksize=2),
 ]
 
-for backend in backends
-    @test check_available(backend)
-    @test check_inplace(backend)
-end
-
 test_differentiation(
     backends, default_scenarios(; include_constantified=true); logging=LOGGING
 );

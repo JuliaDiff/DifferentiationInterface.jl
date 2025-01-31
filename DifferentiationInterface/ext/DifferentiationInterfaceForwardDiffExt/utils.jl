@@ -77,15 +77,10 @@ function mypartials!(::Type{T}, ty::NTuple{B}, ydual) where {T,B}
     return ty
 end
 
-# store preparation result with the right input eltype
-struct PrepContext{T<:DI.Prep} <: DI.Context
-    data::T
-end
-
-function _translate(::Type{T}, ::Val{B}, c::DI.ConstantOrFunctionOrBackend) where {T,B}
+function _translate(::Type{T}, ::Val{B}, c::DI.GeneralizedConstant) where {T,B}
     return DI.unwrap(c)
 end
-_translate(::Type{T}, ::Val{B}, c::PrepContext) where {T,B} = DI.unwrap(c)
+_translate(::Type{T}, ::Val{B}, c::DI.PrepContext) where {T,B} = DI.unwrap(c)
 
 function _translate(::Type{T}, ::Val{B}, c::DI.Cache) where {T,B}
     c0 = DI.unwrap(c)

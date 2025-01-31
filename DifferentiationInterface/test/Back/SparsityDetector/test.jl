@@ -12,6 +12,9 @@ using Test
 
 rng = StableRNG(63)
 
+using Random
+rng = Random.default_rng()
+
 const Jc = sprand(rng, Bool, 10, 20, 0.3)
 const Hc = sparse(Symmetric(sprand(rng, Bool, 20, 20, 0.3)))
 

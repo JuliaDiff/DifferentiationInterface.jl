@@ -8,7 +8,8 @@ using DifferentiationInterface:
     outer,
     forward_backend,
     reverse_backend,
-    inplace_support,
+    check_inplace,
+    check_operator_overloading,
     pushforward_performance,
     pullback_performance,
     hvp_mode
@@ -24,7 +25,8 @@ rb = AutoReverseFromPrimitive(AutoSimpleFiniteDiff())
     @test outer(backend) isa AutoSimpleFiniteDiff
     @test inner(backend) isa AutoReverseFromPrimitive
     @test mode(backend) isa ADTypes.ForwardMode
-    @test Bool(inplace_support(backend))
+    @test check_inplace(backend)
+    @test_throws ArgumentError check_operator_overloading(backend)
     @test_throws ArgumentError pushforward_performance(backend)
     @test_throws ArgumentError pullback_performance(backend)
 end
@@ -35,7 +37,8 @@ end
     @test mode(backend) isa DifferentiationInterface.ForwardAndReverseMode
     @test forward_backend(backend) isa AutoSimpleFiniteDiff
     @test reverse_backend(backend) isa AutoReverseFromPrimitive
-    @test Bool(inplace_support(backend))
+    @test check_inplace(backend)
+    @test_throws ArgumentError check_operator_overloading(backend)
     @test_throws MethodError pushforward_performance(backend)
     @test_throws MethodError pullback_performance(backend)
 end
@@ -44,9 +47,24 @@ end
     for dense_backend in [fb, rb]
         backend = AutoSparse(dense_backend)
         @test mode(backend) == ADTypes.mode(dense_backend)
-        @test Bool(inplace_support(backend))
+        @test check_inplace(backend)
+        @test !check_operator_overloading(backend)
         @test_throws ArgumentError pushforward_performance(backend)
         @test_throws ArgumentError pullback_performance(backend)
         @test_throws ArgumentError hvp_mode(backend)
     end
+end
+
+struct FakeBackend <: AbstractADType end
+struct FakeOOBackend <: AbstractADType end
+DI.check_operator_overloading(::FakeOOBackend) = true
+
+@testset "Fake" begin
+    backend = FakeBackend()
+    @test !check_available(backend)
+    @test check_inplace(backend)
+    @test !check_operator_overloading(backend)
+    @test_throws ArgumentError DI.overloaded_input(
+        pushforward, identity, FakeOOBackend(), 1.0, (1.0,)
+    )
 end

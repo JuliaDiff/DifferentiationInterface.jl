@@ -86,7 +86,7 @@ using DifferentiationInterface:
     inner,
     mode,
     outer,
-    inplace_support,
+    check_inplace,
     pushforward_performance,
     pullback_performance
 using DifferentiationInterface: Rewrap, Context, Constant, Cache, unwrap

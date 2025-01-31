@@ -16,11 +16,6 @@ LOGGING = get(ENV, "CI", "false") == "false"
 backends = [AutoReverseDiff(; compile=false), AutoReverseDiff(; compile=true)]
 second_order_backends = [SecondOrder(AutoForwardDiff(), AutoReverseDiff())]
 
-for backend in vcat(backends, second_order_backends)
-    @test check_available(backend)
-    @test check_inplace(backend)
-end
-
 ## Dense
 
 test_differentiation(

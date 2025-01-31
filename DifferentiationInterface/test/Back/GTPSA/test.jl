@@ -10,11 +10,6 @@ check_no_implicit_imports(DifferentiationInterface)
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
-for backend in [AutoGTPSA()]
-    @test check_available(backend)
-    @test check_inplace(backend)
-end
-
 # Test no Descriptor (use context)
 test_differentiation(
     AutoGTPSA(),

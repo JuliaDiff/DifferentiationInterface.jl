@@ -36,7 +36,7 @@ Your AD package needs to be registered first.
 ### Core code
 
 In the main package, you should define a new struct `SuperDiffBackend` which subtypes [`ADTypes.AbstractADType`](@extref ADTypes), and endow it with the fields you need to parametrize your differentiation routines.
-You also have to define [`ADTypes.mode`](@extref) and [`DifferentiationInterface.inplace_support`](@ref) on `SuperDiffBackend`.
+You also have to define [`ADTypes.mode`](@extref) and [`DifferentiationInterface.check_inplace`](@ref) on `SuperDiffBackend`.
 
 !!! info
     In the end, this backend struct will need to be contributed to [ADTypes.jl](https://github.com/SciML/ADTypes.jl).

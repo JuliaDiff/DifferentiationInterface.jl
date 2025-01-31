@@ -14,6 +14,7 @@ using Mooncake:
     Mooncake
 
 DI.check_available(::AutoMooncake) = true
+DI.check_operator_overloading(::AutoMooncake) = true
 
 copyto!!(dst::Number, src::Number) = convert(typeof(dst), src)
 copyto!!(dst, src) = DI.ismutable_array(dst) ? copyto!(dst, src) : convert(typeof(dst), src)

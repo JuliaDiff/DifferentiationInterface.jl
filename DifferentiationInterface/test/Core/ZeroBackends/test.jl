@@ -11,9 +11,8 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 zero_backends = [AutoZeroForward(), AutoZeroReverse()]
 
-for backend in zero_backends
-    @test check_available(backend)
-    @test check_inplace(backend)
+@testset "Correctness" begin
+    test_differentiation(zero_backends, map(zero, default_scenarios()); logging=LOGGING)
 end
 
 @testset "Type stability" begin
