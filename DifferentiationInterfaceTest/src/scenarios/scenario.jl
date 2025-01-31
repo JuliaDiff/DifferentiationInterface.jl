@@ -13,8 +13,8 @@ This generic type should never be used directly: use the specific constructor co
 
 # Constructors
 
-    Scenario{op,pl_op}(f, x; tang, contexts, res1, res2)
-    Scenario{op,pl_op}(f!, y, x; tang, contexts, res1, res2)
+    Scenario{op,pl_op}(f, x; tang, contexts, res1, res2, name)
+    Scenario{op,pl_op}(f!, y, x; tang, contexts, res1, res2, name)
 
 # Fields
 

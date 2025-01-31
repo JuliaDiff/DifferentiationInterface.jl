@@ -17,6 +17,8 @@ This function always creates and runs a `@testset`, though its contents may vary
 
 # Keyword arguments
 
+- `testset_name=nothing`: how to display the test set
+
 **Test categories:**
 
 - `correctness=true`: whether to compare the differentiation results with the theoretical values specified in each scenario
