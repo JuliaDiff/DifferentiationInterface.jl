@@ -13,24 +13,6 @@ using Zygote:
     withgradient,
     withjacobian
 
-struct ZygoteNothingError <: Exception
-    f
-    x
-    contexts
-end
-
-function Base.showerror(io::IO, e::ZygoteNothingError)
-    (; f, x, contexts) = e
-    sig = (typeof(x), map(typeof ∘ DI.unwrap, contexts)...)
-    return print(
-        io,
-        "Zygote failed to differentiate function `$f` with argument types `$sig` (the pullback returned `nothing`).",
-    )
-end
-
-check_nothing(::Nothing, f, x, contexts) = throw(ZygoteNothingError(f, x, contexts))
-check_nothing(::Any, f, x, contexts) = nothing
-
 DI.check_available(::AutoZygote) = true
 DI.inplace_support(::AutoZygote) = DI.InPlaceNotSupported()
 
@@ -64,7 +46,6 @@ function DI.value_and_pullback(
     tx = map(ty) do dy
         first(pb(dy))
     end
-    check_nothing(first(tx), f, x, contexts)
     return y, tx
 end
 
@@ -80,7 +61,6 @@ function DI.value_and_pullback(
     tx = map(ty) do dy
         first(pb(dy))
     end
-    check_nothing(first(tx), f, x, contexts)
     return copy(y), tx
 end
 
@@ -96,7 +76,6 @@ function DI.pullback(
     tx = map(ty) do dy
         first(pb(dy))
     end
-    check_nothing(first(tx), f, x, contexts)
     return tx
 end
 
@@ -110,7 +89,6 @@ function DI.value_and_gradient(
     f, ::DI.NoGradientPrep, ::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     (; val, grad) = withgradient(f, x, map(translate, contexts)...)
-    check_nothing(first(grad), f, x, contexts)
     return val, first(grad)
 end
 
@@ -118,7 +96,6 @@ function DI.gradient(
     f, ::DI.NoGradientPrep, ::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     grad = gradient(f, x, map(translate, contexts)...)
-    check_nothing(first(grad), f, x, contexts)
     return first(grad)
 end
 
@@ -147,7 +124,6 @@ function DI.value_and_jacobian(
     y = f(x, map(translate, contexts)...)
     # https://github.com/FluxML/Zygote.jl/issues/1506
     jac = jacobian(f, x, map(translate, contexts)...)
-    check_nothing(first(jac), f, x, contexts)
     return y, first(jac)
 end
 
@@ -155,7 +131,6 @@ function DI.jacobian(
     f, ::DI.NoJacobianPrep, ::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     jac = jacobian(f, x, map(translate, contexts)...)
-    check_nothing(first(jac), f, x, contexts)
     return first(jac)
 end
 
@@ -242,7 +217,6 @@ function DI.hessian(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     hess = hessian(fc, x)
-    check_nothing(hess, f, x, contexts)
     return hess
 end
 
