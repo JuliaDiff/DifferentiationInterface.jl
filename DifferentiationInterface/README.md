@@ -90,7 +90,7 @@ To improve your performance by up to several orders of magnitude compared to thi
 
 ## Citation
 
-Please cite our preprint [*Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians*](https://arxiv.org/abs/2501.17737), the [DifferentiationInterface.jl software](https://zenodo.org/records/14787925) and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.cff` file:
+Please cite our preprint [*Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians*](https://arxiv.org/abs/2501.17737), the [DifferentiationInterface.jl software](https://zenodo.org/records/11092033) and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.cff` file:
 
 ```bibtex   
 @misc{hill2025sparserbetterfasterstronger,
