@@ -90,4 +90,35 @@ To improve your performance by up to several orders of magnitude compared to thi
 
 ## Citation
 
-Please cite both DifferentiationInterface.jl and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.cff` file.
+Please cite our preprint [*Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians*](https://arxiv.org/abs/2501.17737), the [DifferentiationInterface.jl software](https://zenodo.org/records/14787925) and its inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl), using the provided `CITATION.cff` file:
+
+```bibtex   
+@misc{hill2025sparserbetterfasterstronger,
+      title={Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians}, 
+      author={Adrian Hill and Guillaume Dalle},
+      year={2025},
+      eprint={2501.17737},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2501.17737}, 
+}
+
+@software{dalleDifferentiationInterface2025,
+      author={Dalle, Guillaume and Hill, Adrian},
+      title={Differentiation{I}nterface.jl},
+      year={2024},
+      publisher={Zenodo},
+      doi={10.5281/zenodo.11092033},
+      url={https://doi.org/10.5281/zenodo.11092033},
+}
+
+@misc{schäfer2022abstractdifferentiationjlbackendagnosticdifferentiableprogramming,
+      title={AbstractDifferentiation.jl: Backend-Agnostic Differentiable Programming in Julia}, 
+      author={Frank Schäfer and Mohamed Tarek and Lyndon White and Chris Rackauckas},
+      year={2022},
+      eprint={2109.12449},
+      archivePrefix={arXiv},
+      primaryClass={cs.MS},
+      url={https://arxiv.org/abs/2109.12449}, 
+}
+```
