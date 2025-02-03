@@ -57,3 +57,19 @@ references:
     repository-code: 'https://github.com/JuliaDiff/AbstractDifferentiation.jl'
     abstract: An abstract interface for automatic differentiation.
     license: MIT
+preferred-citation:
+  type: generic
+  authors:
+  - family-names: "Hill"
+    given-names: "Adrian"
+    orcid: "https://orcid.org/0009-0009-5977-301X"
+  - family-names: "Dalle"
+    given-names: "Guillaume"
+    orcid: "https://orcid.org/0000-0003-4866-1687"
+  title: "Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians"
+  year: 2025
+  eprint: "2501.17737"
+  archivePrefix: "arXiv"
+  primaryClass: "cs.LG"
+  url: "https://arxiv.org/abs/2501.17737"
+  doi: "10.48550/arXiv.2501.17737"
