@@ -228,7 +228,7 @@ function DI.value_and_derivative!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     f!(y, x, map(DI.unwrap, contexts)...)
-    prep.der_exe!(der, myvec(x), map(myvec_unwrap, contexts)...)
+    prep.der_exe!(myvec(der), myvec(x), map(myvec_unwrap, contexts)...)
     return y, der
 end
 
@@ -253,7 +253,7 @@ function DI.derivative!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    prep.der_exe!(der, myvec(x), map(myvec_unwrap, contexts)...)
+    prep.der_exe!(myvec(der), myvec(x), map(myvec_unwrap, contexts)...)
     return der
 end
 

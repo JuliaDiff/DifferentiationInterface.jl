@@ -56,7 +56,7 @@ function DI.pushforward!(
 ) where {C}
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        prep.jvp_exe!(vec(dy), myvec(x), myvec(dx), map(myvec_unwrap, contexts)...)
+        prep.jvp_exe!(myvec(dy), myvec(x), myvec(dx), map(myvec_unwrap, contexts)...)
     end
     return ty
 end
@@ -143,7 +143,7 @@ function DI.pullback!(
 ) where {C}
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        prep.vjp_exe!(vec(dx), myvec(x), myvec(dy), map(myvec_unwrap, contexts)...)
+        prep.vjp_exe!(myvec(dx), myvec(x), myvec(dy), map(myvec_unwrap, contexts)...)
     end
     return tx
 end
@@ -221,7 +221,7 @@ function DI.derivative!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    prep.der_exe!(vec(der), myvec(x), map(myvec_unwrap, contexts)...)
+    prep.der_exe!(myvec(der), myvec(x), map(myvec_unwrap, contexts)...)
     return der
 end
 
@@ -448,7 +448,7 @@ function DI.second_derivative!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    prep.der2_exe!(vec(der2), myvec(x), map(myvec_unwrap, contexts)...)
+    prep.der2_exe!(myvec(der2), myvec(x), map(myvec_unwrap, contexts)...)
     return der2
 end
 
@@ -533,7 +533,7 @@ function DI.hvp!(
 ) where {C}
     for b in eachindex(tx, tg)
         dx, dg = tx[b], tg[b]
-        prep.hvp_exe!(dg, myvec(x), myvec(dx), map(myvec_unwrap, contexts)...)
+        prep.hvp_exe!(myvec(dg), myvec(x), myvec(dx), map(myvec_unwrap, contexts)...)
     end
     return tg
 end
