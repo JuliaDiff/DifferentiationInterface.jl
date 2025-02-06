@@ -41,7 +41,7 @@ jobs:
           version: '1'  # TODO: 1
       - uses: julia-actions/cache@v1
       - name: Install dependencies
-        run: julia --project=${{ matrix.pkg.dir}}/docs/ -e '
+        run: julia --project=${{ matrix.pkg.dir}}/docs/ --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
           if "${{ matrix.pkg.name}}" == "DifferentiationInterface";
@@ -54,4 +54,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
-        run: julia --project=${{ matrix.pkg.dir}}/docs/ ${{ matrix.pkg.dir}}/docs/make.jl
+        run: julia --project=${{ matrix.pkg.dir}}/docs/ --color=yes ${{ matrix.pkg.dir}}/docs/make.jl
