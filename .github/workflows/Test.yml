@@ -72,7 +72,7 @@ jobs:
         run: julia --project=./DifferentiationInterface --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
-          Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O3"]);'
+          Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O2"]);'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
@@ -121,7 +121,7 @@ jobs:
           using Pkg;
           Pkg.Registry.update();
           Pkg.develop(path="./DifferentiationInterface");
-          Pkg.test("DifferentiationInterfaceTest"; coverage=true, julia_args=["-O3"]);'
+          Pkg.test("DifferentiationInterfaceTest"; coverage=true, julia_args=["-O2"]);'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
