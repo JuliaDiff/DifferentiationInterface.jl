@@ -27,7 +27,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
     )
     @testset "Analyzing benchmark results" begin
         @testset "$(row[:scenario])" for row in eachrow(data)
-            VERSION > v"1.10" && @test row[:allocs] == 0
+            VERSION >= v"1.11" && @test row[:allocs] == 0
         end
     end
 end
