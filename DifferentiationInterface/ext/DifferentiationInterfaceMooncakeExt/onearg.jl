@@ -30,7 +30,7 @@ function DI.value_and_pullback(
     new_y, (_, new_dx) = Mooncake.value_and_pullback!!(
         prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...
     )
-    return new_y, (copy(new_dx),)
+    return new_y, (deepcopy(new_dx),)
 end
 
 function DI.value_and_pullback!(
