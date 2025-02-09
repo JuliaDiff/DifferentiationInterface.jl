@@ -60,6 +60,7 @@ jobs:
             group: Back/ChainRules
     env:
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
+      JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -72,7 +73,11 @@ jobs:
         run: julia --project=./DifferentiationInterface --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
-          Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);'
+          if ENV["JULIA_DI_PR_DRAFT"];
+              Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);
+          else;
+              Pkg.test("DifferentiationInterface"; coverage=true);
+          end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
@@ -109,6 +114,7 @@ jobs:
             version: "1.10"
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
+      JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -121,7 +127,11 @@ jobs:
           using Pkg;
           Pkg.Registry.update();
           Pkg.develop(path="./DifferentiationInterface");
-          Pkg.test("DifferentiationInterfaceTest"; coverage=true, julia_args=["-O1"]);'
+          if ENV["JULIA_DI_PR_DRAFT"];
+              Pkg.test("DifferentiationInterfaceTest"; coverage=true, julia_args=["-O1"]);
+          else;
+              Pkg.test("DifferentiationInterfaceTest"; coverage=true);
+          end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
