@@ -73,7 +73,6 @@ jobs:
         run: julia --project=./DifferentiationInterface --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
-          @show ENV["JULIA_DI_PR_DRAFT"] typeof(ENV["JULIA_DI_PR_DRAFT"]);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
               Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);
           else;
