@@ -13,7 +13,7 @@ include("testutils.jl")
 
 ## Main tests
 
-@time @testset verbose = true "DifferentiationInterface.jl" begin
+@testset verbose = true "DifferentiationInterface.jl" begin
     if haskey(ENV, "JULIA_DI_TEST_GROUP")
         category, folder = split(ENV["JULIA_DI_TEST_GROUP"], '/')
         @testset verbose = true "$category" begin
