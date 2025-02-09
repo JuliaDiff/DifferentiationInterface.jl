@@ -5,8 +5,8 @@ struct MooncakeTwoArgPullbackPrep{Tcache,DY,F} <: DI.PullbackPrep
 end
 
 function DI.prepare_pullback(
-    f!, y, backend::AutoMooncake, x, ty::NTuple, contexts::Vararg{DI.Context,C}
-) where {C}
+    f!::F, y, backend::AutoMooncake, x, ty::NTuple, contexts::Vararg{DI.Context,C}
+) where {F,C}
     target_function = function (f!, y, x, contexts...)
         f!(y, x, contexts...)
         return y
@@ -26,36 +26,36 @@ function DI.prepare_pullback(
 end
 
 function DI.value_and_pullback(
-    f!,
+    f!::F,
     y,
     prep::MooncakeTwoArgPullbackPrep,
     ::AutoMooncake,
     x,
     ty::NTuple{1},
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
     # Prepare cotangent to add after the forward pass.
     dy = only(ty)
     dy_righttype_after = copyto!(prep.dy_righttype, dy)
 
     # Run the reverse-pass and return the results.
     contexts = map(DI.unwrap, contexts)
-    y_after, (_, _, _, dx) = Mooncake.value_and_pullback!!(
+    y_after, (_, _, _, dx) = value_and_pullback!!(
         prep.cache, dy_righttype_after, prep.target_function, f!, y, x, contexts...
     )
     copyto!(y, y_after)
-    return y, (deepcopy(dx),) # TODO: remove this allocation in `value_and_pullback!`
+    return y, (mycopy(dx),)
 end
 
 function DI.value_and_pullback(
-    f!,
+    f!::F,
     y,
     prep::MooncakeTwoArgPullbackPrep,
     backend::AutoMooncake,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
     tx = map(ty) do dy
         _, tx = DI.value_and_pullback(f!, y, prep, backend, x, (dy,), contexts...)
         only(tx)
@@ -64,7 +64,7 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback!(
-    f!,
+    f!::F,
     y,
     tx::NTuple,
     prep::MooncakeTwoArgPullbackPrep,
@@ -72,26 +72,26 @@ function DI.value_and_pullback!(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
     _, new_tx = DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
     return y, tx
 end
 
 function DI.pullback(
-    f!,
+    f!::F,
     y,
     prep::MooncakeTwoArgPullbackPrep,
     backend::AutoMooncake,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
     return DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)[2]
 end
 
 function DI.pullback!(
-    f!,
+    f!::F,
     y,
     tx::NTuple,
     prep::MooncakeTwoArgPullbackPrep,
@@ -99,6 +99,6 @@ function DI.pullback!(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
     return DI.value_and_pullback!(f!, y, tx, prep, backend, x, ty, contexts...)[2]
 end
