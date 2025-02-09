@@ -73,7 +73,8 @@ jobs:
         run: julia --project=./DifferentiationInterface --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
-          if ENV["JULIA_DI_PR_DRAFT"];
+          @show ENV["JULIA_DI_PR_DRAFT"] typeof(ENV["JULIA_DI_PR_DRAFT"]);
+          if ENV["JULIA_DI_PR_DRAFT"] == "true";
               Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);
           else;
               Pkg.test("DifferentiationInterface"; coverage=true);
@@ -127,7 +128,7 @@ jobs:
           using Pkg;
           Pkg.Registry.update();
           Pkg.develop(path="./DifferentiationInterface");
-          if ENV["JULIA_DI_PR_DRAFT"];
+          if ENV["JULIA_DI_PR_DRAFT"] == "true";
               Pkg.test("DifferentiationInterfaceTest"; coverage=true, julia_args=["-O1"]);
           else;
               Pkg.test("DifferentiationInterfaceTest"; coverage=true);
