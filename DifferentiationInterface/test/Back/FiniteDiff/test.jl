@@ -29,6 +29,7 @@ end
         [
             AutoFiniteDiff(; relstep=cbrt(eps(Float64))),
             AutoFiniteDiff(; relstep=cbrt(eps(Float64)), absstep=cbrt(eps(Float64))),
+            AutoFiniteDiff(; dir=0.5),
         ];
         excluded=[:second_derivative, :hvp],
         logging=LOGGING,
