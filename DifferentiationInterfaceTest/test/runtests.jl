@@ -9,7 +9,7 @@ GROUP = get(ENV, "JULIA_DIT_TEST_GROUP", "All")
 
 ## Main tests
 
-@testset verbose = true "DifferentiationInterfaceTest.jl" begin
+@time @testset verbose = true "DifferentiationInterfaceTest.jl" begin
     if GROUP == "Formalities" || GROUP == "All"
         @testset verbose = true "Formalities" begin
             include("formalities.jl")
