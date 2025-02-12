@@ -116,7 +116,7 @@ function DI.prepare_gradient(
     f::F, backend::AutoMooncake, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     config = get_config(backend)
-    cache = prepare_gradient_cache(
+    cache = prepare_pullback_cache(
         f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
     )
     prep = MooncakeGradientPrep(cache)
