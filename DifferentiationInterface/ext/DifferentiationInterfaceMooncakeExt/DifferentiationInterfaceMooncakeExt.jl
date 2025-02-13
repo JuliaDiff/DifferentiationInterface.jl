@@ -5,14 +5,12 @@ import DifferentiationInterface as DI
 using Mooncake:
     CoDual,
     Config,
-    primal,
-    tangent,
-    tangent_type,
-    value_and_pullback!!,
-    value_and_gradient!!,
-    zero_tangent,
+    prepare_gradient_cache,
     prepare_pullback_cache,
-    Mooncake
+    tangent_type,
+    value_and_gradient!!,
+    value_and_pullback!!,
+    zero_tangent
 
 DI.check_available(::AutoMooncake) = true
 
