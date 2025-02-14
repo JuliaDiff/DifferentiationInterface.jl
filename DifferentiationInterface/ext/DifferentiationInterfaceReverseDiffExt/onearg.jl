@@ -88,7 +88,7 @@ function DI.value_and_gradient!(
     f, grad, prep::ReverseDiffGradientPrep, ::AutoReverseDiff{compile}, x
 ) where {compile}
     # DiffResult doesn't work because of ReverseDiff#251
-    result = MutableDiffResult(first(x), (grad,))
+    result = MutableDiffResult(zero(eltype(x)), (grad,))
     if compile
         result = gradient!(result, prep.tape, x)
     else
@@ -101,7 +101,7 @@ function DI.value_and_gradient(
     f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
 ) where {compile}
     # GradientResult doesn't work because it tries to mutate an SArray
-    result = MutableDiffResult(first(x), (similar(x),))
+    result = MutableDiffResult(zero(eltype(x)), (similar(x),))
     if compile
         result = gradient!(result, prep.tape, x)
     else
@@ -149,7 +149,7 @@ function DI.value_and_gradient!(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     # DiffResult doesn't work because of ReverseDiff#251
-    result = MutableDiffResult(first(x), (grad,))
+    result = MutableDiffResult(zero(eltype(x)), (grad,))
     result = gradient!(result, fc, x, prep.config)
     return DR.value(result), DR.gradient(result)
 end
@@ -159,7 +159,7 @@ function DI.value_and_gradient(
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     # GradientResult doesn't work because it tries to mutate an SArray
-    result = MutableDiffResult(first(x), (similar(x),))
+    result = MutableDiffResult(zero(eltype(x)), (similar(x),))
     result = gradient!(result, fc, x, prep.config)
     return DR.value(result), DR.gradient(result)
 end
@@ -311,31 +311,24 @@ end
 
 ### Without contexts
 
-@kwdef struct ReverseDiffHessianPrep{GC,HC,GT,HT} <: DI.HessianPrep
-    gradient_config::GC
+@kwdef struct ReverseDiffHessianPrep{G<:ReverseDiffGradientPrep,HC,HT} <: DI.HessianPrep
+    gradient_prep::G
     hessian_config::HC
-    gradient_tape::GT
     hessian_tape::HT
 end
 
-function DI.prepare_hessian(f, ::AutoReverseDiff{compile}, x) where {compile}
+function DI.prepare_hessian(f, backend::AutoReverseDiff{compile}, x) where {compile}
+    # compute gradient separately because of ReverseDiff#251
+    gradient_prep = DI.prepare_gradient(f, backend, x)
     if compile
-        gradient_tape = ReverseDiff.compile(GradientTape(f, x))
         hessian_tape = ReverseDiff.compile(HessianTape(f, x))
         return ReverseDiffHessianPrep(;
-            gradient_config=nothing,
-            hessian_config=nothing,
-            gradient_tape=gradient_tape,
-            hessian_tape=hessian_tape,
+            gradient_prep, hessian_config=nothing, hessian_tape=hessian_tape
         )
     else
-        gradient_config = GradientConfig(x)
         hessian_config = HessianConfig(x)
         return ReverseDiffHessianPrep(;
-            gradient_config=gradient_config,
-            hessian_config=hessian_config,
-            gradient_tape=nothing,
-            hessian_tape=nothing,
+            gradient_prep, hessian_config=hessian_config, hessian_tape=nothing
         )
     end
 end
@@ -361,47 +354,34 @@ function DI.hessian(
 end
 
 function DI.value_gradient_and_hessian!(
-    f, grad, hess, prep::ReverseDiffHessianPrep, ::AutoReverseDiff{compile}, x
+    f, grad, hess, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
 ) where {compile}
-    y = f(x)  # TODO: ReverseDiff#251
-    result = DiffResult(y, (grad, hess))
-    if compile
-        result = hessian!(result, prep.hessian_tape, x)
-        grad = gradient!(grad, prep.gradient_tape, x) # TODO: ReverseDiff#251
-    else
-        result = hessian!(result, f, x)  # TODO: add prep.hessian_config
-        grad = gradient!(grad, f, x, prep.gradient_config) # TODO: ReverseDiff#251
-    end
-    # grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
-    hess === DR.hessian(result) || copyto!(hess, DR.hessian(result))
+    y = f(x)  # TODO: fuse with gradient!
+    #=
+    At the moment, using `value_and_gradient!` returns an incorrect value for y (only when `compile=true`). But this is fixed when adding a print statement (which may change uninitialized storage). Very weird.
+    =#
+    DI.gradient!(f, grad, prep.gradient_prep, backend, x)
+    DI.hessian!(f, hess, prep, backend, x)
     return y, grad, hess
 end
 
 function DI.value_gradient_and_hessian(
-    f, prep::ReverseDiffHessianPrep, ::AutoReverseDiff{compile}, x
+    f, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
 ) where {compile}
-    y = f(x)  # TODO: remove once ReverseDiff#251 is fixed
-    result = DiffResult(y, (similar(x), similar(x, length(x), length(x))))
-    if compile
-        result = hessian!(result, prep.hessian_tape, x)
-    else
-        result = hessian!(result, f, x)  # todo: add prep.hessian_config
-    end
-    return (y, DR.gradient(result), DR.hessian(result))
+    y, grad = DI.value_and_gradient(f, prep.gradient_prep, backend, x)
+    hess = DI.hessian(f, prep, backend, x)
+    return y, grad, hess
 end
 
 ### With contexts
 
 function DI.prepare_hessian(
-    f, ::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
+    f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
-    gradient_config = GradientConfig(x)
+    gradient_prep = DI.prepare_gradient(f, backend, x, contexts...)
     hessian_config = HessianConfig(x)
     return ReverseDiffHessianPrep(;
-        gradient_config=gradient_config,
-        hessian_config=hessian_config,
-        gradient_tape=nothing,
-        hessian_tape=nothing,
+        gradient_prep, hessian_config=hessian_config, hessian_tape=nothing
     )
 end
 
@@ -429,27 +409,23 @@ function DI.value_gradient_and_hessian!(
     grad,
     hess,
     prep::ReverseDiffHessianPrep,
-    ::AutoReverseDiff,
+    backend::AutoReverseDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    y = fc(x)  # TODO: ReverseDiff#251
-    result = DiffResult(y, (grad, hess))
-    result = hessian!(result, fc, x)  # TODO: add prep.hessian_config
-    y = DR.value(result)
-    # grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
-    grad = gradient!(grad, fc, x, prep.gradient_config)  # TODO: ReverseDiff#251
-    hess === DR.hessian(result) || copyto!(hess, DR.hessian(result))
+    y, _ = DI.value_and_gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
+    DI.hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess
 end
 
 function DI.value_gradient_and_hessian(
-    f, prep::ReverseDiffHessianPrep, ::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
+    f,
+    prep::ReverseDiffHessianPrep,
+    backend::AutoReverseDiff,
+    x,
+    contexts::Vararg{DI.Context,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    y = fc(x)  # TODO: ReverseDiff#251
-    result = HessianResult(x)
-    result = hessian!(result, fc, x)  # TODO: add prep.hessian_config
-    return (DR.value(result), DR.gradient(result), DR.hessian(result))
+    y, grad = DI.value_and_gradient(f, prep.gradient_prep, backend, x, contexts...)
+    hess = DI.hessian(f, prep, backend, x, contexts...)
+    return y, grad, hess
 end
