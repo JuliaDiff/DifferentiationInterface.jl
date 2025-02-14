@@ -311,6 +311,10 @@ end
 
 ### Without contexts
 
+#=
+At the moment, all three components of `value_gradient_and_hessian` are computed separately. In theory, `hessian!(result::DiffResult, ...)` is supposed to manage everything at once, but in practice I often find that the value itself is not updated, even when I call `DI.value_and_gradient` separately.
+=#
+
 @kwdef struct ReverseDiffHessianPrep{G<:ReverseDiffGradientPrep,HC,HT} <: DI.HessianPrep
     gradient_prep::G
     hessian_config::HC
@@ -318,7 +322,6 @@ end
 end
 
 function DI.prepare_hessian(f, backend::AutoReverseDiff{compile}, x) where {compile}
-    # compute gradient separately because of ReverseDiff#251
     gradient_prep = DI.prepare_gradient(f, backend, x)
     if compile
         hessian_tape = ReverseDiff.compile(HessianTape(f, x))
@@ -356,10 +359,7 @@ end
 function DI.value_gradient_and_hessian!(
     f, grad, hess, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
 ) where {compile}
-    y = f(x)  # TODO: fuse with gradient!
-    #=
-    At the moment, using `value_and_gradient!` returns an incorrect value for y (only when `compile=true`). But this is fixed when adding a print statement (which may change uninitialized storage). Very weird.
-    =#
+    y = f(x)
     DI.gradient!(f, grad, prep.gradient_prep, backend, x)
     DI.hessian!(f, hess, prep, backend, x)
     return y, grad, hess
@@ -368,7 +368,8 @@ end
 function DI.value_gradient_and_hessian(
     f, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
 ) where {compile}
-    y, grad = DI.value_and_gradient(f, prep.gradient_prep, backend, x)
+    y = f(x)
+    grad = DI.gradient(f, prep.gradient_prep, backend, x)
     hess = DI.hessian(f, prep, backend, x)
     return y, grad, hess
 end
@@ -413,7 +414,8 @@ function DI.value_gradient_and_hessian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    y, _ = DI.value_and_gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
+    y = f(x, map(DI.unwrap, contexts)...)
+    DI.gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
     DI.hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess
 end
@@ -425,7 +427,8 @@ function DI.value_gradient_and_hessian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    y, grad = DI.value_and_gradient(f, prep.gradient_prep, backend, x, contexts...)
+    y = f(x, map(DI.unwrap, contexts)...)
+    grad = DI.gradient(f, prep.gradient_prep, backend, x, contexts...)
     hess = DI.hessian(f, prep, backend, x, contexts...)
     return y, grad, hess
 end
