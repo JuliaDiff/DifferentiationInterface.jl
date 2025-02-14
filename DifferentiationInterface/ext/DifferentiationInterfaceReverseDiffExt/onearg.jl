@@ -144,23 +144,19 @@ function DI.value_and_gradient!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    y = fc(x)  # TODO: ReverseDiff#251
-    result = DiffResult(y, (grad,))
+    # DiffResult doesn't work because of ReverseDiff#251
+    result = MutableDiffResult(first(x), (grad,))
     result = gradient!(result, fc, x, prep.config)
-    y = DR.value(result)
-    grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
-    return y, grad
+    return DR.value(result), DR.gradient(result)
 end
 
 function DI.value_and_gradient(
-    f,
-    prep::ReverseDiffGradientPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
+    f, prep::ReverseDiffGradientPrep, ::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
-    grad = similar(x)
-    return DI.value_and_gradient!(f, grad, prep, backend, x, contexts...)
+    fc = DI.with_contexts(f, contexts...)
+    result = GradientResult(x)
+    result = gradient!(result, fc, x, prep.config)
+    return DR.value(result), DR.gradient(result)
 end
 
 function DI.gradient!(
