@@ -87,23 +87,27 @@ end
 function DI.value_and_gradient!(
     f, grad, prep::ReverseDiffGradientPrep, ::AutoReverseDiff{compile}, x
 ) where {compile}
-    y = f(x)  # TODO: ReverseDiff#251
-    result = DiffResult(y, (grad,))
+    # DiffResult doesn't work because of ReverseDiff#251
+    result = MutableDiffResult(first(x), (grad,))
     if compile
         result = gradient!(result, prep.tape, x)
     else
         result = gradient!(result, f, x, prep.config)
     end
-    y = DR.value(result)
-    grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
-    return y, grad
+    return DR.value(result), DR.gradient(result)
 end
 
 function DI.value_and_gradient(
-    f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff, x
-)
-    grad = similar(x)
-    return DI.value_and_gradient!(f, grad, prep, backend, x)
+    f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
+) where {compile}
+    # GradientResult doesn't work because it tries to mutate an SArray
+    result = MutableDiffResult(first(x), (similar(x),))
+    if compile
+        result = gradient!(result, prep.tape, x)
+    else
+        result = gradient!(result, f, x, prep.config)
+    end
+    return DR.value(result), DR.gradient(result)
 end
 
 function DI.gradient!(
@@ -154,7 +158,8 @@ function DI.value_and_gradient(
     f, prep::ReverseDiffGradientPrep, ::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    result = GradientResult(x)
+    # GradientResult doesn't work because it tries to mutate an SArray
+    result = MutableDiffResult(first(x), (similar(x),))
     result = gradient!(result, fc, x, prep.config)
     return DR.value(result), DR.gradient(result)
 end
