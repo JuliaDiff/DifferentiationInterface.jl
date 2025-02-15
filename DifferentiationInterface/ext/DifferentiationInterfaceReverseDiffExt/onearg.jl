@@ -87,20 +87,19 @@ end
 function DI.value_and_gradient!(
     f, grad, prep::ReverseDiffGradientPrep, ::AutoReverseDiff{compile}, x
 ) where {compile}
-    # DiffResult doesn't work because of ReverseDiff#251
-    result = MutableDiffResult(zero(eltype(x)), (grad,))
+    result = MutableDiffResult(zero(eltype(x)), (grad,))  # ReverseDiff#251
     if compile
         result = gradient!(result, prep.tape, x)
     else
         result = gradient!(result, f, x, prep.config)
     end
-    return DR.value(result), DR.gradient(result)
+    return DR.value(result), grad  # ReverseDiff#269
 end
 
 function DI.value_and_gradient(
     f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
 ) where {compile}
-    # GradientResult doesn't work because it tries to mutate an SArray
+    # GradientResult tries to mutate an SArray
     result = MutableDiffResult(zero(eltype(x)), (similar(x),))
     if compile
         result = gradient!(result, prep.tape, x)
@@ -148,17 +147,16 @@ function DI.value_and_gradient!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    # DiffResult doesn't work because of ReverseDiff#251
-    result = MutableDiffResult(zero(eltype(x)), (grad,))
+    result = MutableDiffResult(zero(eltype(x)), (grad,))  # ReverseDiff#251
     result = gradient!(result, fc, x, prep.config)
-    return DR.value(result), DR.gradient(result)
+    return DR.value(result), grad  # ReverseDiff#269
 end
 
 function DI.value_and_gradient(
     f, prep::ReverseDiffGradientPrep, ::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
-    # GradientResult doesn't work because it tries to mutate an SArray
+    # GradientResult tries to mutate an SArray
     result = MutableDiffResult(zero(eltype(x)), (similar(x),))
     result = gradient!(result, fc, x, prep.config)
     return DR.value(result), DR.gradient(result)
@@ -310,10 +308,6 @@ end
 ## Hessian
 
 ### Without contexts
-
-#=
-At the moment, all three components of `value_gradient_and_hessian` are computed separately. In theory, `hessian!(result::DiffResult, ...)` is supposed to manage everything at once, but in practice I often find that the value itself is not updated, even when I call `DI.value_and_gradient` separately.
-=#
 
 @kwdef struct ReverseDiffHessianPrep{G<:ReverseDiffGradientPrep,HC,HT} <: DI.HessianPrep
     gradient_prep::G
