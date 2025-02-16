@@ -29,7 +29,9 @@ test_differentiation(
     logging=LOGGING,
 );
 
-test_differentiation(backends, static_scenarios(); logging=LOGGING);
+test_differentiation(
+    backends, static_scenarios(; include_constantified=true); logging=LOGGING
+);
 
 ## Sparse
 
