@@ -60,64 +60,65 @@ function gradient! end
 
 ## Preparation
 
-struct PullbackGradientPrep{E<:PullbackPrep} <: GradientPrep
+struct PullbackGradientPrep{Y,E<:PullbackPrep} <: GradientPrep
     pullback_prep::E
 end
 
 function prepare_gradient(
     f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
+    y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
     pullback_prep = prepare_pullback(f, backend, x, (true,), contexts...)
-    return PullbackGradientPrep(pullback_prep)
+    return PullbackGradientPrep{typeof(y),typeof(pullback_prep)}(pullback_prep)
 end
 
 ## One argument
 
 function value_and_gradient(
     f::F,
-    prep::PullbackGradientPrep,
+    prep::PullbackGradientPrep{Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,C}
-    y, tx = value_and_pullback(f, prep.pullback_prep, backend, x, (true,), contexts...)
+) where {F,Y,C}
+    y, tx = value_and_pullback(f, prep.pullback_prep, backend, x, (one(Y),), contexts...)
     return y, only(tx)
 end
 
 function value_and_gradient!(
     f::F,
     grad,
-    prep::PullbackGradientPrep,
+    prep::PullbackGradientPrep{Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,C}
+) where {F,Y,C}
     y, _ = value_and_pullback!(
-        f, (grad,), prep.pullback_prep, backend, x, (true,), contexts...
+        f, (grad,), prep.pullback_prep, backend, x, (one(Y),), contexts...
     )
     return y, grad
 end
 
 function gradient(
     f::F,
-    prep::PullbackGradientPrep,
+    prep::PullbackGradientPrep{Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,C}
-    tx = pullback(f, prep.pullback_prep, backend, x, (true,), contexts...)
+) where {F,Y,C}
+    tx = pullback(f, prep.pullback_prep, backend, x, (one(Y),), contexts...)
     return only(tx)
 end
 
 function gradient!(
     f::F,
     grad,
-    prep::PullbackGradientPrep,
+    prep::PullbackGradientPrep{Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,C}
-    pullback!(f, (grad,), prep.pullback_prep, backend, x, (true,), contexts...)
+) where {F,Y,C}
+    pullback!(f, (grad,), prep.pullback_prep, backend, x, (one(Y),), contexts...)
     return grad
 end
 

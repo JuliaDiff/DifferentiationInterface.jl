@@ -22,13 +22,13 @@ function DI.value_and_pushforward(
 ) where {F,C}
     mode = forward_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode)
-    dx_sametype = convert(typeof(x), only(tx))
-    dy_sametype = make_zero(y)
-    x_and_dx = Duplicated(x, dx_sametype)
-    y_and_dy = Duplicated(y, dy_sametype)
+    dx = only(tx)
+    dy = make_zero(y)
+    x_and_dx = Duplicated(x, dx)
+    y_and_dy = Duplicated(y, dy)
     annotated_contexts = translate(backend, mode, Val(1), contexts...)
     autodiff(mode, f!_and_df!, Const, y_and_dy, x_and_dx, annotated_contexts...)
-    return y, (dy_sametype,)
+    return y, (dy,)
 end
 
 function DI.value_and_pushforward(
@@ -42,13 +42,12 @@ function DI.value_and_pushforward(
 ) where {F,B,C}
     mode = forward_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))
-    tx_sametype = map(Fix1(convert, typeof(x)), tx)
-    ty_sametype = ntuple(_ -> make_zero(y), Val(B))
-    x_and_tx = BatchDuplicated(x, tx_sametype)
-    y_and_ty = BatchDuplicated(y, ty_sametype)
+    ty = ntuple(_ -> make_zero(y), Val(B))
+    x_and_tx = BatchDuplicated(x, tx)
+    y_and_ty = BatchDuplicated(y, ty)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
     autodiff(mode, f!_and_df!, Const, y_and_ty, x_and_tx, annotated_contexts...)
-    return y, ty_sametype
+    return y, ty
 end
 
 function DI.pushforward(
@@ -76,13 +75,10 @@ function DI.value_and_pushforward!(
 ) where {F,B,C}
     mode = forward_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))
-    tx_sametype = map(Fix1(convert, typeof(x)), tx)
-    ty_sametype = map(Fix1(convert, typeof(y)), ty)
-    x_and_tx = BatchDuplicated(x, tx_sametype)
-    y_and_ty = BatchDuplicated(y, ty_sametype)
+    x_and_tx = BatchDuplicated(x, tx)
+    y_and_ty = BatchDuplicated(y, ty)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
     autodiff(mode, f!_and_df!, Const, y_and_ty, x_and_tx, annotated_contexts...)
-    foreach(copyto_if_different_addresses!, ty, ty_sametype)
     return y, ty
 end
 
