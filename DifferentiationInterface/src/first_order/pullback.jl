@@ -168,7 +168,9 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = map(CartesianIndices(x)) do j
+    ind = CartesianIndices(x)
+    T = typeof(similar(x, eltype(ind)))
+    dx = map(x, T(ind)) do xj, j
         t1 = pushforward(f, pushforward_prep, backend, x, (basis(x, j),), contexts...)
         dot(only(t1), dy)
     end
@@ -254,7 +256,9 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    dx = map(CartesianIndices(x)) do j  # preserve shape
+    ind = CartesianIndices(x)
+    T = typeof(similar(x, eltype(ind)))
+    dx = map(x, T(ind)) do xj, j  # preserve shape
         t1 = pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...)
         dot(only(t1), dy)
     end
