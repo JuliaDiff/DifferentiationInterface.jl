@@ -151,12 +151,12 @@ function _pullback_via_pushforward(
     f::F,
     pushforward_prep::PushforwardPrep,
     backend::AbstractADType,
-    x::Number,
+    x::Real,
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    t1 = pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...)
-    dx = dot(only(t1), dy)
+    a = only(pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...))
+    dx = dot(a, dy)
     return dx
 end
 
@@ -164,13 +164,45 @@ function _pullback_via_pushforward(
     f::F,
     pushforward_prep::PushforwardPrep,
     backend::AbstractADType,
-    x::AbstractArray,
+    x::Complex,
+    dy,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    a = only(pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...))
+    b = only(pushforward(f, pushforward_prep, backend, x, (im * one(x),), contexts...))
+    dx = real(dot(a, dy)) + im * real(dot(b, dy))
+    return dx
+end
+
+function _pullback_via_pushforward(
+    f::F,
+    pushforward_prep::PushforwardPrep,
+    backend::AbstractADType,
+    x::AbstractArray{<:Real},
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
     dx = map(CartesianIndices(x)) do j
-        t1 = pushforward(f, pushforward_prep, backend, x, (basis(x, j),), contexts...)
-        dot(only(t1), dy)
+        a = only(pushforward(f, pushforward_prep, backend, x, (basis(x, j),), contexts...))
+        dot(a, dy)
+    end
+    return dx
+end
+
+function _pullback_via_pushforward(
+    f::F,
+    pushforward_prep::PushforwardPrep,
+    backend::AbstractADType,
+    x::AbstractArray{<:Complex},
+    dy,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    dx = map(CartesianIndices(x)) do j
+        a = only(pushforward(f, pushforward_prep, backend, x, (basis(x, j),), contexts...))
+        b = only(
+            pushforward(f, pushforward_prep, backend, x, (im * basis(x, j),), contexts...),
+        )
+        real(dot(a, dy)) + im * real(dot(b, dy))
     end
     return dx
 end
@@ -236,12 +268,12 @@ function _pullback_via_pushforward(
     y,
     pushforward_prep::PushforwardPrep,
     backend::AbstractADType,
-    x::Number,
+    x::Real,
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    t1 = pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...)
-    dx = dot(only(t1), dy)
+    a = only(pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...))
+    dx = dot(a, dy)
     return dx
 end
 
@@ -250,13 +282,49 @@ function _pullback_via_pushforward(
     y,
     pushforward_prep::PushforwardPrep,
     backend::AbstractADType,
-    x::AbstractArray,
+    x::Complex,
+    dy,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    a = only(pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...))
+    b = only(pushforward(f!, y, pushforward_prep, backend, x, (im * one(x),), contexts...))
+    dx = real(dot(a, dy)) + im * real(dot(b, dy))
+    return dx
+end
+
+function _pullback_via_pushforward(
+    f!::F,
+    y,
+    pushforward_prep::PushforwardPrep,
+    backend::AbstractADType,
+    x::AbstractArray{<:Real},
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
     dx = map(CartesianIndices(x)) do j  # preserve shape
-        t1 = pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...)
-        dot(only(t1), dy)
+        a = only(pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...))
+        dot(a, dy)
+    end
+    return dx
+end
+
+function _pullback_via_pushforward(
+    f!::F,
+    y,
+    pushforward_prep::PushforwardPrep,
+    backend::AbstractADType,
+    x::AbstractArray{<:Complex},
+    dy,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    dx = map(CartesianIndices(x)) do j  # preserve shape
+        a = only(pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...))
+        b = only(
+            pushforward(
+                f!, y, pushforward_prep, backend, x, (im * basis(x, j),), contexts...
+            ),
+        )
+        real(dot(a, dy)) + im * real(dot(b, dy))
     end
     return dx
 end
