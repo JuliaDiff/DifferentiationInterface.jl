@@ -157,13 +157,28 @@ function _pushforward_via_pullback(
     dx,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    t1 = pullback(f, pullback_prep, backend, x, (one(y),), contexts...)
-    dy = dot(only(t1), dx)
+    a = only(pullback(f, pullback_prep, backend, x, (one(y),), contexts...))
+    dy = dot(a, dx)
     return dy
 end
 
 function _pushforward_via_pullback(
-    y::AbstractArray,
+    y::Complex,
+    f::F,
+    pullback_prep::PullbackPrep,
+    backend::AbstractADType,
+    x,
+    dx,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    a = only(pullback(f, pullback_prep, backend, x, (one(y),), contexts...))
+    b = only(pullback(f, pullback_prep, backend, x, (im * one(y),), contexts...))
+    dy = real(dot(a, dx)) + im * real(dot(b, dx))
+    return dy
+end
+
+function _pushforward_via_pullback(
+    y::AbstractArray{<:Real},
     f::F,
     pullback_prep::PullbackPrep,
     backend::AbstractADType,
@@ -172,8 +187,25 @@ function _pushforward_via_pullback(
     contexts::Vararg{Context,C},
 ) where {F,C}
     dy = map(CartesianIndices(y)) do i
-        t1 = pullback(f, pullback_prep, backend, x, (basis(y, i),), contexts...)
-        dot(only(t1), dx)
+        a = only(pullback(f, pullback_prep, backend, x, (basis(y, i),), contexts...))
+        dot(a, dx)
+    end
+    return dy
+end
+
+function _pushforward_via_pullback(
+    y::AbstractArray{<:Complex},
+    f::F,
+    pullback_prep::PullbackPrep,
+    backend::AbstractADType,
+    x,
+    dx,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    dy = map(CartesianIndices(y)) do i
+        a = only(pullback(f, pullback_prep, backend, x, (basis(y, i),), contexts...))
+        b = only(pullback(f, pullback_prep, backend, x, (im * basis(y, i),), contexts...))
+        real(dot(a, dx)) + im * real(dot(b, dx))
     end
     return dy
 end
@@ -236,7 +268,7 @@ end
 
 function _pushforward_via_pullback(
     f!::F,
-    y::AbstractArray,
+    y::AbstractArray{<:Real},
     pullback_prep::PullbackPrep,
     backend::AbstractADType,
     x,
@@ -244,8 +276,27 @@ function _pushforward_via_pullback(
     contexts::Vararg{Context,C},
 ) where {F,C}
     dy = map(CartesianIndices(y)) do i  # preserve shape
-        t1 = pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...)
-        dot(only(t1), dx)
+        a = only(pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...))
+        dot(a, dx)
+    end
+    return dy
+end
+
+function _pushforward_via_pullback(
+    f!::F,
+    y::AbstractArray{<:Complex},
+    pullback_prep::PullbackPrep,
+    backend::AbstractADType,
+    x,
+    dx,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    dy = map(CartesianIndices(y)) do i  # preserve shape
+        a = only(pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...))
+        b = only(
+            pullback(f!, y, pullback_prep, backend, x, (im * basis(y, i),), contexts...)
+        )
+        real(dot(a, dx)) + im * real(dot(b, dx))
     end
     return dy
 end
