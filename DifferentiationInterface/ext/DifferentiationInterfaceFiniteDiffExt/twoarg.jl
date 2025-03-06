@@ -166,6 +166,26 @@ function DI.prepare_derivative(
     return FiniteDiffTwoArgDerivativePrep(cache, relstep, absstep, dir)
 end
 
+function DI.prepare!_derivative(
+    f!,
+    y,
+    old_prep::FiniteDiffTwoArgDerivativePrep,
+    backend::AutoFiniteDiff,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    if y isa Vector
+        (; cache) = old_prep
+        cache.fx isa Union{Number,Nothing} || resize!(cache.fx, length(y))
+        cache.c1 isa Union{Number,Nothing} || resize!(cache.c1, length(y))
+        cache.c2 isa Union{Number,Nothing} || resize!(cache.c2, length(y))
+        cache.c3 isa Union{Number,Nothing} || resize!(cache.c3, length(y))
+        return old_prep
+    else
+        return DI.prepare_derivative(f!, y, backend, x, contexts...)
+    end
+end
+
 function DI.value_and_derivative(
     f!,
     y,
@@ -255,6 +275,28 @@ function DI.prepare_jacobian(
     end
     dir = backend.dir
     return FiniteDiffTwoArgJacobianPrep(cache, relstep, absstep, dir)
+end
+
+function DI.prepare!_jacobian(
+    f!,
+    y,
+    old_prep::FiniteDiffTwoArgJacobianPrep,
+    backend::AutoFiniteDiff,
+    x,
+    contexts::Vararg{DI.Context,C},
+) where {C}
+    if x isa Vector && y isa Vector
+        (; cache) = old_prep
+        cache.x1 isa Union{Number,Nothing} || resize!(cache.x1, length(x))
+        cache.x2 isa Union{Number,Nothing} || resize!(cache.x2, length(x))
+        cache.fx isa Union{Number,Nothing} || resize!(cache.fx, length(y))
+        cache.fx1 isa Union{Number,Nothing} || resize!(cache.fx1, length(y))
+        cache.colorvec = 1:length(x)
+        cache.sparsity = nothing
+        return old_prep
+    else
+        return DI.prepare_jacobian(f!, y, backend, x, contexts...)
+    end
 end
 
 function DI.value_and_jacobian(
