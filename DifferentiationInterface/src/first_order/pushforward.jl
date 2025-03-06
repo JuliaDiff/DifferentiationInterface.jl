@@ -98,8 +98,12 @@ function pushforward! end
 
 ## Preparation
 
-struct PullbackPushforwardPrep{E} <: PushforwardPrep
+struct PullbackPushforwardPrep{F,Y,B,X,T,CC,E} <: PushforwardPrep{F,Y,B,X,T,CC}
     pullback_prep::E
+end
+
+function PullbackPushforwardPrep{F,Y,B,X,T,CC}(pullback_prep::E) where {F,Y,B,X,T,CC,E}
+    return PullbackPushforwardPrep{F,Y,B,X,T,CC,E}(pullback_prep)
 end
 
 function prepare_pushforward(
@@ -119,31 +123,20 @@ function prepare_pushforward(
 end
 
 function _prepare_pushforward_aux(
-    ::PushforwardSlow,
-    f::F,
-    backend::AbstractADType,
-    x,
-    tx::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
+    ::PushforwardSlow, f::F, backend::B, x::X, tx::T, contexts::Vararg{Context,C}
+) where {F,B,X,T,C}
     y = f(x, map(unwrap, contexts)...)
     dy = y isa Number ? one(y) : basis(y, first(CartesianIndices(y)))
     pullback_prep = prepare_pullback(f, backend, x, (dy,), contexts...)
-    return PullbackPushforwardPrep(pullback_prep)
+    return PullbackPushforwardPrep{F,Nothing,B,X,T,typeof(contexts)}(pullback_prep)
 end
 
 function _prepare_pushforward_aux(
-    ::PushforwardSlow,
-    f!::F,
-    y,
-    backend::AbstractADType,
-    x,
-    tx::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
+    ::PushforwardSlow, f!::F, y::Y, backend::B, x::X, tx::T, contexts::Vararg{Context,C}
+) where {F,Y,B,X,T,C}
     dy = y isa Number ? one(y) : basis(y, first(CartesianIndices(y)))
     pullback_prep = prepare_pullback(f!, y, backend, x, (dy,), contexts...)
-    return PullbackPushforwardPrep(pullback_prep)
+    return PullbackPushforwardPrep{F,Y,B,X,T,typeof(contexts)}(pullback_prep)
 end
 
 ## One argument
@@ -218,6 +211,7 @@ function value_and_pushforward(
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; pullback_prep) = prep
     y = f(x, map(unwrap, contexts)...)
     ty = ntuple(
@@ -236,6 +230,7 @@ function value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
     return y, ty
@@ -249,6 +244,7 @@ function pushforward(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     return value_and_pushforward(f, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -261,6 +257,7 @@ function pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     return value_and_pushforward!(f, ty, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -310,6 +307,7 @@ function value_and_pushforward(
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; pullback_prep) = prep
     ty = ntuple(
         b ->
@@ -330,6 +328,7 @@ function value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
     return y, ty
@@ -344,6 +343,7 @@ function pushforward(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     return value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -357,6 +357,7 @@ function pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     return value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)[2]
 end
 
