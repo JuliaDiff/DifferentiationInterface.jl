@@ -98,8 +98,12 @@ function pullback! end
 
 ## Preparation
 
-struct PushforwardPullbackPrep{E} <: PullbackPrep
+struct PushforwardPullbackPrep{F,Y,B,X,T,CC,E} <: PullbackPrep{F,Y,B,X,T,CC}
     pushforward_prep::E
+end
+
+function PushforwardPullbackPrep{F,Y,B,X,T,CC}(pushforward_prep::E) where {F,Y,B,X,T,CC,E}
+    return PushforwardPullbackPrep{F,Y,B,X,T,CC,E}(pushforward_prep)
 end
 
 function prepare_pullback(
@@ -119,30 +123,19 @@ function prepare_pullback(
 end
 
 function _prepare_pullback_aux(
-    ::PullbackSlow,
-    f::F,
-    backend::AbstractADType,
-    x,
-    ty::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
+    ::PullbackSlow, f::F, backend::B, x::X, ty::T, contexts::Vararg{Context,C}
+) where {F,B,X,T,C}
     dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f, backend, x, (dx,), contexts...)
-    return PushforwardPullbackPrep(pushforward_prep)
+    return PushforwardPullbackPrep{F,Nothing,B,X,T,typeof(contexts)}(pushforward_prep)
 end
 
 function _prepare_pullback_aux(
-    ::PullbackSlow,
-    f!::F,
-    y,
-    backend::AbstractADType,
-    x,
-    ty::NTuple,
-    contexts::Vararg{Context,C},
-) where {F,C}
+    ::PullbackSlow, f!::F, y::Y, backend::B, x::X, ty::T, contexts::Vararg{Context,C}
+) where {F,Y,B,X,T,C}
     dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f!, y, backend, x, (dx,), contexts...)
-    return PushforwardPullbackPrep(pushforward_prep)
+    return PushforwardPullbackPrep{F,Y,B,X,T,typeof(contexts)}(pushforward_prep)
 end
 
 ## One argument
@@ -215,6 +208,7 @@ function value_and_pullback(
     ty::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     (; pushforward_prep) = prep
     y = f(x, map(unwrap, contexts)...)
     tx = ntuple(
@@ -233,6 +227,7 @@ function value_and_pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     y, new_tx = value_and_pullback(f, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
     return y, tx
@@ -246,6 +241,7 @@ function pullback(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     return value_and_pullback(f, prep, backend, x, ty, contexts...)[2]
 end
 
@@ -258,6 +254,7 @@ function pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     return value_and_pullback!(f, tx, prep, backend, x, ty, contexts...)[2]
 end
 
@@ -338,6 +335,7 @@ function value_and_pullback(
     ty::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; pushforward_prep) = prep
     tx = ntuple(
         b -> _pullback_via_pushforward(
@@ -359,6 +357,7 @@ function value_and_pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     y, new_tx = value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
     return y, tx
@@ -373,6 +372,7 @@ function pullback(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     return value_and_pullback(f!, y, prep, backend, x, ty, contexts...)[2]
 end
 
@@ -386,5 +386,6 @@ function pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     return value_and_pullback!(f!, y, tx, prep, backend, x, ty, contexts...)[2]
 end
