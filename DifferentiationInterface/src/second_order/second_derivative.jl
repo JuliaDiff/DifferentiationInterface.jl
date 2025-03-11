@@ -74,6 +74,7 @@ function second_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -91,6 +92,7 @@ function value_derivative_and_second_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -111,6 +113,7 @@ function second_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -130,6 +133,7 @@ function value_derivative_and_second_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (

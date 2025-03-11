@@ -107,6 +107,7 @@ function hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -126,6 +127,7 @@ function hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -150,6 +152,7 @@ function gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -170,6 +173,7 @@ function gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -220,6 +224,7 @@ function hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -239,6 +244,7 @@ function hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -263,6 +269,7 @@ function gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -283,6 +290,7 @@ function gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pushforward_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -339,6 +347,7 @@ function hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_gradient_prep) = prep
     rewrap = Rewrap(contexts...)
     tg = map(tx) do dx
@@ -366,6 +375,7 @@ function hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_gradient_prep) = prep
     rewrap = Rewrap(contexts...)
     for b in eachindex(tx, tg)
@@ -393,6 +403,7 @@ function gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     tg = hvp(f, prep, backend, x, tx, contexts...)
     grad = gradient(f, prep.gradient_prep, inner(backend), x, contexts...)
     return grad, tg
@@ -408,6 +419,7 @@ function gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     hvp!(f, tg, prep, backend, x, tx, contexts...)
     gradient!(f, grad, prep.gradient_prep, inner(backend), x, contexts...)
     return grad, tg
@@ -446,6 +458,7 @@ function hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -465,6 +478,7 @@ function hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -483,6 +497,7 @@ function gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -503,6 +518,7 @@ function gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (

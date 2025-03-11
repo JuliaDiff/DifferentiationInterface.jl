@@ -218,6 +218,7 @@ function value_and_pushforward(
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; pullback_prep) = prep
     y = f(x, map(unwrap, contexts)...)
     ty = ntuple(
@@ -236,6 +237,7 @@ function value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
     return y, ty
@@ -249,6 +251,7 @@ function pushforward(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     return value_and_pushforward(f, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -261,6 +264,7 @@ function pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     return value_and_pushforward!(f, ty, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -310,6 +314,7 @@ function value_and_pushforward(
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; pullback_prep) = prep
     ty = ntuple(
         b ->
@@ -330,6 +335,7 @@ function value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
     return y, ty
@@ -344,6 +350,7 @@ function pushforward(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     return value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -357,6 +364,7 @@ function pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     return value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)[2]
 end
 

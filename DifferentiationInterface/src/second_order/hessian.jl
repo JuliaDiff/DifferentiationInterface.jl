@@ -112,6 +112,7 @@ function hessian(
     x,
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; batched_seeds, hvp_prep) = prep
     dg_batch = hvp(f, hvp_prep, backend, x, only(batched_seeds), contexts...)
     block = stack_vec_col(dg_batch)
@@ -125,6 +126,7 @@ function hessian(
     x,
     contexts::Vararg{Context,C},
 ) where {F,B,aligned,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; batch_size_settings, batched_seeds, hvp_prep) = prep
     (; A, B_last) = batch_size_settings
 
@@ -152,6 +154,7 @@ function hessian!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; batch_size_settings, batched_seeds, batched_results, hvp_prep) = prep
     (; N) = batch_size_settings
 
@@ -181,6 +184,7 @@ function value_gradient_and_hessian(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, grad = value_and_gradient(f, prep.gradient_prep, inner(backend), x, contexts...)
     hess = hessian(f, prep, backend, x, contexts...)
     return y, grad, hess
@@ -195,6 +199,7 @@ function value_gradient_and_hessian!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, _ = value_and_gradient!(f, grad, prep.gradient_prep, inner(backend), x, contexts...)
     hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess

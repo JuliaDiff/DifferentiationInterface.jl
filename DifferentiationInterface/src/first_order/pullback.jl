@@ -215,6 +215,7 @@ function value_and_pullback(
     ty::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     (; pushforward_prep) = prep
     y = f(x, map(unwrap, contexts)...)
     tx = ntuple(
@@ -233,6 +234,7 @@ function value_and_pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     y, new_tx = value_and_pullback(f, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
     return y, tx
@@ -246,6 +248,7 @@ function pullback(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     return value_and_pullback(f, prep, backend, x, ty, contexts...)[2]
 end
 
@@ -258,6 +261,7 @@ function pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     return value_and_pullback!(f, tx, prep, backend, x, ty, contexts...)[2]
 end
 
@@ -338,6 +342,7 @@ function value_and_pullback(
     ty::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; pushforward_prep) = prep
     tx = ntuple(
         b -> _pullback_via_pushforward(
@@ -359,6 +364,7 @@ function value_and_pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     y, new_tx = value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
     return y, tx
@@ -373,6 +379,7 @@ function pullback(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     return value_and_pullback(f!, y, prep, backend, x, ty, contexts...)[2]
 end
 
@@ -386,5 +393,6 @@ function pullback!(
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     return value_and_pullback!(f!, y, tx, prep, backend, x, ty, contexts...)[2]
 end

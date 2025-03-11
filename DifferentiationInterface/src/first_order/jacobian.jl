@@ -70,6 +70,11 @@ function jacobian! end
 abstract type StandardJacobianPrep <: JacobianPrep end
 
 struct PushforwardJacobianPrep{
+    F,
+    Y,
+    B,
+    X,
+    CC,
     BS<:BatchSizeSettings,
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
@@ -179,6 +184,7 @@ function jacobian(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     return _jacobian_aux((f,), prep, backend, x, contexts...)
 end
 
@@ -190,18 +196,21 @@ function jacobian!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     return _jacobian_aux!((f,), jac, prep, backend, x, contexts...)
 end
 
 function value_and_jacobian(
     f::F, prep::JacobianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     return f(x, map(unwrap, contexts)...), jacobian(f, prep, backend, x, contexts...)
 end
 
 function value_and_jacobian!(
     f::F, jac, prep::JacobianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     return f(x, map(unwrap, contexts)...), jacobian!(f, jac, prep, backend, x, contexts...)
 end
 
@@ -215,6 +224,7 @@ function jacobian(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     return _jacobian_aux((f!, y), prep, backend, x, contexts...)
 end
 
@@ -227,12 +237,14 @@ function jacobian!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     return _jacobian_aux!((f!, y), jac, prep, backend, x, contexts...)
 end
 
 function value_and_jacobian(
     f!::F, y, prep::JacobianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     jac = jacobian(f!, y, prep, backend, x, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     return y, jac
@@ -247,6 +259,7 @@ function value_and_jacobian!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     jacobian!(f!, y, jac, prep, backend, x, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     return y, jac
