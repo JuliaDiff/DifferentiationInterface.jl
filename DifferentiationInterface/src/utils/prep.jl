@@ -1,69 +1,70 @@
-abstract type Prep{F,Y,B<:AbstractADType,X,T<:Union{NTuple,Nothing},CC} end
+abstract type Prep{SIG} end
 
-abstract type PushforwardPrep{F,Y,B,X,T,CC} <: Prep{F,Y,B,X,T,CC} end
-struct NoPushforwardPrep{F,Y,B,X,T,CC} <: PushforwardPrep{F,Y,B,X,T,CC} end
+"""
+    PushforwardPrep{SIG}
 
-abstract type PullbackPrep{F,Y,B,X,T,CC} <: Prep{F,Y,B,X,T,CC} end
-struct NoPullbackPrep{F,Y,B,X,T,CC} <: PullbackPrep{F,Y,B,X,T,CC} end
+Abstract type for additional information needed by [`pushforward`](@ref) and its variants.
+"""
+abstract type PushforwardPrep{SIG} <: Prep{SIG} end
+struct NoPushforwardPrep{SIG} <: PushforwardPrep{SIG} end
 
-abstract type DerivativePrep{F,Y,B,X,CC} <: Prep{F,Y,B,X,Nothing,CC} end
-struct NoDerivativePrep{F,Y,B,X,CC} <: DerivativePrep{F,Y,B,X,CC} end
+"""
+    PullbackPrep{SIG}
 
-abstract type GradientPrep{F,B,X,CC} <: Prep{F,Nothing,B,X,Nothing,CC} end
-struct NoGradientPrep{F,B,X,CC} <: GradientPrep{F,B,X,CC} end
+Abstract type for additional information needed by [`pullback`](@ref) and its variants.
+"""
+abstract type PullbackPrep{SIG} <: Prep{SIG} end
+struct NoPullbackPrep{SIG} <: PullbackPrep{SIG} end
 
-abstract type JacobianPrep{F,Y,B,X,CC} <: Prep{F,Y,B,X,Nothing,CC} end
-struct NoJacobianPrep{F,Y,B,X,CC} <: JacobianPrep{F,Y,B,X,CC} end
+"""
+    DerivativePrep{SIG}
 
-abstract type HVPPrep{F,B,X,T,CC} <: Prep{F,Nothing,B,X,T,CC} end
-struct NoHVPPrep{F,B,X,T,CC} <: HVPPrep{F,B,X,T,CC} end
+Abstract type for additional information needed by [`derivative`](@ref) and its variants.
+"""
+abstract type DerivativePrep{SIG} <: Prep{SIG} end
+struct NoDerivativePrep{SIG} <: DerivativePrep{SIG} end
 
-abstract type HessianPrep{F,B,X,CC} <: Prep{F,Nothing,B,X,Nothing,CC} end
-struct NoHessianPrep{F,B,X,CC} <: HessianPrep{F,B,X,CC} end
+"""
+    GradientPrep{SIG}
 
-abstract type SecondDerivativePrep{F,Y,B,X,CC} <: Prep{F,Y,B,X,Nothing,CC} end
-struct NoSecondDerivativePrep{F,Y,B,X,CC} <: SecondDerivativePrep{F,Y,B,X,CC} end
+Abstract type for additional information needed by [`gradient`](@ref) and its variants.
+"""
+abstract type GradientPrep{SIG} <: Prep{SIG} end
+struct NoGradientPrep{SIG} <: GradientPrep{SIG} end
+
+"""
+    JacobianPrep{SIG}
+
+Abstract type for additional information needed by [`jacobian`](@ref) and its variants.
+"""
+abstract type JacobianPrep{SIG} <: Prep{SIG} end
+struct NoJacobianPrep{SIG} <: JacobianPrep{SIG} end
+
+"""
+    HVPPrep{SIG}
+
+Abstract type for additional information needed by [`hvp`](@ref) and its variants.
+"""
+abstract type HVPPrep{SIG} <: Prep{SIG} end
+struct NoHVPPrep{SIG} <: HVPPrep{SIG} end
+
+"""
+    HessianPrep{SIG}
+
+Abstract type for additional information needed by [`hessian`](@ref) and its variants.
+"""
+abstract type HessianPrep{SIG} <: Prep{SIG} end
+struct NoHessianPrep{SIG} <: HessianPrep{SIG} end
+
+"""
+    SecondDerivativePrep{SIG}
+
+Abstract type for additional information needed by [`second_derivative`](@ref) and its variants.
+"""
+abstract type SecondDerivativePrep{SIG} <: Prep{SIG} end
+struct NoSecondDerivativePrep{SIG} <: SecondDerivativePrep{SIG} end
 
 function check_prep(
-    f, ::Prep{F,Y,B,X,T,CC}, backend, x, contexts::Vararg{Context,C}
-) where {F,Y,B,X,T,CC,C}
-    @assert typeof(f) == F
-    @assert Nothing == Y
-    @assert typeof(backend) == B
-    @assert typeof(x) == X
-    @assert Nothing == T
-    @assert typeof(contexts) == CC
-end
-
-function check_prep(
-    f, ::Prep{F,Y,B,X,T,CC}, backend, x, t::NTuple, contexts::Vararg{Context,C}
-) where {F,Y,B,X,T,CC,C}
-    @assert typeof(f) == F
-    @assert Nothing == Y
-    @assert typeof(backend) == B
-    @assert typeof(x) == X
-    @assert typeof(t) == T
-    @assert typeof(contexts) == CC
-end
-
-function check_prep(
-    f, y, ::Prep{F,Y,B,X,T,CC}, backend, x, contexts::Vararg{Context,C}
-) where {F,Y,B,X,T,CC,C}
-    @assert typeof(f) == F
-    @assert typeof(y) == Y
-    @assert typeof(backend) == B
-    @assert typeof(x) == X
-    @assert Nothing == T
-    @assert typeof(contexts) == CC
-end
-
-function check_prep(
-    f, y, ::Prep{F,Y,B,X,CC}, backend, x, t::NTuple, contexts::Vararg{Context,C}
-) where {F,Y,B,X,CC,C}
-    @assert typeof(f) == F
-    @assert typeof(y) == Y
-    @assert typeof(backend) == B
-    @assert typeof(x) == X
-    @assert typeof(t) == T
-    @assert typeof(contexts) == CC
+    f, prep::Prep, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {C}
 end

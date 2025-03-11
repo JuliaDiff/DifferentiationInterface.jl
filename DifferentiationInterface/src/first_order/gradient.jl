@@ -60,20 +60,20 @@ function gradient! end
 
 ## Preparation
 
-struct PullbackGradientPrep{F,B,X,CC,Y,E<:PullbackPrep} <: GradientPrep{F,B,X,CC}
+struct PullbackGradientPrep{SIG,Y,E<:PullbackPrep} <: GradientPrep
+    signature::SIG
     pullback_prep::E
 end
 
-function PullbackGradientPrep{F,B,X,CC}(y::Y, pullback_prep::E) where {F,Y,B,X,CC,E}
-    return PullbackGradientPrep{F,Y,B,X,CC,Y,E}(pullback_prep)
-end
-
 function prepare_gradient(
-    f::F, backend::B, x::X, contexts::Vararg{Context,C}
-) where {F,B<:AbstractADType,X,C}
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    signature = map(typeof, (f, backend, x, contexts))
     y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
     pullback_prep = prepare_pullback(f, backend, x, (true,), contexts...)
-    return PullbackGradientPrep{F,B,X,CC}(y, pullback_prep)
+    return PullbackGradientPrep{typeof(signature),typeof(y),typeof(pullback_prep)}(
+        signature, pullback_prep
+    )
 end
 
 ## One argument

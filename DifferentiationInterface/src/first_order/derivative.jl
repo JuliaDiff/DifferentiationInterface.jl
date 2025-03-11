@@ -67,27 +67,25 @@ function derivative! end
 
 ## Preparation
 
-struct PushforwardDerivativePrep{F,Y,B,X,T,CC,E<:PushforwardPrep} <:
-       DerivativePrep{F,Y,B,X,CC}
+struct PushforwardDerivativePrep{SIG,E<:PushforwardPrep} <: DerivativePrep{SIG}
+    signature::SIG
     pushforward_prep::E
 end
 
-function PushforwardDerivativePrep{F,Y,B,X,T,CC}(pushforward_prep::E) where {F,Y,B,X,T,CC,E}
-    return PushforwardDerivativePrep{F,Y,B,X,T,CC,E}(pushforward_prep)
-end
-
 function prepare_derivative(
-    f::F, backend::B, x::X, contexts::Vararg{Context,C}
-) where {F,B<:AbstractADType,X,C}
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    signature = map(typeof, (f, backend, x, contexts))
     pushforward_prep = prepare_pushforward(f, backend, x, (one(x),), contexts...)
-    return PushforwardDerivativePrep{F,Nothing,B,X,typeof(contexts)}(pushforward_prep)
+    return PushforwardDerivativePrep(signature, pushforward_prep)
 end
 
 function prepare_derivative(
-    f!::F, y::Y, backend::B, x::X, contexts::Vararg{Context,C}
-) where {F,Y,B<:AbstractADType,X,C}
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    signature = map(typeof, (f!, y, backend, x, contexts))
     pushforward_prep = prepare_pushforward(f!, y, backend, x, (one(x),), contexts...)
-    return PushforwardDerivativePrep{F,Y,B,X,typeof(contexts)}(pushforward_prep)
+    return PushforwardDerivativePrep(signature, pushforward_prep)
 end
 
 ## One argument

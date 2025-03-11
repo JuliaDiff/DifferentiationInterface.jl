@@ -67,7 +67,7 @@ function jacobian! end
 
 ## Preparation
 
-abstract type StandardJacobianPrep{F,Y,B,X,CC} <: JacobianPrep{F,Y,B,X,CC} end
+abstract type StandardJacobianPrep <: JacobianPrep end
 
 struct PushforwardJacobianPrep{
     F,
@@ -79,27 +79,14 @@ struct PushforwardJacobianPrep{
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
     E<:PushforwardPrep,
-} <: StandardJacobianPrep{F,Y,B,X,CC}
+} <: StandardJacobianPrep
     batch_size_settings::BS
     batched_seeds::S
     batched_results::R
     pushforward_prep::E
 end
 
-function PushforwardJacobianPrep{F,Y,B,X,CC}(
-    batch_size_settings::BS, batched_seeds::S, batched_results::R, pushforward_prep::E
-) where {F,Y,B,X,CC}
-    return PushforwardJacobianPrep{F,Y,B,X,CC,BS,S,R,E}(
-        batch_size_settings, batched_seeds, batched_results, pushforward_prep
-    )
-end
-
 struct PullbackJacobianPrep{
-    F,
-    Y,
-    B,
-    X,
-    CC,
     BS<:BatchSizeSettings,
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
@@ -109,14 +96,6 @@ struct PullbackJacobianPrep{
     batched_seeds::S
     batched_results::R
     pullback_prep::E
-end
-
-function PullbackJacobianPrep{F,Y,B,X,CC}(
-    batch_size_settings::BS, batched_seeds::S, batched_results::R, pullback_prep::E
-) where {F,Y,B,X,CC}
-    return PullbackJacobianPrep{F,Y,B,X,CC,BS,S,R,E}(
-        batch_size_settings, batched_seeds, batched_results, pullback_prep
-    )
 end
 
 function prepare_jacobian(
@@ -157,10 +136,10 @@ function _prepare_jacobian_aux(
     batch_size_settings::BatchSizeSettings{B},
     y,
     f_or_f!y::FY,
-    backend::AD,
-    x::X,
+    backend::AbstractADType,
+    x,
     contexts::Vararg{Context,C},
-) where {B,FY,AD,X,C}
+) where {B,FY,C}
     (; N, A) = batch_size_settings
     seeds = [basis(x, ind) for ind in eachindex(x)]
     batched_seeds = [
@@ -170,12 +149,7 @@ function _prepare_jacobian_aux(
     pushforward_prep = prepare_pushforward(
         f_or_f!y..., backend, x, batched_seeds[1], contexts...
     )
-    F, Y = if f_or_f!y isa Tuple
-        typeof.(f_or_f!y)
-    else
-        typeof(f_or_f!y), Nothing
-    end
-    return PushforwardJacobianPrep{F,Y,AD,X,typeof(contexts)}(
+    return PushforwardJacobianPrep(
         batch_size_settings, batched_seeds, batched_results, pushforward_prep
     )
 end
@@ -185,10 +159,10 @@ function _prepare_jacobian_aux(
     batch_size_settings::BatchSizeSettings{B},
     y,
     f_or_f!y::FY,
-    backend::AD,
+    backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {B,FY,AD,C}
+) where {B,FY,C}
     (; N, A) = batch_size_settings
     seeds = [basis(y, ind) for ind in eachindex(y)]
     batched_seeds = [
@@ -196,12 +170,7 @@ function _prepare_jacobian_aux(
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
     pullback_prep = prepare_pullback(f_or_f!y..., backend, x, batched_seeds[1], contexts...)
-    F, Y = if f_or_f!y isa Tuple
-        typeof.(f_or_f!y)
-    else
-        typeof(f_or_f!y), Nothing
-    end
-    return PullbackJacobianPrep{F,Y,AD,X,typeof(contexts)}(
+    return PullbackJacobianPrep(
         batch_size_settings, batched_seeds, batched_results, pullback_prep
     )
 end

@@ -98,12 +98,8 @@ function pullback! end
 
 ## Preparation
 
-struct PushforwardPullbackPrep{F,Y,B,X,T,CC,E} <: PullbackPrep{F,Y,B,X,T,CC}
+struct PushforwardPullbackPrep{E} <: PullbackPrep
     pushforward_prep::E
-end
-
-function PushforwardPullbackPrep{F,Y,B,X,T,CC}(pushforward_prep::E) where {F,Y,B,X,T,CC,E}
-    return PushforwardPullbackPrep{F,Y,B,X,T,CC,E}(pushforward_prep)
 end
 
 function prepare_pullback(
@@ -123,19 +119,30 @@ function prepare_pullback(
 end
 
 function _prepare_pullback_aux(
-    ::PullbackSlow, f::F, backend::B, x::X, ty::T, contexts::Vararg{Context,C}
-) where {F,B,X,T,C}
+    ::PullbackSlow,
+    f::F,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
     dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f, backend, x, (dx,), contexts...)
-    return PushforwardPullbackPrep{F,Nothing,B,X,T,typeof(contexts)}(pushforward_prep)
+    return PushforwardPullbackPrep(pushforward_prep)
 end
 
 function _prepare_pullback_aux(
-    ::PullbackSlow, f!::F, y::Y, backend::B, x::X, ty::T, contexts::Vararg{Context,C}
-) where {F,Y,B,X,T,C}
+    ::PullbackSlow,
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
     dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward(f!, y, backend, x, (dx,), contexts...)
-    return PushforwardPullbackPrep{F,Y,B,X,T,typeof(contexts)}(pushforward_prep)
+    return PushforwardPullbackPrep(pushforward_prep)
 end
 
 ## One argument
