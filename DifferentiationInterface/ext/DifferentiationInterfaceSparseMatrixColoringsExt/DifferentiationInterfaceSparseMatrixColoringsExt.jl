@@ -1,13 +1,6 @@
 module DifferentiationInterfaceSparseMatrixColoringsExt
 
-using ADTypes:
-    ADTypes,
-    AutoSparse,
-    coloring_algorithm,
-    dense_ad,
-    sparsity_detector,
-    jacobian_sparsity,
-    hessian_sparsity
+using ADTypes: ADTypes, AutoSparse, coloring_algorithm, dense_ad, sparsity_detector
 import DifferentiationInterface as DI
 using SparseMatrixColorings:
     AbstractColoringResult,
