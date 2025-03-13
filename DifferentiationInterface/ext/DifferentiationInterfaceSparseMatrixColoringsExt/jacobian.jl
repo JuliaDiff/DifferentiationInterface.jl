@@ -58,8 +58,8 @@ function _prepare_sparse_jacobian_aux(
     contexts::Vararg{DI.Context,C},
 ) where {FY,C}
     dense_backend = dense_ad(backend)
-    sparsity = jacobian_sparsity(
-        fycont(f_or_f!y..., contexts...)..., x, sparsity_detector(backend)
+    sparsity = DI.jacobian_sparsity_with_contexts(
+        f_or_f!y..., sparsity_detector(backend), x, contexts...
     )
     if perf isa DI.PushforwardFast
         problem = ColoringProblem{:nonsymmetric,:column}()

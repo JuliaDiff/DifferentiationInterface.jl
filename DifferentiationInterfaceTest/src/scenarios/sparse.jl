@@ -324,7 +324,9 @@ end
 
 Create a vector of [`Scenario`](@ref)s with sparse array types, focused on sparse Jacobians and Hessians.
 """
-function sparse_scenarios(; band_sizes=[5, 10, 20], include_constantified=false)
+function sparse_scenarios(;
+    band_sizes=[5, 10, 20], include_constantified=false, include_cachified=false
+)
     x_6 = float.(1:6)
     x_2_3 = float.(reshape(1:6, 2, 3))
     x_50 = float.(range(1, 2, 50))
@@ -341,6 +343,10 @@ function sparse_scenarios(; band_sizes=[5, 10, 20], include_constantified=false)
         append!(scens, squarelinearmap_scenarios(x_50, band_sizes))
         append!(scens, squarequadraticform_scenarios(x_50, band_sizes))
     end
-    include_constantified && append!(scens, constantify(scens))
-    return scens
+
+    final_scens = Scenario[]
+    append!(final_scens, scens)
+    include_constantified && append!(final_scens, constantify(scens))
+    include_cachified && append!(final_scens, cachify(scens))
+    return final_scens
 end

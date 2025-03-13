@@ -1,13 +1,6 @@
 module DifferentiationInterfaceSparseMatrixColoringsExt
 
-using ADTypes:
-    ADTypes,
-    AutoSparse,
-    coloring_algorithm,
-    dense_ad,
-    sparsity_detector,
-    jacobian_sparsity,
-    hessian_sparsity
+using ADTypes: ADTypes, AutoSparse, coloring_algorithm, dense_ad, sparsity_detector
 import DifferentiationInterface as DI
 using SparseMatrixColorings:
     AbstractColoringResult,
@@ -21,14 +14,6 @@ using SparseMatrixColorings:
     sparsity_pattern,
     decompress!
 import SparseMatrixColorings as SMC
-
-function fycont(f, contexts::Vararg{DI.Context,C}) where {C}
-    return (DI.with_contexts(f, contexts...),)
-end
-
-function fycont(f!, y, contexts::Vararg{DI.Context,C}) where {C}
-    return (DI.with_contexts(f!, contexts...), y)
-end
 
 abstract type SparseJacobianPrep <: DI.JacobianPrep end
 
