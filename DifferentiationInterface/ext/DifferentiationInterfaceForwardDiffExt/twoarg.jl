@@ -194,7 +194,7 @@ function DI.prepare_derivative(
     contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
 ) where {F,C}
     fc! = DI.with_contexts(f!, contexts...)
-    tag = get_tag(fc!, backend, x)
+    tag = get_tag(f!, backend, x)
     config = DerivativeConfig(fc!, y, x, tag)
     return ForwardDiffTwoArgDerivativePrep(config)
 end
@@ -227,7 +227,10 @@ function DI.value_and_derivative(
     fc! = DI.with_contexts(f!, contexts...)
     result = MutableDiffResult(y, (similar(y),))
     CHK = tag_type(backend) === Nothing
-    result = derivative!(result, fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    result = derivative!(result, fc!, y, x, prep.config, Val(false))
     return DiffResults.value(result), DiffResults.derivative(result)
 end
 
@@ -243,7 +246,10 @@ function DI.value_and_derivative!(
     fc! = DI.with_contexts(f!, contexts...)
     result = MutableDiffResult(y, (der,))
     CHK = tag_type(backend) === Nothing
-    result = derivative!(result, fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    result = derivative!(result, fc!, y, x, prep.config, Val(false))
     return DiffResults.value(result), DiffResults.derivative(result)
 end
 
@@ -257,7 +263,10 @@ function DI.derivative(
 ) where {F,C}
     fc! = DI.with_contexts(f!, contexts...)
     CHK = tag_type(backend) === Nothing
-    return derivative(fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    return derivative(fc!, y, x, prep.config, Val(false))
 end
 
 function DI.derivative!(
@@ -271,7 +280,10 @@ function DI.derivative!(
 ) where {F,C}
     fc! = DI.with_contexts(f!, contexts...)
     CHK = tag_type(backend) === Nothing
-    return derivative!(der, fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    return derivative!(der, fc!, y, x, prep.config, Val(false))
 end
 
 ## Jacobian
@@ -364,7 +376,7 @@ function DI.prepare_jacobian(
 ) where {F,C}
     fc! = DI.with_contexts(f!, contexts...)
     chunk = choose_chunk(backend, x)
-    tag = get_tag(fc!, backend, x)
+    tag = get_tag(f!, backend, x)
     config = JacobianConfig(fc!, y, x, chunk, tag)
     return ForwardDiffTwoArgJacobianPrep(config)
 end
@@ -400,7 +412,10 @@ function DI.value_and_jacobian(
     jac = similar(y, length(y), length(x))
     result = MutableDiffResult(y, (jac,))
     CHK = tag_type(backend) === Nothing
-    result = jacobian!(result, fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    result = jacobian!(result, fc!, y, x, prep.config, Val(false))
     return DiffResults.value(result), DiffResults.jacobian(result)
 end
 
@@ -416,7 +431,10 @@ function DI.value_and_jacobian!(
     fc! = DI.with_contexts(f!, contexts...)
     result = MutableDiffResult(y, (jac,))
     CHK = tag_type(backend) === Nothing
-    result = jacobian!(result, fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    result = jacobian!(result, fc!, y, x, prep.config, Val(false))
     return DiffResults.value(result), DiffResults.jacobian(result)
 end
 
@@ -430,7 +448,10 @@ function DI.jacobian(
 ) where {F,C}
     fc! = DI.with_contexts(f!, contexts...)
     CHK = tag_type(backend) === Nothing
-    return jacobian(fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    return jacobian(fc!, y, x, prep.config, Val(false))
 end
 
 function DI.jacobian!(
@@ -444,5 +465,8 @@ function DI.jacobian!(
 ) where {F,C}
     fc! = DI.with_contexts(f!, contexts...)
     CHK = tag_type(backend) === Nothing
-    return jacobian!(jac, fc!, y, x, prep.config, Val(CHK))
+    if CHK
+        checktag(prep.config, f!, x)
+    end
+    return jacobian!(jac, fc!, y, x, prep.config, Val(false))
 end

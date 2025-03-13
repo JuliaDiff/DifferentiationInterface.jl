@@ -13,6 +13,7 @@ using ForwardDiff:
     HessianConfig,
     JacobianConfig,
     Tag,
+    checktag,
     derivative,
     derivative!,
     extract_derivative,
