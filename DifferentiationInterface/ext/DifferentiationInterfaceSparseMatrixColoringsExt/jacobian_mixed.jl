@@ -42,8 +42,8 @@ function _prepare_mixed_sparse_jacobian_aux(
     y, f_or_f!y::FY, backend::AutoSparse{<:DI.MixedMode}, x, contexts::Vararg{DI.Context,C}
 ) where {FY,C}
     dense_backend = dense_ad(backend)
-    sparsity = jacobian_sparsity(
-        fycont(f_or_f!y..., contexts...)..., x, sparsity_detector(backend)
+    sparsity = DI.jacobian_sparsity_with_contexts(
+        f_or_f!y..., sparsity_detector(backend), x, contexts...
     )
     problem = ColoringProblem{:nonsymmetric,:bidirectional}()
     coloring_result = coloring(

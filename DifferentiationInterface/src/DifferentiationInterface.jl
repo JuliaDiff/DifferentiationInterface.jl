@@ -8,13 +8,16 @@ module DifferentiationInterface
 using ADTypes:
     ADTypes,
     AbstractADType,
+    AbstractSparsityDetector,
     AutoSparse,
     ForwardMode,
     ForwardOrReverseMode,
     ReverseMode,
     SymbolicMode,
     dense_ad,
-    mode
+    mode,
+    jacobian_sparsity,
+    hessian_sparsity
 using ADTypes:
     AutoChainRules,
     AutoDiffractor,
@@ -45,6 +48,7 @@ include("utils/check.jl")
 include("utils/printing.jl")
 include("utils/context.jl")
 include("utils/linalg.jl")
+include("utils/sparse.jl")
 
 include("first_order/pushforward.jl")
 include("first_order/pullback.jl")
