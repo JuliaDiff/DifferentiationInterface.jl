@@ -65,7 +65,7 @@ end
 
 ## Forward over anything
 
-struct ForwardOverAnythingPrep{G,PO<:PushforwardPrep,PI<:PushforwardPrep} <: HVPPrep
+struct ForwardOverAnythingHVPPrep{G,PO<:PushforwardPrep,PI<:PushforwardPrep} <: HVPPrep
     # pushforward of many pushforwards in theory, but pushforward of gradient in practice
     grad_buffer::G
     outer_pushforward_prep::PO
@@ -91,14 +91,14 @@ function _prepare_hvp_aux(
     outer_pushforward_in_prep = prepare_pushforward(
         shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
     )
-    return ForwardOverAnythingPrep(
+    return ForwardOverAnythingHVPPrep(
         grad_buffer, outer_pushforward_prep, outer_pushforward_in_prep
     )
 end
 
 function hvp(
     f::F,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
@@ -117,7 +117,7 @@ end
 function hvp!(
     f::F,
     tg::NTuple,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
@@ -132,7 +132,7 @@ function _hvp_aux!(
     ::InPlaceSupported,
     f::F,
     tg::NTuple,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
@@ -159,7 +159,7 @@ function _hvp_aux!(
     ::InPlaceNotSupported,
     f::F,
     tg::NTuple,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
@@ -183,7 +183,7 @@ end
 
 function gradient_and_hvp(
     f::F,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
@@ -203,7 +203,7 @@ function gradient_and_hvp!(
     f::F,
     grad,
     tg::NTuple,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
@@ -219,7 +219,7 @@ function _gradient_and_hvp_aux!(
     f::F,
     grad,
     tg::NTuple,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
@@ -248,7 +248,7 @@ function _gradient_and_hvp_aux!(
     f::F,
     grad,
     tg::NTuple,
-    prep::ForwardOverAnythingPrep,
+    prep::ForwardOverAnythingHVPPrep,
     backend::AbstractADType,
     x,
     tx::NTuple,
