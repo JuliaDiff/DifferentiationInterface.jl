@@ -17,8 +17,6 @@ end
 choose_chunk(::AutoForwardDiff{nothing}, x) = Chunk(x)
 choose_chunk(::AutoForwardDiff{chunksize}, x) where {chunksize} = Chunk{chunksize}()
 
-batchsize_val(::Chunk{C}) where {C} = Val(C)
-
 get_tag(f, backend::AutoForwardDiff, x) = backend.tag
 
 function get_tag(f::F, ::AutoForwardDiff{chunksize,Nothing}, x) where {F,chunksize}
