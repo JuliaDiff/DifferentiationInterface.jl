@@ -4,11 +4,7 @@
     prepare_pushforward(f,     backend, x, tx, [contexts...]) -> prep
     prepare_pushforward(f!, y, backend, x, tx, [contexts...]) -> prep
 
-Create a `prep` object that can be given to [`pushforward`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
-    For in-place functions, `y` is mutated by `f!` during preparation.
+$(docstring_prepare("pushforward"; inplace=true))
 """
 function prepare_pushforward end
 
@@ -16,12 +12,7 @@ function prepare_pushforward end
     prepare!_pushforward(f,     prep, backend, x, tx, [contexts...]) -> new_prep
     prepare!_pushforward(f!, y, prep, backend, x, tx, [contexts...]) -> new_prep
 
-Same behavior as [`prepare_pushforward`](@ref) but can modify an existing `prep` object to avoid some allocations.
-
-There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
-
-!!! danger
-    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+$(docstring_prepare!("pushforward"))
 """
 function prepare!_pushforward end
 
@@ -29,11 +20,7 @@ function prepare!_pushforward end
     prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]) -> prep_same
     prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]) -> prep_same
 
-Create an `prep_same` object that can be given to [`pushforward`](@ref) and its variants _if they are applied at the same point `x` and with the same `contexts`_.
-
-!!! warning
-    If the function or the point changes in any way, the result of preparation will be invalidated, and you will need to run it again.
-    For in-place functions, `y` is mutated by `f!` during preparation.
+$(docstring_prepare("pushforward"; samepoint=true, inplace=true))
 """
 function prepare_pushforward_same_point end
 
@@ -43,7 +30,7 @@ function prepare_pushforward_same_point end
 
 Compute the value and the pushforward of the function `f` at point `x` with a tuple of tangents `tx`.
 
-$(document_preparation("pushforward"; same_point=true))
+$(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip 
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
@@ -60,7 +47,7 @@ function value_and_pushforward end
 
 Compute the value and the pushforward of the function `f` at point `x` with a tuple of tangents `tx`, overwriting `ty`.
 
-$(document_preparation("pushforward"; same_point=true))
+$(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip 
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
@@ -74,7 +61,7 @@ function value_and_pushforward! end
 
 Compute the pushforward of the function `f` at point `x` with a tuple of tangents `tx`.
 
-$(document_preparation("pushforward"; same_point=true))
+$(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip 
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
@@ -88,7 +75,7 @@ function pushforward end
 
 Compute the pushforward of the function `f` at point `x` with a tuple of tangents `tx`, overwriting `ty`.
 
-$(document_preparation("pushforward"; same_point=true))
+$(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip 
     Pushforwards are also commonly called Jacobian-vector products or JVPs.

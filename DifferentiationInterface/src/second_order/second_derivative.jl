@@ -3,19 +3,23 @@
 """
     prepare_second_derivative(f, backend, x, [contexts...]) -> prep
 
-Create a `prep` object that can be given to [`second_derivative`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
+$(docstring_prepare("second_derivative"))
 """
 function prepare_second_derivative end
+
+"""
+    prepare!_second_derivative(f, prep, backend, x, [contexts...]) -> new_prep
+
+$(docstring_prepare!("second_derivative"))
+"""
+function prepare!_second_derivative end
 
 """
     second_derivative(f, [prep,] backend, x, [contexts...]) -> der2
 
 Compute the second derivative of the function `f` at point `x`.
 
-$(document_preparation("second_derivative"))
+$(docstring_preparation_hint("second_derivative"))
 """
 function second_derivative end
 
@@ -24,7 +28,7 @@ function second_derivative end
 
 Compute the second derivative of the function `f` at point `x`, overwriting `der2`.
 
-$(document_preparation("second_derivative"))
+$(docstring_preparation_hint("second_derivative"))
 """
 function second_derivative! end
 
@@ -33,7 +37,7 @@ function second_derivative! end
 
 Compute the value, first derivative and second derivative of the function `f` at point `x`.
 
-$(document_preparation("second_derivative"))
+$(docstring_preparation_hint("second_derivative"))
 """
 function value_derivative_and_second_derivative end
 
@@ -42,7 +46,7 @@ function value_derivative_and_second_derivative end
 
 Compute the value, first derivative and second derivative of the function `f` at point `x`, overwriting `der` and `der2`.
 
-$(document_preparation("second_derivative"))
+$(docstring_preparation_hint("second_derivative"))
 """
 function value_derivative_and_second_derivative! end
 

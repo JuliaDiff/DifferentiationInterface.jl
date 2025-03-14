@@ -3,32 +3,21 @@
 """
     prepare_hvp(f, backend, x, tx, [contexts...]) -> prep
 
-Create a `prep` object that can be given to [`hvp`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
+$(docstring_prepare("hvp"))
 """
 function prepare_hvp end
 
 """
     prepare!_hvp(f, backend, x, tx, [contexts...]) -> new_prep
 
-Same behavior as [`prepare_hvp`](@ref) but can modify an existing `prep` object to avoid some allocations.
-
-There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
-
-!!! danger
-    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+$(docstring_prepare("hvp"))
 """
 function prepare!_hvp end
 
 """
     prepare_hvp_same_point(f, backend, x, tx, [contexts...]) -> prep_same
 
-Create an `prep_same` object that can be given to [`hvp`](@ref) and its variants _if they are applied at the same point `x` and with the same `contexts`_.
-
-!!! warning
-    If the function or the point changes in any way, the result of preparation will be invalidated, and you will need to run it again.
+$(docstring_prepare("hvp"; samepoint=true))
 """
 function prepare_hvp_same_point end
 
@@ -37,7 +26,7 @@ function prepare_hvp_same_point end
 
 Compute the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`.
 
-$(document_preparation("hvp"; same_point=true))
+$(docstring_preparation_hint("hvp"; same_point=true))
 """
 function hvp end
 
@@ -46,7 +35,7 @@ function hvp end
 
 Compute the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`, overwriting `tg`.
 
-$(document_preparation("hvp"; same_point=true))
+$(docstring_preparation_hint("hvp"; same_point=true))
 """
 function hvp! end
 
@@ -55,7 +44,7 @@ function hvp! end
 
 Compute the gradient and the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`.
 
-$(document_preparation("hvp"; same_point=true))
+$(docstring_preparation_hint("hvp"; same_point=true))
 """
 function gradient_and_hvp end
 
@@ -64,7 +53,7 @@ function gradient_and_hvp end
 
 Compute the gradient and the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`, overwriting `grad` and `tg`.
 
-$(document_preparation("hvp"; same_point=true))
+$(docstring_preparation_hint("hvp"; same_point=true))
 """
 function gradient_and_hvp! end
 

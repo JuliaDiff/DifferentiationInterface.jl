@@ -88,6 +88,14 @@ function check_batchsize_pickable(backend::AbstractADType)
     end
 end
 
+"""
+    threshold_batchsize(backend::AbstractADType, B::Integer)
+
+If the backend object has a fixed batch size `B0`, return a new backend where the fixed batch size is `min(B0, B)`.
+Otherwise, act as the identity.
+"""
+function threshold_batchsize end
+
 threshold_batchsize(backend::AbstractADType, ::Integer) = backend
 
 function threshold_batchsize(backend::AutoSparse, B::Integer)
@@ -111,8 +119,17 @@ function threshold_batchsize(backend::MixedMode, B::Integer)
     )
 end
 
+"""
+    reasonable_batchsize(N::Integer, Bmax::Integer)
+
+Reproduces the heuristic from ForwardDiff to minimize
+
+1. the number of batches necessary to cover an array of length `N`
+2. the number of leftover indices in the last partial batch
+
+Source: https://github.com/JuliaDiff/ForwardDiff.jl/blob/ec74fbc32b10bbf60b3c527d8961666310733728/src/prelude.jl#L19-L29
+"""
 function reasonable_batchsize(N::Integer, Bmax::Integer)
-    # borrowed from https://github.com/JuliaDiff/ForwardDiff.jl/blob/ec74fbc32b10bbf60b3c527d8961666310733728/src/prelude.jl#L19-L29
     if N <= Bmax
         return N
     else

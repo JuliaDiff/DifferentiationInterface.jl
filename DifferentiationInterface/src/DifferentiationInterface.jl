@@ -36,6 +36,7 @@ using ADTypes:
 using LinearAlgebra: dot
 
 include("compat.jl")
+include("docstrings.jl")
 
 include("first_order/mixed_mode.jl")
 include("second_order/second_order.jl")
@@ -45,7 +46,7 @@ include("utils/traits.jl")
 include("utils/basis.jl")
 include("utils/batchsize.jl")
 include("utils/check.jl")
-include("utils/printing.jl")
+include("utils/errors.jl")
 include("utils/context.jl")
 include("utils/linalg.jl")
 include("utils/sparse.jl")

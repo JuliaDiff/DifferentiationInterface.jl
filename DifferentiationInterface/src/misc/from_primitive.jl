@@ -7,6 +7,13 @@ function pick_batchsize(fromprim::FromPrimitive, N::Integer)
     return pick_batchsize(fromprim.backend, N)
 end
 
+"""
+    AutoReverseFromPrimitive
+
+Wrapper which forces a given backend to act as a reverse-mode backend.
+
+Used in internal testing.
+"""
 struct AutoReverseFromPrimitive{B} <: FromPrimitive
     backend::B
 end

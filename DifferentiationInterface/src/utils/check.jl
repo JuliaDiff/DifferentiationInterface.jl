@@ -1,7 +1,7 @@
 """
     check_available(backend)
 
-Check whether `backend` is available (i.e. whether the extension is loaded).
+Check whether `backend` is available (i.e. whether the extension is loaded) and return a `Bool`.
 """
 check_available(backend::AbstractADType) = false
 
@@ -19,6 +19,6 @@ end
 """
     check_inplace(backend)
 
-Check whether `backend` supports differentiation of in-place functions.
+Check whether `backend` supports differentiation of in-place functions and return a `Bool`.
 """
 check_inplace(backend::AbstractADType) = Bool(inplace_support(backend))

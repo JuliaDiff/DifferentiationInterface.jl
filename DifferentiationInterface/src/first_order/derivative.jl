@@ -4,11 +4,7 @@
     prepare_derivative(f,     backend, x, [contexts...]) -> prep
     prepare_derivative(f!, y, backend, x, [contexts...]) -> prep
 
-Create a `prep` object that can be given to [`derivative`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
-    For in-place functions, `y` is mutated by `f!` during preparation.
+$(docstring_prepare("derivative"; inplace=true))
 """
 function prepare_derivative end
 
@@ -16,12 +12,7 @@ function prepare_derivative end
     prepare!_derivative(f,     prep, backend, x, [contexts...]) -> new_prep
     prepare!_derivative(f!, y, prep, backend, x, [contexts...]) -> new_prep
 
-Same behavior as [`prepare_derivative`](@ref) but can modify an existing `prep` object to avoid some allocations.
-
-There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
-
-!!! danger
-    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+$(docstring_prepare!("derivative"))
 """
 function prepare!_derivative end
 
@@ -31,7 +22,7 @@ function prepare!_derivative end
 
 Compute the value and the derivative of the function `f` at point `x`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
 function value_and_derivative end
 
@@ -41,7 +32,7 @@ function value_and_derivative end
 
 Compute the value and the derivative of the function `f` at point `x`, overwriting `der`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
 function value_and_derivative! end
 
@@ -51,7 +42,7 @@ function value_and_derivative! end
 
 Compute the derivative of the function `f` at point `x`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
 function derivative end
 
@@ -61,7 +52,7 @@ function derivative end
 
 Compute the derivative of the function `f` at point `x`, overwriting `der`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
 function derivative! end
 

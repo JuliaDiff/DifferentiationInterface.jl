@@ -3,22 +3,14 @@
 """
     prepare_gradient(f, backend, x, [contexts...]) -> prep
 
-Create a `prep` object that can be given to [`gradient`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
+$(docstring_prepare("gradient"))
 """
 function prepare_gradient end
 
 """
     prepare!_gradient(f, prep, backend, x, [contexts...]) -> new_prep
 
-Same behavior as [`prepare_gradient`](@ref) but can modify an existing `prep` object to avoid some allocations.
-
-There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
-
-!!! danger
-    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+$(docstring_prepare!("gradient"))
 """
 function prepare!_gradient end
 
@@ -27,7 +19,7 @@ function prepare!_gradient end
 
 Compute the value and the gradient of the function `f` at point `x`.
 
-$(document_preparation("gradient"))
+$(docstring_preparation_hint("gradient"))
 """
 function value_and_gradient end
 
@@ -36,7 +28,7 @@ function value_and_gradient end
 
 Compute the value and the gradient of the function `f` at point `x`, overwriting `grad`.
 
-$(document_preparation("gradient"))
+$(docstring_preparation_hint("gradient"))
 """
 function value_and_gradient! end
 
@@ -45,7 +37,7 @@ function value_and_gradient! end
 
 Compute the gradient of the function `f` at point `x`.
 
-$(document_preparation("gradient"))
+$(docstring_preparation_hint("gradient"))
 """
 function gradient end
 
@@ -54,7 +46,7 @@ function gradient end
 
 Compute the gradient of the function `f` at point `x`, overwriting `grad`.
 
-$(document_preparation("gradient"))
+$(docstring_preparation_hint("gradient"))
 """
 function gradient! end
 
