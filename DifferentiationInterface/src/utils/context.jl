@@ -1,6 +1,9 @@
 struct FixTail{F,A<:Tuple}
     f::F
     tail_args::A
+    function FixTail(f::F, tail_args::Vararg{Any,N}) where {F,N}
+        return new{F,typeof(tail_args)}(f, tail_args)
+    end
 end
 
 function (ft::FixTail)(args::Vararg{Any,N}) where {N}
@@ -113,5 +116,5 @@ with_contexts(f) = f
 
 function with_contexts(f::F, contexts::Vararg{Context,N}) where {F,N}
     tail_args = map(unwrap, contexts)
-    return FixTail(f, tail_args)
+    return FixTail(f, tail_args...)
 end

@@ -36,7 +36,7 @@ function DI.jacobian_sparsity_with_contexts(
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
     contexts_tracer = jacobian_translate(detector, contexts...)
-    fc = DI.FixTail(f, contexts_tracer)
+    fc = DI.FixTail(f, contexts_tracer...)
     return jacobian_sparsity(fc, x, detector)
 end
 
@@ -48,7 +48,7 @@ function DI.jacobian_sparsity_with_contexts(
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
     contexts_tracer = jacobian_translate(detector, contexts...)
-    fc! = DI.FixTail(f!, contexts_tracer)
+    fc! = DI.FixTail(f!, contexts_tracer...)
     return jacobian_sparsity(fc!, y, x, detector)
 end
 
@@ -59,7 +59,7 @@ function DI.hessian_sparsity_with_contexts(
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
     contexts_tracer = hessian_translate(detector, contexts...)
-    fc = DI.FixTail(f, contexts_tracer)
+    fc = DI.FixTail(f, contexts_tracer...)
     return hessian_sparsity(fc, x, detector)
 end
 

@@ -1,5 +1,5 @@
 function DI.pick_batchsize(::AutoForwardDiff{nothing}, N::Integer)
-    chunksize = ForwardDiff.pickchunksize(N)
+    chunksize = pickchunksize(N)
     return DI.BatchSizeSettings{chunksize}(N)
 end
 
@@ -17,6 +17,8 @@ end
 choose_chunk(::AutoForwardDiff{nothing}, x) = Chunk(x)
 choose_chunk(::AutoForwardDiff{chunksize}, x) where {chunksize} = Chunk{chunksize}()
 
+batchsize_val(::Chunk{C}) where {C} = Val(C)
+
 get_tag(f, backend::AutoForwardDiff, x) = backend.tag
 
 function get_tag(f::F, ::AutoForwardDiff{chunksize,Nothing}, x) where {F,chunksize}
@@ -25,6 +27,11 @@ end
 
 tag_type(::AutoForwardDiff{chunksize,T}) where {chunksize,T} = T
 tag_type(f::F, backend::AutoForwardDiff, x) where {F} = typeof(get_tag(f, backend, x))
+
+dual_type(config::DerivativeConfig) = eltype(config.duals)
+dual_type(config::GradientConfig) = eltype(config.duals)
+dual_type(config::JacobianConfig{T,V,N}) where {T,V,N} = Dual{T,V,N}
+dual_type(config::HessianConfig) = dual_type(config.gradient_config)
 
 function make_dual_similar(::Type{T}, x::Number, tx::NTuple{B}) where {T,B}
     return Dual{T}(x, tx...)
@@ -82,19 +89,42 @@ struct PrepContext{T<:DI.Prep} <: DI.Context
     data::T
 end
 
-function _translate(::Type{T}, ::Val{B}, c::DI.ConstantOrFunctionOrBackend) where {T,B}
-    return DI.unwrap(c)
-end
-_translate(::Type{T}, ::Val{B}, c::PrepContext) where {T,B} = DI.unwrap(c)
+NotCache = Union{DI.ConstantOrFunctionOrBackend,PrepContext}
 
-function _translate(::Type{T}, ::Val{B}, c::DI.Cache) where {T,B}
+_translate(::Type{D}, c::NotCache) where {D<:Dual} = DI.unwrap(c)
+function _translate(::Type{D}, c::DI.Cache) where {D<:Dual}
     c0 = DI.unwrap(c)
-    return make_dual(T, c0, ntuple(_ -> similar(c0), Val(B)))  # TODO: optimize
+    return similar(c0, D)
 end
 
-function translate(::Type{T}, ::Val{B}, contexts::Vararg{DI.Context,C}) where {T,B,C}
+function translate(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:Dual,C}
     new_contexts = map(contexts) do c
-        _translate(T, Val(B), c)
+        _translate(D, c)
+    end
+    return new_contexts
+end
+
+_translate_toprep(::Type{D}, c::NotCache) where {D<:Dual} = nothing
+function _translate_toprep(::Type{D}, c::DI.Cache) where {D<:Dual}
+    c0 = DI.unwrap(c)
+    return similar(c0, D)
+end
+
+function translate_toprep(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:Dual,C}
+    new_contexts = map(contexts) do c
+        _translate_toprep(D, c)
+    end
+    return new_contexts
+end
+
+_translate_prepared(c::NotCache, _pc) = DI.unwrap(c)
+_translate_prepared(_c::DI.Cache, pc) = pc
+
+function translate_prepared(
+    contexts::NTuple{C,DI.Context}, prep_contexts::NTuple{C,Any}
+) where {C}
+    new_contexts = map(contexts, prep_contexts) do c, pc
+        _translate_prepared(c, pc)
     end
     return new_contexts
 end

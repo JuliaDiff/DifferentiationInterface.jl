@@ -24,6 +24,7 @@ using ForwardDiff:
     jacobian,
     jacobian!,
     partials,
+    pickchunksize,
     value
 
 DI.check_available(::AutoForwardDiff) = true
@@ -31,7 +32,7 @@ DI.check_available(::AutoForwardDiff) = true
 include("utils.jl")
 include("onearg.jl")
 include("twoarg.jl")
-include("secondorder.jl")
+# include("secondorder.jl")
 include("differentiate_with.jl")
 include("misc.jl")
 
