@@ -3,6 +3,7 @@
 using Aqua: Aqua
 using DifferentiationInterface
 using ExplicitImports
+using ForwardDiff: ForwardDiff
 using JET: JET
 using JuliaFormatter: JuliaFormatter
 using Test

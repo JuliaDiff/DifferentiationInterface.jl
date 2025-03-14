@@ -181,7 +181,9 @@ struct DontPrepareInner <: InnerPreparationBehavior end
 
 inner_preparation_behavior(::AbstractADType) = DontPrepareInner()
 
-function overloaded_input end
+function overloaded_input(optype, f, backend, x, args...)
+    throw(ArgumentError("Just to appease JET"))
+end
 
 ## Conversions
 

@@ -551,8 +551,7 @@ end
 
 ## Reverse over reverse
 
-struct ReverseOverReverseHVPPrep{G,PO<:PullbackPrep,PI<:Union{Nothing,PullbackPrep}} <:
-       HVPPrep
+struct ReverseOverReverseHVPPrep{G,PO,PI} <: HVPPrep
     # pullback of gradient
     grad_buffer::G
     outer_pullback_prep::PO
