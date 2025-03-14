@@ -9,6 +9,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
 backends = [ #
     AutoSimpleFiniteDiff(; chunksize=5),
     AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
+    AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=3); inplace=false),
 ]
 
 second_order_backends = [ #

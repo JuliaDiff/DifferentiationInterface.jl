@@ -14,10 +14,16 @@ Wrapper which forces a given backend to act as a reverse-mode backend.
 
 Used in internal testing.
 """
-struct AutoReverseFromPrimitive{B} <: FromPrimitive
+struct AutoReverseFromPrimitive{inplace,B<:AbstractADType} <: FromPrimitive
     backend::B
 end
 
+function AutoReverseFromPrimitive(backend::AbstractADType; inplace=false)
+    return AutoReverseFromPrimitive{inplace,typeof(backend)}(backend)
+end
+
+inplace_support(::AutoReverseFromPrimitive{true}) = InPlaceSupported()
+inplace_support(::AutoReverseFromPrimitive{false}) = InPlaceNotSupported()
 ADTypes.mode(::AutoReverseFromPrimitive) = ADTypes.ReverseMode()
 
 function threshold_batchsize(fromprim::AutoReverseFromPrimitive, dimension::Integer)
