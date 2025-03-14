@@ -159,7 +159,7 @@ end
 
 function DI.hvp(
     f,
-    prep::DI.ForwardOverReverseHVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
@@ -171,7 +171,7 @@ end
 function DI.hvp!(
     f,
     tg::NTuple,
-    prep::DI.ForwardOverReverseHVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
@@ -184,7 +184,7 @@ end
 
 function DI.gradient_and_hvp(
     f,
-    prep::DI.ForwardOverReverseHVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
@@ -199,7 +199,7 @@ function DI.gradient_and_hvp!(
     f,
     grad,
     tg::NTuple,
-    prep::DI.ForwardOverReverseHVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
