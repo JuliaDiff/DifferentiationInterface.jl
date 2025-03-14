@@ -1,3 +1,8 @@
+"""
+    OneElement
+
+Efficient storage for a one-hot array, aka an array in the standard Euclidean basis.
+"""
 struct OneElement{I,N,T,A<:AbstractArray{T,N}} <: AbstractArray{T,N}
     ind::I
     val::T

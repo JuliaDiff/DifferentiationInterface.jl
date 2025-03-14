@@ -4,11 +4,7 @@
     prepare_pullback(f,     backend, x, ty, [contexts...]) -> prep
     prepare_pullback(f!, y, backend, x, ty, [contexts...]) -> prep
 
-Create a `prep` object that can be given to [`pullback`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
-    For in-place functions, `y` is mutated by `f!` during preparation.
+$(docstring_prepare("pullback"; inplace=true))
 """
 function prepare_pullback end
 
@@ -16,12 +12,7 @@ function prepare_pullback end
     prepare!_pullback(f,     prep, backend, x, ty, [contexts...]) -> new_prep
     prepare!_pullback(f!, y, prep, backend, x, ty, [contexts...]) -> new_prep
 
-Same behavior as [`prepare_pullback`](@ref) but can modify an existing `prep` object to avoid some allocations.
-
-There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
-
-!!! danger
-    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+$(docstring_prepare!("pullback"))
 """
 function prepare!_pullback end
 
@@ -29,11 +20,7 @@ function prepare!_pullback end
     prepare_pullback_same_point(f,     backend, x, ty, [contexts...]) -> prep_same
     prepare_pullback_same_point(f!, y, backend, x, ty, [contexts...]) -> prep_same
 
-Create an `prep_same` object that can be given to [`pullback`](@ref) and its variants _if they are applied at the same point `x` and with the same `contexts`_.
-
-!!! warning
-    If the function or the point changes in any way, the result of preparation will be invalidated, and you will need to run it again.
-    For in-place functions, `y` is mutated by `f!` during preparation.
+$(docstring_prepare("pullback"; samepoint=true, inplace=true))
 """
 function prepare_pullback_same_point end
 
@@ -43,7 +30,7 @@ function prepare_pullback_same_point end
 
 Compute the value and the pullback of the function `f` at point `x` with a tuple of tangents `ty`.
 
-$(document_preparation("pullback"; same_point=true))
+$(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip 
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
@@ -60,7 +47,7 @@ function value_and_pullback end
 
 Compute the value and the pullback of the function `f` at point `x` with a tuple of tangents `ty`, overwriting `dx`.
 
-$(document_preparation("pullback"; same_point=true))
+$(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip 
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
@@ -74,7 +61,7 @@ function value_and_pullback! end
 
 Compute the pullback of the function `f` at point `x` with a tuple of tangents `ty`.
 
-$(document_preparation("pullback"; same_point=true))
+$(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip 
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
@@ -88,7 +75,7 @@ function pullback end
 
 Compute the pullback of the function `f` at point `x` with a tuple of tangents `ty`, overwriting `dx`.
 
-$(document_preparation("pullback"; same_point=true))
+$(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip 
     Pullbacks are also commonly called vector-Jacobian products or VJPs.

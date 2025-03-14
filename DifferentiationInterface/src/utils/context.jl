@@ -15,7 +15,7 @@ end
 
 Abstract supertype for additional context arguments, which can be passed to differentiation operators after the active input `x` but are not differentiated.
 
-# See also
+# Subtypes
 
 - [`Constant`](@ref)
 - [`Cache`](@ref)
@@ -72,8 +72,27 @@ Concrete type of [`Context`](@ref) argument which can be mutated with active val
 
 The initial values present inside the cache do not matter.
 
+For some backends, preparation allocates the required memory for `Cache` contexts with the right element type, similar to [PreallocationTools.jl](https://github.com/SciML/PreallocationTools.jl).
+
 !!! warning
     Most backends require any `Cache` context to be an `AbstractArray`.
+
+# Example
+
+```jldoctest
+julia> using DifferentiationInterface
+
+julia> import ForwardDiff
+
+julia> f(x, c) = sum(copyto!(c, x));
+
+julia> prep = prepare_gradient(f, AutoForwardDiff(), [1.0, 2.0], Cache(zeros(2)));
+
+julia> gradient(f, prep, AutoForwardDiff(), [3.0, 4.0], Cache(zeros(2)))
+2-element Vector{Float64}:
+ 1.0
+ 1.0
+````
 """
 struct Cache{T} <: Context
     data::T

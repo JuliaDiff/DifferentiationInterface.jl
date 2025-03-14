@@ -1,10 +1,10 @@
 """
     MixedMode
 
-Combination of a forward and a reverse mode backend for mixed-mode Jacobian computation.
+Combination of a forward and a reverse mode backend for mixed-mode sparse Jacobian computation.
 
 !!! danger
-    `MixedMode` backends only support [`jacobian`](@ref) and its variants.
+    `MixedMode` backends only support [`jacobian`](@ref) and its variants, and it should be used inside an [`AutoSparse`](@extref ADTypes.AutoSparse) wrapper.
 
 # Constructor
 
@@ -20,8 +20,24 @@ struct MixedMode{F<:AbstractADType,R<:AbstractADType} <: AbstractADType
     end
 end
 
+"""
+    forward_backend(m::MixedMode)
+
+Return the forward-mode part of a `MixedMode` backend.
+"""
 forward_backend(m::MixedMode) = m.forward
+
+"""
+    reverse_backend(m::MixedMode)
+
+Return the reverse-mode part of a `MixedMode` backend.
+"""
 reverse_backend(m::MixedMode) = m.reverse
 
+"""
+    ForwardAndReverseMode <: ADTypes.AbstractMode
+
+Appropriate mode type for `MixedMode` backends.
+"""
 struct ForwardAndReverseMode <: ADTypes.AbstractMode end
 ADTypes.mode(::MixedMode) = ForwardAndReverseMode()

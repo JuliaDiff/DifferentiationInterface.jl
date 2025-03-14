@@ -3,22 +3,14 @@
 """
     prepare_hessian(f, backend, x, [contexts...]) -> prep
 
-Create a `prep` object that can be given to [`hessian`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
+$(docstring_prepare("hessian"))
 """
 function prepare_hessian end
 
 """
     prepare!_hessian(f, backend, x, [contexts...]) -> new_prep
 
-Same behavior as [`prepare_hessian`](@ref) but can modify an existing `prep` object to avoid some allocations.
-
-There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
-
-!!! danger
-    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+$(docstring_prepare!("hessian"))
 """
 function prepare!_hessian end
 
@@ -27,7 +19,7 @@ function prepare!_hessian end
 
 Compute the Hessian matrix of the function `f` at point `x`.
 
-$(document_preparation("hessian"))
+$(docstring_preparation_hint("hessian"))
 """
 function hessian end
 
@@ -36,7 +28,7 @@ function hessian end
 
 Compute the Hessian matrix of the function `f` at point `x`, overwriting `hess`.
 
-$(document_preparation("hessian"))
+$(docstring_preparation_hint("hessian"))
 """
 function hessian! end
 
@@ -45,7 +37,7 @@ function hessian! end
 
 Compute the value, gradient vector and Hessian matrix of the function `f` at point `x`.
 
-$(document_preparation("hessian"))
+$(docstring_preparation_hint("hessian"))
 """
 function value_gradient_and_hessian end
 
@@ -54,7 +46,7 @@ function value_gradient_and_hessian end
 
 Compute the value, gradient vector and Hessian matrix of the function `f` at point `x`, overwriting `grad` and `hess`.
 
-$(document_preparation("hessian"))
+$(docstring_preparation_hint("hessian"))
 """
 function value_gradient_and_hessian! end
 

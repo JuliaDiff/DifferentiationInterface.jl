@@ -141,6 +141,16 @@ Traits identifying second-order backends that compute HVPs in forward over forwa
 """
 struct ForwardOverForward <: HVPMode end
 
+"""
+    hvp_mode(backend)
+
+Return the best combination of modes for [`hvp`](@ref) and its variants, among the following options:
+
+- [`ForwardOverForward`](@ref)
+- [`ForwardOverReverse`](@ref)
+- [`ReverseOverForward`](@ref)
+- [`ReverseOverReverse`](@ref)
+"""
 hvp_mode(backend::AbstractADType) = hvp_mode(SecondOrder(backend, backend))
 
 function hvp_mode(ba::SecondOrder)
