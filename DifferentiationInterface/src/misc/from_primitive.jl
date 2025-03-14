@@ -3,6 +3,9 @@ abstract type FromPrimitive{inplace} <: AbstractADType end
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
 inplace_support(::FromPrimitive{true}) = InPlaceSupported()
 inplace_support(::FromPrimitive{false}) = InPlaceNotSupported()
+function inner_preparation_behavior(fromprim::FromPrimitive)
+    return inner_preparation_behavior(fromprim.backend)
+end
 
 function pick_batchsize(fromprim::FromPrimitive, N::Integer)
     return pick_batchsize(fromprim.backend, N)

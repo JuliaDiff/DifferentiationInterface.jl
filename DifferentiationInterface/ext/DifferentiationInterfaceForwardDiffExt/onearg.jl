@@ -272,7 +272,7 @@ function DI.value_and_gradient!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         result = DiffResult(zero(eltype(x)), (grad,))
@@ -292,7 +292,7 @@ function DI.value_and_gradient(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         result = GradientResult(x)
@@ -310,7 +310,7 @@ function DI.gradient!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         return gradient!(grad, fc, x)
@@ -326,7 +326,7 @@ function DI.gradient(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         return gradient(fc, x)
@@ -435,7 +435,7 @@ function DI.value_and_jacobian!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         y = fc(x)
@@ -456,7 +456,7 @@ function DI.value_and_jacobian(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         return fc(x), jacobian(fc, x)
@@ -472,7 +472,7 @@ function DI.jacobian!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         return jacobian!(jac, fc, x)
@@ -488,7 +488,7 @@ function DI.jacobian(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         return jacobian(fc, x)
@@ -738,7 +738,7 @@ function DI.hessian!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         return hessian!(hess, fc, x)
@@ -754,7 +754,7 @@ function DI.hessian(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         return hessian(fc, x)
@@ -775,7 +775,7 @@ function DI.value_gradient_and_hessian!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         result = DiffResult(one(eltype(x)), (grad, hess))
@@ -796,7 +796,7 @@ function DI.value_gradient_and_hessian(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc = DI.with_contexts(f, contexts...)
         result = HessianResult(x)

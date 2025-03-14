@@ -213,17 +213,13 @@ end
 ## Hessian
 
 function DI.prepare_hessian(
-    f, ::AutoZygote, x, contexts::Vararg{DI.ConstantOrFunctionOrBackend,C}
+    f, ::AutoZygote, x, contexts::Vararg{DI.GeneralizedConstant,C}
 ) where {C}
     return DI.NoHessianPrep()
 end
 
 function DI.hessian(
-    f,
-    ::DI.NoHessianPrep,
-    ::AutoZygote,
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f, ::DI.NoHessianPrep, ::AutoZygote, x, contexts::Vararg{DI.GeneralizedConstant,C}
 ) where {C}
     fc = DI.with_contexts(f, contexts...)
     hess = hessian(fc, x)
@@ -236,7 +232,7 @@ function DI.hessian!(
     prep::DI.NoHessianPrep,
     backend::AutoZygote,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     return copyto!(hess, DI.hessian(f, prep, backend, x, contexts...))
 end
@@ -246,7 +242,7 @@ function DI.value_gradient_and_hessian(
     prep::DI.NoHessianPrep,
     backend::AutoZygote,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     y, grad = DI.value_and_gradient(f, DI.NoGradientPrep(), backend, x, contexts...)
     hess = DI.hessian(f, prep, backend, x, contexts...)
@@ -260,7 +256,7 @@ function DI.value_gradient_and_hessian!(
     prep::DI.NoHessianPrep,
     backend::AutoZygote,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     y, _ = DI.value_and_gradient!(f, grad, DI.NoGradientPrep(), backend, x, contexts...)
     DI.hessian!(f, hess, prep, backend, x, contexts...)

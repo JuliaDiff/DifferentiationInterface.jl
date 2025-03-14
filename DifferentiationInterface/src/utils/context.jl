@@ -22,6 +22,9 @@ Abstract supertype for additional context arguments, which can be passed to diff
 """
 abstract type Context end
 
+abstract type GeneralizedConstant <: Context end
+abstract type GeneralizedCache <: Context end
+
 unwrap(c::Context) = c.data
 Base.:(==)(c1::Context, c2::Context) = unwrap(c1) == unwrap(c2)
 
@@ -58,7 +61,7 @@ julia> gradient(f, AutoForwardDiff(), [1.0, 2.0], Constant(100))
  400.0
 ```
 """
-struct Constant{T} <: Context
+struct Constant{T} <: GeneralizedConstant
     data::T
 end
 
@@ -94,7 +97,7 @@ julia> gradient(f, prep, AutoForwardDiff(), [3.0, 4.0], Cache(zeros(2)))
  1.0
 ````
 """
-struct Cache{T} <: Context
+struct Cache{T} <: GeneralizedCache
     data::T
 end
 
@@ -103,15 +106,19 @@ maker(::Cache) = cache_maker
 
 ## Internal contexts for passing stuff around
 
-struct FunctionContext{T} <: Context
+struct FunctionContext{T} <: GeneralizedConstant
     data::T
 end
 
-struct BackendContext{T} <: Context
+struct BackendContext{T} <: GeneralizedConstant
     data::T
 end
 
-const ConstantOrFunctionOrBackend = Union{Constant,FunctionContext,BackendContext}
+struct PrepContext{T} <: GeneralizedConstant
+    data::T
+end
+
+struct UnknownContext <: Context end
 
 ## Context manipulation
 

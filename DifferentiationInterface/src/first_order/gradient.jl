@@ -145,7 +145,6 @@ function shuffled_gradient!(
     return nothing
 end
 
-#=
 function shuffled_gradient!(
     grad,
     x,
@@ -158,4 +157,3 @@ function shuffled_gradient!(
     gradient!(f, grad, prep, backend, x, rewrap(unannotated_contexts...)...)
     return nothing
 end
-=#

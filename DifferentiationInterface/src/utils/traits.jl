@@ -171,6 +171,18 @@ function hvp_mode(backend::AutoSparse)
     throw(ArgumentError("HVP mode not defined for $backend`."))
 end
 
+## Inner prep
+
+abstract type InnerPreparationBehavior end
+
+struct PrepareInnerSimple <: InnerPreparationBehavior end
+struct PrepareInnerOverload <: InnerPreparationBehavior end
+struct DontPrepareInner <: InnerPreparationBehavior end
+
+inner_preparation_behavior(::AbstractADType) = DontPrepareInner()
+
+function overloaded_input end
+
 ## Conversions
 
 Base.Bool(::InPlaceSupported) = true

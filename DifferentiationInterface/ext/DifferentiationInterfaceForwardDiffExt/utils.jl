@@ -87,7 +87,7 @@ struct PrepContext{T<:DI.Prep} <: DI.Context
     data::T
 end
 
-NotCache = Union{DI.ConstantOrFunctionOrBackend,PrepContext}
+NotCache = Union{DI.GeneralizedConstant,PrepContext}
 
 _translate(::Type{D}, c::NotCache) where {D<:Dual} = DI.unwrap(c)
 function _translate(::Type{D}, c::DI.Cache) where {D<:Dual}
