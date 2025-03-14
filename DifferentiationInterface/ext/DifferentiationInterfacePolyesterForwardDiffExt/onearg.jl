@@ -288,6 +288,7 @@ end
 
 ## HVP
 
+#=
 function DI.prepare_hvp(
     f, backend::AutoPolyesterForwardDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
@@ -357,6 +358,7 @@ function DI.gradient_and_hvp!(
         contexts...,
     )
 end
+=#
 
 ## Second derivative
 

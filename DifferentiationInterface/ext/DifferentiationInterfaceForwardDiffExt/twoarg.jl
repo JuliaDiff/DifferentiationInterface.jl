@@ -1,18 +1,22 @@
 ## Pushforward
 
-struct ForwardDiffTwoArgPushforwardPrep{T,X,Y} <: DI.PushforwardPrep
+struct ForwardDiffTwoArgPushforwardPrep{T,X,Y,CD} <: DI.PushforwardPrep
     xdual_tmp::X
     ydual_tmp::Y
+    contexts_dual::CD
 end
 
 function DI.prepare_pushforward(
-    f!::F, y, backend::AutoForwardDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C}
-) where {F,C}
+    f!::F, y, backend::AutoForwardDiff, x, tx::NTuple{B}, contexts::Vararg{DI.Context,C}
+) where {F,B,C}
     T = tag_type(f!, backend, x)
     xdual_tmp = make_dual_similar(T, x, tx)
-    ydual_tmp = make_dual_similar(T, y, tx)  # dx only for batch size
-    return ForwardDiffTwoArgPushforwardPrep{T,typeof(xdual_tmp),typeof(ydual_tmp)}(
-        xdual_tmp, ydual_tmp
+    ydual_tmp = make_dual_similar(T, y, tx)  # tx only for batch size
+    contexts_dual = translate_toprep(eltype(xdual_tmp), contexts)
+    return ForwardDiffTwoArgPushforwardPrep{
+        T,typeof(xdual_tmp),typeof(ydual_tmp),typeof(contexts_dual)
+    }(
+        xdual_tmp, ydual_tmp, contexts_dual
     )
 end
 
@@ -26,7 +30,7 @@ function compute_ydual_twoarg(
 ) where {F,T,B,C}
     (; ydual_tmp) = prep
     xdual_tmp = make_dual(T, x, tx)
-    contexts_dual = translate(T, Val(B), contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     f!(ydual_tmp, xdual_tmp, contexts_dual...)
     return ydual_tmp
 end
@@ -41,7 +45,7 @@ function compute_ydual_twoarg(
 ) where {F,T,B,C}
     (; xdual_tmp, ydual_tmp) = prep
     make_dual!(T, xdual_tmp, x, tx)
-    contexts_dual = translate(T, Val(B), contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     f!(ydual_tmp, xdual_tmp, contexts_dual...)
     return ydual_tmp
 end
@@ -111,13 +115,9 @@ end
 ### Unprepared, only when tag is not specified
 
 function DI.value_and_derivative(
-    f!::F,
-    y,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if T === Nothing
+    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
         fc! = DI.with_contexts(f!, contexts...)
         result = MutableDiffResult(y, (similar(y),))
         result = derivative!(result, fc!, y, x)
@@ -129,14 +129,9 @@ function DI.value_and_derivative(
 end
 
 function DI.value_and_derivative!(
-    f!::F,
-    y,
-    der,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, der, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if T === Nothing
+    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
         fc! = DI.with_contexts(f!, contexts...)
         result = MutableDiffResult(y, (der,))
         result = derivative!(result, fc!, y, x)
@@ -148,13 +143,9 @@ function DI.value_and_derivative!(
 end
 
 function DI.derivative(
-    f!::F,
-    y,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if T === Nothing
+    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
         fc! = DI.with_contexts(f!, contexts...)
         return derivative(fc!, y, x)
     else
@@ -164,14 +155,9 @@ function DI.derivative(
 end
 
 function DI.derivative!(
-    f!::F,
-    y,
-    der,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, der, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if T === Nothing
+    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
         fc! = DI.with_contexts(f!, contexts...)
         return derivative!(der, fc!, y, x)
     else
@@ -182,21 +168,18 @@ end
 
 ### Prepared
 
-struct ForwardDiffTwoArgDerivativePrep{C} <: DI.DerivativePrep
+struct ForwardDiffTwoArgDerivativePrep{C,CD} <: DI.DerivativePrep
     config::C
+    contexts_dual::CD
 end
 
 function DI.prepare_derivative(
-    f!::F,
-    y,
-    backend::AutoForwardDiff,
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
     tag = get_tag(f!, backend, x)
-    config = DerivativeConfig(fc!, y, x, tag)
-    return ForwardDiffTwoArgDerivativePrep(config)
+    config = DerivativeConfig(nothing, y, x, tag)
+    contexts_dual = translate_toprep(dual_type(config), contexts)
+    return ForwardDiffTwoArgDerivativePrep(config, contexts_dual)
 end
 
 function DI.prepare!_derivative(
@@ -222,9 +205,10 @@ function DI.value_and_derivative(
     prep::ForwardDiffTwoArgDerivativePrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     result = MutableDiffResult(y, (similar(y),))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -241,9 +225,10 @@ function DI.value_and_derivative!(
     prep::ForwardDiffTwoArgDerivativePrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     result = MutableDiffResult(y, (der,))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -259,9 +244,10 @@ function DI.derivative(
     prep::ForwardDiffTwoArgDerivativePrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)
@@ -276,9 +262,10 @@ function DI.derivative!(
     prep::ForwardDiffTwoArgDerivativePrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)
@@ -291,13 +278,13 @@ end
 ### Unprepared, only when chunk size and tag are not specified
 
 function DI.value_and_jacobian(
-    f!::F,
-    y,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if isnothing(chunksize) && T === Nothing
+    if (
+        isnothing(chunksize) &&
+        T === Nothing &&
+        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+    )
         fc! = DI.with_contexts(f!, contexts...)
         jac = similar(y, length(y), length(x))
         result = MutableDiffResult(y, (jac,))
@@ -310,14 +297,13 @@ function DI.value_and_jacobian(
 end
 
 function DI.value_and_jacobian!(
-    f!::F,
-    y,
-    jac,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, jac, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if isnothing(chunksize) && T === Nothing
+    if (
+        isnothing(chunksize) &&
+        T === Nothing &&
+        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+    )
         fc! = DI.with_contexts(f!, contexts...)
         result = MutableDiffResult(y, (jac,))
         result = jacobian!(result, fc!, y, x)
@@ -329,13 +315,13 @@ function DI.value_and_jacobian!(
 end
 
 function DI.jacobian(
-    f!::F,
-    y,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if isnothing(chunksize) && T === Nothing
+    if (
+        isnothing(chunksize) &&
+        T === Nothing &&
+        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+    )
         fc! = DI.with_contexts(f!, contexts...)
         return jacobian(fc!, y, x)
     else
@@ -345,14 +331,13 @@ function DI.jacobian(
 end
 
 function DI.jacobian!(
-    f!::F,
-    y,
-    jac,
-    backend::AutoForwardDiff{chunksize,T},
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, jac, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if isnothing(chunksize) && T === Nothing
+    if (
+        isnothing(chunksize) &&
+        T === Nothing &&
+        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+    )
         fc! = DI.with_contexts(f!, contexts...)
         return jacobian!(jac, fc!, y, x)
     else
@@ -363,22 +348,19 @@ end
 
 ### Prepared
 
-struct ForwardDiffTwoArgJacobianPrep{C} <: DI.JacobianPrep
+struct ForwardDiffTwoArgJacobianPrep{C,CD} <: DI.JacobianPrep
     config::C
+    contexts_dual::CD
 end
 
 function DI.prepare_jacobian(
-    f!::F,
-    y,
-    backend::AutoForwardDiff,
-    x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    f!::F, y, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
     chunk = choose_chunk(backend, x)
     tag = get_tag(f!, backend, x)
-    config = JacobianConfig(fc!, y, x, chunk, tag)
-    return ForwardDiffTwoArgJacobianPrep(config)
+    config = JacobianConfig(nothing, y, x, chunk, tag)
+    contexts_dual = translate_toprep(dual_type(config), contexts)
+    return ForwardDiffTwoArgJacobianPrep(config, contexts_dual)
 end
 
 function DI.prepare!_jacobian(
@@ -406,9 +388,10 @@ function DI.value_and_jacobian(
     prep::ForwardDiffTwoArgJacobianPrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     jac = similar(y, length(y), length(x))
     result = MutableDiffResult(y, (jac,))
     CHK = tag_type(backend) === Nothing
@@ -426,9 +409,10 @@ function DI.value_and_jacobian!(
     prep::ForwardDiffTwoArgJacobianPrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     result = MutableDiffResult(y, (jac,))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -444,9 +428,10 @@ function DI.jacobian(
     prep::ForwardDiffTwoArgJacobianPrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)
@@ -461,9 +446,10 @@ function DI.jacobian!(
     prep::ForwardDiffTwoArgJacobianPrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    fc! = DI.with_contexts(f!, contexts...)
+    contexts_dual = translate_prepared(contexts, prep.contexts_dual)
+    fc! = DI.FixTail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)
