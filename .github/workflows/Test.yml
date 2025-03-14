@@ -25,7 +25,7 @@ jobs:
       actions: write
       contents: read
     strategy:
-      fail-fast: true  # TODO: toggle
+      fail-fast: false  # TODO: toggle
       matrix:
         version:
           - "1.10"
