@@ -18,7 +18,7 @@ struct AutoReverseFromPrimitive{inplace,B<:AbstractADType} <: FromPrimitive
     backend::B
 end
 
-function AutoReverseFromPrimitive(backend::AbstractADType; inplace=false)
+function AutoReverseFromPrimitive(backend::AbstractADType; inplace=true)
     return AutoReverseFromPrimitive{inplace,typeof(backend)}(backend)
 end
 
