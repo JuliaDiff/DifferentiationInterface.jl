@@ -65,7 +65,9 @@ end
 
 ## Forward over anything
 
-struct ForwardOverAnythingHVPPrep{G,PO<:PushforwardPrep,PI<:PushforwardPrep} <: HVPPrep
+struct ForwardOverAnythingHVPPrep{
+    G,PO<:PushforwardPrep,PI<:Union{Nothing,PushforwardPrep}
+} <: HVPPrep
     # pushforward of many pushforwards in theory, but pushforward of gradient in practice
     grad_buffer::G
     outer_pushforward_prep::PO
@@ -88,9 +90,13 @@ function _prepare_hvp_aux(
     outer_pushforward_prep = prepare_pushforward(
         shuffled_gradient, outer(backend), x, tx, new_contexts...
     )
-    outer_pushforward_in_prep = prepare_pushforward(
-        shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
-    )
+    outer_pushforward_in_prep = if inplace_support(outer(backend)) isa InPlaceSupported
+        prepare_pushforward(
+            shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
+        )
+    else
+        nothing
+    end
     return ForwardOverAnythingHVPPrep(
         grad_buffer, outer_pushforward_prep, outer_pushforward_in_prep
     )
@@ -386,7 +392,8 @@ end
 
 ## Reverse over reverse
 
-struct ReverseOverReverseHVPPrep{G,PO<:PullbackPrep,PI<:PullbackPrep} <: HVPPrep
+struct ReverseOverReverseHVPPrep{G,PO<:PullbackPrep,PI<:Union{Nothing,PullbackPrep}} <:
+       HVPPrep
     # pullback of gradient
     grad_buffer::G
     outer_pullback_prep::PO
@@ -409,9 +416,13 @@ function _prepare_hvp_aux(
     outer_pullback_prep = prepare_pullback(
         shuffled_gradient, outer(backend), x, tx, new_contexts...
     )
-    outer_pullback_in_prep = prepare_pullback(
-        shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
-    )
+    outer_pullback_in_prep = if inplace_support(outer(backend)) isa InPlaceSupported
+        prepare_pullback(
+            shuffled_gradient!, grad_buffer, outer(backend), x, tx, new_contexts...
+        )
+    else
+        nothing
+    end
     return ReverseOverReverseHVPPrep(
         grad_buffer, outer_pullback_prep, outer_pullback_in_prep
     )
