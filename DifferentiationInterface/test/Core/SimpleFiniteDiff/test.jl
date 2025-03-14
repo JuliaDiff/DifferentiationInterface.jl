@@ -1,6 +1,9 @@
 using DifferentiationInterface, DifferentiationInterfaceTest
 using DifferentiationInterface:
-    AutoSimpleFiniteDiff, AutoReverseFromPrimitive, DenseSparsityDetector
+    AutoSimpleFiniteDiff,
+    AutoForwardFromPrimitive,
+    AutoReverseFromPrimitive,
+    DenseSparsityDetector
 using SparseMatrixColorings
 using Test
 
@@ -9,7 +12,6 @@ LOGGING = get(ENV, "CI", "false") == "false"
 backends = [ #
     AutoSimpleFiniteDiff(; chunksize=5),
     AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
-    AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=3); inplace=false),
 ]
 
 second_order_backends = [ #
@@ -20,6 +22,25 @@ second_order_backends = [ #
     SecondOrder(
         AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=5)),
         AutoSimpleFiniteDiff(; chunksize=4),
+    ),
+]
+
+second_order_hvp_backends = [ #
+    SecondOrder(
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff()),
+    ),
+    SecondOrder(
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff();),
+    ),
+    SecondOrder(
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff();),
+    ),
+    SecondOrder(
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff();),
     ),
 ]
 
@@ -42,6 +63,12 @@ end
         vcat(backends, second_order_backends),
         default_scenarios(; include_constantified=true);
         logging=LOGGING,
+    )
+
+    test_differentiation(
+        second_order_hvp_backends;
+        excluded=vcat(FIRST_ORDER, :hessian, :second_derivative),
+        logging=true,
     )
 
     test_differentiation(backends, complex_scenarios(); logging=LOGGING)

@@ -141,6 +141,8 @@ Traits identifying second-order backends that compute HVPs in forward over forwa
 """
 struct ForwardOverForward <: HVPMode end
 
+const ForwardOverAnything = Union{ForwardOverForward,ForwardOverReverse}
+
 """
     hvp_mode(backend)
 
