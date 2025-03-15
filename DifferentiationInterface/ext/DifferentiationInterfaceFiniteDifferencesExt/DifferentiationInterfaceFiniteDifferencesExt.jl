@@ -7,6 +7,7 @@ using LinearAlgebra: dot
 
 DI.check_available(::AutoFiniteDifferences) = true
 DI.inplace_support(::AutoFiniteDifferences) = DI.InPlaceNotSupported()
+DI.inner_preparation_behavior(::AutoFiniteDifferences) = DI.PrepareInnerSimple()
 
 ## Pushforward
 

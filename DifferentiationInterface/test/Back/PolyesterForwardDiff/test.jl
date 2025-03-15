@@ -22,6 +22,8 @@ backends = [
 for backend in backends
     @test check_available(backend)
     @test check_inplace(backend)
+    @test DifferentiationInterface.inner_preparation_behavior(backend) isa
+        DifferentiationInterface.PrepareInnerOverload
 end
 
 test_differentiation(
@@ -29,6 +31,12 @@ test_differentiation(
     default_scenarios(; include_constantified=true, include_cachified=true);
     logging=LOGGING,
     excluded=SECOND_ORDER,
+);
+
+test_differentiation(
+    SecondOrder(AutoPolyesterForwardDiff(), AutoPolyesterForwardDiff()),
+    default_scenarios();
+    logging=LOGGING,
 );
 
 @testset "Batch size" begin

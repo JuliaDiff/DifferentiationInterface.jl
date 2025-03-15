@@ -16,12 +16,12 @@ backends = [ #
 
 second_order_backends = [ #
     SecondOrder(
-        AutoSimpleFiniteDiff(; chunksize=5),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=5)),
         AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
     ),
     SecondOrder(
         AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=5)),
-        AutoSimpleFiniteDiff(; chunksize=4),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
     ),
 ]
 
