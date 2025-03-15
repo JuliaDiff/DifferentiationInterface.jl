@@ -39,7 +39,7 @@ DifferentiationInterfaceFiniteDifferencesExt = "FiniteDifferences"
 DifferentiationInterfaceForwardDiffExt = ["ForwardDiff", "DiffResults"]
 DifferentiationInterfaceGTPSAExt = "GTPSA"
 DifferentiationInterfaceMooncakeExt = "Mooncake"
-DifferentiationInterfacePolyesterForwardDiffExt = "PolyesterForwardDiff"
+DifferentiationInterfacePolyesterForwardDiffExt = ["PolyesterForwardDiff", "ForwardDiff", "DiffResults"]
 DifferentiationInterfaceReverseDiffExt = ["ReverseDiff", "DiffResults"]
 DifferentiationInterfaceSparseArraysExt = "SparseArrays"
 DifferentiationInterfaceSparseConnectivityTracerExt = "SparseConnectivityTracer"
@@ -115,7 +115,6 @@ test = [
     "ComponentArrays",
     "DataFrames",
     "ExplicitImports",
-    "ForwardDiff",
     "JET",
     "JLArrays",
     "JuliaFormatter",

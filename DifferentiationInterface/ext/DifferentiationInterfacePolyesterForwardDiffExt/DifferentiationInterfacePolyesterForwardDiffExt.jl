@@ -4,31 +4,22 @@ using ADTypes: AutoForwardDiff, AutoPolyesterForwardDiff
 import DifferentiationInterface as DI
 using LinearAlgebra: mul!
 using PolyesterForwardDiff: threaded_gradient!, threaded_jacobian!
-using PolyesterForwardDiff.ForwardDiff: Chunk
-using PolyesterForwardDiff.ForwardDiff.DiffResults: DiffResults
+using ForwardDiff: Chunk
+using DiffResults: DiffResults
+
+const FDExt = Base.get_extension(DI, :DifferentiationInterfaceForwardDiffExt)
+@assert !isnothing(FDExt)
 
 function single_threaded(backend::AutoPolyesterForwardDiff{chunksize,T}) where {chunksize,T}
     return AutoForwardDiff(; chunksize, tag=backend.tag)
 end
 
 DI.check_available(::AutoPolyesterForwardDiff) = true
+DI.inner_preparation_behavior(::AutoPolyesterForwardDiff) = DI.PrepareInnerOverload()
 
-function DI.pick_batchsize(backend::AutoPolyesterForwardDiff, x::AbstractArray)
-    return DI.pick_batchsize(single_threaded(backend), x)
-end
-
-function DI.pick_batchsize(backend::AutoPolyesterForwardDiff, N::Integer)
-    return DI.pick_batchsize(single_threaded(backend), N)
-end
-
-function DI.threshold_batchsize(
-    backend::AutoPolyesterForwardDiff{chunksize1}, chunksize2::Integer
-) where {chunksize1}
-    chunksize = isnothing(chunksize1) ? nothing : min(chunksize1, chunksize2)
-    return AutoPolyesterForwardDiff(; chunksize, tag=backend.tag)
-end
-
+include("utils.jl")
 include("onearg.jl")
 include("twoarg.jl")
+include("misc.jl")
 
 end # module

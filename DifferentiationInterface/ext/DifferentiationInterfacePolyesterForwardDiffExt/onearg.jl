@@ -107,45 +107,61 @@ end
 
 ## Gradient
 
-struct PolyesterForwardDiffGradientPrep{chunksize} <: DI.GradientPrep
+struct PolyesterForwardDiffGradientPrep{chunksize,P} <: DI.GradientPrep
     chunk::Chunk{chunksize}
+    single_threaded_prep::P
 end
 
 function DI.prepare_gradient(
-    f, ::AutoPolyesterForwardDiff{chunksize}, x, contexts::Vararg{DI.Context,C}
+    f, backend::AutoPolyesterForwardDiff{chunksize}, x, contexts::Vararg{DI.Context,C}
 ) where {chunksize,C}
     if isnothing(chunksize)
         chunk = Chunk(x)
     else
         chunk = Chunk{chunksize}()
     end
-    return PolyesterForwardDiffGradientPrep(chunk)
+    single_threaded_prep = DI.prepare_gradient(f, single_threaded(backend), x, contexts...)
+    return PolyesterForwardDiffGradientPrep(chunk, single_threaded_prep)
 end
 
 function DI.value_and_gradient!(
     f,
     grad,
     prep::PolyesterForwardDiffGradientPrep,
-    ::AutoPolyesterForwardDiff,
+    backend::AutoPolyesterForwardDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    threaded_gradient!(fc, grad, x, prep.chunk)
-    return fc(x), grad
+    if contexts isa NTuple{C,DI.GeneralizedConstant}
+        fc = DI.with_contexts(f, contexts...)
+        threaded_gradient!(fc, grad, x, prep.chunk)
+        return fc(x), grad
+    else
+        # TODO: optimize
+        return DI.value_and_gradient!(
+            f, grad, prep.single_threaded_prep, single_threaded(backend), x, contexts...
+        )
+    end
 end
 
 function DI.gradient!(
     f,
     grad,
     prep::PolyesterForwardDiffGradientPrep,
-    ::AutoPolyesterForwardDiff,
+    backend::AutoPolyesterForwardDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    threaded_gradient!(fc, grad, x, prep.chunk)
-    return grad
+    if contexts isa NTuple{C,DI.GeneralizedConstant}
+        fc = DI.with_contexts(f, contexts...)
+        threaded_gradient!(fc, grad, x, prep.chunk)
+        return grad
+    else
+        # TODO: optimize
+        return DI.gradient!(
+            f, grad, prep.single_threaded_prep, single_threaded(backend), x, contexts...
+        )
+    end
 end
 
 function DI.value_and_gradient(
@@ -170,43 +186,57 @@ end
 
 ## Jacobian
 
-struct PolyesterForwardDiffOneArgJacobianPrep{chunksize} <: DI.JacobianPrep
+struct PolyesterForwardDiffOneArgJacobianPrep{chunksize,P} <: DI.JacobianPrep
     chunk::Chunk{chunksize}
+    single_threaded_prep::P
 end
 
 function DI.prepare_jacobian(
-    f, ::AutoPolyesterForwardDiff{chunksize}, x, contexts::Vararg{DI.Context,C}
+    f, backend::AutoPolyesterForwardDiff{chunksize}, x, contexts::Vararg{DI.Context,C}
 ) where {chunksize,C}
     if isnothing(chunksize)
         chunk = Chunk(x)
     else
         chunk = Chunk{chunksize}()
     end
-    return PolyesterForwardDiffOneArgJacobianPrep(chunk)
+    single_threaded_prep = DI.prepare_jacobian(f, single_threaded(backend), x, contexts...)
+    return PolyesterForwardDiffOneArgJacobianPrep(chunk, single_threaded_prep)
 end
 
 function DI.value_and_jacobian!(
     f,
     jac,
     prep::PolyesterForwardDiffOneArgJacobianPrep,
-    ::AutoPolyesterForwardDiff,
+    backend::AutoPolyesterForwardDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    return fc(x), threaded_jacobian!(fc, jac, x, prep.chunk)
+    if contexts isa NTuple{C,DI.GeneralizedConstant}
+        fc = DI.with_contexts(f, contexts...)
+        return fc(x), threaded_jacobian!(fc, jac, x, prep.chunk)
+    else
+        return DI.value_and_jacobian!(
+            f, jac, prep.single_threaded_prep, single_threaded(backend), x, contexts...
+        )
+    end
 end
 
 function DI.jacobian!(
     f,
     jac,
     prep::PolyesterForwardDiffOneArgJacobianPrep,
-    ::AutoPolyesterForwardDiff,
+    backend::AutoPolyesterForwardDiff,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    fc = DI.with_contexts(f, contexts...)
-    return threaded_jacobian!(fc, jac, x, prep.chunk)
+    if contexts isa NTuple{C,DI.GeneralizedConstant}
+        fc = DI.with_contexts(f, contexts...)
+        return threaded_jacobian!(fc, jac, x, prep.chunk)
+    else
+        return DI.jacobian!(
+            f, jac, prep.single_threaded_prep, single_threaded(backend), x, contexts...
+        )
+    end
 end
 
 function DI.value_and_jacobian(
@@ -217,9 +247,8 @@ function DI.value_and_jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     y = f(x, map(DI.unwrap, contexts)...)
-    return DI.value_and_jacobian!(
-        f, similar(y, length(y), length(x)), prep, backend, x, contexts...
-    )
+    jac = similar(y, length(y), length(x))
+    return DI.value_and_jacobian!(f, jac, prep, backend, x, contexts...)
 end
 
 function DI.jacobian(
@@ -230,7 +259,8 @@ function DI.jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     y = f(x, map(DI.unwrap, contexts)...)
-    return DI.jacobian!(f, similar(y, length(y), length(x)), prep, backend, x, contexts...)
+    jac = similar(y, length(y), length(x))
+    return DI.jacobian!(f, jac, prep, backend, x, contexts...)
 end
 
 ## Hessian
@@ -299,7 +329,7 @@ end
 
 function DI.hvp(
     f,
-    prep::DI.HVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoPolyesterForwardDiff,
     x,
     tx::NTuple,
@@ -313,7 +343,7 @@ end
 function DI.hvp!(
     f,
     tg::NTuple,
-    prep::DI.HVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoPolyesterForwardDiff,
     x,
     tx::NTuple,
@@ -326,7 +356,7 @@ end
 
 function DI.gradient_and_hvp(
     f,
-    prep::DI.HVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoPolyesterForwardDiff,
     x,
     tx::NTuple,
@@ -341,7 +371,7 @@ function DI.gradient_and_hvp!(
     f,
     grad,
     tg::NTuple,
-    prep::DI.HVPPrep,
+    prep::DI.ForwardOverAnythingHVPPrep,
     backend::AutoPolyesterForwardDiff,
     x,
     tx::NTuple,

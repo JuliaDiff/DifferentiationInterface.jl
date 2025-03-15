@@ -48,13 +48,13 @@ force_annotation(f::F) where {F<:Annotation} = f
 force_annotation(f::F) where {F} = Const(f)
 
 @inline function _translate(
-    ::AutoEnzyme, ::Mode, ::Val{B}, c::Union{DI.Constant,DI.BackendContext}
+    ::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedConstant
 ) where {B}
     return Const(DI.unwrap(c))
 end
 
 @inline function _translate(
-    backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.Cache
+    ::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedCache
 ) where {B}
     if B == 1
         return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))

@@ -175,15 +175,33 @@ end
 
 abstract type InnerPreparationBehavior end
 
+"""
+    PrepareInnerSimple
+
+Trait identifying outer backends for which the inner backend in second-order autodiff should be prepared with the same input type.
+"""
 struct PrepareInnerSimple <: InnerPreparationBehavior end
+
+"""
+    PrepareInnerOverload
+
+Trait identifying outer backends for which the inner backend in second-order autodiff should be prepared with an overloaded input type.
+"""
 struct PrepareInnerOverload <: InnerPreparationBehavior end
+
+"""
+    DontPrepareInner
+
+Trait identifying outer backends for which the inner backend in second-order autodiff should not be prepared at all.
+"""
 struct DontPrepareInner <: InnerPreparationBehavior end
 
-inner_preparation_behavior(::AbstractADType) = DontPrepareInner()
+"""
+    inner_preparation_behavior(backend::AbstractADType)
 
-function overloaded_input(optype, f, backend, x, args...)
-    throw(ArgumentError("Just to appease JET"))
-end
+Return [`PrepareInnerSimple`](@ref), [`PrepareInnerOverload`](@ref) or [`DontPrepareInner`](@ref) in a statically predictable way.
+"""
+inner_preparation_behavior(::AbstractADType) = DontPrepareInner()
 
 ## Conversions
 

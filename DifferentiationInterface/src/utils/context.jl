@@ -114,7 +114,7 @@ struct BackendContext{T} <: GeneralizedConstant
     data::T
 end
 
-struct PrepContext{T} <: GeneralizedConstant
+struct PrepContext{T} <: GeneralizedCache
     data::T
 end
 

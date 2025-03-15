@@ -121,3 +121,12 @@ end
         @test only(column_groups(hess_prep)) == 1:10
     end
 end
+
+@testset "Misc" begin
+    @test_throws ArgumentError DifferentiationInterface.overloaded_input(
+        pushforward, sum, AutoSimpleFiniteDiff(), 1, (1, 2)
+    )
+    @test_throws ArgumentError DifferentiationInterface.overloaded_input(
+        pushforward, copyto!, [1.0], AutoSimpleFiniteDiff(), [1.0], ([1.0], [1.0])
+    )
+end
