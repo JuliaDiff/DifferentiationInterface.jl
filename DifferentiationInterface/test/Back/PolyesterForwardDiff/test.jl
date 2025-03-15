@@ -12,18 +12,31 @@ check_no_implicit_imports(DifferentiationInterface)
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
+struct MyTag end
+
 backends = [
-    AutoPolyesterForwardDiff(; tag=:hello),  #
+    AutoPolyesterForwardDiff(; tag=ForwardDiff.Tag(MyTag(), Float64)),  #
     AutoPolyesterForwardDiff(; chunksize=2),
 ]
 
 for backend in backends
     @test check_available(backend)
     @test check_inplace(backend)
+    @test DifferentiationInterface.inner_preparation_behavior(backend) isa
+        DifferentiationInterface.PrepareInnerOverload
 end
 
 test_differentiation(
-    backends, default_scenarios(; include_constantified=true); logging=LOGGING
+    backends,
+    default_scenarios(; include_constantified=true, include_cachified=true);
+    logging=LOGGING,
+    excluded=SECOND_ORDER,
+);
+
+test_differentiation(
+    SecondOrder(AutoPolyesterForwardDiff(), AutoPolyesterForwardDiff()),
+    default_scenarios();
+    logging=LOGGING,
 );
 
 @testset "Batch size" begin

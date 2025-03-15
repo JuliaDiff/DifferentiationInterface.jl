@@ -1,10 +1,113 @@
-abstract type FromPrimitive <: AbstractADType end
+abstract type FromPrimitive{inplace} <: AbstractADType end
 
 check_available(fromprim::FromPrimitive) = check_available(fromprim.backend)
-inplace_support(fromprim::FromPrimitive) = inplace_support(fromprim.backend)
+inplace_support(::FromPrimitive{true}) = InPlaceSupported()
+inplace_support(::FromPrimitive{false}) = InPlaceNotSupported()
+function inner_preparation_behavior(fromprim::FromPrimitive)
+    return inner_preparation_behavior(fromprim.backend)
+end
 
 function pick_batchsize(fromprim::FromPrimitive, N::Integer)
     return pick_batchsize(fromprim.backend, N)
+end
+
+"""
+    AutoForwardFromPrimitive
+
+Wrapper which forces a given backend to act as a reverse-mode backend.
+
+Used in internal testing.
+"""
+struct AutoForwardFromPrimitive{inplace,B<:AbstractADType} <: FromPrimitive{inplace}
+    backend::B
+end
+
+function AutoForwardFromPrimitive(backend::AbstractADType; inplace=true)
+    return AutoForwardFromPrimitive{inplace,typeof(backend)}(backend)
+end
+
+ADTypes.mode(::AutoForwardFromPrimitive) = ADTypes.ForwardMode()
+
+function threshold_batchsize(
+    fromprim::AutoForwardFromPrimitive{inplace}, dimension::Integer
+) where {inplace}
+    return AutoForwardFromPrimitive(
+        threshold_batchsize(fromprim.backend, dimension); inplace
+    )
+end
+
+struct FromPrimitivePushforwardPrep{E<:PushforwardPrep} <: PushforwardPrep
+    pushforward_prep::E
+end
+
+function prepare_pushforward(
+    f::F, fromprim::AutoForwardFromPrimitive, x, tx::NTuple, contexts::Vararg{Context,C}
+) where {F,C}
+    primitive_prep = prepare_pushforward(f, fromprim.backend, x, tx, contexts...)
+    return FromPrimitivePushforwardPrep(primitive_prep)
+end
+
+function prepare_pushforward(
+    f!::F, y, fromprim::AutoForwardFromPrimitive, x, tx::NTuple, contexts::Vararg{Context,C}
+) where {F,C}
+    primitive_prep = prepare_pushforward(f!, y, fromprim.backend, x, tx, contexts...)
+    return FromPrimitivePushforwardPrep(primitive_prep)
+end
+
+function value_and_pushforward(
+    f::F,
+    prep::FromPrimitivePushforwardPrep,
+    fromprim::AutoForwardFromPrimitive,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    return value_and_pushforward(
+        f, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
+    )
+end
+
+function value_and_pushforward(
+    f!::F,
+    y,
+    prep::FromPrimitivePushforwardPrep,
+    fromprim::AutoForwardFromPrimitive,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    return value_and_pushforward(
+        f!, y, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
+    )
+end
+
+function value_and_pushforward!(
+    f::F,
+    ty::NTuple,
+    prep::FromPrimitivePushforwardPrep,
+    fromprim::AutoForwardFromPrimitive,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    return value_and_pushforward!(
+        f, ty, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
+    )
+end
+
+function value_and_pushforward!(
+    f!::F,
+    y,
+    ty::NTuple,
+    prep::FromPrimitivePushforwardPrep,
+    fromprim::AutoForwardFromPrimitive,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    return value_and_pushforward!(
+        f!, y, ty, prep.pushforward_prep, fromprim.backend, x, tx, contexts...
+    )
 end
 
 """
@@ -14,14 +117,22 @@ Wrapper which forces a given backend to act as a reverse-mode backend.
 
 Used in internal testing.
 """
-struct AutoReverseFromPrimitive{B} <: FromPrimitive
+struct AutoReverseFromPrimitive{inplace,B<:AbstractADType} <: FromPrimitive{inplace}
     backend::B
+end
+
+function AutoReverseFromPrimitive(backend::AbstractADType; inplace=true)
+    return AutoReverseFromPrimitive{inplace,typeof(backend)}(backend)
 end
 
 ADTypes.mode(::AutoReverseFromPrimitive) = ADTypes.ReverseMode()
 
-function threshold_batchsize(fromprim::AutoReverseFromPrimitive, dimension::Integer)
-    return AutoReverseFromPrimitive(threshold_batchsize(fromprim.backend, dimension))
+function threshold_batchsize(
+    fromprim::AutoReverseFromPrimitive{inplace}, dimension::Integer
+) where {inplace}
+    return AutoReverseFromPrimitive(
+        threshold_batchsize(fromprim.backend, dimension); inplace
+    )
 end
 
 struct FromPrimitivePullbackPrep{E<:PullbackPrep} <: PullbackPrep

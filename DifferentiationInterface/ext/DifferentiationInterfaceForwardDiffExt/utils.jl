@@ -82,14 +82,11 @@ function mypartials!(::Type{T}, ty::NTuple{B}, ydual) where {T,B}
     return ty
 end
 
-# store preparation result with the right input eltype
-struct PrepContext{T<:DI.Prep} <: DI.Context
-    data::T
+function _translate(
+    ::Type{D}, c::Union{DI.GeneralizedConstant,DI.PrepContext}
+) where {D<:Dual}
+    return DI.unwrap(c)
 end
-
-NotCache = Union{DI.ConstantOrFunctionOrBackend,PrepContext}
-
-_translate(::Type{D}, c::NotCache) where {D<:Dual} = DI.unwrap(c)
 function _translate(::Type{D}, c::DI.Cache) where {D<:Dual}
     c0 = DI.unwrap(c)
     return similar(c0, D)
@@ -102,7 +99,11 @@ function translate(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:Dual,C}
     return new_contexts
 end
 
-_translate_toprep(::Type{D}, c::NotCache) where {D<:Dual} = nothing
+function _translate_toprep(
+    ::Type{D}, c::Union{DI.GeneralizedConstant,DI.PrepContext}
+) where {D<:Dual}
+    return nothing
+end
 function _translate_toprep(::Type{D}, c::DI.Cache) where {D<:Dual}
     c0 = DI.unwrap(c)
     return similar(c0, D)
@@ -115,7 +116,7 @@ function translate_toprep(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:D
     return new_contexts
 end
 
-_translate_prepared(c::NotCache, _pc) = DI.unwrap(c)
+_translate_prepared(c::Union{DI.GeneralizedConstant,DI.PrepContext}, _pc) = DI.unwrap(c)
 _translate_prepared(_c::DI.Cache, pc) = pc
 
 function translate_prepared(

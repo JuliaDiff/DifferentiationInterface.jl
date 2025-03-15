@@ -28,6 +28,7 @@ using ForwardDiff:
     value
 
 DI.check_available(::AutoForwardDiff) = true
+DI.inner_preparation_behavior(::AutoForwardDiff) = DI.PrepareInnerOverload()
 
 include("utils.jl")
 include("onearg.jl")

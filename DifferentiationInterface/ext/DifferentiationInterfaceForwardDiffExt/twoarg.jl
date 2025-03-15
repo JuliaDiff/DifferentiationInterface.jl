@@ -117,7 +117,7 @@ end
 function DI.value_and_derivative(
     f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
+    if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
         fc! = DI.with_contexts(f!, contexts...)
         result = MutableDiffResult(y, (similar(y),))
         result = derivative!(result, fc!, y, x)
@@ -131,7 +131,7 @@ end
 function DI.value_and_derivative!(
     f!::F, y, der, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
+    if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
         fc! = DI.with_contexts(f!, contexts...)
         result = MutableDiffResult(y, (der,))
         result = derivative!(result, fc!, y, x)
@@ -145,7 +145,7 @@ end
 function DI.derivative(
     f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
+    if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
         fc! = DI.with_contexts(f!, contexts...)
         return derivative(fc!, y, x)
     else
@@ -157,7 +157,7 @@ end
 function DI.derivative!(
     f!::F, y, der, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
-    if (T === Nothing && contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend})
+    if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
         fc! = DI.with_contexts(f!, contexts...)
         return derivative!(der, fc!, y, x)
     else
@@ -188,7 +188,7 @@ function DI.prepare!_derivative(
     old_prep::ForwardDiffTwoArgDerivativePrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {F,C}
     if y isa Vector
         (; config) = old_prep
@@ -283,7 +283,7 @@ function DI.value_and_jacobian(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc! = DI.with_contexts(f!, contexts...)
         jac = similar(y, length(y), length(x))
@@ -302,7 +302,7 @@ function DI.value_and_jacobian!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc! = DI.with_contexts(f!, contexts...)
         result = MutableDiffResult(y, (jac,))
@@ -320,7 +320,7 @@ function DI.jacobian(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc! = DI.with_contexts(f!, contexts...)
         return jacobian(fc!, y, x)
@@ -336,7 +336,7 @@ function DI.jacobian!(
     if (
         isnothing(chunksize) &&
         T === Nothing &&
-        contexts isa NTuple{C,DI.ConstantOrFunctionOrBackend}
+        contexts isa NTuple{C,DI.GeneralizedConstant}
     )
         fc! = DI.with_contexts(f!, contexts...)
         return jacobian!(jac, fc!, y, x)
@@ -369,7 +369,7 @@ function DI.prepare!_jacobian(
     old_prep::ForwardDiffTwoArgJacobianPrep,
     backend::AutoForwardDiff,
     x,
-    contexts::Vararg{DI.ConstantOrFunctionOrBackend,C},
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {F,C}
     if x isa Vector && y isa Vector
         (; config) = old_prep

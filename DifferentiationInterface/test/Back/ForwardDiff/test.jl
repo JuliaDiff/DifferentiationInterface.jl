@@ -42,11 +42,7 @@ end
     )
 
     test_differentiation(
-        AutoForwardDiff();
-        correctness=false,
-        type_stability=:prepared,
-        excluded=[:hvp],  # TODO: toggle
-        logging=LOGGING,
+        AutoForwardDiff(); correctness=false, type_stability=:prepared, logging=LOGGING
     )
 
     test_differentiation(

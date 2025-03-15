@@ -21,6 +21,7 @@ using FiniteDiff:
 using LinearAlgebra: dot, mul!
 
 DI.check_available(::AutoFiniteDiff) = true
+DI.inner_preparation_behavior(::AutoFiniteDiff) = DI.PrepareInnerSimple()
 
 # see https://github.com/SciML/ADTypes.jl/issues/33
 
