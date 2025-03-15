@@ -172,16 +172,12 @@ function _prepare_hvp_aux(
     grad_buffer = similar(x)
     rewrap = Rewrap(contexts...)
     # Inner gradient
-    inner_gradient_prep = let
-        xo = overloaded_input(pushforward, shuffled_gradient, outer(backend), x, tx)
-        prepare_gradient(f, inner(backend), xo, contexts...)
-    end
-    inner_gradient_in_prep = let
-        xo = overloaded_input(
-            pushforward, shuffled_gradient!, grad_buffer, outer(backend), x, tx
-        )
-        prepare_gradient(f, inner(backend), xo, contexts...)
-    end
+    xo = overloaded_input(pushforward, shuffled_gradient, outer(backend), x, tx)
+    xoi = overloaded_input(
+        pushforward, shuffled_gradient!, grad_buffer, outer(backend), x, tx
+    )
+    inner_gradient_prep = prepare_gradient(f, inner(backend), xo, contexts...)
+    inner_gradient_in_prep = prepare_gradient(f, inner(backend), xoi, contexts...)
     # Outer pushforward
     new_contexts = (
         FunctionContext(f),

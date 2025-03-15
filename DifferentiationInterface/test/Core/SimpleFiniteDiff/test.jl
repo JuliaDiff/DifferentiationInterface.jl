@@ -11,6 +11,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [ #
     AutoSimpleFiniteDiff(; chunksize=5),
+    AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
     AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
 ]
 
@@ -68,7 +69,7 @@ end
     test_differentiation(
         second_order_hvp_backends;
         excluded=vcat(FIRST_ORDER, :hessian, :second_derivative),
-        logging=true,
+        logging=LOGGING,
     )
 
     test_differentiation(backends, complex_scenarios(); logging=LOGGING)
