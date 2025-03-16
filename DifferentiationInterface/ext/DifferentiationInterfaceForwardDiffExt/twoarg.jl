@@ -1,6 +1,8 @@
 ## Pushforward
 
 struct ForwardDiffTwoArgPushforwardPrep{SIG,T,X,Y,CD} <: DI.PushforwardPrep{SIG}
+    _sig::Val{SIG}
+    _t::Type{T}
     xdual_tmp::X
     ydual_tmp::Y
     contexts_dual::CD
@@ -13,18 +15,14 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,B,C}
-    SIG = DI.signature(f!, y, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     T = tag_type(f!, backend, x)
     xdual_tmp = make_dual_similar(T, x, tx)
     ydual_tmp = make_dual_similar(T, y, tx)  # tx only for batch size
     contexts_dual = translate_toprep(eltype(xdual_tmp), contexts)
-    return ForwardDiffTwoArgPushforwardPrep{
-        SIG,T,typeof(xdual_tmp),typeof(ydual_tmp),typeof(contexts_dual)
-    }(
-        xdual_tmp, ydual_tmp, contexts_dual
-    )
+    return ForwardDiffTwoArgPushforwardPrep(_sig, T, xdual_tmp, ydual_tmp, contexts_dual)
 end
 
 function compute_ydual_twoarg(
@@ -180,7 +178,7 @@ end
 ### Prepared
 
 struct ForwardDiffTwoArgDerivativePrep{SIG,C,CD} <: DI.DerivativePrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     config::C
     contexts_dual::CD
 end
@@ -191,13 +189,13 @@ function DI.prepare_derivative(
     backend::AutoForwardDiff,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     tag = get_tag(f!, backend, x)
     config = DerivativeConfig(nothing, y, x, tag)
     contexts_dual = translate_toprep(dual_type(config), contexts)
-    return ForwardDiffTwoArgDerivativePrep(SIG, config, contexts_dual)
+    return ForwardDiffTwoArgDerivativePrep(_sig, config, contexts_dual)
 end
 
 function DI.prepare!_derivative(
@@ -374,7 +372,7 @@ end
 ### Prepared
 
 struct ForwardDiffTwoArgJacobianPrep{SIG,C,CD} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     config::C
     contexts_dual::CD
 end
@@ -385,14 +383,14 @@ function DI.prepare_jacobian(
     backend::AutoForwardDiff,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     chunk = choose_chunk(backend, x)
     tag = get_tag(f!, backend, x)
     config = JacobianConfig(nothing, y, x, chunk, tag)
     contexts_dual = translate_toprep(dual_type(config), contexts)
-    return ForwardDiffTwoArgJacobianPrep(SIG, config, contexts_dual)
+    return ForwardDiffTwoArgJacobianPrep(_sig, config, contexts_dual)
 end
 
 function DI.prepare!_jacobian(

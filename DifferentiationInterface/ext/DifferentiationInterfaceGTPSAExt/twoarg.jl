@@ -5,7 +5,7 @@
 #
 # Output: Contains a vector of pre-allocated TPSs
 struct GTPSATwoArgPushforwardPrep{SIG,X,Y} <: DI.PushforwardPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     xt::X
     yt::Y
 end
@@ -17,9 +17,9 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Constant,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,D,C}
-    SIG = DI.signature(f!, y, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     # For pushforward/JVP, we only actually need 1 single variable (in the GTPSA sense)
     # because we even if we did multiple we will add up the derivatives of each at the end.
     if D != Nothing
@@ -41,7 +41,7 @@ function DI.prepare_pushforward(
     for i in eachindex(yt)
         yt[i] = TPS{promote_type(eltype(y), Float64)}(; use=d)
     end
-    return GTPSATwoArgPushforwardPrep(SIG, xt, yt)
+    return GTPSATwoArgPushforwardPrep(_sig, xt, yt)
 end
 
 function DI.pushforward(
@@ -120,15 +120,15 @@ end
 # Input: Contains a vector of pre-allocated TPSs
 # Output: Contains a vector of pre-allocated TPSs
 struct GTPSATwoArgJacobianPrep{SIG,X,Y} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     xt::X
     yt::Y
 end
 
 function DI.prepare_jacobian(
-    f!, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Bool=false
+    f!, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
 ) where {D,C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     if D != Nothing
         d = backend.descriptor
     else
@@ -150,7 +150,7 @@ function DI.prepare_jacobian(
         yt[i] = TPS{promote_type(eltype(y), Float64)}(; use=d)
     end
 
-    return GTPSATwoArgJacobianPrep(SIG, xt, yt)
+    return GTPSATwoArgJacobianPrep(_sig, xt, yt)
 end
 
 function DI.jacobian(

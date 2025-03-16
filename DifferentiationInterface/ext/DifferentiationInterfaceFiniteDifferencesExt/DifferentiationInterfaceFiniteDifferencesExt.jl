@@ -17,10 +17,10 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
-    return DI.NoPushforwardPrep{SIG}()
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
+    return DI.NoPushforwardPrep(_sig)
 end
 
 function DI.pushforward(
@@ -60,10 +60,10 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
-    return DI.NoPullbackPrep{SIG}()
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep(_sig)
 end
 
 function DI.pullback(
@@ -98,10 +98,14 @@ end
 ## Gradient
 
 function DI.prepare_gradient(
-    f, backend::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f,
+    backend::AutoFiniteDifferences,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
-    return DI.NoGradientPrep{SIG}()
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoGradientPrep(_sig)
 end
 
 function DI.gradient(
@@ -155,10 +159,14 @@ end
 ## Jacobian
 
 function DI.prepare_jacobian(
-    f, backend::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f,
+    backend::AutoFiniteDifferences,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
-    return DI.NoJacobianPrep{SIG}()
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoJacobianPrep(_sig)
 end
 
 function DI.jacobian(

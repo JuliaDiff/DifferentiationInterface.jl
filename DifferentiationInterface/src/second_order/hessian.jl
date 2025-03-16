@@ -1,7 +1,7 @@
 ## Docstrings
 
 """
-    prepare_hessian(f, backend, x, [contexts...]; strict=false) -> prep
+    prepare_hessian(f, backend, x, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("hessian"))
 """
@@ -60,7 +60,7 @@ struct HVPGradientHessianPrep{
     E2<:HVPPrep,
     E1<:GradientPrep,
 } <: HessianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     batch_size_settings::BS
     batched_seeds::S
     batched_results::R
@@ -69,7 +69,7 @@ struct HVPGradientHessianPrep{
 end
 
 function prepare_hessian(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool=false
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
 ) where {F,C}
     # type-unstable
     batch_size_settings = pick_batchsize(outer(backend), x)
@@ -83,9 +83,9 @@ function _prepare_hessian_aux(
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {B,F,C}
-    SIG = signature(f, backend, x, contexts...; strict)
+    _sig = signature(f, backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     seeds = [basis(x, ind) for ind in eachindex(x)]
     batched_seeds = [
@@ -95,7 +95,7 @@ function _prepare_hessian_aux(
     hvp_prep = prepare_hvp(f, backend, x, batched_seeds[1], contexts...; strict)
     gradient_prep = prepare_gradient(f, inner(backend), x, contexts...; strict)
     return HVPGradientHessianPrep(
-        SIG, batch_size_settings, batched_seeds, batched_results, hvp_prep, gradient_prep
+        _sig, batch_size_settings, batched_seeds, batched_results, hvp_prep, gradient_prep
     )
 end
 

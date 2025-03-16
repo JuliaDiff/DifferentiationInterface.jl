@@ -8,7 +8,7 @@ struct SparseHessianPrep{
     E2<:DI.HVPPrep,
     E1<:DI.GradientPrep,
 } <: DI.HessianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     batch_size_settings::BS
     coloring_result::C
     compressed_matrix::M
@@ -26,7 +26,7 @@ SMC.ncolors(prep::SparseHessianPrep) = ncolors(prep.coloring_result)
 ## Hessian, one argument
 
 function DI.prepare_hessian(
-    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {F,C}
     dense_backend = dense_ad(backend)
     sparsity = DI.hessian_sparsity_with_contexts(
@@ -50,9 +50,9 @@ function _prepare_sparse_hessian_aux(
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {B,F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = column_groups(coloring_result)

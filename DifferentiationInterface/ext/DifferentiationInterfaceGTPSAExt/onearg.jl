@@ -3,7 +3,7 @@
 # Contains either a single pre-allocated initial TPS
 # or a vector of pre-allocated TPSs.
 struct GTPSAOneArgPushforwardPrep{SIG,X} <: DI.PushforwardPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     xt::X
 end
 
@@ -13,9 +13,9 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Constant,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,D,C}
-    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     # For pushforward/JVP, we only actually need 1 single variable (in the GTPSA sense)
     # because we even if we did multiple we will add up the derivatives of each at the end.
     if D != Nothing
@@ -31,7 +31,7 @@ function DI.prepare_pushforward(
         for i in eachindex(xt)
             xt[i] = TPS{promote_type(eltype(first(tx)), eltype(x), Float64)}(; use=d)
         end
-        return GTPSAOneArgPushforwardPrep(SIG, xt)
+        return GTPSAOneArgPushforwardPrep(_sig, xt)
     end
 end
 
@@ -112,15 +112,15 @@ end
 ## Gradient
 # Contains a vector of pre-allocated TPSs.
 struct GTPSAOneArgGradientPrep{SIG,X} <: DI.GradientPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     xt::X
 end
 
 # Unlike JVP, this requires us to use all variables 
 function DI.prepare_gradient(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Bool=false
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
 ) where {D,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
         d = backend.descriptor
     else
@@ -133,7 +133,7 @@ function DI.prepare_gradient(
         xt[i][j] = 1
         j += 1
     end
-    return GTPSAOneArgGradientPrep(SIG, xt)
+    return GTPSAOneArgGradientPrep(_sig, xt)
 end
 
 function DI.gradient(
@@ -195,15 +195,15 @@ end
 ## Jacobian
 # Contains a vector of pre-allocated TPSs
 struct GTPSAOneArgJacobianPrep{SIG,X} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     xt::X
 end
 
 # To materialize the entire Jacobian we use all variables 
 function DI.prepare_jacobian(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Bool=false
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
 ) where {D,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
         d = backend.descriptor
     else
@@ -218,7 +218,7 @@ function DI.prepare_jacobian(
         xt[i][j] = 1
         j += 1
     end
-    return GTPSAOneArgJacobianPrep(SIG, xt)
+    return GTPSAOneArgJacobianPrep(_sig, xt)
 end
 
 function DI.jacobian(
@@ -282,14 +282,14 @@ end
 ## Second derivative
 # Contains single pre-allocated TPS
 struct GTPSAOneArgSecondDerivativePrep{SIG,X} <: DI.SecondDerivativePrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     xt::X
 end
 
 function DI.prepare_second_derivative(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Bool=false
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
 ) where {D,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
         d = backend.descriptor
     else
@@ -297,7 +297,7 @@ function DI.prepare_second_derivative(
     end
     xt = TPS{promote_type(typeof(x), Float64)}(; use=d)
     xt[1] = 1 # Set slope
-    return GTPSAOneArgSecondDerivativePrep(SIG, xt)
+    return GTPSAOneArgSecondDerivativePrep(_sig, xt)
 end
 
 function DI.second_derivative(
@@ -411,15 +411,15 @@ end
 # Stores allocated array of TPS and an array for the monomial coefficient 
 # indexing in GTPSA.cycle! (which is used if a Descriptor is specified)
 struct GTPSAOneArgHessianPrep{SIG,X,M} <: DI.HessianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     xt::X
     m::M
 end
 
 function DI.prepare_hessian(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Bool=false
+    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
 ) where {D,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
         d = backend.descriptor
         m = Vector{UInt8}(undef, length(x))
@@ -442,7 +442,7 @@ function DI.prepare_hessian(
         j += 1
     end
 
-    return GTPSAOneArgHessianPrep(SIG, xt, m)
+    return GTPSAOneArgHessianPrep(_sig, xt, m)
 end
 
 function DI.hessian(
@@ -546,7 +546,7 @@ function DI.value_gradient_and_hessian!(
 end
 
 struct GTPSAOneArgHVPPrep{SIG,E,H} <: DI.HVPPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     hessprep::E
     hess::H
 end
@@ -557,13 +557,13 @@ function DI.prepare_hvp(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Constant,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     hessprep = DI.prepare_hessian(f, backend, x; strict)
     fc = DI.with_contexts(f, contexts...)
     hess = similar(x, typeof(fc(x)), (length(x), length(x)))
-    return GTPSAOneArgHVPPrep(SIG, hessprep, hess)
+    return GTPSAOneArgHVPPrep(_sig, hessprep, hess)
 end
 
 function DI.hvp(

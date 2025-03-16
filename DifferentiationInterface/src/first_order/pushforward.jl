@@ -1,8 +1,8 @@
 ## Docstrings
 
 """
-    prepare_pushforward(f,     backend, x, tx, [contexts...]; strict=false) -> prep
-    prepare_pushforward(f!, y, backend, x, tx, [contexts...]; strict=false) -> prep
+    prepare_pushforward(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep
+    prepare_pushforward(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("pushforward"; inplace=true))
 """
@@ -17,8 +17,8 @@ $(docstring_prepare!("pushforward"))
 function prepare!_pushforward end
 
 """
-    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]; strict=false) -> prep_same
-    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]; strict=false) -> prep_same
+    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
+    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
 
 $(docstring_prepare("pushforward"; samepoint=true, inplace=true))
 """
@@ -86,6 +86,7 @@ function pushforward! end
 ## Preparation
 
 struct PullbackPushforwardPrep{SIG,E} <: PushforwardPrep{SIG}
+    _sig::Val{SIG}
     pullback_prep::E
 end
 
@@ -95,7 +96,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
     return _prepare_pushforward_aux(
         pushforward_performance(backend), f, backend, x, tx, contexts...; strict
@@ -109,7 +110,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
     return _prepare_pushforward_aux(
         pushforward_performance(backend), f!, y, backend, x, tx, contexts...; strict
@@ -123,13 +124,13 @@ function _prepare_pushforward_aux(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)
     dy = y isa Number ? one(y) : basis(y, first(CartesianIndices(y)))
     pullback_prep = prepare_pullback(f, backend, x, (dy,), contexts...; strict)
-    return PullbackPushforwardPrep{SIG,typeof(pullback_prep)}(pullback_prep)
+    return PullbackPushforwardPrep(_sig, pullback_prep)
 end
 
 function _prepare_pushforward_aux(
@@ -140,12 +141,12 @@ function _prepare_pushforward_aux(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {F,C}
-    SIG = signature(f!, y, backend, x, tx, contexts...; strict)
+    _sig = signature(f!, y, backend, x, tx, contexts...; strict)
     dy = y isa Number ? one(y) : basis(y, first(CartesianIndices(y)))
     pullback_prep = prepare_pullback(f!, y, backend, x, (dy,), contexts...; strict)
-    return PullbackPushforwardPrep{SIG,typeof(pullback_prep)}(pullback_prep)
+    return PullbackPushforwardPrep(_sig, pullback_prep)
 end
 
 ## One argument

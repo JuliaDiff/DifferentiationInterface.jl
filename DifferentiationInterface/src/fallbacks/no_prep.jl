@@ -45,25 +45,25 @@ for op in [
         @eval function $op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $op(f, prep, backend, x, contexts...)
         end
         @eval function $op!(
             f::F, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $op!(f, result, prep, backend, x, contexts...)
         end
         @eval function $val_and_op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $val_and_op(f, prep, backend, x, contexts...)
         end
         @eval function $val_and_op!(
             f::F, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $val_and_op!(f, result, prep, backend, x, contexts...)
         end
         op == :gradient && continue
@@ -71,25 +71,25 @@ for op in [
         @eval function $op(
             f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, contexts...; strict=Val(true))
             return $op(f!, y, prep, backend, x, contexts...)
         end
         @eval function $op!(
             f!::F, y, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, contexts...; strict=Val(true))
             return $op!(f!, y, result, prep, backend, x, contexts...)
         end
         @eval function $val_and_op(
             f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, contexts...; strict=Val(true))
             return $val_and_op(f!, y, prep, backend, x, contexts...)
         end
         @eval function $val_and_op!(
             f!::F, y, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, contexts...; strict=Val(true))
             return $val_and_op!(f!, y, result, prep, backend, x, contexts...)
         end
 
@@ -98,25 +98,25 @@ for op in [
         @eval function $op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $op(f, prep, backend, x, contexts...)
         end
         @eval function $op!(
             f::F, result2, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $op!(f, result2, prep, backend, x, contexts...)
         end
         @eval function $val_and_op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $val_and_op(f, prep, backend, x, contexts...)
         end
         @eval function $val_and_op!(
             f::F, result1, result2, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, contexts...; strict=Val(true))
             return $val_and_op!(f, result1, result2, prep, backend, x, contexts...)
         end
 
@@ -124,7 +124,7 @@ for op in [
         @eval function $op(
             f::F, backend::AbstractADType, x, seed::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, seed, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, seed, contexts...; strict=Val(true))
             return $op(f, prep, backend, x, seed, contexts...)
         end
         @eval function $op!(
@@ -135,13 +135,13 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
-            prep = $prep_op(f, backend, x, seed, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, seed, contexts...; strict=Val(true))
             return $op!(f, result, prep, backend, x, seed, contexts...)
         end
         @eval function $val_and_op(
             f::F, backend::AbstractADType, x, seed::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f, backend, x, seed, contexts...; strict=true)
+            prep = $prep_op(f, backend, x, seed, contexts...; strict=Val(true))
             return $val_and_op(f, prep, backend, x, seed, contexts...)
         end
 
@@ -154,7 +154,7 @@ for op in [
                 seed::NTuple,
                 contexts::Vararg{Context,C},
             ) where {F,C}
-                prep = $prep_op(f, backend, x, seed, contexts...; strict=true)
+                prep = $prep_op(f, backend, x, seed, contexts...; strict=Val(true))
                 return $val_and_op!(f, result, prep, backend, x, seed, contexts...)
             end
         elseif op == :hvp
@@ -167,7 +167,7 @@ for op in [
                 seed::NTuple,
                 contexts::Vararg{Context,C},
             ) where {F,C}
-                prep = $prep_op(f, backend, x, seed, contexts...; strict=true)
+                prep = $prep_op(f, backend, x, seed, contexts...; strict=Val(true))
                 return $val_and_op!(
                     f, result1, result2, prep, backend, x, seed, contexts...
                 )
@@ -179,7 +179,7 @@ for op in [
         @eval function $op(
             f!::F, y, backend::AbstractADType, x, seed::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=Val(true))
             return $op(f!, y, prep, backend, x, seed, contexts...)
         end
         @eval function $op!(
@@ -191,13 +191,13 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=Val(true))
             return $op!(f!, y, result, prep, backend, x, seed, contexts...)
         end
         @eval function $val_and_op(
             f!::F, y, backend::AbstractADType, x, seed::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=Val(true))
             return $val_and_op(f!, y, prep, backend, x, seed, contexts...)
         end
         @eval function $val_and_op!(
@@ -209,7 +209,7 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=true)
+            prep = $prep_op(f!, y, backend, x, seed, contexts...; strict=Val(true))
             return $val_and_op!(f!, y, result, prep, backend, x, seed, contexts...)
         end
     end

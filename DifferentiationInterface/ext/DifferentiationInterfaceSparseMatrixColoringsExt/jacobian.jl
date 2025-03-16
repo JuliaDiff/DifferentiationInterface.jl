@@ -9,7 +9,7 @@ struct PushforwardSparseJacobianPrep{
     R<:AbstractVector{<:NTuple},
     E<:DI.PushforwardPrep,
 } <: SparseJacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     batch_size_settings::BS
     coloring_result::C
     compressed_matrix::M
@@ -27,7 +27,7 @@ struct PullbackSparseJacobianPrep{
     R<:AbstractVector{<:NTuple},
     E<:DI.PullbackPrep,
 } <: SparseJacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     batch_size_settings::BS
     coloring_result::C
     compressed_matrix::M
@@ -37,7 +37,7 @@ struct PullbackSparseJacobianPrep{
 end
 
 function DI.prepare_jacobian(
-    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {F,C}
     dense_backend = dense_ad(backend)
     y = f(x, map(DI.unwrap, contexts)...)
@@ -46,7 +46,7 @@ function DI.prepare_jacobian(
 end
 
 function DI.prepare_jacobian(
-    f!::F, y, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f!::F, y, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {F,C}
     dense_backend = dense_ad(backend)
     perf = DI.pushforward_performance(dense_backend)
@@ -60,7 +60,7 @@ function _prepare_sparse_jacobian_aux(
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {FY,C}
     dense_backend = dense_ad(backend)
     sparsity = DI.jacobian_sparsity_with_contexts(
@@ -96,9 +96,9 @@ function _prepare_sparse_jacobian_aux_aux(
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {B,FY,C}
-    SIG = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
+    _sig = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = column_groups(coloring_result)
@@ -130,9 +130,9 @@ function _prepare_sparse_jacobian_aux_aux(
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {B,FY,C}
-    SIG = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
+    _sig = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = row_groups(coloring_result)

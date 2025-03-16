@@ -67,7 +67,7 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -132,7 +132,7 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -213,7 +213,7 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -286,7 +286,7 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -366,7 +366,7 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -433,7 +433,7 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -516,7 +516,7 @@ for op in ALL_OPS
                         new_smaller.x,
                         new_smaller.tang,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -580,7 +580,7 @@ for op in ALL_OPS
                         new_smaller.x,
                         new_smaller.tang,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -658,7 +658,7 @@ for op in ALL_OPS
                         new_smaller.x,
                         new_smaller.tang,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -734,7 +734,7 @@ for op in ALL_OPS
                         new_smaller.x,
                         new_smaller.tang,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -827,7 +827,7 @@ for op in ALL_OPS
                         new_smaller.x,
                         new_smaller.tang,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,
@@ -891,7 +891,7 @@ for op in ALL_OPS
                         new_smaller.x,
                         new_smaller.tang,
                         new_smaller.contexts...;
-                        strict=true,
+                        strict=Val(true),
                     ),
                     ba,
                     xrand,

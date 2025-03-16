@@ -13,7 +13,7 @@ struct MixedModeSparseJacobianPrep{
     Ef<:DI.PushforwardPrep,
     Er<:DI.PullbackPrep,
 } <: SparseJacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     batch_size_settings_forward::BSf
     batch_size_settings_reverse::BSr
     coloring_result::C
@@ -32,7 +32,7 @@ function DI.prepare_jacobian(
     backend::AutoSparse{<:DI.MixedMode},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
     y = f(x, map(DI.unwrap, contexts)...)
     return _prepare_mixed_sparse_jacobian_aux(y, (f,), backend, x, contexts...; strict)
@@ -44,7 +44,7 @@ function DI.prepare_jacobian(
     backend::AutoSparse{<:DI.MixedMode},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
     return _prepare_mixed_sparse_jacobian_aux(y, (f!, y), backend, x, contexts...; strict)
 end
@@ -55,7 +55,7 @@ function _prepare_mixed_sparse_jacobian_aux(
     backend::AutoSparse{<:DI.MixedMode},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {FY,C}
     dense_backend = dense_ad(backend)
     sparsity = DI.jacobian_sparsity_with_contexts(
@@ -96,9 +96,9 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
     backend::AutoSparse{<:DI.MixedMode},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {Bf,Br,FY,C}
-    SIG = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
+    _sig = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     Nf, Af = batch_size_settings_forward.N, batch_size_settings_forward.A
     Nr, Ar = batch_size_settings_reverse.N, batch_size_settings_reverse.A
 

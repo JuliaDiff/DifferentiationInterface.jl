@@ -26,10 +26,10 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
-    return NoPushforwardPrep{SIG}()
+    _sig = signature(f, backend, x, tx, contexts...; strict)
+    return NoPushforwardPrep(_sig)
 end
 
 function prepare_pushforward(
@@ -39,10 +39,10 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f!, y, backend, x, tx, contexts...; strict)
-    return NoPushforwardPrep{SIG}()
+    _sig = signature(f!, y, backend, x, tx, contexts...; strict)
+    return NoPushforwardPrep(_sig)
 end
 
 function value_and_pushforward(
@@ -129,10 +129,10 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f, backend, x, ty, contexts...; strict)
-    return NoPullbackPrep{SIG}()
+    _sig = signature(f, backend, x, ty, contexts...; strict)
+    return NoPullbackPrep(_sig)
 end
 
 function prepare_pullback(
@@ -142,10 +142,10 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f!, y, backend, x, ty, contexts...; strict)
-    return NoPullbackPrep{SIG}()
+    _sig = signature(f!, y, backend, x, ty, contexts...; strict)
+    return NoPullbackPrep(_sig)
 end
 
 function value_and_pullback(

@@ -1,7 +1,7 @@
 ## Docstrings
 
 """
-    prepare_hvp(f, backend, x, tx, [contexts...]; strict=false) -> prep
+    prepare_hvp(f, backend, x, tx, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("hvp"))
 """
@@ -15,7 +15,7 @@ $(docstring_prepare("hvp"))
 function prepare!_hvp end
 
 """
-    prepare_hvp_same_point(f, backend, x, tx, [contexts...]; strict=false) -> prep_same
+    prepare_hvp_same_point(f, backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
 
 $(docstring_prepare("hvp"; samepoint=true))
 """
@@ -63,7 +63,7 @@ function prepare_hvp(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
     return _prepare_hvp_aux(
         hvp_mode(backend),
@@ -81,7 +81,7 @@ end
 
 struct ForwardOverAnythingHVPPrep{SIG,G,GO,GI,PO,PI} <: HVPPrep{SIG}
     # pushforward of many pushforwards in theory, but pushforward of gradient in practice
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     grad_buffer::G
     maybe_inner_gradient_prep::GO
     maybe_inner_gradient_in_prep::GI
@@ -97,9 +97,9 @@ function _prepare_hvp_aux(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     grad_buffer = similar(x)
     rewrap = Rewrap(contexts...)
     # Outer pushforward
@@ -123,7 +123,7 @@ function _prepare_hvp_aux(
         nothing
     end
     return ForwardOverAnythingHVPPrep(
-        SIG, grad_buffer, (), (), outer_pushforward_prep, outer_pushforward_in_prep
+        _sig, grad_buffer, (), (), outer_pushforward_prep, outer_pushforward_in_prep
     )
 end
 
@@ -135,9 +135,9 @@ function _prepare_hvp_aux(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     grad_buffer = similar(x)
     rewrap = Rewrap(contexts...)
     # Inner gradient
@@ -175,7 +175,7 @@ function _prepare_hvp_aux(
         nothing
     end
     return ForwardOverAnythingHVPPrep(
-        SIG,
+        _sig,
         grad_buffer,
         (inner_gradient_prep,),
         (inner_gradient_in_prep,),
@@ -192,9 +192,9 @@ function _prepare_hvp_aux(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     grad_buffer = similar(x)
     rewrap = Rewrap(contexts...)
     # Inner gradient
@@ -236,7 +236,7 @@ function _prepare_hvp_aux(
         nothing
     end
     return ForwardOverAnythingHVPPrep(
-        SIG,
+        _sig,
         grad_buffer,
         (inner_gradient_prep,),
         (inner_gradient_in_prep,),
@@ -452,7 +452,7 @@ end
 
 struct ReverseOverForwardHVPPrep{SIG,G2<:GradientPrep,G1<:GradientPrep} <: HVPPrep{SIG}
     # gradient of pushforward
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     outer_gradient_prep::G2
     gradient_prep::G1
 end
@@ -465,9 +465,9 @@ function _prepare_hvp_aux(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
@@ -480,7 +480,7 @@ function _prepare_hvp_aux(
         shuffled_single_pushforward, outer(backend), x, new_contexts...; strict
     )
     gradient_prep = prepare_gradient(f, inner(backend), x, contexts...; strict)
-    return ReverseOverForwardHVPPrep(SIG, outer_gradient_prep, gradient_prep)
+    return ReverseOverForwardHVPPrep(_sig, outer_gradient_prep, gradient_prep)
 end
 
 function hvp(
@@ -573,7 +573,7 @@ end
 
 struct ReverseOverReverseHVPPrep{SIG,G,PO,PI} <: HVPPrep{SIG}
     # pullback of gradient
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     grad_buffer::G
     outer_pullback_prep::PO
     outer_pullback_in_prep::PI
@@ -587,9 +587,9 @@ function _prepare_hvp_aux(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
@@ -612,7 +612,7 @@ function _prepare_hvp_aux(
         nothing
     end
     return ReverseOverReverseHVPPrep(
-        SIG, grad_buffer, outer_pullback_prep, outer_pullback_in_prep
+        _sig, grad_buffer, outer_pullback_prep, outer_pullback_in_prep
     )
 end
 

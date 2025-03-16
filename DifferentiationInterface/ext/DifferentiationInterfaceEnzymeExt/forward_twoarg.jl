@@ -7,10 +7,10 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f!, y, backend, x, tx, contexts...; strict)
-    return DI.NoPushforwardPrep{SIG}()
+    _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
+    return DI.NoPushforwardPrep(_sig)
 end
 
 function DI.value_and_pushforward(

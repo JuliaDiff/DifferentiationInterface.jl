@@ -1,8 +1,8 @@
 ## Docstrings
 
 """
-    prepare_jacobian(f,     backend, x, [contexts...]; strict=false) -> prep
-    prepare_jacobian(f!, y, backend, x, [contexts...]; strict=false) -> prep
+    prepare_jacobian(f,     backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_jacobian(f!, y, backend, x, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("jacobian"; inplace=true))
 """
@@ -67,7 +67,7 @@ struct PushforwardJacobianPrep{
     R<:AbstractVector{<:NTuple},
     E<:PushforwardPrep,
 } <: StandardJacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     batch_size_settings::BS
     batched_seeds::S
     batched_results::R
@@ -81,7 +81,7 @@ struct PullbackJacobianPrep{
     R<:AbstractVector{<:NTuple},
     E<:PullbackPrep,
 } <: StandardJacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     batch_size_settings::BS
     batched_seeds::S
     batched_results::R
@@ -89,7 +89,7 @@ struct PullbackJacobianPrep{
 end
 
 function prepare_jacobian(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool=false
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
 ) where {F,C}
     y = f(x, map(unwrap, contexts)...)
     perf = pushforward_performance(backend)
@@ -106,7 +106,12 @@ function prepare_jacobian(
 end
 
 function prepare_jacobian(
-    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool=false
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
 ) where {F,C}
     perf = pushforward_performance(backend)
     # type-unstable
@@ -129,9 +134,9 @@ function _prepare_jacobian_aux(
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {B,FY,C}
-    SIG = signature(f_or_f!y..., backend, x, contexts...; strict)
+    _sig = signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     seeds = [basis(x, ind) for ind in eachindex(x)]
     batched_seeds = [
@@ -142,7 +147,7 @@ function _prepare_jacobian_aux(
         f_or_f!y..., backend, x, batched_seeds[1], contexts...; strict
     )
     return PushforwardJacobianPrep(
-        SIG, batch_size_settings, batched_seeds, batched_results, pushforward_prep
+        _sig, batch_size_settings, batched_seeds, batched_results, pushforward_prep
     )
 end
 
@@ -154,9 +159,9 @@ function _prepare_jacobian_aux(
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C};
-    strict::Bool,
+    strict::Val,
 ) where {B,FY,C}
-    SIG = signature(f_or_f!y..., backend, x, contexts...; strict)
+    _sig = signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     seeds = [basis(y, ind) for ind in eachindex(y)]
     batched_seeds = [
@@ -167,7 +172,7 @@ function _prepare_jacobian_aux(
         f_or_f!y..., backend, x, batched_seeds[1], contexts...; strict
     )
     return PullbackJacobianPrep(
-        SIG, batch_size_settings, batched_seeds, batched_results, pullback_prep
+        _sig, batch_size_settings, batched_seeds, batched_results, pullback_prep
     )
 end
 

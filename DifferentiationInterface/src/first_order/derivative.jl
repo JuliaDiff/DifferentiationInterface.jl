@@ -1,8 +1,8 @@
 ## Docstrings
 
 """
-    prepare_derivative(f,     backend, x, [contexts...]; strict=false) -> prep
-    prepare_derivative(f!, y, backend, x, [contexts...]; strict=false) -> prep
+    prepare_derivative(f,     backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_derivative(f!, y, backend, x, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("derivative"; inplace=true))
 """
@@ -59,25 +59,31 @@ function derivative! end
 ## Preparation
 
 struct PushforwardDerivativePrep{SIG,E<:PushforwardPrep} <: DerivativePrep{SIG}
+    _sig::Val{SIG}
     pushforward_prep::E
 end
 
 function prepare_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool=false
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
 ) where {F,C}
-    SIG = signature(f, backend, x, contexts...; strict)
+    _sig = signature(f, backend, x, contexts...; strict)
     pushforward_prep = prepare_pushforward(f, backend, x, (one(x),), contexts...; strict)
-    return PushforwardDerivativePrep{SIG,typeof(pushforward_prep)}(pushforward_prep)
+    return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
 
 function prepare_derivative(
-    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool=false
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f!, y, backend, x, contexts...; strict)
+    _sig = signature(f!, y, backend, x, contexts...; strict)
     pushforward_prep = prepare_pushforward(
         f!, y, backend, x, (one(x),), contexts...; strict
     )
-    return PushforwardDerivativePrep{SIG,typeof(pushforward_prep)}(pushforward_prep)
+    return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
 
 ## One argument

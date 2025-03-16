@@ -1,7 +1,7 @@
 ## Pushforward
 
 struct FastDifferentiationTwoArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     jvp_exe::E1
     jvp_exe!::E1!
 end
@@ -13,9 +13,9 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
     y_var = variablize(y, :y)
@@ -31,7 +31,7 @@ function DI.prepare_pushforward(
     jvp_exe! = make_function(
         jv_vec_var, x_vec_var, v_vec_var, context_vec_vars...; in_place=true
     )
-    return FastDifferentiationTwoArgPushforwardPrep(SIG, jvp_exe, jvp_exe!)
+    return FastDifferentiationTwoArgPushforwardPrep(_sig, jvp_exe, jvp_exe!)
 end
 
 function DI.pushforward(
@@ -102,7 +102,7 @@ end
 ## Pullback
 
 struct FastDifferentiationTwoArgPullbackPrep{SIG,E1,E1!} <: DI.PullbackPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     vjp_exe::E1
     vjp_exe!::E1!
 end
@@ -114,9 +114,9 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
     y_var = variablize(y, :y)
@@ -132,7 +132,7 @@ function DI.prepare_pullback(
     vjp_exe! = make_function(
         vj_vec_var, x_vec_var, v_vec_var, context_vec_vars...; in_place=true
     )
-    return FastDifferentiationTwoArgPullbackPrep(SIG, vjp_exe, vjp_exe!)
+    return FastDifferentiationTwoArgPullbackPrep(_sig, vjp_exe, vjp_exe!)
 end
 
 function DI.pullback(
@@ -208,7 +208,7 @@ end
 ## Derivative
 
 struct FastDifferentiationTwoArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     der_exe::E1
     der_exe!::E1!
 end
@@ -219,9 +219,9 @@ function DI.prepare_derivative(
     backend::AutoFastDifferentiation,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
     y_var = variablize(y, :y)
@@ -233,7 +233,7 @@ function DI.prepare_derivative(
     der_vec_var = derivative(y_vec_var, x_var)
     der_exe = make_function(der_vec_var, x_vec_var, context_vec_vars...; in_place=false)
     der_exe! = make_function(der_vec_var, x_vec_var, context_vec_vars...; in_place=true)
-    return FastDifferentiationTwoArgDerivativePrep(SIG, der_exe, der_exe!)
+    return FastDifferentiationTwoArgDerivativePrep(_sig, der_exe, der_exe!)
 end
 
 function DI.value_and_derivative(
@@ -295,7 +295,7 @@ end
 ## Jacobian
 
 struct FastDifferentiationTwoArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     jac_exe::E1
     jac_exe!::E1!
 end
@@ -306,9 +306,9 @@ function DI.prepare_jacobian(
     backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
     y_var = variablize(y, :y)
@@ -324,7 +324,7 @@ function DI.prepare_jacobian(
     end
     jac_exe = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=false)
     jac_exe! = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=true)
-    return FastDifferentiationTwoArgJacobianPrep(SIG, jac_exe, jac_exe!)
+    return FastDifferentiationTwoArgJacobianPrep(_sig, jac_exe, jac_exe!)
 end
 
 function DI.value_and_jacobian(

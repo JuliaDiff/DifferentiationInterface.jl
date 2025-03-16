@@ -7,10 +7,10 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, x, ty, contexts...; strict)
-    return DI.NoPullbackPrep{SIG}()
+    _sig = DI.signature(f!, y, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep(_sig)
 end
 
 ### Array in
@@ -134,21 +134,21 @@ end
 ### Without contexts
 
 struct ReverseDiffTwoArgJacobianPrep{SIG,C,T} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     config::C
     tape::T
 end
 
 function DI.prepare_jacobian(
-    f!, y, backend::AutoReverseDiff{compile}, x; strict::Bool=false
+    f!, y, backend::AutoReverseDiff{compile}, x; strict::Val=Val(false)
 ) where {compile}
-    SIG = DI.signature(f!, y, backend, x; strict)
+    _sig = DI.signature(f!, y, backend, x; strict)
     if compile
         tape = ReverseDiff.compile(JacobianTape(f!, y, x))
-        return ReverseDiffTwoArgJacobianPrep(SIG, nothing, tape)
+        return ReverseDiffTwoArgJacobianPrep(_sig, nothing, tape)
     else
         config = JacobianConfig(y, x)
-        return ReverseDiffTwoArgJacobianPrep(SIG, config, nothing)
+        return ReverseDiffTwoArgJacobianPrep(_sig, config, nothing)
     end
 end
 
@@ -206,11 +206,16 @@ end
 ### With contexts
 
 function DI.prepare_jacobian(
-    f!, y, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f!,
+    y,
+    backend::AutoReverseDiff,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     config = JacobianConfig(y, x)
-    return ReverseDiffTwoArgJacobianPrep(SIG, config, nothing)
+    return ReverseDiffTwoArgJacobianPrep(_sig, config, nothing)
 end
 
 function DI.value_and_jacobian(

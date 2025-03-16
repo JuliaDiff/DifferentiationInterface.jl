@@ -1,7 +1,7 @@
 ## Pullback
 
 struct ChainRulesPullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     y::Y
     pb::PB
 end
@@ -12,10 +12,10 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
-    return DI.NoPullbackPrep{SIG}()
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep(_sig)
 end
 
 function DI.prepare_pullback_same_point(
@@ -25,13 +25,13 @@ function DI.prepare_pullback_same_point(
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
-    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     rc = ruleconfig(backend)
     y, pb = rrule_via_ad(rc, f, x, map(DI.unwrap, contexts)...)
-    return ChainRulesPullbackPrepSamePoint(SIG, y, pb)
+    return ChainRulesPullbackPrepSamePoint(_sig, y, pb)
 end
 
 function DI.value_and_pullback(

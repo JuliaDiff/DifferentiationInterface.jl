@@ -1,7 +1,7 @@
 ## Pullback
 
 struct MooncakeOneArgPullbackPrep{SIG,Tcache,DY} <: DI.PullbackPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::Tcache
     dy_righttype::DY
 end
@@ -12,16 +12,16 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     config = get_config(backend)
     cache = prepare_pullback_cache(
         f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
     )
     y = f(x, map(DI.unwrap, contexts)...)
     dy_righttype = zero_tangent(y)
-    prep = MooncakeOneArgPullbackPrep(SIG, cache, dy_righttype)
+    prep = MooncakeOneArgPullbackPrep(_sig, cache, dy_righttype)
     DI.value_and_pullback(f, prep, backend, x, ty, contexts...)
     return prep
 end
@@ -122,19 +122,19 @@ end
 ## Gradient
 
 struct MooncakeGradientPrep{SIG,Tcache} <: DI.GradientPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::Tcache
 end
 
 function DI.prepare_gradient(
-    f::F, backend::AutoMooncake, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f::F, backend::AutoMooncake, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     config = get_config(backend)
     cache = prepare_pullback_cache(
         f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
     )
-    prep = MooncakeGradientPrep(SIG, cache)
+    prep = MooncakeGradientPrep(_sig, cache)
     DI.value_and_gradient(f, prep, backend, x, contexts...)
     return prep
 end

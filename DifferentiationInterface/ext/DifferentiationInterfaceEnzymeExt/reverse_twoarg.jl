@@ -1,6 +1,7 @@
 ## Pullback
 
 struct EnzymeReverseTwoArgPullbackPrep{SIG,TY} <: DI.PullbackPrep{SIG}
+    _sig::Val{SIG}
     ty_copy::TY
 end
 
@@ -11,11 +12,11 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f!, y, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     ty_copy = map(copy, ty)
-    return EnzymeReverseTwoArgPullbackPrep{SIG,typeof(ty_copy)}(ty_copy)
+    return EnzymeReverseTwoArgPullbackPrep(_sig, ty_copy)
 end
 
 function DI.value_and_pullback(

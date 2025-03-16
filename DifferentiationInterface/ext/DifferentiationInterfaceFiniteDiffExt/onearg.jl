@@ -1,7 +1,7 @@
 ## Pushforward
 
 struct FiniteDiffOneArgPushforwardPrep{SIG,C,R,A,D} <: DI.PushforwardPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
@@ -14,9 +14,9 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
     cache = if x isa Number || y isa Number
@@ -35,7 +35,7 @@ function DI.prepare_pushforward(
         backend.relstep
     end
     dir = backend.dir
-    return FiniteDiffOneArgPushforwardPrep(SIG, cache, relstep, absstep, dir)
+    return FiniteDiffOneArgPushforwardPrep(_sig, cache, relstep, absstep, dir)
 end
 
 function DI.pushforward(
@@ -122,7 +122,7 @@ end
 ## Derivative
 
 struct FiniteDiffOneArgDerivativePrep{SIG,C,R,A,D} <: DI.DerivativePrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
@@ -130,9 +130,9 @@ struct FiniteDiffOneArgDerivativePrep{SIG,C,R,A,D} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
     cache = if y isa Number
@@ -152,7 +152,7 @@ function DI.prepare_derivative(
         backend.relstep
     end
     dir = backend.dir
-    return FiniteDiffOneArgDerivativePrep(SIG, cache, relstep, absstep, dir)
+    return FiniteDiffOneArgDerivativePrep(_sig, cache, relstep, absstep, dir)
 end
 
 ### Scalar to scalar
@@ -251,7 +251,7 @@ end
 ## Gradient
 
 struct FiniteDiffGradientPrep{SIG,C,R,A,D} <: DI.GradientPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
@@ -259,9 +259,9 @@ struct FiniteDiffGradientPrep{SIG,C,R,A,D} <: DI.GradientPrep{SIG}
 end
 
 function DI.prepare_gradient(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
     df = zero(y) .* x
@@ -277,7 +277,7 @@ function DI.prepare_gradient(
         backend.relstep
     end
     dir = backend.dir
-    return FiniteDiffGradientPrep(SIG, cache, relstep, absstep, dir)
+    return FiniteDiffGradientPrep(_sig, cache, relstep, absstep, dir)
 end
 
 function DI.gradient(
@@ -339,7 +339,7 @@ end
 ## Jacobian
 
 struct FiniteDiffOneArgJacobianPrep{SIG,C,R,A,D} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
@@ -347,9 +347,9 @@ struct FiniteDiffOneArgJacobianPrep{SIG,C,R,A,D} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
     x1 = similar(x)
@@ -367,7 +367,7 @@ function DI.prepare_jacobian(
         backend.relstep
     end
     dir = backend.dir
-    return FiniteDiffOneArgJacobianPrep(SIG, cache, relstep, absstep, dir)
+    return FiniteDiffOneArgJacobianPrep(_sig, cache, relstep, absstep, dir)
 end
 
 function DI.jacobian(
@@ -442,7 +442,7 @@ end
 ## Hessian
 
 struct FiniteDiffHessianPrep{SIG,C1,C2,RG,AG,RH,AH} <: DI.HessianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     gradient_cache::C1
     hessian_cache::C2
     relstep_g::RG
@@ -452,9 +452,9 @@ struct FiniteDiffHessianPrep{SIG,C1,C2,RG,AG,RH,AH} <: DI.HessianPrep{SIG}
 end
 
 function DI.prepare_hessian(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
     y = fc(x)
     df = zero(y) .* x
@@ -473,7 +473,7 @@ function DI.prepare_hessian(
     absstep_g = isnothing(backend.absstep) ? relstep_g : backend.absstep
     absstep_h = isnothing(backend.absstep) ? relstep_h : backend.absstep
     return FiniteDiffHessianPrep(
-        SIG, gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h
+        _sig, gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h
     )
 end
 

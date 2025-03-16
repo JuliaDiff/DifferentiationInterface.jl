@@ -4,53 +4,78 @@ abstract type Prep{SIG} end
 $(docstring_preptype("PushforwardPrep", "pushforward"))
 """
 abstract type PushforwardPrep{SIG} <: Prep{SIG} end
-struct NoPushforwardPrep{SIG} <: PushforwardPrep{SIG} end
+
+struct NoPushforwardPrep{SIG} <: PushforwardPrep{SIG}
+    _sig::Val{SIG}
+end
 
 """
 $(docstring_preptype("PullbackPrep", "pullback"))
 """
 abstract type PullbackPrep{SIG} <: Prep{SIG} end
-struct NoPullbackPrep{SIG} <: PullbackPrep{SIG} end
+
+struct NoPullbackPrep{SIG} <: PullbackPrep{SIG}
+    _sig::Val{SIG}
+end
 
 """
 $(docstring_preptype("DerivativePrep", "derivative"))
 """
 abstract type DerivativePrep{SIG} <: Prep{SIG} end
-struct NoDerivativePrep{SIG} <: DerivativePrep{SIG} end
+
+struct NoDerivativePrep{SIG} <: DerivativePrep{SIG}
+    _sig::Val{SIG}
+end
 
 """
 $(docstring_preptype("GradientPrep", "gradient"))
 """
 abstract type GradientPrep{SIG} <: Prep{SIG} end
-struct NoGradientPrep{SIG} <: GradientPrep{SIG} end
+
+struct NoGradientPrep{SIG} <: GradientPrep{SIG}
+    _sig::Val{SIG}
+end
 
 """
 $(docstring_preptype("JacobianPrep", "jacobian"))
 """
 abstract type JacobianPrep{SIG} <: Prep{SIG} end
-struct NoJacobianPrep{SIG} <: JacobianPrep{SIG} end
+
+struct NoJacobianPrep{SIG} <: JacobianPrep{SIG}
+    _sig::Val{SIG}
+end
 
 """
 $(docstring_preptype("HVPPrep", "hvp"))
 """
 abstract type HVPPrep{SIG} <: Prep{SIG} end
-struct NoHVPPrep{SIG} <: HVPPrep{SIG} end
+
+struct NoHVPPrep{SIG} <: HVPPrep{SIG}
+    _sig::Val{SIG}
+end
 
 """
 $(docstring_preptype("HessianPrep", "hessian"))
 """
 abstract type HessianPrep{SIG} <: Prep{SIG} end
-struct NoHessianPrep{SIG} <: HessianPrep{SIG} end
+
+struct NoHessianPrep{SIG} <: HessianPrep{SIG}
+    _sig::Val{SIG}
+end
 
 """
 $(docstring_preptype("SecondDerivativePrep", "second_derivative"))
 """
 abstract type SecondDerivativePrep{SIG} <: Prep{SIG} end
-struct NoSecondDerivativePrep{SIG} <: SecondDerivativePrep{SIG} end
+
+struct NoSecondDerivativePrep{SIG} <: SecondDerivativePrep{SIG}
+    _sig::Val{SIG}
+end
 
 ## Checks
 
-is_strict(::Prep{SIG}) where {SIG} = SIG !== Nothing
+is_strict(::Prep{Nothing}) = Val(false)
+is_strict(::Prep) = Val(true)
 
 function inconsistent_signatures_error(SIG, RUNTIME_SIG)
     msg = """
@@ -62,42 +87,48 @@ function inconsistent_signatures_error(SIG, RUNTIME_SIG)
 end
 
 function signature(
-    f, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool
-) where {C}
-    if strict
-        return typeof((f, backend, x, contexts))
+    f, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val{S}
+) where {C,S}
+    if S
+        return Val(typeof((f, backend, x, contexts)))
     else
-        return Nothing
+        return Val(Nothing)
     end
 end
 
 function signature(
-    f!, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool
-) where {C}
-    if strict
-        return typeof((f!, y, backend, x, contexts))
+    f!, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val{S}
+) where {C,S}
+    if S
+        return Val(typeof((f!, y, backend, x, contexts)))
     else
-        return Nothing
+        return Val(Nothing)
     end
 end
 
 function signature(
-    f, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}; strict::Bool
-) where {C}
-    if strict
-        return typeof((f, backend, x, t, contexts))
+    f, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}; strict::Val{S}
+) where {C,S}
+    if S
+        return Val(typeof((f, backend, x, t, contexts)))
     else
-        return Nothing
+        return Val(Nothing)
     end
 end
 
 function signature(
-    f!, y, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}; strict::Bool
-) where {C}
-    if strict
-        return typeof((f!, y, backend, x, t, contexts))
+    f!,
+    y,
+    backend::AbstractADType,
+    x,
+    t::NTuple,
+    contexts::Vararg{Context,C};
+    strict::Val{S},
+) where {C,S}
+    if S
+        return Val(typeof((f!, y, backend, x, t, contexts)))
     else
-        return Nothing
+        return Val(Nothing)
     end
 end
 

@@ -96,7 +96,7 @@ for op in [
             x,
             seed::NTuple,
             contexts::Vararg{Context,C};
-            strict::Bool=false,
+            strict::Val=Val(false),
         ) where {F,C}
             prep = $prep_op(f, backend, x, seed, contexts...; strict)
             return $prep_op_same_point(f, prep, backend, x, seed, contexts...)
@@ -136,7 +136,7 @@ for op in [
             x,
             seed::NTuple,
             contexts::Vararg{Context,C};
-            strict::Bool=false,
+            strict::Val=Val(false),
         ) where {F,C}
             prep = $prep_op(f!, y, backend, x, seed, contexts...; strict)
             return $prep_op_same_point(f!, y, prep, backend, x, seed, contexts...)

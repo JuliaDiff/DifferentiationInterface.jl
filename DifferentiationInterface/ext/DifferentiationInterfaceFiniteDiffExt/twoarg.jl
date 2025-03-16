@@ -1,7 +1,7 @@
 ## Pushforward
 
 struct FiniteDiffTwoArgPushforwardPrep{SIG,C,R,A,D} <: DI.PushforwardPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
@@ -15,9 +15,9 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     cache = if x isa Number
         nothing
     else
@@ -34,7 +34,7 @@ function DI.prepare_pushforward(
         backend.relstep
     end
     dir = backend.dir
-    return FiniteDiffTwoArgPushforwardPrep(SIG, cache, relstep, absstep, dir)
+    return FiniteDiffTwoArgPushforwardPrep(_sig, cache, relstep, absstep, dir)
 end
 
 function DI.value_and_pushforward(
@@ -154,7 +154,7 @@ end
 ## Derivative
 
 struct FiniteDiffTwoArgDerivativePrep{SIG,C,R,A,D} <: DI.DerivativePrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
@@ -162,9 +162,14 @@ struct FiniteDiffTwoArgDerivativePrep{SIG,C,R,A,D} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f!, y, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f!,
+    y,
+    backend::AutoFiniteDiff,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     df = similar(y)
     cache = GradientCache(df, x, fdtype(backend), eltype(y), FUNCTION_INPLACE)
     relstep = if isnothing(backend.relstep)
@@ -178,7 +183,7 @@ function DI.prepare_derivative(
         backend.relstep
     end
     dir = backend.dir
-    return FiniteDiffTwoArgDerivativePrep(SIG, cache, relstep, absstep, dir)
+    return FiniteDiffTwoArgDerivativePrep(_sig, cache, relstep, absstep, dir)
 end
 
 function DI.prepare!_derivative(
@@ -272,7 +277,7 @@ end
 ## Jacobian
 
 struct FiniteDiffTwoArgJacobianPrep{SIG,C,R,A,D} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
@@ -280,9 +285,14 @@ struct FiniteDiffTwoArgJacobianPrep{SIG,C,R,A,D} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
-    f!, y, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f!,
+    y,
+    backend::AutoFiniteDiff,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f!, y, backend, x, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x1 = similar(x)
     fx = similar(y)
     fx1 = similar(y)
@@ -298,7 +308,7 @@ function DI.prepare_jacobian(
         backend.relstep
     end
     dir = backend.dir
-    return FiniteDiffTwoArgJacobianPrep(SIG, cache, relstep, absstep, dir)
+    return FiniteDiffTwoArgJacobianPrep(_sig, cache, relstep, absstep, dir)
 end
 
 function DI.prepare!_jacobian(

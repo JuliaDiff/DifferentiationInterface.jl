@@ -48,6 +48,7 @@ end
 ## Pullback
 
 struct EnzymeReverseOneArgPullbackPrep{SIG,Y} <: DI.PullbackPrep{SIG}
+    _sig::Val{SIG}
     y_example::Y  # useful to create return activity
 end
 
@@ -57,11 +58,11 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)
-    return EnzymeReverseOneArgPullbackPrep{SIG,typeof(y)}(y)
+    return EnzymeReverseOneArgPullbackPrep(_sig, y)
 end
 
 ### Out-of-place
@@ -195,10 +196,10 @@ function DI.prepare_gradient(
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
-    return DI.NoGradientPrep{SIG}()
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoGradientPrep(_sig)
 end
 
 ### Enzyme gradient API (only constants)

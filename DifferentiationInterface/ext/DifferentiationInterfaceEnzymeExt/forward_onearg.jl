@@ -6,10 +6,10 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
-    return DI.NoPushforwardPrep{SIG}()
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
+    return DI.NoPushforwardPrep(_sig)
 end
 
 function DI.value_and_pushforward(
@@ -117,11 +117,9 @@ end
 ## Gradient
 
 struct EnzymeForwardGradientPrep{SIG,B,O} <: DI.GradientPrep{SIG}
+    _sig::Val{SIG}
+    _valB::Val{B}
     shadows::O
-end
-
-function EnzymeForwardGradientPrep(::Type{SIG}, ::Val{B}, shadows::O) where {SIG,B,O}
-    return EnzymeForwardGradientPrep{SIG,B,O}(shadows)
 end
 
 function DI.prepare_gradient(
@@ -129,12 +127,12 @@ function DI.prepare_gradient(
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     valB = to_val(DI.pick_batchsize(backend, x))
     shadows = create_shadows(valB, x)
-    return EnzymeForwardGradientPrep(SIG, valB, shadows)
+    return EnzymeForwardGradientPrep(_sig, valB, shadows)
 end
 
 function DI.gradient(
@@ -199,14 +197,10 @@ end
 ## Jacobian
 
 struct EnzymeForwardOneArgJacobianPrep{SIG,B,O} <: DI.JacobianPrep{SIG}
+    _sig::Val{SIG}
+    _valB::Val{B}
     shadows::O
     output_length::Int
-end
-
-function EnzymeForwardOneArgJacobianPrep(
-    ::Type{SIG}, ::Val{B}, shadows::O, output_length::Integer
-) where {SIG,B,O}
-    return EnzymeForwardOneArgJacobianPrep{SIG,B,O}(shadows, output_length)
 end
 
 function DI.prepare_jacobian(
@@ -214,13 +208,13 @@ function DI.prepare_jacobian(
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)
     valB = to_val(DI.pick_batchsize(backend, x))
     shadows = create_shadows(valB, x)
-    return EnzymeForwardOneArgJacobianPrep(SIG, valB, shadows, length(y))
+    return EnzymeForwardOneArgJacobianPrep(_sig, valB, shadows, length(y))
 end
 
 function DI.jacobian(

@@ -61,6 +61,8 @@ end
 ### Prepared
 
 struct ForwardDiffOneArgPushforwardPrep{SIG,T,X,CD} <: DI.PushforwardPrep{SIG}
+    _sig::Val{SIG}
+    _t::Type{T}
     xdual_tmp::X
     contexts_dual::CD
 end
@@ -71,9 +73,9 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,B,C}
-    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     T = tag_type(f, backend, x)
     if DI.ismutable_array(x)
         xdual_tmp = make_dual_similar(T, x, tx)
@@ -81,9 +83,7 @@ function DI.prepare_pushforward(
         xdual_tmp = nothing
     end
     contexts_dual = translate_toprep(Dual{T,eltype(x),B}, contexts)
-    return ForwardDiffOneArgPushforwardPrep{SIG,T,typeof(xdual_tmp),typeof(contexts_dual)}(
-        xdual_tmp, contexts_dual
-    )
+    return ForwardDiffOneArgPushforwardPrep(_sig, T, xdual_tmp, contexts_dual)
 end
 
 function compute_ydual_onearg(
@@ -180,6 +180,7 @@ end
 ## Derivative
 
 struct ForwardDiffOneArgDerivativePrep{SIG,E} <: DI.DerivativePrep{SIG}
+    _sig::Val{SIG}
     pushforward_prep::E
 end
 
@@ -215,11 +216,15 @@ end
 ### Prepared
 
 function DI.prepare_derivative(
-    f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f::F,
+    backend::AutoForwardDiff,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     pushforward_prep = DI.prepare_pushforward(f, backend, x, (one(x),), contexts...; strict)
-    return ForwardDiffOneArgDerivativePrep{SIG,typeof(pushforward_prep)}(pushforward_prep)
+    return ForwardDiffOneArgDerivativePrep(_sig, pushforward_prep)
 end
 
 function DI.value_and_derivative(
@@ -354,7 +359,7 @@ end
 ### Prepared
 
 struct ForwardDiffGradientPrep{SIG,C,CD} <: DI.GradientPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     config::C
     contexts_dual::CD
 end
@@ -364,14 +369,14 @@ function DI.prepare_gradient(
     backend::AutoForwardDiff,
     x::AbstractArray,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     chunk = choose_chunk(backend, x)
     tag = get_tag(f, backend, x)
     config = GradientConfig(nothing, x, chunk, tag)
     contexts_dual = translate_toprep(dual_type(config), contexts)
-    return ForwardDiffGradientPrep(SIG, config, contexts_dual)
+    return ForwardDiffGradientPrep(_sig, config, contexts_dual)
 end
 
 function DI.value_and_gradient!(
@@ -526,20 +531,24 @@ end
 ### Prepared
 
 struct ForwardDiffOneArgJacobianPrep{SIG,C,CD} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     config::C
     contexts_dual::CD
 end
 
 function DI.prepare_jacobian(
-    f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f::F,
+    backend::AutoForwardDiff,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     chunk = choose_chunk(backend, x)
     tag = get_tag(f, backend, x)
     config = JacobianConfig(nothing, x, chunk, tag)
     contexts_dual = translate_toprep(dual_type(config), contexts)
-    return ForwardDiffOneArgJacobianPrep(SIG, config, contexts_dual)
+    return ForwardDiffOneArgJacobianPrep(_sig, config, contexts_dual)
 end
 
 function DI.value_and_jacobian!(
@@ -620,10 +629,14 @@ end
 ## Second derivative
 
 function DI.prepare_second_derivative(
-    f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f::F,
+    backend::AutoForwardDiff,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
-    return DI.NoSecondDerivativePrep{SIG}()
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoSecondDerivativePrep(_sig)
 end
 
 function DI.second_derivative(
@@ -786,23 +799,27 @@ end
 ### Prepared
 
 struct ForwardDiffHessianPrep{SIG,C1,C2,CD} <: DI.HessianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     array_config::C1
     result_config::C2
     contexts_dual::CD
 end
 
 function DI.prepare_hessian(
-    f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f::F,
+    backend::AutoForwardDiff,
+    x,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     chunk = choose_chunk(backend, x)
     tag = get_tag(f, backend, x)
     result = HessianResult(x)
     array_config = HessianConfig(nothing, x, chunk, tag)
     result_config = HessianConfig(nothing, result, x, chunk, tag)
     contexts_dual = translate_toprep(dual_type(array_config), contexts)
-    return ForwardDiffHessianPrep(SIG, array_config, result_config, contexts_dual)
+    return ForwardDiffHessianPrep(_sig, array_config, result_config, contexts_dual)
 end
 
 function DI.hessian!(

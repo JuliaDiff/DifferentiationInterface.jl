@@ -1,5 +1,5 @@
 struct MooncakeTwoArgPullbackPrep{SIG,Tcache,DY,F} <: DI.PullbackPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     cache::Tcache
     dy_righttype::DY
     target_function::F
@@ -12,9 +12,9 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = DI.signature(f!, y, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     target_function = function (f!, y, x, contexts...)
         f!(y, x, contexts...)
         return y
@@ -30,7 +30,7 @@ function DI.prepare_pullback(
         silence_debug_messages=config.silence_debug_messages,
     )
     dy_righttype_after = zero_tangent(y)
-    prep = MooncakeTwoArgPullbackPrep(SIG, cache, dy_righttype_after, target_function)
+    prep = MooncakeTwoArgPullbackPrep(_sig, cache, dy_righttype_after, target_function)
     DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
     return prep
 end

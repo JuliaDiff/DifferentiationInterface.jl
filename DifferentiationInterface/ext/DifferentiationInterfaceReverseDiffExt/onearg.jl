@@ -6,10 +6,10 @@ function DI.prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {C}
-    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
-    return DI.NoPullbackPrep{SIG}()
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep(_sig)
 end
 
 function DI.value_and_pullback(
@@ -79,21 +79,21 @@ end
 ### Without contexts
 
 struct ReverseDiffGradientPrep{SIG,C,T} <: DI.GradientPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     config::C
     tape::T
 end
 
 function DI.prepare_gradient(
-    f, backend::AutoReverseDiff{compile}, x; strict::Bool=false
+    f, backend::AutoReverseDiff{compile}, x; strict::Val=Val(false)
 ) where {compile}
-    SIG = DI.signature(f, backend, x)
+    _sig = DI.signature(f, backend, x)
     if compile
         tape = ReverseDiff.compile(GradientTape(f, x))
-        return ReverseDiffGradientPrep(SIG, nothing, tape)
+        return ReverseDiffGradientPrep(_sig, nothing, tape)
     else
         config = GradientConfig(x)
-        return ReverseDiffGradientPrep(SIG, config, nothing)
+        return ReverseDiffGradientPrep(_sig, config, nothing)
     end
 end
 
@@ -149,11 +149,11 @@ end
 ### With contexts
 
 function DI.prepare_gradient(
-    f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     config = GradientConfig(x)
-    return ReverseDiffGradientPrep(SIG, config, nothing)
+    return ReverseDiffGradientPrep(_sig, config, nothing)
 end
 
 function DI.value_and_gradient!(
@@ -216,21 +216,21 @@ end
 ### Without contexts
 
 struct ReverseDiffOneArgJacobianPrep{SIG,C,T} <: DI.JacobianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     config::C
     tape::T
 end
 
 function DI.prepare_jacobian(
-    f, backend::AutoReverseDiff{compile}, x; strict::Bool=false
+    f, backend::AutoReverseDiff{compile}, x; strict::Val=Val(false)
 ) where {compile}
-    SIG = DI.signature(f, backend, x; strict)
+    _sig = DI.signature(f, backend, x; strict)
     if compile
         tape = ReverseDiff.compile(JacobianTape(f, x))
-        return ReverseDiffOneArgJacobianPrep(SIG, nothing, tape)
+        return ReverseDiffOneArgJacobianPrep(_sig, nothing, tape)
     else
         config = JacobianConfig(x)
-        return ReverseDiffOneArgJacobianPrep(SIG, config, nothing)
+        return ReverseDiffOneArgJacobianPrep(_sig, config, nothing)
     end
 end
 
@@ -286,11 +286,11 @@ end
 ### With contexts
 
 function DI.prepare_jacobian(
-    f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     config = JacobianConfig(x)
-    return ReverseDiffOneArgJacobianPrep(SIG, config, nothing)
+    return ReverseDiffOneArgJacobianPrep(_sig, config, nothing)
 end
 
 function DI.value_and_jacobian!(
@@ -353,23 +353,23 @@ end
 ### Without contexts
 
 struct ReverseDiffHessianPrep{SIG,G<:ReverseDiffGradientPrep,HC,HT} <: DI.HessianPrep{SIG}
-    _sig::Type{SIG}
+    _sig::Val{SIG}
     gradient_prep::G
     hessian_config::HC
     hessian_tape::HT
 end
 
 function DI.prepare_hessian(
-    f, backend::AutoReverseDiff{compile}, x; strict::Bool=false
+    f, backend::AutoReverseDiff{compile}, x; strict::Val=Val(false)
 ) where {compile}
-    SIG = DI.signature(f, backend, x; strict)
+    _sig = DI.signature(f, backend, x; strict)
     gradient_prep = DI.prepare_gradient(f, backend, x)
     if compile
         hessian_tape = ReverseDiff.compile(HessianTape(f, x))
-        return ReverseDiffHessianPrep(SIG, gradient_prep, nothing, hessian_tape)
+        return ReverseDiffHessianPrep(_sig, gradient_prep, nothing, hessian_tape)
     else
         hessian_config = HessianConfig(x)
-        return ReverseDiffHessianPrep(SIG, gradient_prep, hessian_config, nothing)
+        return ReverseDiffHessianPrep(_sig, gradient_prep, hessian_config, nothing)
     end
 end
 
@@ -418,12 +418,12 @@ end
 ### With contexts
 
 function DI.prepare_hessian(
-    f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+    f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
-    SIG = DI.signature(f, backend, x, contexts...; strict)
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     gradient_prep = DI.prepare_gradient(f, backend, x, contexts...)
     hessian_config = HessianConfig(x)
-    return ReverseDiffHessianPrep(SIG, gradient_prep, hessian_config, nothing)
+    return ReverseDiffHessianPrep(_sig, gradient_prep, hessian_config, nothing)
 end
 
 function DI.hessian!(

@@ -37,6 +37,7 @@ function threshold_batchsize(
 end
 
 struct FromPrimitivePushforwardPrep{SIG,E<:PushforwardPrep} <: PushforwardPrep{SIG}
+    _sig::Val{SIG}
     pushforward_prep::E
 end
 
@@ -46,11 +47,11 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f, backend, x, tx, contexts...; strict)
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     primitive_prep = prepare_pushforward(f, backend.backend, x, tx, contexts...; strict)
-    return FromPrimitivePushforwardPrep{SIG,typeof(primitive_prep)}(primitive_prep)
+    return FromPrimitivePushforwardPrep(_sig, primitive_prep)
 end
 
 function prepare_pushforward(
@@ -60,11 +61,11 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f!, y, backend, x, tx, contexts...; strict)
+    _sig = signature(f!, y, backend, x, tx, contexts...; strict)
     primitive_prep = prepare_pushforward(f!, y, backend.backend, x, tx, contexts...; strict)
-    return FromPrimitivePushforwardPrep{SIG,typeof(primitive_prep)}(primitive_prep)
+    return FromPrimitivePushforwardPrep(_sig, primitive_prep)
 end
 
 function value_and_pushforward(
@@ -153,6 +154,7 @@ function threshold_batchsize(
 end
 
 struct FromPrimitivePullbackPrep{SIG,E<:PullbackPrep} <: PullbackPrep{SIG}
+    _sig::Val{SIG}
     pullback_prep::E
 end
 
@@ -162,11 +164,11 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f, backend, x, ty, contexts...; strict)
+    _sig = signature(f, backend, x, ty, contexts...; strict)
     primitive_prep = prepare_pullback(f, backend.backend, x, ty, contexts...; strict)
-    return FromPrimitivePullbackPrep{SIG,typeof(primitive_prep)}(primitive_prep)
+    return FromPrimitivePullbackPrep(_sig, primitive_prep)
 end
 
 function prepare_pullback(
@@ -176,11 +178,11 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Bool=false,
+    strict::Val=Val(false),
 ) where {F,C}
-    SIG = signature(f!, y, backend, x, ty, contexts...; strict)
+    _sig = signature(f!, y, backend, x, ty, contexts...; strict)
     primitive_prep = prepare_pullback(f!, y, backend.backend, x, ty, contexts...; strict)
-    return FromPrimitivePullbackPrep{SIG,typeof(primitive_prep)}(primitive_prep)
+    return FromPrimitivePullbackPrep(_sig, primitive_prep)
 end
 
 function value_and_pullback(
