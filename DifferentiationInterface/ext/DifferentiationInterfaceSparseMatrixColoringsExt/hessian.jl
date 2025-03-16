@@ -79,11 +79,11 @@ end
 function DI.hessian!(
     f::F,
     hess,
-    prep::SparseHessianPrep{<:DI.BatchSizeSettings{B}},
+    prep::SparseHessianPrep{SIG,<:DI.BatchSizeSettings{B}},
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (;
         batch_size_settings,
@@ -124,8 +124,8 @@ function DI.hessian!(
 end
 
 function DI.hessian(
-    f::F, prep::SparseHessianPrep{B}, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
-) where {F,B,C}
+    f::F, prep::SparseHessianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
+) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     hess = similar(sparsity_pattern(prep), eltype(x))
     return DI.hessian!(f, hess, prep, backend, x, contexts...)

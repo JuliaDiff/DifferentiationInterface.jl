@@ -260,11 +260,11 @@ end
 function _sparse_jacobian_aux!(
     f_or_f!y::FY,
     jac,
-    prep::PushforwardSparseJacobianPrep{<:DI.BatchSizeSettings{B}},
+    prep::PushforwardSparseJacobianPrep{SIG,<:DI.BatchSizeSettings{B}},
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
-) where {FY,B,C}
+) where {FY,SIG,B,C}
     (;
         batch_size_settings,
         coloring_result,
@@ -306,11 +306,11 @@ end
 function _sparse_jacobian_aux!(
     f_or_f!y::FY,
     jac,
-    prep::PullbackSparseJacobianPrep{<:DI.BatchSizeSettings{B}},
+    prep::PullbackSparseJacobianPrep{SIG,<:DI.BatchSizeSettings{B}},
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
-) where {FY,B,C}
+) where {FY,SIG,B,C}
     (;
         batch_size_settings,
         coloring_result,

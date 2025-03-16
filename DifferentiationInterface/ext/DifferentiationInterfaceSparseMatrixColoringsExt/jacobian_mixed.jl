@@ -164,12 +164,12 @@ function _sparse_jacobian_aux!(
     f_or_f!y::FY,
     jac,
     prep::MixedModeSparseJacobianPrep{
-        <:DI.BatchSizeSettings{Bf},<:DI.BatchSizeSettings{Br}
+        SIG,<:DI.BatchSizeSettings{Bf},<:DI.BatchSizeSettings{Br}
     },
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
-) where {FY,Bf,Br,C}
+) where {FY,SIG,Bf,Br,C}
     (;
         batch_size_settings_forward,
         batch_size_settings_reverse,
