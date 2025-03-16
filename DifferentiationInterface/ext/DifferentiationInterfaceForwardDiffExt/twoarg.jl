@@ -30,11 +30,11 @@ end
 function compute_ydual_twoarg(
     f!::F,
     y,
-    prep::ForwardDiffTwoArgPushforwardPrep{T},
+    prep::ForwardDiffTwoArgPushforwardPrep{SIG,T},
     x::Number,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     (; ydual_tmp) = prep
     xdual_tmp = make_dual(T, x, tx)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
@@ -45,11 +45,11 @@ end
 function compute_ydual_twoarg(
     f!::F,
     y,
-    prep::ForwardDiffTwoArgPushforwardPrep{T},
+    prep::ForwardDiffTwoArgPushforwardPrep{SIG,T},
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     (; xdual_tmp, ydual_tmp) = prep
     make_dual!(T, xdual_tmp, x, tx)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
@@ -60,12 +60,12 @@ end
 function DI.value_and_pushforward(
     f!::F,
     y,
-    prep::ForwardDiffTwoArgPushforwardPrep{T},
+    prep::ForwardDiffTwoArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ydual_tmp = compute_ydual_twoarg(f!, y, prep, x, tx, contexts...)
     myvalue!(T, y, ydual_tmp)
@@ -77,12 +77,12 @@ function DI.value_and_pushforward!(
     f!::F,
     y,
     ty::NTuple,
-    prep::ForwardDiffTwoArgPushforwardPrep{T},
+    prep::ForwardDiffTwoArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {F,T,C}
+) where {F,SIG,T,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ydual_tmp = compute_ydual_twoarg(f!, y, prep, x, tx, contexts...)
     myvalue!(T, y, ydual_tmp)
@@ -93,12 +93,12 @@ end
 function DI.pushforward(
     f!::F,
     y,
-    prep::ForwardDiffTwoArgPushforwardPrep{T},
+    prep::ForwardDiffTwoArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ydual_tmp = compute_ydual_twoarg(f!, y, prep, x, tx, contexts...)
     ty = mypartials(T, Val(B), ydual_tmp)
@@ -109,12 +109,12 @@ function DI.pushforward!(
     f!::F,
     y,
     ty::NTuple,
-    prep::ForwardDiffTwoArgPushforwardPrep{T},
+    prep::ForwardDiffTwoArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {F,T,C}
+) where {F,SIG,T,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ydual_tmp = compute_ydual_twoarg(f!, y, prep, x, tx, contexts...)
     mypartials!(T, ty, ydual_tmp)
@@ -425,7 +425,7 @@ function DI.value_and_jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    DI.check_prep(f!, y, old_prep, backend, x, contexts...)
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     fc! = DI.FixTail(f!, contexts_dual...)
     jac = similar(y, length(y), length(x))
@@ -447,7 +447,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    DI.check_prep(f!, y, old_prep, backend, x, contexts...)
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     fc! = DI.FixTail(f!, contexts_dual...)
     result = MutableDiffResult(y, (jac,))
@@ -467,7 +467,7 @@ function DI.jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    DI.check_prep(f!, y, old_prep, backend, x, contexts...)
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     fc! = DI.FixTail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
@@ -486,7 +486,7 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    DI.check_prep(f!, y, old_prep, backend, x, contexts...)
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     fc! = DI.FixTail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing

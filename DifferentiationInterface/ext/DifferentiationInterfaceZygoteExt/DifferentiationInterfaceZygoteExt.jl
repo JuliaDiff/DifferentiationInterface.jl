@@ -46,6 +46,7 @@ function DI.prepare_pullback_same_point(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
+    strict::Bool=false,
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     SIG = DI.signature(f, backend, x, ty, contexts...; strict)
@@ -187,6 +188,11 @@ end
 
 # Beware, this uses ForwardDiff for the inner differentiation
 
+struct ZygoteHVPPrep{SIG,P} <: DI.HVPPrep{SIG}
+    _sig::Type{SIG}
+    fd_prep::P
+end
+
 function DI.prepare_hvp(
     f,
     backend::AutoZygote,
@@ -195,27 +201,31 @@ function DI.prepare_hvp(
     contexts::Vararg{DI.Context,C};
     strict::Bool=false,
 ) where {C}
-    return DI.prepare_hvp(
+    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
+    fd_prep = DI.prepare_hvp(
         f, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...; strict
     )
+    return ZygoteHVPPrep(SIG, fd_prep)
 end
 
 function DI.hvp(
     f,
-    prep::DI.ForwardOverAnythingHVPPrep,
+    prep::ZygoteHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    return DI.hvp(f, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...)
+    return DI.hvp(
+        f, prep.fd_prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
+    )
 end
 
 function DI.hvp!(
     f,
     tg::NTuple,
-    prep::DI.ForwardOverAnythingHVPPrep,
+    prep::ZygoteHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
@@ -223,13 +233,13 @@ function DI.hvp!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.hvp!(
-        f, tg, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
+        f, tg, prep.fd_prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
     )
 end
 
 function DI.gradient_and_hvp(
     f,
-    prep::DI.ForwardOverAnythingHVPPrep,
+    prep::ZygoteHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
@@ -237,7 +247,7 @@ function DI.gradient_and_hvp(
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.gradient_and_hvp(
-        f, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
+        f, prep.fd_prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
     )
 end
 
@@ -245,7 +255,7 @@ function DI.gradient_and_hvp!(
     f,
     grad,
     tg::NTuple,
-    prep::DI.ForwardOverAnythingHVPPrep,
+    prep::ZygoteHVPPrep,
     backend::AutoZygote,
     x,
     tx::NTuple,
@@ -253,7 +263,14 @@ function DI.gradient_and_hvp!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.gradient_and_hvp!(
-        f, grad, tg, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
+        f,
+        grad,
+        tg,
+        prep.fd_prep,
+        DI.SecondOrder(AutoForwardDiff(), backend),
+        x,
+        tx,
+        contexts...,
     )
 end
 
@@ -303,7 +320,7 @@ function DI.value_gradient_and_hessian(
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    y, grad = DI.value_and_gradient(f, DI.NoGradientPrep(), backend, x, contexts...)
+    y, grad = DI.value_and_gradient(f, backend, x, contexts...)
     hess = DI.hessian(f, prep, backend, x, contexts...)
     return y, grad, hess
 end
@@ -318,7 +335,7 @@ function DI.value_gradient_and_hessian!(
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    y, _ = DI.value_and_gradient!(f, grad, DI.NoGradientPrep(), backend, x, contexts...)
+    y, _ = DI.value_and_gradient!(f, grad, backend, x, contexts...)
     DI.hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess
 end

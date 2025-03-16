@@ -88,11 +88,11 @@ end
 
 function compute_ydual_onearg(
     f::F,
-    prep::ForwardDiffOneArgPushforwardPrep{T},
+    prep::ForwardDiffOneArgPushforwardPrep{SIG,T},
     x::Number,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     xdual = make_dual(T, x, tx)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     ydual = f(xdual, contexts_dual...)
@@ -101,11 +101,11 @@ end
 
 function compute_ydual_onearg(
     f::F,
-    prep::ForwardDiffOneArgPushforwardPrep{T},
+    prep::ForwardDiffOneArgPushforwardPrep{SIG,T},
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     if DI.ismutable_array(x)
         make_dual!(T, prep.xdual_tmp, x, tx)
         xdual_tmp = prep.xdual_tmp
@@ -119,12 +119,12 @@ end
 
 function DI.value_and_pushforward(
     f::F,
-    prep::ForwardDiffOneArgPushforwardPrep{T},
+    prep::ForwardDiffOneArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ydual = compute_ydual_onearg(f, prep, x, tx, contexts...)
     y = myvalue(T, ydual)
@@ -135,12 +135,12 @@ end
 function DI.value_and_pushforward!(
     f::F,
     ty::NTuple,
-    prep::ForwardDiffOneArgPushforwardPrep{T},
+    prep::ForwardDiffOneArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {F,T,C}
+) where {F,SIG,T,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ydual = compute_ydual_onearg(f, prep, x, tx, contexts...)
     y = myvalue(T, ydual)
@@ -150,12 +150,12 @@ end
 
 function DI.pushforward(
     f::F,
-    prep::ForwardDiffOneArgPushforwardPrep{T},
+    prep::ForwardDiffOneArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
-) where {F,T,B,C}
+) where {F,SIG,T,B,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ydual = compute_ydual_onearg(f, prep, x, tx, contexts...)
     ty = mypartials(T, Val(B), ydual)
@@ -165,12 +165,12 @@ end
 function DI.pushforward!(
     f::F,
     ty::NTuple,
-    prep::ForwardDiffOneArgPushforwardPrep{T},
+    prep::ForwardDiffOneArgPushforwardPrep{SIG,T},
     backend::AutoForwardDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {F,T,C}
+) where {F,SIG,T,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ydual = compute_ydual_onearg(f, prep, x, tx, contexts...)
     mypartials!(T, ty, ydual)
