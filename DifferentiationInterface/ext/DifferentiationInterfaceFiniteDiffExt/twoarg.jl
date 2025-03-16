@@ -40,12 +40,12 @@ end
 function DI.value_and_pushforward(
     f!,
     y,
-    prep::FiniteDiffTwoArgPushforwardPrep{Nothing},
+    prep::FiniteDiffTwoArgPushforwardPrep{SIG,Nothing},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     function step(t::Number, dx)
@@ -72,12 +72,12 @@ end
 function DI.pushforward(
     f!,
     y,
-    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    prep::FiniteDiffTwoArgPushforwardPrep{SIG,<:JVPCache},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc! = DI.with_contexts(f!, contexts...)
@@ -92,12 +92,12 @@ end
 function DI.value_and_pushforward(
     f!,
     y,
-    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    prep::FiniteDiffTwoArgPushforwardPrep{SIG,<:JVPCache},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc! = DI.with_contexts(f!, contexts...)
@@ -114,12 +114,12 @@ function DI.pushforward!(
     f!,
     y,
     ty::NTuple,
-    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    prep::FiniteDiffTwoArgPushforwardPrep{SIG,<:JVPCache},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc! = DI.with_contexts(f!, contexts...)
@@ -134,12 +134,12 @@ function DI.value_and_pushforward!(
     f!,
     y,
     ty::NTuple,
-    prep::FiniteDiffTwoArgPushforwardPrep{<:JVPCache},
+    prep::FiniteDiffTwoArgPushforwardPrep{SIG,<:JVPCache},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc! = DI.with_contexts(f!, contexts...)

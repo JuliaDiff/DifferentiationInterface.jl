@@ -40,12 +40,12 @@ end
 
 function DI.pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep{Nothing},
+    prep::FiniteDiffOneArgPushforwardPrep{SIG,Nothing},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
@@ -59,12 +59,12 @@ end
 
 function DI.value_and_pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep{Nothing},
+    prep::FiniteDiffOneArgPushforwardPrep{SIG,Nothing},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
@@ -86,12 +86,12 @@ end
 
 function DI.pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep{<:JVPCache},
+    prep::FiniteDiffOneArgPushforwardPrep{SIG,<:JVPCache},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.with_contexts(f, contexts...)
@@ -103,12 +103,12 @@ end
 
 function DI.value_and_pushforward(
     f,
-    prep::FiniteDiffOneArgPushforwardPrep{<:JVPCache},
+    prep::FiniteDiffOneArgPushforwardPrep{SIG,<:JVPCache},
     backend::AutoFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.with_contexts(f, contexts...)
@@ -159,11 +159,11 @@ end
 
 function DI.derivative(
     f,
-    prep::FiniteDiffOneArgDerivativePrep{Nothing},
+    prep::FiniteDiffOneArgDerivativePrep{SIG,Nothing},
     backend::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.with_contexts(f, contexts...)
@@ -172,11 +172,11 @@ end
 
 function DI.value_and_derivative(
     f,
-    prep::FiniteDiffOneArgDerivativePrep{Nothing},
+    prep::FiniteDiffOneArgDerivativePrep{SIG,Nothing},
     backend::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.with_contexts(f, contexts...)
@@ -193,11 +193,11 @@ end
 
 function DI.derivative(
     f,
-    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache},
+    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
     backend::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.with_contexts(f, contexts...)
@@ -207,11 +207,11 @@ end
 function DI.derivative!(
     f,
     der,
-    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache},
+    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
     backend::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.with_contexts(f, contexts...)
@@ -220,11 +220,11 @@ end
 
 function DI.value_and_derivative(
     f,
-    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache},
+    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
     backend::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.with_contexts(f, contexts...)
     (; relstep, absstep, dir) = prep
@@ -235,11 +235,11 @@ end
 function DI.value_and_derivative!(
     f,
     der,
-    prep::FiniteDiffOneArgDerivativePrep{<:GradientCache},
+    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
     backend::AutoFiniteDiff,
     x,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.with_contexts(f, contexts...)

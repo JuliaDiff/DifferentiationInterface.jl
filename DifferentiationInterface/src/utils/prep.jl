@@ -52,6 +52,15 @@ struct NoSecondDerivativePrep{SIG} <: SecondDerivativePrep{SIG} end
 
 is_strict(::Prep{SIG}) where {SIG} = SIG !== Nothing
 
+function inconsistent_signatures_error(SIG, RUNTIME_SIG)
+    msg = """
+    Inconsistent signatures:
+     - at preparation time: $SIG
+     - at execution time: $RUNTIME_SIG
+    """
+    return ArgumentError(msg)
+end
+
 function signature(
     f, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Bool
 ) where {C}
@@ -96,7 +105,10 @@ function check_prep(
     f, ::Prep{SIG}, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {SIG,C}
     if SIG !== Nothing
-        @assert SIG == typeof((f, backend, x, contexts))
+        RUNTIME_SIG = typeof((f, backend, x, contexts))
+        if SIG != RUNTIME_SIG
+            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+        end
     end
 end
 
@@ -104,7 +116,10 @@ function check_prep(
     f!, y, ::Prep{SIG}, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {SIG,C}
     if SIG !== Nothing
-        @assert SIG == typeof((f!, y, backend, x, contexts))
+        RUNTIME_SIG = typeof((f!, y, backend, x, contexts))
+        if SIG != RUNTIME_SIG
+            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+        end
     end
 end
 
@@ -112,7 +127,10 @@ function check_prep(
     f, ::Prep{SIG}, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}
 ) where {SIG,C}
     if SIG !== Nothing
-        @assert SIG == typeof((f, backend, x, t, contexts))
+        RUNTIME_SIG = typeof((f, backend, x, t, contexts))
+        if SIG != RUNTIME_SIG
+            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+        end
     end
 end
 
@@ -120,6 +138,9 @@ function check_prep(
     f!, y, ::Prep{SIG}, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}
 ) where {SIG,C}
     if SIG !== Nothing
-        @assert SIG == typeof((f!, y, backend, x, t, contexts))
+        RUNTIME_SIG = typeof((f!, y, backend, x, t, contexts))
+        if SIG != RUNTIME_SIG
+            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+        end
     end
 end

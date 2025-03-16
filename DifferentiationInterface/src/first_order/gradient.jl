@@ -61,7 +61,7 @@ function prepare_gradient(
 ) where {F,C}
     SIG = signature(f, backend, x, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
-    pullback_prep = prepare_pullback(f, backend, x, (true,), contexts...; strict)
+    pullback_prep = prepare_pullback(f, backend, x, (one(typeof(y)),), contexts...; strict)
     return PullbackGradientPrep{SIG,typeof(y),typeof(pullback_prep)}(pullback_prep)
 end
 
