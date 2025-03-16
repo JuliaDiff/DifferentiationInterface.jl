@@ -145,5 +145,5 @@ function with_contexts(f::F, contexts::Vararg{Context,N}) where {F,N}
     return FixTail(f, tail_args...)
 end
 
-adapt_eltype(c::Constant, ::Type) where {T} = c
+adapt_eltype(c::Constant, ::Type) = c
 adapt_eltype(c::Cache, ::Type{T}) where {T} = Cache(similar(unwrap(c), T))
