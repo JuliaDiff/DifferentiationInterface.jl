@@ -9,7 +9,7 @@ function DI.prepare_pullback(
     contexts::Vararg{DI.Context,C};
     strict::Val=Val(false),
 ) where {C}
-    _sig = DI.signature(f!, y, x, ty, contexts...; strict)
+    _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     return DI.NoPullbackPrep(_sig)
 end
 
