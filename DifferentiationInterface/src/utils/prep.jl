@@ -77,13 +77,21 @@ end
 is_strict(::Prep{Nothing}) = Val(false)
 is_strict(::Prep) = Val(true)
 
-function inconsistent_signatures_error(SIG, RUNTIME_SIG)
+struct PreparationMismatchError{SIG,RUNTIME_SIG} <: Exception end
+
+function PreparationMismatchError(::Type{SIG}, ::Type{RUNTIME_SIG}) where {SIG,RUNTIME_SIG}
+    return PreparationMismatchError{SIG,RUNTIME_SIG}()
+end
+
+function Base.showerror(
+    io::IO, e::PreparationMismatchError{SIG,RUNTIME_SIG}
+) where {SIG,RUNTIME_SIG}
     msg = """
     Inconsistent signatures:
      - at preparation time: $SIG
      - at execution time: $RUNTIME_SIG
     """
-    return ArgumentError(msg)
+    return print(io, msg)
 end
 
 function signature(
@@ -138,7 +146,7 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f, backend, x, contexts))
         if SIG != RUNTIME_SIG
-            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
         end
     end
 end
@@ -149,7 +157,7 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f!, y, backend, x, contexts))
         if SIG != RUNTIME_SIG
-            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
         end
     end
 end
@@ -160,7 +168,7 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f, backend, x, t, contexts))
         if SIG != RUNTIME_SIG
-            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
         end
     end
 end
@@ -171,7 +179,7 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f!, y, backend, x, t, contexts))
         if SIG != RUNTIME_SIG
-            throw(inconsistent_signatures_error(SIG, RUNTIME_SIG))
+            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
         end
     end
 end

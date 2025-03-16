@@ -1,8 +1,7 @@
 
 ## Pushforward
 
-struct PolyesterForwardDiffOneArgPushforwardPrep{SIG,P} <:
-       PolyesterForwardDiffOneArgPushforwardPrep{SIG}
+struct PolyesterForwardDiffOneArgPushforwardPrep{SIG,P} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     single_threaded_prep::P
 end
