@@ -202,8 +202,10 @@ function _prepare_hvp_aux(
     xoi = overloaded_input(
         pushforward, shuffled_gradient!, grad_buffer, outer(backend), x, tx
     )
-    inner_gradient_prep = prepare_gradient(f, inner(backend), xo, contexts...; strict)
-    inner_gradient_in_prep = prepare_gradient(f, inner(backend), xoi, contexts...; strict)
+    contextso = adapt_eltype.(contexts, Ref(eltype(xo)))
+    contextsoi = adapt_eltype.(contexts, Ref(eltype(xoi)))
+    inner_gradient_prep = prepare_gradient(f, inner(backend), xo, contextso...; strict)
+    inner_gradient_in_prep = prepare_gradient(f, inner(backend), xoi, contextsoi...; strict)
     # Outer pushforward
     new_contexts = (
         FunctionContext(f),
