@@ -21,27 +21,47 @@ translate(c::DI.Cache) = Buffer(DI.unwrap(c))
 
 ## Pullback
 
-struct ZygotePullbackPrepSamePoint{Y,PB} <: DI.PullbackPrep
+struct ZygotePullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
+    _sig::Type{SIG}
     y::Y
     pb::PB
 end
 
 function DI.prepare_pullback(
-    f, ::AutoZygote, x, ty::NTuple, contexts::Vararg{DI.Context,C}
+    f,
+    backend::AutoZygote,
+    x,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C};
+    strict::Bool=false,
 ) where {C}
-    return DI.NoPullbackPrep()
+    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep{SIG}()
 end
 
 function DI.prepare_pullback_same_point(
-    f, ::DI.NoPullbackPrep, ::AutoZygote, x, ty::NTuple, contexts::Vararg{DI.Context,C}
+    f,
+    prep::DI.NoPullbackPrep,
+    backend::AutoZygote,
+    x,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C};
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
+    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
     y, pb = pullback(f, x, map(translate, contexts)...)
-    return ZygotePullbackPrepSamePoint(y, pb)
+    return ZygotePullbackPrepSamePoint(SIG, y, pb)
 end
 
 function DI.value_and_pullback(
-    f, ::DI.NoPullbackPrep, ::AutoZygote, x, ty::NTuple, contexts::Vararg{DI.Context,C}
+    f,
+    prep::DI.NoPullbackPrep,
+    backend::AutoZygote,
+    x,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     y, pb = pullback(f, x, map(translate, contexts)...)
     tx = map(ty) do dy
         first(pb(dy))
@@ -52,11 +72,12 @@ end
 function DI.value_and_pullback(
     f,
     prep::ZygotePullbackPrepSamePoint,
-    ::AutoZygote,
+    backend::AutoZygote,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; y, pb) = prep
     tx = map(ty) do dy
         first(pb(dy))
@@ -67,11 +88,12 @@ end
 function DI.pullback(
     f,
     prep::ZygotePullbackPrepSamePoint,
-    ::AutoZygote,
+    backend::AutoZygote,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; pb) = prep
     tx = map(ty) do dy
         first(pb(dy))
@@ -81,20 +103,25 @@ end
 
 ## Gradient
 
-function DI.prepare_gradient(f, ::AutoZygote, x, contexts::Vararg{DI.Context,C}) where {C}
-    return DI.NoGradientPrep()
+function DI.prepare_gradient(
+    f, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+) where {C}
+    SIG = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoGradientPrep{SIG}()
 end
 
 function DI.value_and_gradient(
-    f, ::DI.NoGradientPrep, ::AutoZygote, x, contexts::Vararg{DI.Context,C}
+    f, prep::DI.NoGradientPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     (; val, grad) = withgradient(f, x, map(translate, contexts)...)
     return val, first(grad)
 end
 
 function DI.gradient(
-    f, ::DI.NoGradientPrep, ::AutoZygote, x, contexts::Vararg{DI.Context,C}
+    f, prep::DI.NoGradientPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     grad = gradient(f, x, map(translate, contexts)...)
     return first(grad)
 end
@@ -102,6 +129,7 @@ end
 function DI.value_and_gradient!(
     f, grad, prep::DI.NoGradientPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
     return y, copyto!(grad, new_grad)
 end
@@ -109,18 +137,23 @@ end
 function DI.gradient!(
     f, grad, prep::DI.NoGradientPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 
 ## Jacobian
 
-function DI.prepare_jacobian(f, ::AutoZygote, x, contexts::Vararg{DI.Context,C}) where {C}
-    return DI.NoJacobianPrep()
+function DI.prepare_jacobian(
+    f, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
+) where {C}
+    SIG = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoJacobianPrep{SIG}()
 end
 
 function DI.value_and_jacobian(
-    f, ::DI.NoJacobianPrep, ::AutoZygote, x, contexts::Vararg{DI.Context,C}
+    f, prep::DI.NoJacobianPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y = f(x, map(translate, contexts)...)
     # https://github.com/FluxML/Zygote.jl/issues/1506
     jac = jacobian(f, x, map(translate, contexts)...)
@@ -128,8 +161,9 @@ function DI.value_and_jacobian(
 end
 
 function DI.jacobian(
-    f, ::DI.NoJacobianPrep, ::AutoZygote, x, contexts::Vararg{DI.Context,C}
+    f, prep::DI.NoJacobianPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     jac = jacobian(f, x, map(translate, contexts)...)
     return first(jac)
 end
@@ -137,6 +171,7 @@ end
 function DI.value_and_jacobian!(
     f, jac, prep::DI.NoJacobianPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)
     return y, copyto!(jac, new_jac)
 end
@@ -144,6 +179,7 @@ end
 function DI.jacobian!(
     f, jac, prep::DI.NoJacobianPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
 end
 
@@ -152,9 +188,16 @@ end
 # Beware, this uses ForwardDiff for the inner differentiation
 
 function DI.prepare_hvp(
-    f, backend::AutoZygote, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+    f,
+    backend::AutoZygote,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C};
+    strict::Bool=false,
 ) where {C}
-    return DI.prepare_hvp(f, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...)
+    return DI.prepare_hvp(
+        f, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...; strict
+    )
 end
 
 function DI.hvp(
@@ -165,6 +208,7 @@ function DI.hvp(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.hvp(f, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...)
 end
 
@@ -177,6 +221,7 @@ function DI.hvp!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.hvp!(
         f, tg, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
     )
@@ -190,6 +235,7 @@ function DI.gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.gradient_and_hvp(
         f, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
     )
@@ -205,6 +251,7 @@ function DI.gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.gradient_and_hvp!(
         f, grad, tg, prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
     )
@@ -213,14 +260,24 @@ end
 ## Hessian
 
 function DI.prepare_hessian(
-    f, ::AutoZygote, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    f,
+    backend::AutoZygote,
+    x,
+    contexts::Vararg{DI.GeneralizedConstant,C};
+    strict::Bool=false,
 ) where {C}
-    return DI.NoHessianPrep()
+    SIG = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoHessianPrep{SIG}()
 end
 
 function DI.hessian(
-    f, ::DI.NoHessianPrep, ::AutoZygote, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    f,
+    prep::DI.NoHessianPrep,
+    backend::AutoZygote,
+    x,
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.with_contexts(f, contexts...)
     hess = hessian(fc, x)
     return hess
@@ -234,6 +291,7 @@ function DI.hessian!(
     x,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(hess, DI.hessian(f, prep, backend, x, contexts...))
 end
 
@@ -244,6 +302,7 @@ function DI.value_gradient_and_hessian(
     x,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, grad = DI.value_and_gradient(f, DI.NoGradientPrep(), backend, x, contexts...)
     hess = DI.hessian(f, prep, backend, x, contexts...)
     return y, grad, hess
@@ -258,6 +317,7 @@ function DI.value_gradient_and_hessian!(
     x,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, _ = DI.value_and_gradient!(f, grad, DI.NoGradientPrep(), backend, x, contexts...)
     DI.hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess

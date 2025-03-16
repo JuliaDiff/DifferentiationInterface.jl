@@ -6,7 +6,7 @@ struct SymbolicsTwoArgPushforwardPrep{E1,E1!} <: DI.PushforwardPrep
 end
 
 function DI.prepare_pushforward(
-    f!, y, ::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+    f!, y, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
     dx = first(tx)
     x_var = variablize(x, :x)
@@ -27,7 +27,7 @@ function DI.pushforward(
     f!,
     y,
     prep::SymbolicsTwoArgPushforwardPrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
@@ -43,7 +43,7 @@ function DI.pushforward!(
     y,
     ty::NTuple,
     prep::SymbolicsTwoArgPushforwardPrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
@@ -92,7 +92,7 @@ struct SymbolicsTwoArgDerivativePrep{E1,E1!} <: DI.DerivativePrep
 end
 
 function DI.prepare_derivative(
-    f!, y, ::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+    f!, y, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     x_var = variablize(x, :x)
     y_var = variablize(y, :y)
@@ -109,7 +109,7 @@ function DI.derivative(
     f!,
     y,
     prep::SymbolicsTwoArgDerivativePrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -121,7 +121,7 @@ function DI.derivative!(
     y,
     der,
     prep::SymbolicsTwoArgDerivativePrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -189,7 +189,7 @@ function DI.jacobian(
     f!,
     y,
     prep::SymbolicsTwoArgJacobianPrep,
-    ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -201,7 +201,7 @@ function DI.jacobian!(
     y,
     jac,
     prep::SymbolicsTwoArgJacobianPrep,
-    ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}

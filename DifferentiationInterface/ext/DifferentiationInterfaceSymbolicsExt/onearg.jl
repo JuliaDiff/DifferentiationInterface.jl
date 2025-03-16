@@ -6,7 +6,7 @@ struct SymbolicsOneArgPushforwardPrep{E1,E1!} <: DI.PushforwardPrep
 end
 
 function DI.prepare_pushforward(
-    f, ::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+    f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
     dx = first(tx)
     x_var = variablize(x, :x)
@@ -28,7 +28,7 @@ end
 function DI.pushforward(
     f,
     prep::SymbolicsOneArgPushforwardPrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
@@ -43,7 +43,7 @@ function DI.pushforward!(
     f,
     ty::NTuple,
     prep::SymbolicsOneArgPushforwardPrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
@@ -88,7 +88,7 @@ struct SymbolicsOneArgDerivativePrep{E1,E1!} <: DI.DerivativePrep
 end
 
 function DI.prepare_derivative(
-    f, ::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+    f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
@@ -106,7 +106,7 @@ end
 function DI.derivative(
     f,
     prep::SymbolicsOneArgDerivativePrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -117,7 +117,7 @@ function DI.derivative!(
     f,
     der,
     prep::SymbolicsOneArgDerivativePrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -156,7 +156,7 @@ struct SymbolicsOneArgGradientPrep{E1,E1!} <: DI.GradientPrep
 end
 
 function DI.prepare_gradient(
-    f, ::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+    f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
@@ -169,7 +169,11 @@ function DI.prepare_gradient(
 end
 
 function DI.gradient(
-    f, prep::SymbolicsOneArgGradientPrep, ::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+    f,
+    prep::SymbolicsOneArgGradientPrep,
+    backend::AutoSymbolics,
+    x,
+    contexts::Vararg{DI.Context,C},
 ) where {C}
     return reshape(prep.grad_exe(vec(x), map(DI.unwrap, contexts)...), size(x))
 end
@@ -178,7 +182,7 @@ function DI.gradient!(
     f,
     grad,
     prep::SymbolicsOneArgGradientPrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -237,7 +241,7 @@ end
 function DI.jacobian(
     f,
     prep::SymbolicsOneArgJacobianPrep,
-    ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -248,7 +252,7 @@ function DI.jacobian!(
     f,
     jac,
     prep::SymbolicsOneArgJacobianPrep,
-    ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -311,7 +315,7 @@ end
 function DI.hessian(
     f,
     prep::SymbolicsOneArgHessianPrep,
-    ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -322,7 +326,7 @@ function DI.hessian!(
     f,
     hess,
     prep::SymbolicsOneArgHessianPrep,
-    ::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
+    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -391,7 +395,7 @@ end
 function DI.hvp(
     f,
     prep::SymbolicsOneArgHVPPrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
@@ -406,7 +410,7 @@ function DI.hvp!(
     f,
     tg::NTuple,
     prep::SymbolicsOneArgHVPPrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
@@ -475,7 +479,7 @@ end
 function DI.second_derivative(
     f,
     prep::SymbolicsOneArgSecondDerivativePrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
@@ -486,7 +490,7 @@ function DI.second_derivative!(
     f,
     der2,
     prep::SymbolicsOneArgSecondDerivativePrep,
-    ::AutoSymbolics,
+    backend::AutoSymbolics,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}

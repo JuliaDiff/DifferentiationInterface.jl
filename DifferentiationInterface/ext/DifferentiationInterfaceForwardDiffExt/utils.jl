@@ -19,7 +19,7 @@ choose_chunk(::AutoForwardDiff{chunksize}, x) where {chunksize} = Chunk{chunksiz
 
 get_tag(f, backend::AutoForwardDiff, x) = backend.tag
 
-function get_tag(f::F, ::AutoForwardDiff{chunksize,Nothing}, x) where {F,chunksize}
+function get_tag(f::F, backend::AutoForwardDiff{chunksize,Nothing}, x) where {F,chunksize}
     return Tag(f, eltype(x))
 end
 

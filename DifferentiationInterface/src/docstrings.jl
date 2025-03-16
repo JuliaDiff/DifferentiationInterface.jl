@@ -23,6 +23,7 @@ function docstring_prepare(operator; samepoint=false, inplace=false)
     !!! warning
         The preparation result is only reusable as long as the arguments to `$operator` do not change type or size, and the function and backend themselves are not modified.
         Otherwise, preparation will be invalidated and you will need to run it again.
+        The keyword argument `strict` activates automatic type checking, but ensuring size consistency is up to the user.
     $(inplace ? "\nFor in-place functions, `y` is mutated by `f!` during preparation." : "")
     """
 end

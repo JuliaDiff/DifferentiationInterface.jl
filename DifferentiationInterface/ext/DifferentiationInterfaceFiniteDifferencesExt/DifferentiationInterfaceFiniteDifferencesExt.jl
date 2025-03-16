@@ -12,19 +12,26 @@ DI.inner_preparation_behavior(::AutoFiniteDifferences) = DI.PrepareInnerSimple()
 ## Pushforward
 
 function DI.prepare_pushforward(
-    f, ::AutoFiniteDifferences, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+    f,
+    backend::AutoFiniteDifferences,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C};
+    strict::Bool=false,
 ) where {C}
-    return DI.NoPushforwardPrep()
+    SIG = DI.signature(f, backend, x, tx, contexts...; strict)
+    return DI.NoPushforwardPrep{SIG}()
 end
 
 function DI.pushforward(
     f,
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoFiniteDifferences,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     fc = DI.with_contexts(f, contexts...)
     ty = map(tx) do dx
         jvp(backend.fdm, fc, (x, dx))
@@ -40,6 +47,7 @@ function DI.value_and_pushforward(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
     DI.pushforward(f, prep, backend, x, tx, contexts...)
 end
@@ -47,19 +55,26 @@ end
 ## Pullback
 
 function DI.prepare_pullback(
-    f, ::AutoFiniteDifferences, x, ty::NTuple, contexts::Vararg{DI.Context,C}
+    f,
+    backend::AutoFiniteDifferences,
+    x,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C};
+    strict::Bool=false,
 ) where {C}
-    return DI.NoPullbackPrep()
+    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep{SIG}()
 end
 
 function DI.pullback(
     f,
-    ::DI.NoPullbackPrep,
+    prep::DI.NoPullbackPrep,
     backend::AutoFiniteDifferences,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     fc = DI.with_contexts(f, contexts...)
     tx = map(ty) do dy
         only(j′vp(backend.fdm, fc, dy, x))
@@ -75,6 +90,7 @@ function DI.value_and_pullback(
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
     DI.pullback(f, prep, backend, x, ty, contexts...)
 end
@@ -82,18 +98,20 @@ end
 ## Gradient
 
 function DI.prepare_gradient(
-    f, ::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C}
+    f, backend::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
 ) where {C}
-    return DI.NoGradientPrep()
+    SIG = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoGradientPrep{SIG}()
 end
 
 function DI.gradient(
     f,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoFiniteDifferences,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.with_contexts(f, contexts...)
     return only(grad(backend.fdm, fc, x))
 end
@@ -105,6 +123,7 @@ function DI.value_and_gradient(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...), DI.gradient(f, prep, backend, x, contexts...)
 end
 
@@ -116,6 +135,7 @@ function DI.gradient!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 
@@ -127,6 +147,7 @@ function DI.value_and_gradient!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
     return y, copyto!(grad, new_grad)
 end
@@ -134,18 +155,20 @@ end
 ## Jacobian
 
 function DI.prepare_jacobian(
-    f, ::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C}
+    f, backend::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
 ) where {C}
-    return DI.NoJacobianPrep()
+    SIG = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoJacobianPrep{SIG}()
 end
 
 function DI.jacobian(
     f,
-    ::DI.NoJacobianPrep,
+    prep::DI.NoJacobianPrep,
     backend::AutoFiniteDifferences,
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.with_contexts(f, contexts...)
     return only(jacobian(backend.fdm, fc, x))
 end
@@ -157,6 +180,7 @@ function DI.value_and_jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...), DI.jacobian(f, prep, backend, x, contexts...)
 end
 
@@ -168,6 +192,7 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
 end
 
@@ -179,6 +204,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)
     return y, copyto!(jac, new_jac)
 end

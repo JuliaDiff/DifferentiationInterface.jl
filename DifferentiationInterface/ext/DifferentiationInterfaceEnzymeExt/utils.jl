@@ -9,20 +9,20 @@ to_val(::DI.BatchSizeSettings{B}) where {B} = Val(B)
 ## Annotations
 
 @inline function get_f_and_df(
-    f::F, ::AutoEnzyme{M,Nothing}, mode::Mode, ::Val{B}=Val(1)
+    f::F, backend::AutoEnzyme{M,Nothing}, mode::Mode, ::Val{B}=Val(1)
 ) where {F,M,B}
     return f
 end
 
 @inline function get_f_and_df(
-    f::F, ::AutoEnzyme{M,<:Const}, mode::Mode, ::Val{B}=Val(1)
+    f::F, backend::AutoEnzyme{M,<:Const}, mode::Mode, ::Val{B}=Val(1)
 ) where {F,M,B}
     return Const(f)
 end
 
 @inline function get_f_and_df(
     f::F,
-    ::AutoEnzyme{
+    backend::AutoEnzyme{
         M,
         <:Union{
             Duplicated,
@@ -48,13 +48,13 @@ force_annotation(f::F) where {F<:Annotation} = f
 force_annotation(f::F) where {F} = Const(f)
 
 @inline function _translate(
-    ::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedConstant
+    backend::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedConstant
 ) where {B}
     return Const(DI.unwrap(c))
 end
 
 @inline function _translate(
-    ::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedCache
+    backend::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedCache
 ) where {B}
     if B == 1
         return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))
@@ -100,8 +100,10 @@ function reverse_split_withprimal(backend::AutoEnzyme{Nothing})
     return set_err(ReverseSplitWithPrimal, backend)
 end
 
-set_err(mode::Mode, ::AutoEnzyme{<:Any,Nothing}) = EnzymeCore.set_err_if_func_written(mode)
-set_err(mode::Mode, ::AutoEnzyme{<:Any,<:Annotation}) = mode
+function set_err(mode::Mode, backend::AutoEnzyme{<:Any,Nothing})
+    return EnzymeCore.set_err_if_func_written(mode)
+end
+set_err(mode::Mode, backend::AutoEnzyme{<:Any,<:Annotation}) = mode
 
 function maybe_reshape(A::AbstractMatrix, m, n)
     @assert size(A) == (m, n)

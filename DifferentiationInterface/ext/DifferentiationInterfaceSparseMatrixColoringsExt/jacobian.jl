@@ -1,13 +1,15 @@
 ## Preparation
 
 struct PushforwardSparseJacobianPrep{
+    SIG,
     BS<:DI.BatchSizeSettings,
     C<:AbstractColoringResult{:nonsymmetric,:column},
     M<:AbstractMatrix{<:Number},
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
     E<:DI.PushforwardPrep,
-} <: SparseJacobianPrep
+} <: SparseJacobianPrep{SIG}
+    _sig::Type{SIG}
     batch_size_settings::BS
     coloring_result::C
     compressed_matrix::M
@@ -17,13 +19,15 @@ struct PushforwardSparseJacobianPrep{
 end
 
 struct PullbackSparseJacobianPrep{
+    SIG,
     BS<:DI.BatchSizeSettings,
     C<:AbstractColoringResult{:nonsymmetric,:row},
     M<:AbstractMatrix{<:Number},
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
     E<:DI.PullbackPrep,
-} <: SparseJacobianPrep
+} <: SparseJacobianPrep{SIG}
+    _sig::Type{SIG}
     batch_size_settings::BS
     coloring_result::C
     compressed_matrix::M
@@ -33,12 +37,12 @@ struct PullbackSparseJacobianPrep{
 end
 
 function DI.prepare_jacobian(
-    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
+    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
 ) where {F,C}
     dense_backend = dense_ad(backend)
     y = f(x, map(DI.unwrap, contexts)...)
     perf = DI.pushforward_performance(dense_backend)
-    return _prepare_sparse_jacobian_aux(perf, y, (f,), backend, x, contexts...)
+    return _prepare_sparse_jacobian_aux(perf, y, (f,), backend, x, contexts...; strict)
 end
 
 function DI.prepare_jacobian(
@@ -46,7 +50,7 @@ function DI.prepare_jacobian(
 ) where {F,C}
     dense_backend = dense_ad(backend)
     perf = DI.pushforward_performance(dense_backend)
-    return _prepare_sparse_jacobian_aux(perf, y, (f!, y), backend, x, contexts...)
+    return _prepare_sparse_jacobian_aux(perf, y, (f!, y), backend, x, contexts...; strict)
 end
 
 function _prepare_sparse_jacobian_aux(
@@ -55,7 +59,8 @@ function _prepare_sparse_jacobian_aux(
     f_or_f!y::FY,
     backend::AutoSparse,
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
+    strict::Bool,
 ) where {FY,C}
     dense_backend = dense_ad(backend)
     sparsity = DI.jacobian_sparsity_with_contexts(
@@ -79,7 +84,7 @@ function _prepare_sparse_jacobian_aux(
     end
     batch_size_settings = DI.pick_batchsize(dense_backend, N)
     return _prepare_sparse_jacobian_aux_aux(
-        batch_size_settings, coloring_result, y, f_or_f!y, backend, x, contexts...
+        batch_size_settings, coloring_result, y, f_or_f!y, backend, x, contexts...; strict
     )
 end
 
@@ -90,8 +95,10 @@ function _prepare_sparse_jacobian_aux_aux(
     f_or_f!y::FY,
     backend::AutoSparse,
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
+    strict::Bool,
 ) where {B,FY,C}
+    SIG = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = column_groups(coloring_result)
@@ -105,6 +112,7 @@ function _prepare_sparse_jacobian_aux_aux(
         f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
     return PushforwardSparseJacobianPrep(
+        SIG,
         batch_size_settings,
         coloring_result,
         compressed_matrix,
@@ -121,8 +129,10 @@ function _prepare_sparse_jacobian_aux_aux(
     f_or_f!y::FY,
     backend::AutoSparse,
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
+    strict::Bool,
 ) where {B,FY,C}
+    SIG = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = row_groups(coloring_result)
@@ -136,6 +146,7 @@ function _prepare_sparse_jacobian_aux_aux(
         f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
     return PullbackSparseJacobianPrep(
+        SIG,
         batch_size_settings,
         coloring_result,
         compressed_matrix,
@@ -155,12 +166,14 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return _sparse_jacobian_aux!((f,), jac, prep, backend, x, contexts...)
 end
 
 function DI.jacobian(
     f::F, prep::SparseJacobianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     jac = similar(sparsity_pattern(prep), eltype(x))
     return DI.jacobian!(f, jac, prep, backend, x, contexts...)
 end
@@ -168,6 +181,7 @@ end
 function DI.value_and_jacobian(
     f::F, prep::SparseJacobianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...), DI.jacobian(f, prep, backend, x, contexts...)
 end
 
@@ -179,6 +193,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
     DI.jacobian!(f, jac, prep, backend, x, contexts...)
 end
@@ -194,6 +209,7 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     return _sparse_jacobian_aux!((f!, y), jac, prep, backend, x, contexts...)
 end
 
@@ -205,6 +221,7 @@ function DI.jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     jac = similar(sparsity_pattern(prep), promote_type(eltype(x), eltype(y)))
     return DI.jacobian!(f!, y, jac, prep, backend, x, contexts...)
 end
@@ -217,6 +234,7 @@ function DI.value_and_jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     jac = DI.jacobian(f!, y, prep, backend, x, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, jac
@@ -231,6 +249,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     DI.jacobian!(f!, y, jac, prep, backend, x, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, jac

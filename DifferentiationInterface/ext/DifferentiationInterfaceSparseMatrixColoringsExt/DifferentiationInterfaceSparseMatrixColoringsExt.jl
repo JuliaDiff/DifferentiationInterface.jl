@@ -15,7 +15,7 @@ using SparseMatrixColorings:
     decompress!
 import SparseMatrixColorings as SMC
 
-abstract type SparseJacobianPrep <: DI.JacobianPrep end
+abstract type SparseJacobianPrep{SIG} <: DI.JacobianPrep{SIG} end
 
 SMC.sparsity_pattern(prep::SparseJacobianPrep) = sparsity_pattern(prep.coloring_result)
 SMC.column_colors(prep::SparseJacobianPrep) = column_colors(prep.coloring_result)

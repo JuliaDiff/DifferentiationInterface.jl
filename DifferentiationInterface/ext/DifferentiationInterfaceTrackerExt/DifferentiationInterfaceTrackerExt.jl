@@ -9,37 +9,46 @@ DI.inplace_support(::AutoTracker) = DI.InPlaceNotSupported()
 
 ## Pullback
 
-struct TrackerPullbackPrepSamePoint{Y,PB} <: DI.PullbackPrep
+struct TrackerPullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
+    _sig::Type{SIG}
     y::Y
     pb::PB
 end
 
 function DI.prepare_pullback(
-    f, ::AutoTracker, x, ty::NTuple, contexts::Vararg{DI.GeneralizedConstant,C}
+    f,
+    backend::AutoTracker,
+    x,
+    ty::NTuple,
+    contexts::Vararg{DI.GeneralizedConstant,C};
+    strict::Bool=false,
 ) where {C}
-    return DI.NoPullbackPrep()
+    SIG = DI.signature(f, backend, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep{SIG}()
 end
 
 function DI.prepare_pullback_same_point(
     f,
-    ::DI.NoPullbackPrep,
-    ::AutoTracker,
+    prep::DI.NoPullbackPrep,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     y, pb = forward(f, x, map(DI.unwrap, contexts)...)
     return TrackerPullbackPrepSamePoint(y, pb)
 end
 
 function DI.value_and_pullback(
     f,
-    ::DI.NoPullbackPrep,
-    ::AutoTracker,
+    prep::DI.NoPullbackPrep,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     y, pb = forward(f, x, map(DI.unwrap, contexts)...)
     tx = map(ty) do dy
         data(first(pb(dy)))
@@ -50,7 +59,7 @@ end
 function DI.value_and_pullback(
     f,
     prep::TrackerPullbackPrepSamePoint,
-    ::AutoTracker,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
@@ -65,7 +74,7 @@ end
 function DI.pullback(
     f,
     prep::TrackerPullbackPrepSamePoint,
-    ::AutoTracker,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
@@ -80,20 +89,28 @@ end
 ## Gradient
 
 function DI.prepare_gradient(
-    f, ::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    f, backend::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C}
 ) where {C}
     return DI.NoGradientPrep()
 end
 
 function DI.value_and_gradient(
-    f, ::DI.NoGradientPrep, ::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    f,
+    prep::DI.NoGradientPrep,
+    backend::AutoTracker,
+    x,
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     (; val, grad) = withgradient(f, x, map(DI.unwrap, contexts)...)
     return val, data(first(grad))
 end
 
 function DI.gradient(
-    f, ::DI.NoGradientPrep, ::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    f,
+    prep::DI.NoGradientPrep,
+    backend::AutoTracker,
+    x,
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     (; grad) = withgradient(f, x, map(DI.unwrap, contexts)...)
     return data(first(grad))

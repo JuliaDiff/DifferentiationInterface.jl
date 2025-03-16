@@ -62,7 +62,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
+                    $prep_op(
+                        new_smaller.f,
+                        ba,
+                        new_smaller.x,
+                        new_smaller.contexts...;
+                        strict=true,
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -121,7 +127,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
+                    $prep_op(
+                        new_smaller.f,
+                        ba,
+                        new_smaller.x,
+                        new_smaller.contexts...;
+                        strict=true,
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -200,7 +212,8 @@ for op in ALL_OPS
                         copy(new_smaller.y),
                         ba,
                         new_smaller.x,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
@@ -272,7 +285,8 @@ for op in ALL_OPS
                         copy(new_smaller.y),
                         ba,
                         new_smaller.x,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
@@ -347,7 +361,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
+                    $prep_op(
+                        new_smaller.f,
+                        ba,
+                        new_smaller.x,
+                        new_smaller.contexts...;
+                        strict=true,
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -408,7 +428,13 @@ for op in ALL_OPS
                 prep = $prep_op(f, ba, xrand, contextsrand...)
                 prepprep = $prep_op!(
                     f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
+                    $prep_op(
+                        new_smaller.f,
+                        ba,
+                        new_smaller.x,
+                        new_smaller.contexts...;
+                        strict=true,
+                    ),
                     ba,
                     xrand,
                     contextsrand...,
@@ -489,7 +515,8 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.tang,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
@@ -552,7 +579,8 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.tang,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
@@ -629,7 +657,8 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.tang,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
@@ -704,7 +733,8 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.tang,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
@@ -796,7 +826,8 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.tang,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
@@ -859,7 +890,8 @@ for op in ALL_OPS
                         ba,
                         new_smaller.x,
                         new_smaller.tang,
-                        new_smaller.contexts...,
+                        new_smaller.contexts...;
+                        strict=true,
                     ),
                     ba,
                     xrand,
