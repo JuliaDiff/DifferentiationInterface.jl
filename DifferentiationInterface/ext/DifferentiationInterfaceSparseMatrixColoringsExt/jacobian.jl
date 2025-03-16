@@ -109,10 +109,10 @@ function _prepare_sparse_jacobian_aux_aux(
     ]
     batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
     pushforward_prep = DI.prepare_pushforward(
-        f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
+        f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...; strict
     )
     return PushforwardSparseJacobianPrep(
-        SIG,
+        _sig,
         batch_size_settings,
         coloring_result,
         compressed_matrix,
@@ -143,10 +143,10 @@ function _prepare_sparse_jacobian_aux_aux(
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
     pullback_prep = DI.prepare_pullback(
-        f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
+        f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...; strict
     )
     return PullbackSparseJacobianPrep(
-        SIG,
+        _sig,
         batch_size_settings,
         coloring_result,
         compressed_matrix,

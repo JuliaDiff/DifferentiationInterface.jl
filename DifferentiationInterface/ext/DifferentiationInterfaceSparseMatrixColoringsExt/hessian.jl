@@ -62,10 +62,10 @@ function _prepare_sparse_hessian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    hvp_prep = DI.prepare_hvp(f, dense_backend, x, batched_seeds[1], contexts...)
-    gradient_prep = DI.prepare_gradient(f, DI.inner(dense_backend), x, contexts...)
+    hvp_prep = DI.prepare_hvp(f, dense_backend, x, batched_seeds[1], contexts...; strict)
+    gradient_prep = DI.prepare_gradient(f, DI.inner(dense_backend), x, contexts...; strict)
     return SparseHessianPrep(
-        SIG,
+        _sig,
         batch_size_settings,
         coloring_result,
         compressed_matrix,

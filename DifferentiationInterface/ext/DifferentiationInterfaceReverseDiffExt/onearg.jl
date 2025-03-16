@@ -87,7 +87,7 @@ end
 function DI.prepare_gradient(
     f, backend::AutoReverseDiff{compile}, x; strict::Val=Val(false)
 ) where {compile}
-    _sig = DI.signature(f, backend, x)
+    _sig = DI.signature(f, backend, x; strict)
     if compile
         tape = ReverseDiff.compile(GradientTape(f, x))
         return ReverseDiffGradientPrep(_sig, nothing, tape)

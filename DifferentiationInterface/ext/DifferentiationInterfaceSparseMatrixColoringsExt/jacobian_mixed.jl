@@ -132,18 +132,20 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         DI.forward_backend(dense_backend),
         x,
         batched_seeds_forward[1],
-        contexts...,
+        contexts...;
+        strict,
     )
     pullback_prep = DI.prepare_pullback(
         f_or_f!y...,
         DI.reverse_backend(dense_backend),
         x,
         batched_seeds_reverse[1],
-        contexts...,
+        contexts...;
+        strict,
     )
 
     return MixedModeSparseJacobianPrep(
-        SIG,
+        _sig,
         batch_size_settings_forward,
         batch_size_settings_reverse,
         coloring_result,
