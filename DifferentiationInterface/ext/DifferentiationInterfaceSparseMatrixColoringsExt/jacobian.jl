@@ -46,7 +46,7 @@ function DI.prepare_jacobian(
 end
 
 function DI.prepare_jacobian(
-    f!::F, y, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
+    f!::F, y, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Bool=false
 ) where {F,C}
     dense_backend = dense_ad(backend)
     perf = DI.pushforward_performance(dense_backend)
