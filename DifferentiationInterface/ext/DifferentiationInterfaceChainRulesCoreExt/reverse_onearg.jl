@@ -19,7 +19,6 @@ function DI.prepare_pullback(
 end
 
 function DI.prepare_pullback_same_point(
-    strict,
     f,
     prep::DI.NoPullbackPrep,
     backend::AutoReverseChainRules,
@@ -28,7 +27,7 @@ function DI.prepare_pullback_same_point(
     contexts::Vararg{DI.GeneralizedConstant,C};
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
-    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict=DI.is_strict(prep))
     rc = ruleconfig(backend)
     y, pb = rrule_via_ad(rc, f, x, map(DI.unwrap, contexts)...)
     return ChainRulesPullbackPrepSamePoint(_sig, y, pb)

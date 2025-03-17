@@ -35,8 +35,8 @@ function DI.prepare_pullback_same_point(
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
-    _sig = DI.signature(f, backend, x, ty, contexts...; strict=DI.is_strict(prep))
     DI.check_prep(f, prep, backend, x, ty, contexts...)
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict=DI.is_strict(prep))
     y, pb = forward(f, x, map(DI.unwrap, contexts)...)
     return TrackerPullbackPrepSamePoint(_sig, y, pb)
 end
