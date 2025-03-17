@@ -6,13 +6,13 @@ struct PolyesterForwardDiffTwoArgPushforwardPrep{SIG,P} <: DI.PushforwardPrep{SI
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f!,
     y,
     backend::AutoPolyesterForwardDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val,
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     single_threaded_prep = DI.prepare_pushforward(
@@ -91,11 +91,11 @@ struct PolyesterForwardDiffTwoArgDerivativePrep{SIG,P} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f!, y, backend::AutoPolyesterForwardDiff, x, contexts::Vararg{DI.Context,C}; strict::Val
+    strict::Val, f!, y, backend::AutoPolyesterForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     single_threaded_prep = DI.prepare_derivative(
-        f!, y, single_threaded(backend), x, contexts...
+        strict, f!, y, single_threaded(backend), x, contexts...
     )
     return PolyesterForwardDiffTwoArgDerivativePrep(_sig, single_threaded_prep)
 end
@@ -167,12 +167,12 @@ struct PolyesterForwardDiffTwoArgJacobianPrep{SIG,chunksize,P} <: DI.JacobianPre
 end
 
 function DI.prepare_jacobian(
+    strict::Val,
     f!,
     y,
     backend::AutoPolyesterForwardDiff{chunksize},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val,
 ) where {chunksize,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     if isnothing(chunksize)
@@ -181,7 +181,7 @@ function DI.prepare_jacobian(
         chunk = Chunk{chunksize}()
     end
     single_threaded_prep = DI.prepare_jacobian(
-        f!, y, single_threaded(backend), x, contexts...
+        strict, f!, y, single_threaded(backend), x, contexts...
     )
     return PolyesterForwardDiffTwoArgJacobianPrep(_sig, chunk, single_threaded_prep)
 end
