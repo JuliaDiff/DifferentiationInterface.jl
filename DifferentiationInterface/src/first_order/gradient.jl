@@ -1,11 +1,13 @@
 ## Docstrings
 
 """
-    prepare_gradient(f, backend, x, [contexts...]) -> prep
+    prepare_gradient(f, backend, x, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("gradient"))
 """
-function prepare_gradient end
+function prepare_gradient(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_gradient(strict, args...)
+end
 
 """
     prepare!_gradient(f, prep, backend, x, [contexts...]) -> new_prep
@@ -52,27 +54,31 @@ function gradient! end
 
 ## Preparation
 
-struct PullbackGradientPrep{Y,E<:PullbackPrep} <: GradientPrep
+struct PullbackGradientPrep{SIG,Y,E<:PullbackPrep} <: GradientPrep{SIG}
+    _sig::Val{SIG}
+    y::Y
     pullback_prep::E
 end
 
 function prepare_gradient(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
+    _sig = signature(f, backend, x, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
-    pullback_prep = prepare_pullback(f, backend, x, (true,), contexts...)
-    return PullbackGradientPrep{typeof(y),typeof(pullback_prep)}(pullback_prep)
+    pullback_prep = prepare_pullback(strict, f, backend, x, (one(typeof(y)),), contexts...)
+    return PullbackGradientPrep(_sig, y, pullback_prep)
 end
 
 ## One argument
 
 function value_and_gradient(
     f::F,
-    prep::PullbackGradientPrep{Y},
+    prep::PullbackGradientPrep{SIG,Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,Y,C}
+) where {F,SIG,Y,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, tx = value_and_pullback(f, prep.pullback_prep, backend, x, (one(Y),), contexts...)
     return y, only(tx)
 end
@@ -80,11 +86,12 @@ end
 function value_and_gradient!(
     f::F,
     grad,
-    prep::PullbackGradientPrep{Y},
+    prep::PullbackGradientPrep{SIG,Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,Y,C}
+) where {F,SIG,Y,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, _ = value_and_pullback!(
         f, (grad,), prep.pullback_prep, backend, x, (one(Y),), contexts...
     )
@@ -93,11 +100,12 @@ end
 
 function gradient(
     f::F,
-    prep::PullbackGradientPrep{Y},
+    prep::PullbackGradientPrep{SIG,Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,Y,C}
+) where {F,SIG,Y,C}
+    check_prep(f, prep, backend, x, contexts...)
     tx = pullback(f, prep.pullback_prep, backend, x, (one(Y),), contexts...)
     return only(tx)
 end
@@ -105,11 +113,12 @@ end
 function gradient!(
     f::F,
     grad,
-    prep::PullbackGradientPrep{Y},
+    prep::PullbackGradientPrep{SIG,Y},
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C},
-) where {F,Y,C}
+) where {F,SIG,Y,C}
+    check_prep(f, prep, backend, x, contexts...)
     pullback!(f, (grad,), prep.pullback_prep, backend, x, (one(Y),), contexts...)
     return grad
 end

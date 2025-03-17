@@ -1,11 +1,13 @@
 ## Docstrings
 
 """
-    prepare_second_derivative(f, backend, x, [contexts...]) -> prep
+    prepare_second_derivative(f, backend, x, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("second_derivative"))
 """
-function prepare_second_derivative end
+function prepare_second_derivative(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_second_derivative(strict, args...)
+end
 
 """
     prepare!_second_derivative(f, prep, backend, x, [contexts...]) -> new_prep
@@ -52,21 +54,23 @@ function value_derivative_and_second_derivative! end
 
 ## Preparation
 
-struct DerivativeSecondDerivativePrep{E<:DerivativePrep} <: SecondDerivativePrep
+struct DerivativeSecondDerivativePrep{SIG,E<:DerivativePrep} <: SecondDerivativePrep{SIG}
+    _sig::Val{SIG}
     outer_derivative_prep::E
 end
 
 function prepare_second_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
+    _sig = signature(f, backend, x, contexts...; strict)
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     outer_derivative_prep = prepare_derivative(
-        shuffled_derivative, outer(backend), x, new_contexts...
+        strict, shuffled_derivative, outer(backend), x, new_contexts...
     )
-    return DerivativeSecondDerivativePrep(outer_derivative_prep)
+    return DerivativeSecondDerivativePrep(_sig, outer_derivative_prep)
 end
 
 ## One argument
@@ -78,6 +82,7 @@ function second_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -95,6 +100,7 @@ function value_derivative_and_second_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -115,6 +121,7 @@ function second_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
@@ -134,6 +141,7 @@ function value_derivative_and_second_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     (; outer_derivative_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (

@@ -45,22 +45,25 @@ for op in [
         @eval function $prep_op!(
             f::F, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            return $prep_op(f, backend, x, contexts...)
+            check_prep(f, old_prep, backend, x, contexts...)
+            return $prep_op(is_strict(old_prep), f, backend, x, contexts...)
         end
         op == :gradient && continue
         # 2-arg
         @eval function $prep_op!(
-            f!::F, y, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
+            f!::F, y, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C};
         ) where {F,C}
-            return $prep_op(f!, y, backend, x, contexts...)
+            check_prep(f!, y, old_prep, backend, x, contexts...)
+            return $prep_op(is_strict(old_prep), f!, y, backend, x, contexts...)
         end
 
     elseif op in (:second_derivative, :hessian)
         # 1-arg
         @eval function $prep_op!(
-            f::F, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
+            f::F, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C};
         ) where {F,C}
-            return $prep_op(f, backend, x, contexts...)
+            check_prep(f, old_prep, backend, x, contexts...)
+            return $prep_op(is_strict(old_prep), f, backend, x, contexts...)
         end
 
     elseif op in (:pushforward, :pullback, :hvp)
@@ -71,9 +74,10 @@ for op in [
             backend::AbstractADType,
             x,
             seed::NTuple,
-            contexts::Vararg{Context,C},
+            contexts::Vararg{Context,C};
         ) where {F,C}
-            return $prep_op(f, backend, x, seed, contexts...)
+            check_prep(f, old_prep, backend, x, seed, contexts...)
+            return $prep_op(is_strict(old_prep), f, backend, x, seed, contexts...)
         end
         @eval function $prep_op_same_point(
             f::F,
@@ -83,12 +87,18 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
+            check_prep(f, prep, backend, x, seed, contexts...)
             return prep
         end
         @eval function $prep_op_same_point(
-            f::F, backend::AbstractADType, x, seed::NTuple, contexts::Vararg{Context,C}
+            strict::Val,
+            f::F,
+            backend::AbstractADType,
+            x,
+            seed::NTuple,
+            contexts::Vararg{Context,C};
         ) where {F,C}
-            prep = $prep_op(f, backend, x, seed, contexts...)
+            prep = $prep_op(strict, f, backend, x, seed, contexts...)
             return $prep_op_same_point(f, prep, backend, x, seed, contexts...)
         end
         op == :hvp && continue
@@ -102,7 +112,8 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
-            return $prep_op(f!, y, backend, x, seed, contexts...)
+            check_prep(f!, y, old_prep, backend, x, seed, contexts...)
+            return $prep_op(is_strict(old_prep), f!, y, backend, x, seed, contexts...)
         end
         @eval function $prep_op_same_point(
             f!::F,
@@ -113,12 +124,19 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
+            check_prep(f!, y, prep, backend, x, seed, contexts...)
             return prep
         end
         @eval function $prep_op_same_point(
-            f!::F, y, backend::AbstractADType, x, seed::NTuple, contexts::Vararg{Context,C}
+            strict::Val,
+            f!::F,
+            y,
+            backend::AbstractADType,
+            x,
+            seed::NTuple,
+            contexts::Vararg{Context,C};
         ) where {F,C}
-            prep = $prep_op(f!, y, backend, x, seed, contexts...)
+            prep = $prep_op(strict, f!, y, backend, x, seed, contexts...)
             return $prep_op_same_point(f!, y, prep, backend, x, seed, contexts...)
         end
     end

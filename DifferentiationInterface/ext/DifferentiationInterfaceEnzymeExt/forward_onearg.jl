@@ -1,23 +1,26 @@
 ## Pushforward
 
 function DI.prepare_pushforward(
+    strict::Val,
     f::F,
-    ::AutoEnzyme{<:Union{ForwardMode,Nothing}},
+    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
 ) where {F,C}
-    return DI.NoPushforwardPrep()
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
+    return DI.NoPushforwardPrep(_sig)
 end
 
 function DI.value_and_pushforward(
     f::F,
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     dx = only(tx)
@@ -29,12 +32,13 @@ end
 
 function DI.value_and_pushforward(
     f::F,
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode, Val(B))
     x_and_tx = BatchDuplicated(x, tx)
@@ -45,12 +49,13 @@ end
 
 function DI.pushforward(
     f::F,
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     dx = only(tx)
@@ -62,12 +67,13 @@ end
 
 function DI.pushforward(
     f::F,
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode, Val(B))
     x_and_tx = BatchDuplicated(x, tx)
@@ -85,6 +91,7 @@ function DI.value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     # dy cannot be passed anyway
     y, new_ty = DI.value_and_pushforward(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
@@ -100,6 +107,7 @@ function DI.pushforward!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     # dy cannot be passed anyway
     new_ty = DI.pushforward(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
@@ -108,32 +116,33 @@ end
 
 ## Gradient
 
-struct EnzymeForwardGradientPrep{B,O} <: DI.GradientPrep
+struct EnzymeForwardGradientPrep{SIG,B,O} <: DI.GradientPrep{SIG}
+    _sig::Val{SIG}
+    _valB::Val{B}
     shadows::O
 end
 
-function EnzymeForwardGradientPrep(::Val{B}, shadows::O) where {B,O}
-    return EnzymeForwardGradientPrep{B,O}(shadows)
-end
-
 function DI.prepare_gradient(
+    strict::Val,
     f::F,
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
-    contexts::Vararg{DI.Constant,C},
+    contexts::Vararg{DI.Constant,C};
 ) where {F,C}
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     valB = to_val(DI.pick_batchsize(backend, x))
     shadows = create_shadows(valB, x)
-    return EnzymeForwardGradientPrep(valB, shadows)
+    return EnzymeForwardGradientPrep(_sig, valB, shadows)
 end
 
 function DI.gradient(
     f::F,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
@@ -145,11 +154,12 @@ end
 
 function DI.value_and_gradient(
     f::F,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
@@ -162,58 +172,59 @@ end
 function DI.gradient!(
     f::F,
     grad,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 
 function DI.value_and_gradient!(
     f::F,
     grad,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
     return y, copyto!(grad, new_grad)
 end
 
 ## Jacobian
 
-struct EnzymeForwardOneArgJacobianPrep{B,O} <: DI.JacobianPrep
+struct EnzymeForwardOneArgJacobianPrep{SIG,B,O} <: DI.JacobianPrep{SIG}
+    _sig::Val{SIG}
+    _valB::Val{B}
     shadows::O
     output_length::Int
 end
 
-function EnzymeForwardOneArgJacobianPrep(
-    ::Val{B}, shadows::O, output_length::Integer
-) where {B,O}
-    return EnzymeForwardOneArgJacobianPrep{B,O}(shadows, output_length)
-end
-
 function DI.prepare_jacobian(
+    strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
-    contexts::Vararg{DI.Constant,C},
+    contexts::Vararg{DI.Constant,C};
 ) where {F,C}
+    _sig = DI.signature(f, backend, x, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)
     valB = to_val(DI.pick_batchsize(backend, x))
     shadows = create_shadows(valB, x)
-    return EnzymeForwardOneArgJacobianPrep(valB, shadows, length(y))
+    return EnzymeForwardOneArgJacobianPrep(_sig, valB, shadows, length(y))
 end
 
 function DI.jacobian(
     f::F,
-    prep::EnzymeForwardOneArgJacobianPrep{B},
+    prep::EnzymeForwardOneArgJacobianPrep{SIG,B},
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
@@ -226,11 +237,12 @@ end
 
 function DI.value_and_jacobian(
     f::F,
-    prep::EnzymeForwardOneArgJacobianPrep{B},
+    prep::EnzymeForwardOneArgJacobianPrep{SIG,B},
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
@@ -249,6 +261,7 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
 end
 
@@ -260,6 +273,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)
     return y, copyto!(jac, new_jac)
 end

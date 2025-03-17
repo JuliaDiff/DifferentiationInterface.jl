@@ -1,12 +1,14 @@
 ## Docstrings
 
 """
-    prepare_pushforward(f,     backend, x, tx, [contexts...]) -> prep
-    prepare_pushforward(f!, y, backend, x, tx, [contexts...]) -> prep
+    prepare_pushforward(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep
+    prepare_pushforward(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("pushforward"; inplace=true))
 """
-function prepare_pushforward end
+function prepare_pushforward(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_pushforward(strict, args...)
+end
 
 """
     prepare!_pushforward(f,     prep, backend, x, tx, [contexts...]) -> new_prep
@@ -17,12 +19,14 @@ $(docstring_prepare!("pushforward"))
 function prepare!_pushforward end
 
 """
-    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]) -> prep_same
-    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]) -> prep_same
+    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
+    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
 
 $(docstring_prepare("pushforward"; samepoint=true, inplace=true))
 """
-function prepare_pushforward_same_point end
+function prepare_pushforward_same_point(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_pushforward_same_point(strict, args...)
+end
 
 """
     value_and_pushforward(f,     [prep,] backend, x, tx, [contexts...]) -> (y, ty)
@@ -85,52 +89,63 @@ function pushforward! end
 
 ## Preparation
 
-struct PullbackPushforwardPrep{E} <: PushforwardPrep
+struct PullbackPushforwardPrep{SIG,E} <: PushforwardPrep{SIG}
+    _sig::Val{SIG}
     pullback_prep::E
 end
 
 function prepare_pushforward(
-    f::F, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C}
+    strict::Val, f::F, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
     return _prepare_pushforward_aux(
-        pushforward_performance(backend), f, backend, x, tx, contexts...
+        strict, pushforward_performance(backend), f, backend, x, tx, contexts...
     )
 end
 
 function prepare_pushforward(
-    f!::F, y, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C}
+    strict::Val,
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C};
 ) where {F,C}
     return _prepare_pushforward_aux(
-        pushforward_performance(backend), f!, y, backend, x, tx, contexts...
+        strict, pushforward_performance(backend), f!, y, backend, x, tx, contexts...
     )
 end
 
 function _prepare_pushforward_aux(
+    strict::Val,
     ::PushforwardSlow,
     f::F,
     backend::AbstractADType,
     x,
     tx::NTuple,
-    contexts::Vararg{Context,C},
+    contexts::Vararg{Context,C};
 ) where {F,C}
+    _sig = signature(f, backend, x, tx, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)
     dy = y isa Number ? one(y) : basis(y, first(CartesianIndices(y)))
-    pullback_prep = prepare_pullback(f, backend, x, (dy,), contexts...)
-    return PullbackPushforwardPrep(pullback_prep)
+    pullback_prep = prepare_pullback(strict, f, backend, x, (dy,), contexts...)
+    return PullbackPushforwardPrep(_sig, pullback_prep)
 end
 
 function _prepare_pushforward_aux(
+    strict::Val,
     ::PushforwardSlow,
     f!::F,
     y,
     backend::AbstractADType,
     x,
     tx::NTuple,
-    contexts::Vararg{Context,C},
+    contexts::Vararg{Context,C};
 ) where {F,C}
+    _sig = signature(f!, y, backend, x, tx, contexts...; strict)
     dy = y isa Number ? one(y) : basis(y, first(CartesianIndices(y)))
-    pullback_prep = prepare_pullback(f!, y, backend, x, (dy,), contexts...)
-    return PullbackPushforwardPrep(pullback_prep)
+    pullback_prep = prepare_pullback(strict, f!, y, backend, x, (dy,), contexts...)
+    return PullbackPushforwardPrep(_sig, pullback_prep)
 end
 
 ## One argument
@@ -205,6 +220,7 @@ function value_and_pushforward(
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     (; pullback_prep) = prep
     y = f(x, map(unwrap, contexts)...)
     ty = ntuple(
@@ -223,6 +239,7 @@ function value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
     return y, ty
@@ -236,6 +253,7 @@ function pushforward(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     return value_and_pushforward(f, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -248,6 +266,7 @@ function pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     return value_and_pushforward!(f, ty, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -297,6 +316,7 @@ function value_and_pushforward(
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; pullback_prep) = prep
     ty = ntuple(
         b ->
@@ -317,6 +337,7 @@ function value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
     return y, ty
@@ -331,6 +352,7 @@ function pushforward(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     return value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)[2]
 end
 
@@ -344,6 +366,7 @@ function pushforward!(
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     return value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)[2]
 end
 

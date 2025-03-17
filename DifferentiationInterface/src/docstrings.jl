@@ -19,11 +19,14 @@ function docstring_prepare(operator; samepoint=false, inplace=false)
     Create a `prep` object that can be given to [`$(operator)`](@ref) and its variants to speed them up$(samepoint_warning(samepoint)).
 
     Depending on the backend, this can have several effects (preallocating memory, recording an execution trace) which are transparent to the user.
+    $(inplace ? "\nFor in-place functions, `y` is mutated by `f!` during preparation." : "")
 
     !!! warning
-        The preparation result is only reusable as long as the arguments to `$operator` do not change type or size, and the function and backend themselves are not modified.
-        Otherwise, preparation will be invalidated and you will need to run it again.
-    $(inplace ? "\nFor in-place functions, `y` is mutated by `f!` during preparation." : "")
+        The preparation result `prep` is only reusable as long as the arguments to `$operator` do not change type or size, and the function and backend themselves are not modified.
+        Otherwise, preparation becomes invalid and you need to run it again.
+        In some settings, invalid preparations may still give correct results (e.g. for backends that require no preparation), but this is not a semantic guarantee and should not be relied upon.
+
+    When `strict=Val(true)`, type checking is enforced between preparation and execution (but size checking is left to the user).
     """
 end
 

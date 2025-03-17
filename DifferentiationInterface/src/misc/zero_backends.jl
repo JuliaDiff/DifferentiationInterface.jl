@@ -21,25 +21,34 @@ check_available(::AutoZeroForward) = true
 inplace_support(::AutoZeroForward) = InPlaceSupported()
 
 function prepare_pushforward(
-    f::F, ::AutoZeroForward, x, tx::NTuple, contexts::Vararg{Context,C}
+    strict::Val, f::F, backend::AutoZeroForward, x, tx::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
-    return NoPushforwardPrep()
+    _sig = signature(f, backend, x, tx, contexts...; strict)
+    return NoPushforwardPrep(_sig)
 end
 
 function prepare_pushforward(
-    f!::F, y, ::AutoZeroForward, x, tx::NTuple, contexts::Vararg{Context,C}
+    strict::Val,
+    f!::F,
+    y,
+    backend::AutoZeroForward,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C};
 ) where {F,C}
-    return NoPushforwardPrep()
+    _sig = signature(f!, y, backend, x, tx, contexts...; strict)
+    return NoPushforwardPrep(_sig)
 end
 
 function value_and_pushforward(
     f::F,
-    ::NoPushforwardPrep,
-    ::AutoZeroForward,
+    prep::NoPushforwardPrep,
+    backend::AutoZeroForward,
     x,
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     y = f(x, map(unwrap, contexts)...)
     ty = map(ReturnZero(y), tx)
     return y, ty
@@ -48,12 +57,13 @@ end
 function value_and_pushforward(
     f!::F,
     y,
-    ::NoPushforwardPrep,
-    ::AutoZeroForward,
+    prep::NoPushforwardPrep,
+    backend::AutoZeroForward,
     x,
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     ty = map(ReturnZero(y), tx)
     return y, ty
@@ -62,12 +72,13 @@ end
 function value_and_pushforward!(
     f::F,
     ty::NTuple,
-    ::NoPushforwardPrep,
-    ::AutoZeroForward,
+    prep::NoPushforwardPrep,
+    backend::AutoZeroForward,
     x,
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     y = f(x, map(unwrap, contexts)...)
     for b in eachindex(ty)
         _zero!(ty[b])
@@ -79,12 +90,13 @@ function value_and_pushforward!(
     f!::F,
     y,
     ty::NTuple,
-    ::NoPushforwardPrep,
-    ::AutoZeroForward,
+    prep::NoPushforwardPrep,
+    backend::AutoZeroForward,
     x,
     tx::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     for b in eachindex(ty)
         _zero!(ty[b])
@@ -107,20 +119,34 @@ check_available(::AutoZeroReverse) = true
 inplace_support(::AutoZeroReverse) = InPlaceSupported()
 
 function prepare_pullback(
-    f::F, ::AutoZeroReverse, x, ty::NTuple, contexts::Vararg{Context,C}
+    strict::Val, f::F, backend::AutoZeroReverse, x, ty::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
-    return NoPullbackPrep()
+    _sig = signature(f, backend, x, ty, contexts...; strict)
+    return NoPullbackPrep(_sig)
 end
 
 function prepare_pullback(
-    f!::F, y, ::AutoZeroReverse, x, ty::NTuple, contexts::Vararg{Context,C}
+    strict::Val,
+    f!::F,
+    y,
+    backend::AutoZeroReverse,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C};
 ) where {F,C}
-    return NoPullbackPrep()
+    _sig = signature(f!, y, backend, x, ty, contexts...; strict)
+    return NoPullbackPrep(_sig)
 end
 
 function value_and_pullback(
-    f::F, ::NoPullbackPrep, ::AutoZeroReverse, x, ty::NTuple{B}, contexts::Vararg{Context,C}
+    f::F,
+    prep::NoPullbackPrep,
+    backend::AutoZeroReverse,
+    x,
+    ty::NTuple{B},
+    contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     y = f(x, map(unwrap, contexts)...)
     tx = ntuple(ReturnZero(x), Val(B))
     return y, tx
@@ -129,12 +155,13 @@ end
 function value_and_pullback(
     f!::F,
     y,
-    ::NoPullbackPrep,
-    ::AutoZeroReverse,
+    prep::NoPullbackPrep,
+    backend::AutoZeroReverse,
     x,
     ty::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     tx = ntuple(ReturnZero(x), Val(B))
     return y, tx
@@ -143,12 +170,13 @@ end
 function value_and_pullback!(
     f::F,
     tx::NTuple,
-    ::NoPullbackPrep,
-    ::AutoZeroReverse,
+    prep::NoPullbackPrep,
+    backend::AutoZeroReverse,
     x,
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
     y = f(x, map(unwrap, contexts)...)
     for b in eachindex(tx)
         _zero!(tx[b])
@@ -160,12 +188,13 @@ function value_and_pullback!(
     f!::F,
     y,
     tx::NTuple,
-    ::NoPullbackPrep,
-    ::AutoZeroReverse,
+    prep::NoPullbackPrep,
+    backend::AutoZeroReverse,
     x,
     ty::NTuple,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
     f!(y, x, map(unwrap, contexts)...)
     for b in eachindex(tx)
         _zero!(tx[b])

@@ -1,25 +1,28 @@
 ## Pushforward
 
 function DI.prepare_pushforward(
+    strict::Val,
     f!::F,
     y,
-    ::AutoEnzyme{<:Union{ForwardMode,Nothing}},
+    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
 ) where {F,C}
-    return DI.NoPushforwardPrep()
+    _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
+    return DI.NoPushforwardPrep(_sig)
 end
 
 function DI.value_and_pushforward(
     f!::F,
     y,
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     mode = forward_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode)
     dx = only(tx)
@@ -34,12 +37,13 @@ end
 function DI.value_and_pushforward(
     f!::F,
     y,
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     mode = forward_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))
     ty = ntuple(_ -> make_zero(y), Val(B))
@@ -59,6 +63,7 @@ function DI.pushforward(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     _, ty = DI.value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
     return ty
 end
@@ -67,12 +72,13 @@ function DI.value_and_pushforward!(
     f!::F,
     y,
     ty::NTuple{B},
-    ::DI.NoPushforwardPrep,
+    prep::DI.NoPushforwardPrep,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     mode = forward_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))
     x_and_tx = BatchDuplicated(x, tx)
@@ -92,6 +98,7 @@ function DI.pushforward!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     DI.value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
     return ty
 end

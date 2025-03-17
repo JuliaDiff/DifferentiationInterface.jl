@@ -1,18 +1,22 @@
 ## Pullback
 
-struct EnzymeReverseTwoArgPullbackPrep{TY} <: DI.PullbackPrep
+struct EnzymeReverseTwoArgPullbackPrep{SIG,TY} <: DI.PullbackPrep{SIG}
+    _sig::Val{SIG}
     ty_copy::TY
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f!::F,
     y,
-    ::AutoEnzyme{<:Union{ReverseMode,Nothing}},
+    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
 ) where {F,C}
-    return EnzymeReverseTwoArgPullbackPrep(map(copy, ty))
+    _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
+    ty_copy = map(copy, ty)
+    return EnzymeReverseTwoArgPullbackPrep(_sig, ty_copy)
 end
 
 function DI.value_and_pullback(
@@ -24,6 +28,7 @@ function DI.value_and_pullback(
     ty::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     copyto!(only(prep.ty_copy), only(ty))
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode)
@@ -46,6 +51,7 @@ function DI.value_and_pullback(
     ty::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, prep.ty_copy, ty)
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))
@@ -68,6 +74,7 @@ function DI.value_and_pullback(
     ty::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     copyto!(only(prep.ty_copy), only(ty))
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode)
@@ -89,6 +96,7 @@ function DI.value_and_pullback(
     ty::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, prep.ty_copy, ty)
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))
@@ -111,6 +119,7 @@ function DI.value_and_pullback!(
     ty::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     copyto!(only(prep.ty_copy), only(ty))
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode)
@@ -134,6 +143,7 @@ function DI.value_and_pullback!(
     ty::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, prep.ty_copy, ty)
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df(f!, backend, mode, Val(B))

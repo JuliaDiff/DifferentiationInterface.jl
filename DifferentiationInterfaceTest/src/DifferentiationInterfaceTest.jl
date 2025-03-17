@@ -90,6 +90,7 @@ using DifferentiationInterface:
     pushforward_performance,
     pullback_performance
 using DifferentiationInterface: Rewrap, Context, Constant, Cache, unwrap
+using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using JET: @test_opt
 using LinearAlgebra: Adjoint, Diagonal, Transpose, dot, parent
@@ -97,7 +98,7 @@ using ProgressMeter: ProgressUnknown, next!
 using Random: AbstractRNG, default_rng, rand!
 using SparseArrays:
     SparseArrays, AbstractSparseMatrix, SparseMatrixCSC, nnz, sparse, spdiagm
-using Test: @testset, @test
+using Test: @testset, @test, @test_throws
 
 """
     FIRST_ORDER = [:pushforward, :pullback, :derivative, :gradient, :jacobian]

@@ -9,37 +9,47 @@ DI.inplace_support(::AutoTracker) = DI.InPlaceNotSupported()
 
 ## Pullback
 
-struct TrackerPullbackPrepSamePoint{Y,PB} <: DI.PullbackPrep
+struct TrackerPullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
+    _sig::Val{SIG}
     y::Y
     pb::PB
 end
 
 function DI.prepare_pullback(
-    f, ::AutoTracker, x, ty::NTuple, contexts::Vararg{DI.GeneralizedConstant,C}
+    strict::Val,
+    f,
+    backend::AutoTracker,
+    x,
+    ty::NTuple,
+    contexts::Vararg{DI.GeneralizedConstant,C};
 ) where {C}
-    return DI.NoPullbackPrep()
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
+    return DI.NoPullbackPrep(_sig)
 end
 
 function DI.prepare_pullback_same_point(
     f,
-    ::DI.NoPullbackPrep,
-    ::AutoTracker,
+    prep::DI.NoPullbackPrep,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict=DI.is_strict(prep))
     y, pb = forward(f, x, map(DI.unwrap, contexts)...)
-    return TrackerPullbackPrepSamePoint(y, pb)
+    return TrackerPullbackPrepSamePoint(_sig, y, pb)
 end
 
 function DI.value_and_pullback(
     f,
-    ::DI.NoPullbackPrep,
-    ::AutoTracker,
+    prep::DI.NoPullbackPrep,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     y, pb = forward(f, x, map(DI.unwrap, contexts)...)
     tx = map(ty) do dy
         data(first(pb(dy)))
@@ -50,11 +60,12 @@ end
 function DI.value_and_pullback(
     f,
     prep::TrackerPullbackPrepSamePoint,
-    ::AutoTracker,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; y, pb) = prep
     tx = map(ty) do dy
         data(first(pb(dy)))
@@ -65,11 +76,12 @@ end
 function DI.pullback(
     f,
     prep::TrackerPullbackPrepSamePoint,
-    ::AutoTracker,
+    backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; pb) = prep
     tx = map(ty) do dy
         data(first(pb(dy)))
@@ -80,21 +92,32 @@ end
 ## Gradient
 
 function DI.prepare_gradient(
-    f, ::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    strict::Val, f, backend::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C};
 ) where {C}
-    return DI.NoGradientPrep()
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoGradientPrep(_sig)
 end
 
 function DI.value_and_gradient(
-    f, ::DI.NoGradientPrep, ::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    f,
+    prep::DI.NoGradientPrep,
+    backend::AutoTracker,
+    x,
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     (; val, grad) = withgradient(f, x, map(DI.unwrap, contexts)...)
     return val, data(first(grad))
 end
 
 function DI.gradient(
-    f, ::DI.NoGradientPrep, ::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C}
+    f,
+    prep::DI.NoGradientPrep,
+    backend::AutoTracker,
+    x,
+    contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     (; grad) = withgradient(f, x, map(DI.unwrap, contexts)...)
     return data(first(grad))
 end
@@ -107,6 +130,7 @@ function DI.value_and_gradient!(
     x,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
     return y, copyto!(grad, new_grad)
 end
@@ -119,6 +143,7 @@ function DI.gradient!(
     x,
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 

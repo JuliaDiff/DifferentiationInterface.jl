@@ -1,12 +1,14 @@
 ## Docstrings
 
 """
-    prepare_derivative(f,     backend, x, [contexts...]) -> prep
-    prepare_derivative(f!, y, backend, x, [contexts...]) -> prep
+    prepare_derivative(f,     backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_derivative(f!, y, backend, x, [contexts...]; strict=Val(false)) -> prep
 
 $(docstring_prepare("derivative"; inplace=true))
 """
-function prepare_derivative end
+function prepare_derivative(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_derivative(strict, args...)
+end
 
 """
     prepare!_derivative(f,     prep, backend, x, [contexts...]) -> new_prep
@@ -58,22 +60,27 @@ function derivative! end
 
 ## Preparation
 
-struct PushforwardDerivativePrep{E<:PushforwardPrep} <: DerivativePrep
+struct PushforwardDerivativePrep{SIG,E<:PushforwardPrep} <: DerivativePrep{SIG}
+    _sig::Val{SIG}
     pushforward_prep::E
 end
 
 function prepare_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    pushforward_prep = prepare_pushforward(f, backend, x, (one(x),), contexts...)
-    return PushforwardDerivativePrep(pushforward_prep)
+    _sig = signature(f, backend, x, contexts...; strict)
+    pushforward_prep = prepare_pushforward(strict, f, backend, x, (one(x),), contexts...)
+    return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
 
 function prepare_derivative(
-    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+    strict::Val, f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C};
 ) where {F,C}
-    pushforward_prep = prepare_pushforward(f!, y, backend, x, (one(x),), contexts...)
-    return PushforwardDerivativePrep(pushforward_prep)
+    _sig = signature(f!, y, backend, x, contexts...; strict)
+    pushforward_prep = prepare_pushforward(
+        strict, f!, y, backend, x, (one(x),), contexts...
+    )
+    return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
 
 ## One argument
@@ -85,6 +92,7 @@ function value_and_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, ty = value_and_pushforward(
         f, prep.pushforward_prep, backend, x, (one(x),), contexts...
     )
@@ -99,6 +107,7 @@ function value_and_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, _ = value_and_pushforward!(
         f, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...
     )
@@ -112,6 +121,7 @@ function derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     ty = pushforward(f, prep.pushforward_prep, backend, x, (one(x),), contexts...)
     return only(ty)
 end
@@ -124,6 +134,7 @@ function derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     pushforward!(f, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...)
     return der
 end
@@ -138,6 +149,7 @@ function value_and_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     y, ty = value_and_pushforward(
         f!, y, prep.pushforward_prep, backend, x, (one(x),), contexts...
     )
@@ -153,6 +165,7 @@ function value_and_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     y, _ = value_and_pushforward!(
         f!, y, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...
     )
@@ -167,6 +180,7 @@ function derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     ty = pushforward(f!, y, prep.pushforward_prep, backend, x, (one(x),), contexts...)
     return only(ty)
 end
@@ -180,6 +194,7 @@ function derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     pushforward!(f!, y, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...)
     return der
 end

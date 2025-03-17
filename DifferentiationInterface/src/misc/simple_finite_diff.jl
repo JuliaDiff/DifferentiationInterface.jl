@@ -37,25 +37,39 @@ function threshold_batchsize(
 end
 
 function prepare_pushforward(
-    f::F, ::AutoSimpleFiniteDiff, x, tx::NTuple, contexts::Vararg{Context,C}
+    strict::Val,
+    f::F,
+    backend::AutoSimpleFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C};
 ) where {F,C}
-    return NoPushforwardPrep()
+    _sig = signature(f, backend, x, tx, contexts...; strict)
+    return NoPushforwardPrep(_sig)
 end
 
 function prepare_pushforward(
-    f!::F, y, ::AutoSimpleFiniteDiff, x, tx::NTuple, contexts::Vararg{Context,C}
+    strict::Val,
+    f!::F,
+    y,
+    backend::AutoSimpleFiniteDiff,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C};
 ) where {F,C}
-    return NoPushforwardPrep()
+    _sig = signature(f!, y, backend, x, tx, contexts...; strict)
+    return NoPushforwardPrep(_sig)
 end
 
 function value_and_pushforward(
     f::F,
-    ::NoPushforwardPrep,
+    prep::NoPushforwardPrep,
     backend::AutoSimpleFiniteDiff,
     x,
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
     ε = eltype(x)(backend.ε)
     y = f(x, map(unwrap, contexts)...)
     ty = map(tx) do dx
@@ -69,12 +83,13 @@ end
 function value_and_pushforward(
     f!::F,
     y,
-    ::NoPushforwardPrep,
+    prep::NoPushforwardPrep,
     backend::AutoSimpleFiniteDiff,
     x,
     tx::NTuple{B},
     contexts::Vararg{Context,C},
 ) where {F,B,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
     ε = eltype(x)(backend.ε)
     ty = map(tx) do dx
         f!(y, x + ε * dx, map(unwrap, contexts)...)

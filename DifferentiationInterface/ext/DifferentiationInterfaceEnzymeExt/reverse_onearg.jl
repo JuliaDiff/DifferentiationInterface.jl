@@ -47,19 +47,22 @@ end
 
 ## Pullback
 
-struct EnzymeReverseOneArgPullbackPrep{Y} <: DI.PullbackPrep
+struct EnzymeReverseOneArgPullbackPrep{SIG,Y} <: DI.PullbackPrep{SIG}
+    _sig::Val{SIG}
     y_example::Y  # useful to create return activity
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f::F,
-    ::AutoEnzyme{<:Union{ReverseMode,Nothing}},
+    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
 ) where {F,C}
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)
-    return EnzymeReverseOneArgPullbackPrep(y)
+    return EnzymeReverseOneArgPullbackPrep(_sig, y)
 end
 
 ### Out-of-place
@@ -72,6 +75,7 @@ function DI.value_and_pullback(
     ty::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode))
     IA = guess_activity(typeof(x), mode)
@@ -97,6 +101,7 @@ function DI.value_and_pullback(
     ty::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode, Val(B)))
     IA = batchify_activity(guess_activity(typeof(x), mode), Val(B))
@@ -122,6 +127,7 @@ function DI.pullback(
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     return last(DI.value_and_pullback(f, prep, backend, x, ty, contexts...))
 end
 
@@ -136,6 +142,7 @@ function DI.value_and_pullback!(
     ty::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode))
     RA = guess_activity(typeof(prep.y_example), mode)
@@ -157,6 +164,7 @@ function DI.value_and_pullback!(
     ty::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     mode = reverse_split_withprimal(backend)
     f_and_df = force_annotation(get_f_and_df(f, backend, mode, Val(B)))
     RA = batchify_activity(guess_activity(typeof(prep.y_example), mode), Val(B))
@@ -177,26 +185,33 @@ function DI.pullback!(
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, ty, contexts...)
     return last(DI.value_and_pullback!(f, tx, prep, backend, x, ty, contexts...))
 end
 
 ## Gradient
 
 function DI.prepare_gradient(
-    f::F, ::AutoEnzyme{<:Union{ReverseMode,Nothing}}, x, contexts::Vararg{DI.Context,C}
+    strict::Val,
+    f::F,
+    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
+    x,
+    contexts::Vararg{DI.Context,C};
 ) where {F,C}
-    return DI.NoGradientPrep()
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    return DI.NoGradientPrep(_sig)
 end
 
 ### Enzyme gradient API (only constants)
 
 function DI.gradient(
     f::F,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = reverse_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(1), contexts...)
@@ -206,11 +221,12 @@ end
 
 function DI.value_and_gradient(
     f::F,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = reverse_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(1), contexts...)
@@ -221,10 +237,11 @@ end
 function DI.gradient!(
     f::F,
     grad,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
     x,
 ) where {F}
+    DI.check_prep(f, prep, backend, x)
     mode = reverse_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     gradient!(mode, grad, f_and_df, x)
@@ -234,10 +251,11 @@ end
 function DI.value_and_gradient!(
     f::F,
     grad,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
     x,
 ) where {F}
+    DI.check_prep(f, prep, backend, x)
     mode = reverse_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     _, result = gradient!(mode, grad, f_and_df, x)
@@ -248,11 +266,12 @@ end
 
 function DI.gradient(
     f::F,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = reverse_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     IA = guess_activity(typeof(x), mode)
@@ -271,11 +290,12 @@ end
 
 function DI.value_and_gradient(
     f::F,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = reverse_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     IA = guess_activity(typeof(x), mode)
@@ -295,11 +315,12 @@ end
 function DI.gradient!(
     f::F,
     grad,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = reverse_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(1), contexts...)
@@ -311,11 +332,12 @@ end
 function DI.value_and_gradient!(
     f::F,
     grad,
-    ::DI.NoGradientPrep,
+    prep::DI.NoGradientPrep,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = reverse_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(1), contexts...)
