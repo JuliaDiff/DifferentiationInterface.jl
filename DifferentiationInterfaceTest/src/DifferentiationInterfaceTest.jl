@@ -98,7 +98,7 @@ using ProgressMeter: ProgressUnknown, next!
 using Random: AbstractRNG, default_rng, rand!
 using SparseArrays:
     SparseArrays, AbstractSparseMatrix, SparseMatrixCSC, nnz, sparse, spdiagm
-using Test: @testset, @test
+using Test: @testset, @test, @test_throws
 
 """
     FIRST_ORDER = [:pushforward, :pullback, :derivative, :gradient, :jacobian]
