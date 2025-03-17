@@ -560,7 +560,7 @@ function DI.prepare_hvp(
     strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
-    hessprep = DI.prepare_hessian(f, backend, x; strict)
+    hessprep = DI.prepare_hessian(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
     hess = similar(x, typeof(fc(x)), (length(x), length(x)))
     return GTPSAOneArgHVPPrep(_sig, hessprep, hess)

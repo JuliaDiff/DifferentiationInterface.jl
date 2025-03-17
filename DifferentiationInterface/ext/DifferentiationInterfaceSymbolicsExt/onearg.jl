@@ -247,7 +247,7 @@ function DI.prepare_jacobian(
     f,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
     strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
