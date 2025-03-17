@@ -87,9 +87,8 @@ function DI.value_and_pushforward(
     contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.with_contexts(f, contexts...)
-    ty = DI.pushforward(fc, prep, backend, x, tx)
-    y = fc(x) # TO-DO: optimize
+    ty = DI.pushforward(f, prep, backend, x, tx, contexts...)
+    y = f(x, map(DI.unwrap, contexts)...)  # TODO: optimize
     return y, ty
 end
 
@@ -103,9 +102,8 @@ function DI.value_and_pushforward!(
     contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.with_contexts(f, contexts...)
-    DI.pushforward!(fc, ty, prep, backend, x, tx)
-    y = fc(x)  # TO-DO: optimize
+    DI.pushforward!(f, ty, prep, backend, x, tx, contexts...)
+    y = f(x, map(DI.unwrap, contexts)...)  # TODO: optimize
     return y, ty
 end
 

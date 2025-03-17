@@ -137,11 +137,11 @@ end
 
 function DI.gradient(
     f::F,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
@@ -154,11 +154,11 @@ end
 
 function DI.value_and_gradient(
     f::F,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
@@ -172,11 +172,11 @@ end
 function DI.gradient!(
     f::F,
     grad,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
@@ -184,11 +184,11 @@ end
 function DI.value_and_gradient!(
     f::F,
     grad,
-    prep::EnzymeForwardGradientPrep{B},
+    prep::EnzymeForwardGradientPrep{SIG,B},
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
     return y, copyto!(grad, new_grad)
@@ -219,11 +219,11 @@ end
 
 function DI.jacobian(
     f::F,
-    prep::EnzymeForwardOneArgJacobianPrep{B},
+    prep::EnzymeForwardOneArgJacobianPrep{SIG,B},
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
@@ -237,11 +237,11 @@ end
 
 function DI.value_and_jacobian(
     f::F,
-    prep::EnzymeForwardOneArgJacobianPrep{B},
+    prep::EnzymeForwardOneArgJacobianPrep{SIG,B},
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C},
-) where {F,B,C}
+) where {F,SIG,B,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)

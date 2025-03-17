@@ -460,7 +460,7 @@ function DI.hvp!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    DI.check_prep(f, prep, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     for b in eachindex(tx, tg)
         dx, dg = tx[b], tg[b]
         prep.hvp_exe!(vec(dg), vec(x), vec(dx), map(DI.unwrap, contexts)...)
@@ -476,7 +476,7 @@ function DI.gradient_and_hvp(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    DI.check_prep(f, prep, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     tg = DI.hvp(f, prep, backend, x, tx, contexts...)
     grad = DI.gradient(f, prep.gradient_prep, backend, x, contexts...)
     return grad, tg
@@ -492,7 +492,7 @@ function DI.gradient_and_hvp!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    DI.check_prep(f, prep, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
     DI.hvp!(f, tg, prep, backend, x, tx, contexts...)
     DI.gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
     return grad, tg
