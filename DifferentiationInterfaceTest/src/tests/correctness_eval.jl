@@ -1,3 +1,5 @@
+const PME = PreparationMismatchError
+
 for op in ALL_OPS
     op! = Symbol(op, "!")
     val_prefix = if op == :second_derivative
@@ -60,7 +62,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -73,7 +75,7 @@ for op in ALL_OPS
                     xrand,
                     contextsrand...,
                 )
-                [(), (prep,), (prepprep,)]
+                [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val = $val_and_op(
@@ -100,6 +102,8 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, contexts...)
+            @test_throws PME $op(nothing, prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -125,7 +129,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -138,7 +142,7 @@ for op in ALL_OPS
                     xrand,
                     contextsrand...,
                 )
-                [(), (prep,), (prepprep,)]
+                [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val = mysimilar(res1)
@@ -177,6 +181,10 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, res1_in1_val, prepstrict, ba, x, contexts...
+            )
+            @test_throws PME $op!(nothing, res1_in1_noval, prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -204,7 +212,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
@@ -219,7 +227,7 @@ for op in ALL_OPS
                     xrand,
                     contextsrand...,
                 )
-                [(), (prep,), (prepprep,)]
+                [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val = mysimilar(y)
@@ -252,6 +260,8 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op(nothing, y_in1_val, prepstrict, ba, x, contexts...)
+            @test_throws PME $op(nothing, y_in1_noval, prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -277,7 +287,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
@@ -292,7 +302,7 @@ for op in ALL_OPS
                     xrand,
                     contextsrand...,
                 )
-                [(), (prep,), (prepprep,)]
+                [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val, res1_in1_val = mysimilar(y), mysimilar(res1)
@@ -333,6 +343,12 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, y_in1_val, res1_in1_val, prepstrict, ba, x, contexts...
+            )
+            @test_throws PME $op!(
+                nothing, y_in1_noval, res1_in1_noval, prepstrict, ba, x, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -359,7 +375,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -372,7 +388,7 @@ for op in ALL_OPS
                     xrand,
                     contextsrand...,
                 )
-                [(), (prep,), (prepprep,)]
+                [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val, res2_out1_val = $val_and_op(
@@ -401,6 +417,8 @@ for op in ALL_OPS
                     @test mynnz(res2_out2_noval) == mynnz(scen.res2)
                 end
             end
+            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, contexts...)
+            @test_throws PME $op(nothing, prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -426,7 +444,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -439,7 +457,7 @@ for op in ALL_OPS
                     xrand,
                     contextsrand...,
                 )
-                [(), (prep,), (prepprep,)]
+                [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val, res2_in1_val = mysimilar(res1), mysimilar(res2)
@@ -482,6 +500,10 @@ for op in ALL_OPS
                     @test mynnz(res2_out2_noval) == mynnz(scen.res2)
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, res1_in1_val, res2_in1_val, prepstrict, ba, x, contexts...
+            )
+            @test_throws PME $op!(nothing, res2_in1_noval, prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -508,7 +530,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -524,7 +546,7 @@ for op in ALL_OPS
                     contextsrand...,
                 )
                 prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val = $val_and_op(
@@ -547,6 +569,8 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, tang, contexts...)
+            @test_throws PME $op(nothing, prepstrict, ba, x, tang, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -572,7 +596,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -588,7 +612,7 @@ for op in ALL_OPS
                     contextsrand...,
                 )
                 prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val = mysimilar(res1)
@@ -623,6 +647,12 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, res1_in1_val, prepstrict, ba, x, tang, contexts...
+            )
+            @test_throws PME $op!(
+                nothing, res1_in1_noval, prepstrict, ba, x, tang, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -648,7 +678,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
@@ -666,7 +696,7 @@ for op in ALL_OPS
                     contextsrand...,
                 )
                 prep_same = $prep_op_same(f, copy(yrand), ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val = mysimilar(y)
@@ -699,6 +729,10 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op(
+                nothing, y_in1_val, prepstrict, ba, x, tang, contexts...
+            )
+            @test_throws PME $op(nothing, y_in1_noval, prepstrict, ba, x, tang, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -724,7 +758,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     copy(yrand),
                     $prep_op(
@@ -742,7 +776,7 @@ for op in ALL_OPS
                     contextsrand...,
                 )
                 prep_same = $prep_op_same(f, copy(yrand), ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val, res1_in1_val = mysimilar(y), mysimilar(res1)
@@ -793,6 +827,12 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, y_in1_val, res1_in1_val, prepstrict, ba, x, tang, contexts...
+            )
+            @test_throws PME $op!(
+                nothing, y_in2_noval, res1_in2_noval, prepstrict, ba, x, tang, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -819,7 +859,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -835,7 +875,7 @@ for op in ALL_OPS
                     contextsrand...,
                 )
                 prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res2_out1_noval = $op(f, preptup_noval..., ba, x, tang, contexts...)
@@ -858,6 +898,8 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, tang, contexts...)
+            @test_throws PME $op(nothing, prepstrict, ba, x, tang, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -883,7 +925,7 @@ for op in ALL_OPS
                         deepcopy(smaller)
                     end
                 prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prepstrict = $prep_op!(
                     f,
                     $prep_op(
                         new_smaller.f,
@@ -899,7 +941,7 @@ for op in ALL_OPS
                     contextsrand...,
                 )
                 prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res2_in1_noval = mysimilar(res2)
@@ -950,6 +992,12 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $op!(
+                nothing, res2_in1_noval, prepstrict, ba, x, tang, contexts...
+            )
+            @test_throws PME $val_and_op!(
+                nothing, res1_in1_val, res2_in1_val, prepstrict, ba, x, tang, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end

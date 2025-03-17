@@ -271,7 +271,7 @@ function DI.jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    DI.check_prep(f, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     return prep.jac_exe(x, map(DI.unwrap, contexts)...)
 end
 
@@ -283,7 +283,7 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    DI.check_prep(f, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     prep.jac_exe!(jac, x, map(DI.unwrap, contexts)...)
     return jac
 end
@@ -295,7 +295,7 @@ function DI.value_and_jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    DI.check_prep(f, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...), DI.jacobian(f, prep, backend, x, contexts...)
 end
 
@@ -307,7 +307,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
-    DI.check_prep(f, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
     DI.jacobian!(f, jac, prep, backend, x, contexts...)
 end

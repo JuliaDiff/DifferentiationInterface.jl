@@ -90,6 +90,7 @@ using DifferentiationInterface:
     pushforward_performance,
     pullback_performance
 using DifferentiationInterface: Rewrap, Context, Constant, Cache, unwrap
+using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using JET: @test_opt
 using LinearAlgebra: Adjoint, Diagonal, Transpose, dot, parent

@@ -241,7 +241,7 @@ function DI.gradient!(
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
     x,
 ) where {F}
-    DI.check_prep(f, prep, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x)
     mode = reverse_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     gradient!(mode, grad, f_and_df, x)
@@ -255,7 +255,7 @@ function DI.value_and_gradient!(
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
     x,
 ) where {F}
-    DI.check_prep(f, prep, backend, x, contexts...)
+    DI.check_prep(f, prep, backend, x)
     mode = reverse_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     _, result = gradient!(mode, grad, f_and_df, x)
