@@ -48,8 +48,13 @@ function compute_ydual_twoarg(
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,SIG,T,B,C}
-    (; xdual_tmp, ydual_tmp) = prep
-    make_dual!(T, xdual_tmp, x, tx)
+    (; ydual_tmp) = prep
+    if DI.ismutable_array(x)
+        make_dual!(T, prep.xdual_tmp, x, tx)
+        xdual_tmp = prep.xdual_tmp
+    else
+        xdual_tmp = make_dual(T, x, tx)
+    end
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
     f!(ydual_tmp, xdual_tmp, contexts_dual...)
     return ydual_tmp

@@ -1,13 +1,21 @@
 ## Pushforward
 
-struct SymbolicsTwoArgPushforwardPrep{E1,E1!} <: DI.PushforwardPrep
+struct SymbolicsTwoArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPrep{SIG}
+    _sig::Val{SIG}
     pushforward_exe::E1
     pushforward_exe!::E1!
 end
 
 function DI.prepare_pushforward(
-    f!, y, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C}
+    f!,
+    y,
+    backend::AutoSymbolics,
+    x,
+    tx::NTuple,
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {C}
+    _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     dx = first(tx)
     x_var = variablize(x, :x)
     dx_var = variablize(dx, :dx)
@@ -20,7 +28,7 @@ function DI.prepare_pushforward(
 
     res = build_function(pf_var, x_var, dx_var, context_vars...; expression=Val(false))
     (pushforward_exe, pushforward_exe!) = res
-    return SymbolicsTwoArgPushforwardPrep(pushforward_exe, pushforward_exe!)
+    return SymbolicsTwoArgPushforwardPrep(_sig, pushforward_exe, pushforward_exe!)
 end
 
 function DI.pushforward(
@@ -32,6 +40,7 @@ function DI.pushforward(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = map(tx) do dx
         dy = prep.pushforward_exe(x, dx, map(DI.unwrap, contexts)...)
     end
@@ -48,6 +57,7 @@ function DI.pushforward!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
         prep.pushforward_exe!(dy, x, dx, map(DI.unwrap, contexts)...)
@@ -64,6 +74,7 @@ function DI.value_and_pushforward(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = DI.pushforward(f!, y, prep, backend, x, tx, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, ty
@@ -79,6 +90,7 @@ function DI.value_and_pushforward!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     DI.pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, ty
@@ -86,14 +98,16 @@ end
 
 ## Derivative
 
-struct SymbolicsTwoArgDerivativePrep{E1,E1!} <: DI.DerivativePrep
+struct SymbolicsTwoArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{SIG}
+    _sig::Val{SIG}
     der_exe::E1
     der_exe!::E1!
 end
 
 function DI.prepare_derivative(
-    f!, y, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
+    f!, y, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
 ) where {C}
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     y_var = variablize(y, :y)
     context_vars = variablize(contexts)
@@ -102,7 +116,7 @@ function DI.prepare_derivative(
 
     res = build_function(der_var, x_var, context_vars...; expression=Val(false))
     (der_exe, der_exe!) = res
-    return SymbolicsTwoArgDerivativePrep(der_exe, der_exe!)
+    return SymbolicsTwoArgDerivativePrep(_sig, der_exe, der_exe!)
 end
 
 function DI.derivative(
@@ -113,6 +127,7 @@ function DI.derivative(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     return prep.der_exe(x, map(DI.unwrap, contexts)...)
 end
 
@@ -125,6 +140,7 @@ function DI.derivative!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     prep.der_exe!(der, x, map(DI.unwrap, contexts)...)
     return der
 end
@@ -137,6 +153,7 @@ function DI.value_and_derivative(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     der = DI.derivative(f!, y, prep, backend, x, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, der
@@ -151,6 +168,7 @@ function DI.value_and_derivative!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     DI.derivative!(f!, y, der, prep, backend, x, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, der
@@ -158,7 +176,8 @@ end
 
 ## Jacobian
 
-struct SymbolicsTwoArgJacobianPrep{E1,E1!} <: DI.JacobianPrep
+struct SymbolicsTwoArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
+    _sig::Val{SIG}
     jac_exe::E1
     jac_exe!::E1!
 end
@@ -168,8 +187,10 @@ function DI.prepare_jacobian(
     y,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
-    contexts::Vararg{DI.Context,C},
+    contexts::Vararg{DI.Context,C};
+    strict::Val=Val(false),
 ) where {C}
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     y_var = variablize(y, :y)
     context_vars = variablize(contexts)
@@ -182,7 +203,7 @@ function DI.prepare_jacobian(
 
     res = build_function(jac_var, x_var, context_vars...; expression=Val(false))
     (jac_exe, jac_exe!) = res
-    return SymbolicsTwoArgJacobianPrep(jac_exe, jac_exe!)
+    return SymbolicsTwoArgJacobianPrep(_sig, jac_exe, jac_exe!)
 end
 
 function DI.jacobian(
@@ -193,6 +214,7 @@ function DI.jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     return prep.jac_exe(x, map(DI.unwrap, contexts)...)
 end
 
@@ -205,6 +227,7 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     prep.jac_exe!(jac, x, map(DI.unwrap, contexts)...)
     return jac
 end
@@ -217,6 +240,7 @@ function DI.value_and_jacobian(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     jac = DI.jacobian(f!, y, prep, backend, x, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, jac
@@ -231,6 +255,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
     DI.jacobian!(f!, y, jac, prep, backend, x, contexts...)
     f!(y, x, map(DI.unwrap, contexts)...)
     return y, jac

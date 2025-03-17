@@ -43,33 +43,21 @@ function DI.value_and_pullback(
     return new_y, (mycopy(new_dx),)
 end
 
-function DI.value_and_pullback!(
-    f::F,
-    tx::NTuple{1},
-    prep::MooncakeOneArgPullbackPrep{Y},
-    backend::AutoMooncake,
-    x,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,Y,C}
-    DI.check_prep(f, prep, backend, x, ty, contexts...)
-    y, (new_dx,) = DI.value_and_pullback(f, prep, backend, x, ty, contexts...)
-    copyto!(only(tx), new_dx)
-    return y, tx
-end
-
 function DI.value_and_pullback(
     f::F,
-    prep::MooncakeOneArgPullbackPrep,
+    prep::MooncakeOneArgPullbackPrep{Y},
     backend::AutoMooncake,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {F,C}
+) where {F,Y,C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     ys_and_tx = map(ty) do dy
-        y, tx = DI.value_and_pullback(f, prep, backend, x, (dy,), contexts...)
-        y, only(tx)
+        dy_righttype = dy isa tangent_type(Y) ? dy : copyto!!(prep.dy_righttype, dy)
+        y, (_, new_dx) = value_and_pullback!!(
+            prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...
+        )
+        y, mycopy(new_dx)
     end
     y = first(ys_and_tx[1])
     tx = last.(ys_and_tx)
@@ -86,11 +74,8 @@ function DI.value_and_pullback!(
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
-    ys = map(tx, ty) do dx, dy
-        y, _ = DI.value_and_pullback!(f, (dx,), prep, backend, x, (dy,), contexts...)
-        y
-    end
-    y = ys[1]
+    y, new_tx = DI.value_and_pullback(f, prep, backend, x, ty, contexts...)
+    foreach(copyto!, tx, new_tx)
     return y, tx
 end
 

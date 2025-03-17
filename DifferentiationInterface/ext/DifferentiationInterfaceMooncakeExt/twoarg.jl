@@ -45,14 +45,18 @@ function DI.value_and_pullback(
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
-    # Prepare cotangent to add after the forward pass.
     dy = only(ty)
+    # Prepare cotangent to add after the forward pass.
     dy_righttype_after = copyto!(prep.dy_righttype, dy)
-
     # Run the reverse-pass and return the results.
-    contexts = map(DI.unwrap, contexts)
     y_after, (_, _, _, dx) = value_and_pullback!!(
-        prep.cache, dy_righttype_after, prep.target_function, f!, y, x, contexts...
+        prep.cache,
+        dy_righttype_after,
+        prep.target_function,
+        f!,
+        y,
+        x,
+        map(DI.unwrap, contexts)...,
     )
     copyto!(y, y_after)
     return y, (mycopy(dx),)
@@ -69,8 +73,18 @@ function DI.value_and_pullback(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     tx = map(ty) do dy
-        _, tx = DI.value_and_pullback(f!, y, prep, backend, x, (dy,), contexts...)
-        only(tx)
+        dy_righttype_after = copyto!(prep.dy_righttype, dy)
+        y_after, (_, _, _, dx) = value_and_pullback!!(
+            prep.cache,
+            dy_righttype_after,
+            prep.target_function,
+            f!,
+            y,
+            x,
+            map(DI.unwrap, contexts)...,
+        )
+        copyto!(y, y_after)
+        mycopy(dx)
     end
     return y, tx
 end

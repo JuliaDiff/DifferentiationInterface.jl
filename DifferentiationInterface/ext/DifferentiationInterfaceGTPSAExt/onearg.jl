@@ -25,7 +25,7 @@ function DI.prepare_pushforward(
     end
     if x isa Number
         xt = TPS{promote_type(typeof(first(tx)), typeof(x), Float64)}(; use=d)
-        return GTPSAOneArgPushforwardPrep(xt)
+        return GTPSAOneArgPushforwardPrep(_sig, xt)
     else
         xt = similar(x, TPS{promote_type(eltype(first(tx)), eltype(x), Float64)})
         for i in eachindex(xt)

@@ -77,21 +77,30 @@ end
 is_strict(::Prep{Nothing}) = Val(false)
 is_strict(::Prep) = Val(true)
 
-struct PreparationMismatchError{SIG,RUNTIME_SIG} <: Exception end
+struct PreparationMismatchError{SIG,RUNTIME_SIG} <: Exception
+    format::Vector{Symbol}
+end
 
-function PreparationMismatchError(::Type{SIG}, ::Type{RUNTIME_SIG}) where {SIG,RUNTIME_SIG}
-    return PreparationMismatchError{SIG,RUNTIME_SIG}()
+function PreparationMismatchError(
+    ::Type{SIG}, ::Type{RUNTIME_SIG}; format
+) where {SIG,RUNTIME_SIG}
+    return PreparationMismatchError{SIG,RUNTIME_SIG}(format)
 end
 
 function Base.showerror(
     io::IO, e::PreparationMismatchError{SIG,RUNTIME_SIG}
-) where {SIG,RUNTIME_SIG}
-    msg = """
-    Inconsistent signatures:
-     - at preparation time: $SIG
-     - at execution time: $RUNTIME_SIG
-    """
-    return print(io, msg)
+) where {SIG<:Tuple,RUNTIME_SIG<:Tuple}
+    println(
+        io,
+        "PreparationMismatchError (inconsistent types between preparation and execution):",
+    )
+    for (s, pt, et) in zip(e.format, SIG.types, RUNTIME_SIG.types)
+        if pt == et
+            println(io, "  - $s: ✅")
+        else
+            println(io, "  - $s: ❌\n    - prep: $pt\n    - exec: $et")
+        end
+    end
 end
 
 function signature(
@@ -146,7 +155,11 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f, backend, x, contexts))
         if SIG != RUNTIME_SIG
-            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
+            throw(
+                PreparationMismatchError(
+                    SIG, RUNTIME_SIG; format=[:f, :backend, :x, :contexts]
+                ),
+            )
         end
     end
 end
@@ -157,7 +170,11 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f!, y, backend, x, contexts))
         if SIG != RUNTIME_SIG
-            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
+            throw(
+                PreparationMismatchError(
+                    SIG, RUNTIME_SIG; format=[:f!, :y, :backend, :x, :contexts]
+                ),
+            )
         end
     end
 end
@@ -168,7 +185,11 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f, backend, x, t, contexts))
         if SIG != RUNTIME_SIG
-            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
+            throw(
+                PreparationMismatchError(
+                    SIG, RUNTIME_SIG; format=[:f, :backend, :x, :t, :contexts]
+                ),
+            )
         end
     end
 end
@@ -179,7 +200,11 @@ function check_prep(
     if SIG !== Nothing
         RUNTIME_SIG = typeof((f!, y, backend, x, t, contexts))
         if SIG != RUNTIME_SIG
-            throw(PreparationMismatchError(SIG, RUNTIME_SIG))
+            throw(
+                PreparationMismatchError(
+                    SIG, RUNTIME_SIG; format=[:f!, :y, :backend, :x, :t, :contexts]
+                ),
+            )
         end
     end
 end

@@ -224,7 +224,7 @@ function DI.jacobian(
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,B,C}
-    DI.check_prep(f, prep, backend, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
@@ -242,7 +242,7 @@ function DI.value_and_jacobian(
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,B,C}
-    DI.check_prep(f, prep, backend, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     mode = forward_withprimal(backend)
     f_and_df = get_f_and_df(f, backend, mode)
     annotated_contexts = translate(backend, mode, Val(B), contexts...)
@@ -261,7 +261,7 @@ function DI.jacobian!(
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,C}
-    DI.check_prep(f, prep, backend, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
 end
 
@@ -273,7 +273,7 @@ function DI.value_and_jacobian!(
     x,
     contexts::Vararg{DI.Constant,C},
 ) where {F,C}
-    DI.check_prep(f, prep, backend, contexts...)
+    DI.check_prep(f, prep, backend, x, contexts...)
     y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)
     return y, copyto!(jac, new_jac)
 end
