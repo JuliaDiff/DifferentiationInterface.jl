@@ -5,7 +5,9 @@
 
 $(docstring_prepare("second_derivative"))
 """
-function prepare_second_derivative end
+function prepare_second_derivative(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_second_derivative(strict, args...)
+end
 
 """
     prepare!_second_derivative(f, prep, backend, x, [contexts...]) -> new_prep
@@ -58,7 +60,7 @@ struct DerivativeSecondDerivativePrep{SIG,E<:DerivativePrep} <: SecondDerivative
 end
 
 function prepare_second_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     _sig = signature(f, backend, x, contexts...; strict)
     rewrap = Rewrap(contexts...)
@@ -66,7 +68,7 @@ function prepare_second_derivative(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     outer_derivative_prep = prepare_derivative(
-        shuffled_derivative, outer(backend), x, new_contexts...; strict
+        strict, shuffled_derivative, outer(backend), x, new_contexts...
     )
     return DerivativeSecondDerivativePrep(_sig, outer_derivative_prep)
 end

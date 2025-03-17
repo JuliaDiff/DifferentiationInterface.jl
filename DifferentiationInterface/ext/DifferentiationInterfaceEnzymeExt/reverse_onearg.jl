@@ -53,12 +53,12 @@ struct EnzymeReverseOneArgPullbackPrep{SIG,Y} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)
@@ -192,11 +192,11 @@ end
 ## Gradient
 
 function DI.prepare_gradient(
+    strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     return DI.NoGradientPrep(_sig)

@@ -16,12 +16,12 @@ struct TrackerPullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f,
     backend::AutoTracker,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     return DI.NoPullbackPrep(_sig)
@@ -92,11 +92,7 @@ end
 ## Gradient
 
 function DI.prepare_gradient(
-    f,
-    backend::AutoTracker,
-    x,
-    contexts::Vararg{DI.GeneralizedConstant,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     return DI.NoGradientPrep(_sig)

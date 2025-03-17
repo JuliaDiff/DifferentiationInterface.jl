@@ -103,7 +103,7 @@ function Base.showerror(
     end
     println(
         io,
-        "To disable this check (not recommended), run preparation with the keyword argument `strict=Val(false)` when using DifferentiationInterface.",
+        "If you are confident that this check is superfluous, you can disable it by running preparation with the keyword argument `strict=Val(false)` inside DifferentiationInterface.",
     )
     return nothing
 end

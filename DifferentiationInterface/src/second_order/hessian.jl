@@ -5,7 +5,9 @@
 
 $(docstring_prepare("hessian"))
 """
-function prepare_hessian end
+function prepare_hessian(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_hessian(strict, args...)
+end
 
 """
     prepare!_hessian(f, backend, x, [contexts...]) -> new_prep
@@ -69,21 +71,21 @@ struct HVPGradientHessianPrep{
 end
 
 function prepare_hessian(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     # type-unstable
     batch_size_settings = pick_batchsize(outer(backend), x)
     # function barrier
-    return _prepare_hessian_aux(batch_size_settings, f, backend, x, contexts...; strict)
+    return _prepare_hessian_aux(strict, batch_size_settings, f, backend, x, contexts...)
 end
 
 function _prepare_hessian_aux(
+    strict::Val,
     batch_size_settings::BatchSizeSettings{B},
     f::F,
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C};
-    strict::Val,
 ) where {B,F,C}
     _sig = signature(f, backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
@@ -92,8 +94,8 @@ function _prepare_hessian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    hvp_prep = prepare_hvp(f, backend, x, batched_seeds[1], contexts...; strict)
-    gradient_prep = prepare_gradient(f, inner(backend), x, contexts...; strict)
+    hvp_prep = prepare_hvp(strict, f, backend, x, batched_seeds[1], contexts...)
+    gradient_prep = prepare_gradient(strict, f, inner(backend), x, contexts...)
     return HVPGradientHessianPrep(
         _sig, batch_size_settings, batched_seeds, batched_results, hvp_prep, gradient_prep
     )

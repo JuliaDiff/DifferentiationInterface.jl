@@ -37,25 +37,25 @@ function threshold_batchsize(
 end
 
 function prepare_pushforward(
+    strict::Val,
     f::F,
     backend::AutoSimpleFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = signature(f, backend, x, tx, contexts...; strict)
     return NoPushforwardPrep(_sig)
 end
 
 function prepare_pushforward(
+    strict::Val,
     f!::F,
     y,
     backend::AutoSimpleFiniteDiff,
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = signature(f!, y, backend, x, tx, contexts...; strict)
     return NoPushforwardPrep(_sig)

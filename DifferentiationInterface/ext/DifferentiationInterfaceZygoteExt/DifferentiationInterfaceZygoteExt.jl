@@ -28,12 +28,7 @@ struct ZygotePullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
-    f,
-    backend::AutoZygote,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoZygote, x, ty::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     return DI.NoPullbackPrep(_sig)
@@ -46,10 +41,9 @@ function DI.prepare_pullback_same_point(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
-    _sig = DI.signature(f, backend, x, ty, contexts...; strict)
+    _sig = DI.signature(f, backend, x, ty, contexts...; strict=DI.is_strict(prep))
     y, pb = pullback(f, x, map(translate, contexts)...)
     return ZygotePullbackPrepSamePoint(_sig, y, pb)
 end
@@ -105,7 +99,7 @@ end
 ## Gradient
 
 function DI.prepare_gradient(
-    f, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     return DI.NoGradientPrep(_sig)
@@ -145,7 +139,7 @@ end
 ## Jacobian
 
 function DI.prepare_jacobian(
-    f, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoZygote, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     return DI.NoJacobianPrep(_sig)
@@ -194,16 +188,11 @@ struct ZygoteHVPPrep{SIG,P} <: DI.HVPPrep{SIG}
 end
 
 function DI.prepare_hvp(
-    f,
-    backend::AutoZygote,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoZygote, x, tx::NTuple, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     fd_prep = DI.prepare_hvp(
-        f, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...; strict
+        strict, f, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
     )
     return ZygoteHVPPrep(_sig, fd_prep)
 end
@@ -277,11 +266,7 @@ end
 ## Hessian
 
 function DI.prepare_hessian(
-    f,
-    backend::AutoZygote,
-    x,
-    contexts::Vararg{DI.GeneralizedConstant,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoZygote, x, contexts::Vararg{DI.GeneralizedConstant,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     return DI.NoHessianPrep(_sig)

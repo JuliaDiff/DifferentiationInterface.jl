@@ -11,13 +11,13 @@ struct GTPSATwoArgPushforwardPrep{SIG,X,Y} <: DI.PushforwardPrep{SIG}
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f!::F,
     y,
     backend::AutoGTPSA{D},
     x,
     tx::NTuple,
     contexts::Vararg{DI.Constant,C};
-    strict::Val=Val(false),
 ) where {F,D,C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     # For pushforward/JVP, we only actually need 1 single variable (in the GTPSA sense)
@@ -126,7 +126,7 @@ struct GTPSATwoArgJacobianPrep{SIG,X,Y} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
-    f!, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
+    strict::Val, f!, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     if D != Nothing

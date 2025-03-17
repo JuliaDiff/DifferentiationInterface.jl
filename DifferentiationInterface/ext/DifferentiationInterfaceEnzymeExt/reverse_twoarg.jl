@@ -6,13 +6,13 @@ struct EnzymeReverseTwoArgPullbackPrep{SIG,TY} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f!::F,
     y,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     ty_copy = map(copy, ty)

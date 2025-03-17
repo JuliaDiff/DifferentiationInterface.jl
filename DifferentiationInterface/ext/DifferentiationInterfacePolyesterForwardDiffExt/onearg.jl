@@ -7,16 +7,16 @@ struct PolyesterForwardDiffOneArgPushforwardPrep{SIG,P} <: DI.PushforwardPrep{SI
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f,
     backend::AutoPolyesterForwardDiff,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     single_threaded_prep = DI.prepare_pushforward(
-        f, single_threaded(backend), x, tx, contexts...; strict
+        strict, f, single_threaded(backend), x, tx, contexts...
     )
     return PolyesterForwardDiffOneArgPushforwardPrep(_sig, single_threaded_prep)
 end
@@ -87,15 +87,11 @@ struct PolyesterForwardDiffOneArgDerivativePrep{SIG,P} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f,
-    backend::AutoPolyesterForwardDiff,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoPolyesterForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     single_threaded_prep = DI.prepare_derivative(
-        f, single_threaded(backend), x, contexts...; strict
+        strict, f, single_threaded(backend), x, contexts...
     )
     return PolyesterForwardDiffOneArgDerivativePrep(_sig, single_threaded_prep)
 end
@@ -163,11 +159,11 @@ struct PolyesterForwardDiffGradientPrep{SIG,chunksize,P} <: DI.GradientPrep{SIG}
 end
 
 function DI.prepare_gradient(
+    strict::Val,
     f,
     backend::AutoPolyesterForwardDiff{chunksize},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {chunksize,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     if isnothing(chunksize)
@@ -176,7 +172,7 @@ function DI.prepare_gradient(
         chunk = Chunk{chunksize}()
     end
     single_threaded_prep = DI.prepare_gradient(
-        f, single_threaded(backend), x, contexts...; strict
+        strict, f, single_threaded(backend), x, contexts...
     )
     return PolyesterForwardDiffGradientPrep(_sig, chunk, single_threaded_prep)
 end
@@ -254,11 +250,11 @@ struct PolyesterForwardDiffOneArgJacobianPrep{SIG,chunksize,P} <: DI.JacobianPre
 end
 
 function DI.prepare_jacobian(
+    strict::Val,
     f,
     backend::AutoPolyesterForwardDiff{chunksize},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {chunksize,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     if isnothing(chunksize)
@@ -267,7 +263,7 @@ function DI.prepare_jacobian(
         chunk = Chunk{chunksize}()
     end
     single_threaded_prep = DI.prepare_jacobian(
-        f, single_threaded(backend), x, contexts...; strict
+        strict, f, single_threaded(backend), x, contexts...
     )
     return PolyesterForwardDiffOneArgJacobianPrep(_sig, chunk, single_threaded_prep)
 end
@@ -344,15 +340,11 @@ struct PolyesterForwardDiffHessianPrep{SIG,P} <: DI.HessianPrep{SIG}
 end
 
 function DI.prepare_hessian(
-    f,
-    backend::AutoPolyesterForwardDiff,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoPolyesterForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     single_threaded_prep = DI.prepare_hessian(
-        f, single_threaded(backend), x, contexts...; strict
+        strict, f, single_threaded(backend), x, contexts...
     )
     return PolyesterForwardDiffHessianPrep(_sig, single_threaded_prep)
 end
@@ -420,15 +412,11 @@ struct PolyesterForwardDiffOneArgSecondDerivativePrep{SIG,P} <: DI.SecondDerivat
 end
 
 function DI.prepare_second_derivative(
-    f,
-    backend::AutoPolyesterForwardDiff,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoPolyesterForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     single_threaded_prep = DI.prepare_second_derivative(
-        f, single_threaded(backend), x, contexts...; strict
+        strict, f, single_threaded(backend), x, contexts...
     )
     return PolyesterForwardDiffOneArgSecondDerivativePrep(_sig, single_threaded_prep)
 end

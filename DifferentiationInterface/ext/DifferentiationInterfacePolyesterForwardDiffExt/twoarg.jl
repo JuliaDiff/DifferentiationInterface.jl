@@ -12,7 +12,7 @@ function DI.prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val,
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     single_threaded_prep = DI.prepare_pushforward(
@@ -91,12 +91,7 @@ struct PolyesterForwardDiffTwoArgDerivativePrep{SIG,P} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f!,
-    y,
-    backend::AutoPolyesterForwardDiff,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    f!, y, backend::AutoPolyesterForwardDiff, x, contexts::Vararg{DI.Context,C}; strict::Val
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     single_threaded_prep = DI.prepare_derivative(
@@ -177,7 +172,7 @@ function DI.prepare_jacobian(
     backend::AutoPolyesterForwardDiff{chunksize},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val,
 ) where {chunksize,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     if isnothing(chunksize)

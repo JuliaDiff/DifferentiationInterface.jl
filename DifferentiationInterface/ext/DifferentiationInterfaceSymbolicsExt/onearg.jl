@@ -7,12 +7,7 @@ struct SymbolicsOneArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPrep{SIG}
 end
 
 function DI.prepare_pushforward(
-    f,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     dx = first(tx)
@@ -100,7 +95,7 @@ struct SymbolicsOneArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -174,7 +169,7 @@ struct SymbolicsOneArgGradientPrep{SIG,E1,E1!} <: DI.GradientPrep{SIG}
 end
 
 function DI.prepare_gradient(
-    f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -244,11 +239,11 @@ struct SymbolicsOneArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
+    strict::Val,
     f,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -322,11 +317,11 @@ struct SymbolicsOneArgHessianPrep{SIG,G,E2,E2!} <: DI.HessianPrep{SIG}
 end
 
 function DI.prepare_hessian(
+    strict::Val,
     f,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -341,7 +336,7 @@ function DI.prepare_hessian(
     res = build_function(hess_var, vec(x_var), context_vars...; expression=Val(false))
     (hess_exe, hess_exe!) = res
 
-    gradient_prep = DI.prepare_gradient(f, dense_ad(backend), x, contexts...)
+    gradient_prep = DI.prepare_gradient(strict, f, dense_ad(backend), x, contexts...)
     return SymbolicsOneArgHessianPrep(_sig, gradient_prep, hess_exe, hess_exe!)
 end
 
@@ -411,12 +406,7 @@ struct SymbolicsOneArgHVPPrep{SIG,G,E2,E2!} <: DI.HVPPrep{SIG}
 end
 
 function DI.prepare_hvp(
-    f,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     dx = first(tx)
@@ -432,7 +422,7 @@ function DI.prepare_hvp(
     )
     (hvp_exe, hvp_exe!) = res
 
-    gradient_prep = DI.prepare_gradient(f, backend, x, contexts...)
+    gradient_prep = DI.prepare_gradient(strict, f, backend, x, contexts...)
     return SymbolicsOneArgHVPPrep(_sig, gradient_prep, hvp_exe, hvp_exe!)
 end
 
@@ -508,7 +498,7 @@ struct SymbolicsOneArgSecondDerivativePrep{SIG,D,E1,E1!} <: DI.SecondDerivativeP
 end
 
 function DI.prepare_second_derivative(
-    f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -522,7 +512,7 @@ function DI.prepare_second_derivative(
     elseif res isa RuntimeGeneratedFunction
         res, nothing
     end
-    derivative_prep = DI.prepare_derivative(f, backend, x, contexts...)
+    derivative_prep = DI.prepare_derivative(strict, f, backend, x, contexts...)
     return SymbolicsOneArgSecondDerivativePrep(_sig, derivative_prep, der2_exe, der2_exe!)
 end
 

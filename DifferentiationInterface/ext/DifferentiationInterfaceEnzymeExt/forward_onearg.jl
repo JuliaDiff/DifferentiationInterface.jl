@@ -1,12 +1,12 @@
 ## Pushforward
 
 function DI.prepare_pushforward(
+    strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     return DI.NoPushforwardPrep(_sig)
@@ -123,11 +123,11 @@ struct EnzymeForwardGradientPrep{SIG,B,O} <: DI.GradientPrep{SIG}
 end
 
 function DI.prepare_gradient(
+    strict::Val,
     f::F,
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     valB = to_val(DI.pick_batchsize(backend, x))
@@ -204,11 +204,11 @@ struct EnzymeForwardOneArgJacobianPrep{SIG,B,O} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
+    strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},
     x,
     contexts::Vararg{DI.Constant,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)

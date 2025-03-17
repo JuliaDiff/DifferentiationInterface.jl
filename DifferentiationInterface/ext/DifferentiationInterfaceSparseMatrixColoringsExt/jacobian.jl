@@ -37,30 +37,30 @@ struct PullbackSparseJacobianPrep{
 end
 
 function DI.prepare_jacobian(
-    f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     dense_backend = dense_ad(backend)
     y = f(x, map(DI.unwrap, contexts)...)
     perf = DI.pushforward_performance(dense_backend)
-    return _prepare_sparse_jacobian_aux(perf, y, (f,), backend, x, contexts...; strict)
+    return _prepare_sparse_jacobian_aux(strict, perf, y, (f,), backend, x, contexts...)
 end
 
 function DI.prepare_jacobian(
-    f!::F, y, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f!::F, y, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     dense_backend = dense_ad(backend)
     perf = DI.pushforward_performance(dense_backend)
-    return _prepare_sparse_jacobian_aux(perf, y, (f!, y), backend, x, contexts...; strict)
+    return _prepare_sparse_jacobian_aux(strict, perf, y, (f!, y), backend, x, contexts...)
 end
 
 function _prepare_sparse_jacobian_aux(
+    strict::Val,
     perf::DI.PushforwardPerformance,
     y,
     f_or_f!y::FY,
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val,
 ) where {FY,C}
     dense_backend = dense_ad(backend)
     sparsity = DI.jacobian_sparsity_with_contexts(
@@ -84,11 +84,12 @@ function _prepare_sparse_jacobian_aux(
     end
     batch_size_settings = DI.pick_batchsize(dense_backend, N)
     return _prepare_sparse_jacobian_aux_aux(
-        batch_size_settings, coloring_result, y, f_or_f!y, backend, x, contexts...; strict
+        strict, batch_size_settings, coloring_result, y, f_or_f!y, backend, x, contexts...
     )
 end
 
 function _prepare_sparse_jacobian_aux_aux(
+    strict::Val,
     batch_size_settings::DI.BatchSizeSettings{B},
     coloring_result::AbstractColoringResult{:nonsymmetric,:column},
     y,
@@ -96,7 +97,6 @@ function _prepare_sparse_jacobian_aux_aux(
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val,
 ) where {B,FY,C}
     _sig = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
@@ -109,7 +109,7 @@ function _prepare_sparse_jacobian_aux_aux(
     ]
     batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
     pushforward_prep = DI.prepare_pushforward(
-        f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...; strict
+        strict, f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
     return PushforwardSparseJacobianPrep(
         _sig,
@@ -123,6 +123,7 @@ function _prepare_sparse_jacobian_aux_aux(
 end
 
 function _prepare_sparse_jacobian_aux_aux(
+    strict::Val,
     batch_size_settings::DI.BatchSizeSettings{B},
     coloring_result::AbstractColoringResult{:nonsymmetric,:row},
     y,
@@ -130,7 +131,6 @@ function _prepare_sparse_jacobian_aux_aux(
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val,
 ) where {B,FY,C}
     _sig = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
@@ -143,7 +143,7 @@ function _prepare_sparse_jacobian_aux_aux(
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
     pullback_prep = DI.prepare_pullback(
-        f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...; strict
+        strict, f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
     return PullbackSparseJacobianPrep(
         _sig,

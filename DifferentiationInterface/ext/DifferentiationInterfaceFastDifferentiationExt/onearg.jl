@@ -8,12 +8,12 @@ struct FastDifferentiationOneArgPushforwardPrep{SIG,Y,E1,E1!} <: DI.PushforwardP
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f,
     backend::AutoFastDifferentiation,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     y_prototype = f(x, map(DI.unwrap, contexts)...)
@@ -106,12 +106,12 @@ struct FastDifferentiationOneArgPullbackPrep{SIG,E1,E1!} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f,
     backend::AutoFastDifferentiation,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     x_var = variablize(x, :x)
@@ -205,11 +205,7 @@ struct FastDifferentiationOneArgDerivativePrep{SIG,Y,E1,E1!} <: DI.DerivativePre
 end
 
 function DI.prepare_derivative(
-    f,
-    backend::AutoFastDifferentiation,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     y_prototype = f(x, map(DI.unwrap, contexts)...)
@@ -289,11 +285,7 @@ struct FastDifferentiationOneArgGradientPrep{SIG,E1,E1!} <: DI.GradientPrep{SIG}
 end
 
 function DI.prepare_gradient(
-    f,
-    backend::AutoFastDifferentiation,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -369,11 +361,11 @@ struct FastDifferentiationOneArgJacobianPrep{SIG,Y,E1,E1!} <: DI.JacobianPrep{SI
 end
 
 function DI.prepare_jacobian(
+    strict::Val,
     f,
     backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     y_prototype = f(x, map(DI.unwrap, contexts)...)
@@ -454,11 +446,7 @@ struct FastDifferentiationAllocatingSecondDerivativePrep{SIG,Y,D,E2,E2!} <:
 end
 
 function DI.prepare_second_derivative(
-    f,
-    backend::AutoFastDifferentiation,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     y_prototype = f(x, map(DI.unwrap, contexts)...)
@@ -547,12 +535,12 @@ struct FastDifferentiationHVPPrep{SIG,E2,E2!,E1} <: DI.HVPPrep{SIG}
 end
 
 function DI.prepare_hvp(
+    strict::Val,
     f,
     backend::AutoFastDifferentiation,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     x_var = variablize(x, :x)
@@ -646,11 +634,11 @@ struct FastDifferentiationHessianPrep{SIG,G,E2,E2!} <: DI.HessianPrep{SIG}
 end
 
 function DI.prepare_hessian(
+    strict::Val,
     f,
     backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)

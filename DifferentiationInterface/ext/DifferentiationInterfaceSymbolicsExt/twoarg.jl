@@ -7,13 +7,13 @@ struct SymbolicsTwoArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPrep{SIG}
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f!,
     y,
     backend::AutoSymbolics,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     dx = first(tx)
@@ -105,7 +105,7 @@ struct SymbolicsTwoArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f!, y, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f!, y, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -183,12 +183,12 @@ struct SymbolicsTwoArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
+    strict::Val,
     f!,
     y,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)

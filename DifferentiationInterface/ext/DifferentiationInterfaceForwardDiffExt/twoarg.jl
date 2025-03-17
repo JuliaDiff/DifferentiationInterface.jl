@@ -9,13 +9,13 @@ struct ForwardDiffTwoArgPushforwardPrep{SIG,T,X,Y,CD} <: DI.PushforwardPrep{SIG}
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f!::F,
     y,
     backend::AutoForwardDiff,
     x,
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {F,B,C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     T = tag_type(f!, backend, x)
@@ -189,12 +189,7 @@ struct ForwardDiffTwoArgDerivativePrep{SIG,C,CD} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f!::F,
-    y,
-    backend::AutoForwardDiff,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f!::F, y, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C};
 ) where {F,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     tag = get_tag(f!, backend, x)
@@ -217,9 +212,7 @@ function DI.prepare!_derivative(
         resize!(config.duals, length(y))
         return old_prep
     else
-        return DI.prepare_derivative(
-            f!, y, backend, x, contexts...; strict=DI.is_strict(old_prep)
-        )
+        return DI.prepare_derivative(DI.is_strict(old_prep), f!, y, backend, x, contexts...)
     end
 end
 
@@ -383,12 +376,7 @@ struct ForwardDiffTwoArgJacobianPrep{SIG,C,CD} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
-    f!::F,
-    y,
-    backend::AutoForwardDiff,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f!::F, y, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     chunk = choose_chunk(backend, x)
@@ -414,9 +402,7 @@ function DI.prepare!_jacobian(
         resize!(xduals, length(x))
         return old_prep
     else
-        return DI.prepare_jacobian(
-            f!, y, backend, x, contexts...; strict=DI.is_strict(old_prep)
-        )
+        return DI.prepare_jacobian(DI.is_strict(old_prep), f!, y, backend, x, contexts...)
     end
 end
 

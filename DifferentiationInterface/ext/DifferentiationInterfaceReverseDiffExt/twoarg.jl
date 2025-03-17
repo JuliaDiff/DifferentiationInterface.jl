@@ -1,13 +1,13 @@
 ## Pullback
 
 function DI.prepare_pullback(
+    strict::Val,
     f!,
     y,
     backend::AutoReverseDiff,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     return DI.NoPullbackPrep(_sig)
@@ -140,7 +140,7 @@ struct ReverseDiffTwoArgJacobianPrep{SIG,C,T} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
-    f!, y, backend::AutoReverseDiff{compile}, x; strict::Val=Val(false)
+    strict::Val, f!, y, backend::AutoReverseDiff{compile}, x
 ) where {compile}
     _sig = DI.signature(f!, y, backend, x; strict)
     if compile
@@ -206,12 +206,7 @@ end
 ### With contexts
 
 function DI.prepare_jacobian(
-    f!,
-    y,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f!, y, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     config = JacobianConfig(y, x)

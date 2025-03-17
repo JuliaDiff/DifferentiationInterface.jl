@@ -7,13 +7,13 @@ struct FastDifferentiationTwoArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPre
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f!,
     y,
     backend::AutoFastDifferentiation,
     x,
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     x_var = variablize(x, :x)
@@ -108,13 +108,13 @@ struct FastDifferentiationTwoArgPullbackPrep{SIG,E1,E1!} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f!,
     y,
     backend::AutoFastDifferentiation,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     x_var = variablize(x, :x)
@@ -214,12 +214,7 @@ struct FastDifferentiationTwoArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{
 end
 
 function DI.prepare_derivative(
-    f!,
-    y,
-    backend::AutoFastDifferentiation,
-    x,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f!, y, backend::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
@@ -301,12 +296,12 @@ struct FastDifferentiationTwoArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
+    strict::Val,
     f!,
     y,
     backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
     x,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     x_var = variablize(x, :x)

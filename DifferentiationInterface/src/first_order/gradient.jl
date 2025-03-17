@@ -5,7 +5,9 @@
 
 $(docstring_prepare("gradient"))
 """
-function prepare_gradient end
+function prepare_gradient(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_gradient(strict, args...)
+end
 
 """
     prepare!_gradient(f, prep, backend, x, [contexts...]) -> new_prep
@@ -59,11 +61,11 @@ struct PullbackGradientPrep{SIG,Y,E<:PullbackPrep} <: GradientPrep{SIG}
 end
 
 function prepare_gradient(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     _sig = signature(f, backend, x, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
-    pullback_prep = prepare_pullback(f, backend, x, (one(typeof(y)),), contexts...; strict)
+    pullback_prep = prepare_pullback(strict, f, backend, x, (one(typeof(y)),), contexts...)
     return PullbackGradientPrep(_sig, y, pullback_prep)
 end
 

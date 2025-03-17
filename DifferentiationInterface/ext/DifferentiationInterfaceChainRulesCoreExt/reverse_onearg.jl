@@ -7,25 +7,25 @@ struct ChainRulesPullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f,
     backend::AutoReverseChainRules,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C};
-    strict::Val=Val(false),
 ) where {C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     return DI.NoPullbackPrep(_sig)
 end
 
 function DI.prepare_pullback_same_point(
+    strict,
     f,
     prep::DI.NoPullbackPrep,
     backend::AutoReverseChainRules,
     x,
     ty::NTuple,
     contexts::Vararg{DI.GeneralizedConstant,C};
-    strict::Val=Val(false),
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)

@@ -8,12 +8,12 @@ struct GTPSAOneArgPushforwardPrep{SIG,X} <: DI.PushforwardPrep{SIG}
 end
 
 function DI.prepare_pushforward(
+    strict::Val,
     f::F,
     backend::AutoGTPSA{D},
     x,
     tx::NTuple,
     contexts::Vararg{DI.Constant,C};
-    strict::Val=Val(false),
 ) where {F,D,C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     # For pushforward/JVP, we only actually need 1 single variable (in the GTPSA sense)
@@ -116,7 +116,7 @@ end
 
 # Unlike JVP, this requires us to use all variables 
 function DI.prepare_gradient(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
@@ -199,7 +199,7 @@ end
 
 # To materialize the entire Jacobian we use all variables 
 function DI.prepare_jacobian(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
@@ -285,7 +285,7 @@ struct GTPSAOneArgSecondDerivativePrep{SIG,X} <: DI.SecondDerivativePrep{SIG}
 end
 
 function DI.prepare_second_derivative(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
@@ -415,7 +415,7 @@ struct GTPSAOneArgHessianPrep{SIG,X,M} <: DI.HessianPrep{SIG}
 end
 
 function DI.prepare_hessian(
-    f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     if D != Nothing
@@ -550,15 +550,10 @@ struct GTPSAOneArgHVPPrep{SIG,E,H} <: DI.HVPPrep{SIG}
 end
 
 function DI.prepare_hvp(
-    f,
-    backend::AutoGTPSA,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Constant,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoGTPSA, x, tx::NTuple, contexts::Vararg{DI.Constant,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
-    hessprep = DI.prepare_hessian(f, backend, x, contexts...; strict)
+    hessprep = DI.prepare_hessian(strict, f, backend, x, contexts...)
     fc = DI.with_contexts(f, contexts...)
     hess = similar(x, typeof(fc(x)), (length(x), length(x)))
     return GTPSAOneArgHVPPrep(_sig, hessprep, hess)

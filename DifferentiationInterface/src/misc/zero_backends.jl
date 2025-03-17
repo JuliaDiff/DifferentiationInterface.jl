@@ -21,25 +21,20 @@ check_available(::AutoZeroForward) = true
 inplace_support(::AutoZeroForward) = InPlaceSupported()
 
 function prepare_pushforward(
-    f::F,
-    backend::AutoZeroForward,
-    x,
-    tx::NTuple,
-    contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val, f::F, backend::AutoZeroForward, x, tx::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, tx, contexts...; strict)
     return NoPushforwardPrep(_sig)
 end
 
 function prepare_pushforward(
+    strict::Val,
     f!::F,
     y,
     backend::AutoZeroForward,
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = signature(f!, y, backend, x, tx, contexts...; strict)
     return NoPushforwardPrep(_sig)
@@ -124,25 +119,20 @@ check_available(::AutoZeroReverse) = true
 inplace_support(::AutoZeroReverse) = InPlaceSupported()
 
 function prepare_pullback(
-    f::F,
-    backend::AutoZeroReverse,
-    x,
-    ty::NTuple,
-    contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val, f::F, backend::AutoZeroReverse, x, ty::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, ty, contexts...; strict)
     return NoPullbackPrep(_sig)
 end
 
 function prepare_pullback(
+    strict::Val,
     f!::F,
     y,
     backend::AutoZeroReverse,
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = signature(f!, y, backend, x, ty, contexts...; strict)
     return NoPullbackPrep(_sig)

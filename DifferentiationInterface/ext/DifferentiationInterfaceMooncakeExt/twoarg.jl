@@ -6,13 +6,13 @@ struct MooncakeTwoArgPullbackPrep{SIG,Tcache,DY,F} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback(
+    strict::Val,
     f!::F,
     y,
     backend::AutoMooncake,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     target_function = function (f!, y, x, contexts...)

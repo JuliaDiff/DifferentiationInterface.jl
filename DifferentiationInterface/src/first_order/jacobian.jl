@@ -6,7 +6,9 @@
 
 $(docstring_prepare("jacobian"; inplace=true))
 """
-function prepare_jacobian end
+function prepare_jacobian(args::Vararg{Any,N}; strict=Val(false)) where {N}
+    return prepare_jacobian(strict, args...)
+end
 
 """
     prepare!_jacobian(f,     prep, backend, x, [contexts...]) -> new_prep
@@ -89,7 +91,7 @@ struct PullbackJacobianPrep{
 end
 
 function prepare_jacobian(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     y = f(x, map(unwrap, contexts)...)
     perf = pushforward_performance(backend)
@@ -101,17 +103,12 @@ function prepare_jacobian(
     end
     # function barrier
     return _prepare_jacobian_aux(
-        perf, batch_size_settings, y, (f,), backend, x, contexts...; strict
+        strict, perf, batch_size_settings, y, (f,), backend, x, contexts...
     )
 end
 
 function prepare_jacobian(
-    f!::F,
-    y,
-    backend::AbstractADType,
-    x,
-    contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val, f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C};
 ) where {F,C}
     perf = pushforward_performance(backend)
     # type-unstable
@@ -122,11 +119,12 @@ function prepare_jacobian(
     end
     # function barrier
     return _prepare_jacobian_aux(
-        perf, batch_size_settings, y, (f!, y), backend, x, contexts...; strict
+        strict, perf, batch_size_settings, y, (f!, y), backend, x, contexts...
     )
 end
 
 function _prepare_jacobian_aux(
+    strict::Val,
     ::PushforwardFast,
     batch_size_settings::BatchSizeSettings{B},
     y,
@@ -134,7 +132,6 @@ function _prepare_jacobian_aux(
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C};
-    strict::Val,
 ) where {B,FY,C}
     _sig = signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
@@ -144,7 +141,7 @@ function _prepare_jacobian_aux(
     ]
     batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
     pushforward_prep = prepare_pushforward(
-        f_or_f!y..., backend, x, batched_seeds[1], contexts...; strict
+        strict, f_or_f!y..., backend, x, batched_seeds[1], contexts...
     )
     return PushforwardJacobianPrep(
         _sig, batch_size_settings, batched_seeds, batched_results, pushforward_prep
@@ -152,6 +149,7 @@ function _prepare_jacobian_aux(
 end
 
 function _prepare_jacobian_aux(
+    strict::Val,
     ::PushforwardSlow,
     batch_size_settings::BatchSizeSettings{B},
     y,
@@ -159,7 +157,6 @@ function _prepare_jacobian_aux(
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C};
-    strict::Val,
 ) where {B,FY,C}
     _sig = signature(f_or_f!y..., backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
@@ -169,7 +166,7 @@ function _prepare_jacobian_aux(
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
     pullback_prep = prepare_pullback(
-        f_or_f!y..., backend, x, batched_seeds[1], contexts...; strict
+        strict, f_or_f!y..., backend, x, batched_seeds[1], contexts...
     )
     return PullbackJacobianPrep(
         _sig, batch_size_settings, batched_seeds, batched_results, pullback_prep

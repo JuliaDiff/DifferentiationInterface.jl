@@ -9,12 +9,7 @@ struct FiniteDiffOneArgPushforwardPrep{SIG,C,R,A,D} <: DI.PushforwardPrep{SIG}
 end
 
 function DI.prepare_pushforward(
-    f,
-    backend::AutoFiniteDiff,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-    strict::Val=Val(false),
+    strict::Val, f, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
@@ -130,7 +125,7 @@ struct FiniteDiffOneArgDerivativePrep{SIG,C,R,A,D} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
@@ -259,7 +254,7 @@ struct FiniteDiffGradientPrep{SIG,C,R,A,D} <: DI.GradientPrep{SIG}
 end
 
 function DI.prepare_gradient(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
@@ -347,7 +342,7 @@ struct FiniteDiffOneArgJacobianPrep{SIG,C,R,A,D} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
@@ -452,7 +447,7 @@ struct FiniteDiffHessianPrep{SIG,C1,C2,RG,AG,RH,AH} <: DI.HessianPrep{SIG}
 end
 
 function DI.prepare_hessian(
-    f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}; strict::Val=Val(false)
+    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.with_contexts(f, contexts...)
