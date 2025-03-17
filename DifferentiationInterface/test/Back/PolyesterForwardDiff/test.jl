@@ -30,13 +30,6 @@ test_differentiation(
     backends,
     default_scenarios(; include_constantified=true, include_cachified=true);
     logging=LOGGING,
-    excluded=SECOND_ORDER,
-);
-
-test_differentiation(
-    SecondOrder(AutoPolyesterForwardDiff(), AutoPolyesterForwardDiff()),
-    default_scenarios();
-    logging=LOGGING,
 );
 
 @testset "Batch size" begin

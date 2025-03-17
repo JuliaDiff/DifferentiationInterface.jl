@@ -442,7 +442,7 @@ function DI.value_derivative_and_second_derivative(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return DI.value_derivative_and_second_derivative(
-        f, prep, single_threaded(backend), x, contexts...
+        f, prep.single_threaded_prep, single_threaded(backend), x, contexts...
     )
 end
 
@@ -457,7 +457,7 @@ function DI.value_derivative_and_second_derivative!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return DI.value_derivative_and_second_derivative!(
-        f, der, der2, prep, single_threaded(backend), x, contexts...
+        f, der, der2, prep.single_threaded_prep, single_threaded(backend), x, contexts...
     )
 end
 
@@ -469,7 +469,9 @@ function DI.second_derivative(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return DI.second_derivative(f, prep, single_threaded(backend), x, contexts...)
+    return DI.second_derivative(
+        f, prep.single_threaded_prep, single_threaded(backend), x, contexts...
+    )
 end
 
 function DI.second_derivative!(
@@ -481,5 +483,7 @@ function DI.second_derivative!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return DI.second_derivative!(f, der2, prep, single_threaded(backend), x, contexts...)
+    return DI.second_derivative!(
+        f, der2, prep.single_threaded_prep, single_threaded(backend), x, contexts...
+    )
 end
