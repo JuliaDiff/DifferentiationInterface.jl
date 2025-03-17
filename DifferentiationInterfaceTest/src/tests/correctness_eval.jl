@@ -54,6 +54,7 @@ for op in ALL_OPS
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -121,6 +122,7 @@ for op in ALL_OPS
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -182,9 +184,9 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, res1_in1_val, prepstrict, ba, x, contexts...
+                nothing, mysimilar(res1), prepstrict, ba, x, contexts...
             )
-            @test_throws PME $op!(nothing, res1_in1_noval, prepstrict, ba, x, contexts...)
+            @test_throws PME $op!(nothing, mysimilar(res1), prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -204,6 +206,7 @@ for op in ALL_OPS
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -260,8 +263,10 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
-            @test_throws PME $val_and_op(nothing, y_in1_val, prepstrict, ba, x, contexts...)
-            @test_throws PME $op(nothing, y_in1_noval, prepstrict, ba, x, contexts...)
+            @test_throws PME $val_and_op(
+                nothing, mysimilar(y), prepstrict, ba, x, contexts...
+            )
+            @test_throws PME $op(nothing, mysimilar(y), prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -279,6 +284,7 @@ for op in ALL_OPS
             xrand, yrand = myrandom(x), myrandom(y)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -344,10 +350,10 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, y_in1_val, res1_in1_val, prepstrict, ba, x, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, contexts...
             )
             @test_throws PME $op!(
-                nothing, y_in1_noval, res1_in1_noval, prepstrict, ba, x, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, contexts...
             )
             scenario_intact && @test new_scen == scen
             return nothing
@@ -367,6 +373,7 @@ for op in ALL_OPS
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -436,6 +443,7 @@ for op in ALL_OPS
             xrand = myrandom(x)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -501,9 +509,9 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, res1_in1_val, res2_in1_val, prepstrict, ba, x, contexts...
+                nothing, mysimilar(res1), mysimilar(res2), prepstrict, ba, x, contexts...
             )
-            @test_throws PME $op!(nothing, res2_in1_noval, prepstrict, ba, x, contexts...)
+            @test_throws PME $op!(nothing, mysimilar(res2), prepstrict, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -522,6 +530,7 @@ for op in ALL_OPS
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -588,6 +597,7 @@ for op in ALL_OPS
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -648,10 +658,10 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, res1_in1_val, prepstrict, ba, x, tang, contexts...
+                nothing, mysimilar(res1), prepstrict, ba, x, tang, contexts...
             )
             @test_throws PME $op!(
-                nothing, res1_in1_noval, prepstrict, ba, x, tang, contexts...
+                nothing, mysimilar(res1), prepstrict, ba, x, tang, contexts...
             )
             scenario_intact && @test new_scen == scen
             return nothing
@@ -670,6 +680,7 @@ for op in ALL_OPS
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -730,9 +741,11 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op(
-                nothing, y_in1_val, prepstrict, ba, x, tang, contexts...
+                nothing, mysimilar(y), prepstrict, ba, x, tang, contexts...
             )
-            @test_throws PME $op(nothing, y_in1_noval, prepstrict, ba, x, tang, contexts...)
+            @test_throws PME $op(
+                nothing, mysimilar(y), prepstrict, ba, x, tang, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -750,6 +763,7 @@ for op in ALL_OPS
             xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -828,10 +842,10 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, y_in1_val, res1_in1_val, prepstrict, ba, x, tang, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, tang, contexts...
             )
             @test_throws PME $op!(
-                nothing, y_in2_noval, res1_in2_noval, prepstrict, ba, x, tang, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, tang, contexts...
             )
             scenario_intact && @test new_scen == scen
             return nothing
@@ -851,6 +865,7 @@ for op in ALL_OPS
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -917,6 +932,7 @@ for op in ALL_OPS
             xrand, tangrand = myrandom(x), myrandom(tang)
             rewrap = Rewrap(contexts...)
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 new_smaller =
                     if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
@@ -993,10 +1009,17 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $op!(
-                nothing, res2_in1_noval, prepstrict, ba, x, tang, contexts...
+                nothing, mysimilar(res2), prepstrict, ba, x, tang, contexts...
             )
             @test_throws PME $val_and_op!(
-                nothing, res1_in1_val, res2_in1_val, prepstrict, ba, x, tang, contexts...
+                nothing,
+                mysimilar(res1),
+                mysimilar(res2),
+                prepstrict,
+                ba,
+                x,
+                tang,
+                contexts...,
             )
             scenario_intact && @test new_scen == scen
             return nothing
