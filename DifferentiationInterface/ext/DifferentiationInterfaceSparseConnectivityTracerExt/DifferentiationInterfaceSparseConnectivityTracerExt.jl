@@ -55,7 +55,7 @@ function DI.hessian_sparsity_with_contexts(
     x,
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
-    contexts_tracer = hessian_translate(detector, contexts...)
+    contexts_tracer = hessian_translate(detector, x, contexts...)
     fc = DI.FixTail(f, contexts_tracer...)
     return hessian_sparsity(fc, x, detector)
 end
