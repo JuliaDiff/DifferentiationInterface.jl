@@ -35,7 +35,7 @@ static_scenarios(;
     include_closurified=true,
     include_batchified=true,
     include_cachified=true,
-    use_tuples=false,
+    use_tuples=true,
 )
 
 ## Weird arrays

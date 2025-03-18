@@ -213,9 +213,9 @@ function cachify(scen::Scenario{op,pl_op,pl_fun}; use_tuples) where {op,pl_op,pl
     cache_f = StoreInCache{pl_fun}(f)
     if use_tuples
         y_cache = if scen.y isa Number
-            (; useful_cache=[myzero(scen.y)], useless_cache=([myzero(scen.y)],))
+            (; useful_cache=([myzero(scen.y)],), useless_cache=[myzero(scen.y)])
         else
-            (; useful_cache=mysimilar(scen.y), useless_cache=(mysimilar(scen.y),))
+            (; useful_cache=(mysimilar(scen.y),), useless_cache=mysimilar(scen.y))
         end
     else
         y_cache = if scen.y isa Number
