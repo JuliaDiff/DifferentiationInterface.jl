@@ -7,12 +7,6 @@ using DifferentiationInterface:
 using SparseMatrixColorings
 using Test
 
-test_differentiation(
-    AutoSimpleFiniteDiff(),
-    default_scenarios(; include_normal=false, include_cachified=true);
-    logging=true,
-)
-
 LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [ #
