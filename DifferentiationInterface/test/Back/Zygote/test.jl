@@ -27,7 +27,9 @@ end
 @testset "Dense" begin
     test_differentiation(
         backends,
-        default_scenarios(; include_constantified=true, include_cachified=true);
+        default_scenarios(;
+            include_constantified=true, include_cachified=true, use_tuples=true
+        );
         excluded=[:second_derivative],
         logging=LOGGING,
     )

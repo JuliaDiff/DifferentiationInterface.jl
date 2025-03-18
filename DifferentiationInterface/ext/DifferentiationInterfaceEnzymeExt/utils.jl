@@ -54,7 +54,7 @@ force_annotation(f::F) where {F} = Const(f)
 end
 
 @inline function _translate(
-    backend::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedCache
+    backend::AutoEnzyme, ::Mode, ::Val{B}, c::Union{DI.Cache,DI.PrepContext}
 ) where {B}
     if B == 1
         return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))

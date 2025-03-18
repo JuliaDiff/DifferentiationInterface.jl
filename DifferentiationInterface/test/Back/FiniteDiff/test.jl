@@ -22,7 +22,9 @@ end
 @testset "Dense" begin
     test_differentiation(
         AutoFiniteDiff(),
-        default_scenarios(; include_constantified=true, include_cachified=true);
+        default_scenarios(;
+            include_constantified=true, include_cachified=true, use_tuples=true
+        );
         excluded=[:second_derivative, :hvp],
         logging=LOGGING,
     )

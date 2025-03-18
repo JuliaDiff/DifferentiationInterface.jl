@@ -55,7 +55,7 @@ end;
 
     test_differentiation(
         backends[2],
-        default_scenarios(; include_normal=false, include_cachified=true);
+        default_scenarios(; include_normal=false, include_cachified=true, use_tuples=true);
         excluded=SECOND_ORDER,
         logging=LOGGING,
     )

@@ -86,7 +86,9 @@ end
         MyAutoSparse.(
             vcat(adaptive_backends, MixedMode(adaptive_backends[1], adaptive_backends[2]))
         ),
-        sparse_scenarios(; include_constantified=true, include_cachified=true);
+        sparse_scenarios(;
+            include_constantified=true, include_cachified=true, use_tuples=true
+        );
         sparsity=true,
         logging=LOGGING,
     )

@@ -29,7 +29,10 @@ end
 
 mystatic(x::Tuple) = map(mystatic, x)
 mystatic(x::DI.Constant) = DI.Constant(mystatic(DI.unwrap(x)))
-mystatic(x::DI.Cache) = DI.Cache(mymutablestatic(DI.unwrap(x)))
+mystatic(x::DI.Cache{<:AbstractArray}) = DI.Cache(mymutablestatic(DI.unwrap(x)))
+function mystatic(x::DI.Cache{<:Union{Tuple,NamedTuple}})
+    return map(mystatic, map(DI.Cache, DI.unwrap(x)))
+end
 mystatic(::Nothing) = nothing
 
 function mystatic(scen::DIT.Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}

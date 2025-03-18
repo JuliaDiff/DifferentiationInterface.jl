@@ -17,7 +17,10 @@ DI.check_available(::AutoZygote) = true
 DI.inplace_support(::AutoZygote) = DI.InPlaceNotSupported()
 
 translate(c::DI.Context) = DI.unwrap(c)
-translate(c::DI.Cache) = Buffer(DI.unwrap(c))
+translate(c::DI.Cache{<:AbstractArray}) = Buffer(DI.unwrap(c))
+function translate(c::DI.Cache{<:Union{Tuple,NamedTuple}})
+    return map(translate, map(DI.Cache, DI.unwrap(c)))
+end
 
 ## Pullback
 
