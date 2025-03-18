@@ -183,7 +183,7 @@ Base.show(io::IO, f::StoreInCache) = print(io, "StoreInCache($(f.f))")
 (sc::StoreInCache{:out})(x, y_cache::Tuple) = sc(x, first(y_cache))
 (sc::StoreInCache{:in})(y, x, y_cache::Tuple) = sc(y, x, first(y_cache))
 
-function (sc::StoreInCache{:out})(x, y_cache::AbstractArray)
+function (sc::StoreInCache{:out})(x, y_cache)
     y = sc.f(x)
     if y isa Number
         y_cache[1] = y
@@ -194,7 +194,7 @@ function (sc::StoreInCache{:out})(x, y_cache::AbstractArray)
     end
 end
 
-function (sc::StoreInCache{:in})(y, x, y_cache::AbstractArray)
+function (sc::StoreInCache{:in})(y, x, y_cache)
     sc.f(y_cache, x)
     copyto!(y, y_cache)
     return nothing
