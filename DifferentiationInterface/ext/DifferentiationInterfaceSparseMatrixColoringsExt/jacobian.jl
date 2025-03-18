@@ -36,7 +36,7 @@ struct PullbackSparseJacobianPrep{
     pullback_prep::E
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     dense_backend = dense_ad(backend)
@@ -45,7 +45,7 @@ function DI.prepare_jacobian(
     return _prepare_sparse_jacobian_aux(strict, perf, y, (f,), backend, x, contexts...)
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f!::F, y, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     dense_backend = dense_ad(backend)
@@ -108,7 +108,7 @@ function _prepare_sparse_jacobian_aux_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
-    pushforward_prep = DI.prepare_pushforward(
+    pushforward_prep = DI.prepare_pushforward_nokwarg(
         strict, f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
     return PushforwardSparseJacobianPrep(
@@ -142,7 +142,7 @@ function _prepare_sparse_jacobian_aux_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    pullback_prep = DI.prepare_pullback(
+    pullback_prep = DI.prepare_pullback_nokwarg(
         strict, f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
     return PullbackSparseJacobianPrep(

@@ -7,7 +7,7 @@ struct FastDifferentiationOneArgPushforwardPrep{SIG,Y,E1,E1!} <: DI.PushforwardP
     jvp_exe!::E1!
 end
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f,
     backend::AutoFastDifferentiation,
@@ -105,7 +105,7 @@ struct FastDifferentiationOneArgPullbackPrep{SIG,E1,E1!} <: DI.PullbackPrep{SIG}
     vjp_exe!::E1!
 end
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val,
     f,
     backend::AutoFastDifferentiation,
@@ -204,7 +204,7 @@ struct FastDifferentiationOneArgDerivativePrep{SIG,Y,E1,E1!} <: DI.DerivativePre
     der_exe!::E1!
 end
 
-function DI.prepare_derivative(
+function DI.prepare_derivative_nokwarg(
     strict::Val, f, backend::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -284,7 +284,7 @@ struct FastDifferentiationOneArgGradientPrep{SIG,E1,E1!} <: DI.GradientPrep{SIG}
     jac_exe!::E1!
 end
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -360,7 +360,7 @@ struct FastDifferentiationOneArgJacobianPrep{SIG,Y,E1,E1!} <: DI.JacobianPrep{SI
     jac_exe!::E1!
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val,
     f,
     backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
@@ -445,7 +445,7 @@ struct FastDifferentiationAllocatingSecondDerivativePrep{SIG,Y,D,E2,E2!} <:
     der2_exe!::E2!
 end
 
-function DI.prepare_second_derivative(
+function DI.prepare_second_derivative_nokwarg(
     strict::Val, f, backend::AutoFastDifferentiation, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -462,7 +462,7 @@ function DI.prepare_second_derivative(
     der2_exe = make_function(der2_vec_var, x_vec_var, context_vec_vars...; in_place=false)
     der2_exe! = make_function(der2_vec_var, x_vec_var, context_vec_vars...; in_place=true)
 
-    derivative_prep = DI.prepare_derivative(f, backend, x, contexts...)
+    derivative_prep = DI.prepare_derivative_nokwarg(strict, f, backend, x, contexts...)
     return FastDifferentiationAllocatingSecondDerivativePrep(
         _sig, y_prototype, derivative_prep, der2_exe, der2_exe!
     )
@@ -534,7 +534,7 @@ struct FastDifferentiationHVPPrep{SIG,E2,E2!,E1} <: DI.HVPPrep{SIG}
     gradient_prep::E1
 end
 
-function DI.prepare_hvp(
+function DI.prepare_hvp_nokwarg(
     strict::Val,
     f,
     backend::AutoFastDifferentiation,
@@ -557,7 +557,7 @@ function DI.prepare_hvp(
         hv_vec_var, x_vec_var, v_vec_var, context_vec_vars...; in_place=true
     )
 
-    gradient_prep = DI.prepare_gradient(f, backend, x, contexts...)
+    gradient_prep = DI.prepare_gradient_nokwarg(strict, f, backend, x, contexts...)
     return FastDifferentiationHVPPrep(_sig, hvp_exe, hvp_exe!, gradient_prep)
 end
 
@@ -633,7 +633,7 @@ struct FastDifferentiationHessianPrep{SIG,G,E2,E2!} <: DI.HessianPrep{SIG}
     hess_exe!::E2!
 end
 
-function DI.prepare_hessian(
+function DI.prepare_hessian_nokwarg(
     strict::Val,
     f,
     backend::Union{AutoFastDifferentiation,AutoSparse{<:AutoFastDifferentiation}},
@@ -656,7 +656,9 @@ function DI.prepare_hessian(
     hess_exe = make_function(hess_var, x_vec_var, context_vec_vars...; in_place=false)
     hess_exe! = make_function(hess_var, x_vec_var, context_vec_vars...; in_place=true)
 
-    gradient_prep = DI.prepare_gradient(f, dense_ad(backend), x, contexts...)
+    gradient_prep = DI.prepare_gradient_nokwarg(
+        strict, f, dense_ad(backend), x, contexts...
+    )
     return FastDifferentiationHessianPrep(_sig, gradient_prep, hess_exe, hess_exe!)
 end
 

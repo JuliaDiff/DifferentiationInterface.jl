@@ -8,7 +8,7 @@ struct ForwardDiffTwoArgPushforwardPrep{SIG,T,X,Y,CD} <: DI.PushforwardPrep{SIG}
     contexts_dual::CD
 end
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f!::F,
     y,
@@ -137,7 +137,7 @@ function DI.value_and_derivative(
         result = derivative!(result, fc!, y, x)
         return DiffResults.value(result), DiffResults.derivative(result)
     else
-        prep = DI.prepare_derivative(f!, y, backend, x, contexts...)
+        prep = DI.prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.value_and_derivative(f!, y, prep, backend, x, contexts...)
     end
 end
@@ -151,7 +151,7 @@ function DI.value_and_derivative!(
         result = derivative!(result, fc!, y, x)
         return DiffResults.value(result), DiffResults.derivative(result)
     else
-        prep = DI.prepare_derivative(f!, y, backend, x, contexts...)
+        prep = DI.prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.value_and_derivative!(f!, y, der, prep, backend, x, contexts...)
     end
 end
@@ -163,7 +163,7 @@ function DI.derivative(
         fc! = DI.with_contexts(f!, contexts...)
         return derivative(fc!, y, x)
     else
-        prep = DI.prepare_derivative(f!, y, backend, x, contexts...)
+        prep = DI.prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.derivative(f!, y, prep, backend, x, contexts...)
     end
 end
@@ -175,7 +175,7 @@ function DI.derivative!(
         fc! = DI.with_contexts(f!, contexts...)
         return derivative!(der, fc!, y, x)
     else
-        prep = DI.prepare_derivative(f!, y, backend, x, contexts...)
+        prep = DI.prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.derivative!(f!, y, der, prep, backend, x, contexts...)
     end
 end
@@ -188,7 +188,7 @@ struct ForwardDiffTwoArgDerivativePrep{SIG,C,CD} <: DI.DerivativePrep{SIG}
     contexts_dual::CD
 end
 
-function DI.prepare_derivative(
+function DI.prepare_derivative_nokwarg(
     strict::Val, f!::F, y, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C};
 ) where {F,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
@@ -212,7 +212,9 @@ function DI.prepare!_derivative(
         resize!(config.duals, length(y))
         return old_prep
     else
-        return DI.prepare_derivative(DI.is_strict(old_prep), f!, y, backend, x, contexts...)
+        return DI.prepare_derivative_nokwarg(
+            DI.is_strict(old_prep), f!, y, backend, x, contexts...
+        )
     end
 end
 
@@ -312,7 +314,7 @@ function DI.value_and_jacobian(
         result = jacobian!(result, fc!, y, x)
         return DiffResults.value(result), DiffResults.jacobian(result)
     else
-        prep = DI.prepare_jacobian(f!, y, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.value_and_jacobian(f!, y, prep, backend, x, contexts...)
     end
 end
@@ -330,7 +332,7 @@ function DI.value_and_jacobian!(
         result = jacobian!(result, fc!, y, x)
         return DiffResults.value(result), DiffResults.jacobian(result)
     else
-        prep = DI.prepare_jacobian(f!, y, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.value_and_jacobian!(f!, y, jac, prep, backend, x, contexts...)
     end
 end
@@ -346,7 +348,7 @@ function DI.jacobian(
         fc! = DI.with_contexts(f!, contexts...)
         return jacobian(fc!, y, x)
     else
-        prep = DI.prepare_jacobian(f!, y, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.jacobian(f!, y, prep, backend, x, contexts...)
     end
 end
@@ -362,7 +364,7 @@ function DI.jacobian!(
         fc! = DI.with_contexts(f!, contexts...)
         return jacobian!(jac, fc!, y, x)
     else
-        prep = DI.prepare_jacobian(f!, y, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
         return DI.jacobian!(f!, y, jac, prep, backend, x, contexts...)
     end
 end
@@ -375,7 +377,7 @@ struct ForwardDiffTwoArgJacobianPrep{SIG,C,CD} <: DI.JacobianPrep{SIG}
     contexts_dual::CD
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f!::F, y, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
@@ -402,7 +404,9 @@ function DI.prepare!_jacobian(
         resize!(xduals, length(x))
         return old_prep
     else
-        return DI.prepare_jacobian(DI.is_strict(old_prep), f!, y, backend, x, contexts...)
+        return DI.prepare_jacobian_nokwarg(
+            DI.is_strict(old_prep), f!, y, backend, x, contexts...
+        )
     end
 end
 

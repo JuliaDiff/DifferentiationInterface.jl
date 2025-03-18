@@ -52,7 +52,7 @@ struct EnzymeReverseOneArgPullbackPrep{SIG,Y} <: DI.PullbackPrep{SIG}
     y_example::Y  # useful to create return activity
 end
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
@@ -191,7 +191,7 @@ end
 
 ## Gradient
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},

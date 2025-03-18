@@ -20,14 +20,14 @@ ADTypes.mode(::AutoZeroForward) = ForwardMode()
 check_available(::AutoZeroForward) = true
 inplace_support(::AutoZeroForward) = InPlaceSupported()
 
-function prepare_pushforward(
+function prepare_pushforward_nokwarg(
     strict::Val, f::F, backend::AutoZeroForward, x, tx::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, tx, contexts...; strict)
     return NoPushforwardPrep(_sig)
 end
 
-function prepare_pushforward(
+function prepare_pushforward_nokwarg(
     strict::Val,
     f!::F,
     y,
@@ -118,14 +118,14 @@ ADTypes.mode(::AutoZeroReverse) = ReverseMode()
 check_available(::AutoZeroReverse) = true
 inplace_support(::AutoZeroReverse) = InPlaceSupported()
 
-function prepare_pullback(
+function prepare_pullback_nokwarg(
     strict::Val, f::F, backend::AutoZeroReverse, x, ty::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, ty, contexts...; strict)
     return NoPullbackPrep(_sig)
 end
 
-function prepare_pullback(
+function prepare_pullback_nokwarg(
     strict::Val,
     f!::F,
     y,

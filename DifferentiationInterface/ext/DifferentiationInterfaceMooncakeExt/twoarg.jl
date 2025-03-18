@@ -5,7 +5,7 @@ struct MooncakeTwoArgPullbackPrep{SIG,Tcache,DY,F} <: DI.PullbackPrep{SIG}
     target_function::F
 end
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val,
     f!::F,
     y,

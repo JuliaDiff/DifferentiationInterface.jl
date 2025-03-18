@@ -6,7 +6,7 @@ struct ChainRulesPullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
     pb::PB
 end
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val,
     f,
     backend::AutoReverseChainRules,

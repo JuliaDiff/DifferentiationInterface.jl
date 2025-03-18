@@ -67,7 +67,7 @@ struct ForwardDiffOneArgPushforwardPrep{SIG,T,X,CD} <: DI.PushforwardPrep{SIG}
     contexts_dual::CD
 end
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f::F,
     backend::AutoForwardDiff,
@@ -215,11 +215,13 @@ end
 
 ### Prepared
 
-function DI.prepare_derivative(
+function DI.prepare_derivative_nokwarg(
     strict::Val, f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C};
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    pushforward_prep = DI.prepare_pushforward(strict, f, backend, x, (one(x),), contexts...)
+    pushforward_prep = DI.prepare_pushforward_nokwarg(
+        strict, f, backend, x, (one(x),), contexts...
+    )
     return ForwardDiffOneArgDerivativePrep(_sig, pushforward_prep)
 end
 
@@ -297,7 +299,7 @@ function DI.value_and_gradient!(
         grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
         return y, grad
     else
-        prep = DI.prepare_gradient(f, backend, x, contexts...)
+        prep = DI.prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.value_and_gradient!(f, grad, prep, backend, x, contexts...)
     end
 end
@@ -315,7 +317,7 @@ function DI.value_and_gradient(
         result = gradient!(result, fc, x)
         return DR.value(result), DR.gradient(result)
     else
-        prep = DI.prepare_gradient(f, backend, x, contexts...)
+        prep = DI.prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.value_and_gradient(f, prep, backend, x, contexts...)
     end
 end
@@ -331,7 +333,7 @@ function DI.gradient!(
         fc = DI.with_contexts(f, contexts...)
         return gradient!(grad, fc, x)
     else
-        prep = DI.prepare_gradient(f, backend, x, contexts...)
+        prep = DI.prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.gradient!(f, grad, prep, backend, x, contexts...)
     end
 end
@@ -347,7 +349,7 @@ function DI.gradient(
         fc = DI.with_contexts(f, contexts...)
         return gradient(fc, x)
     else
-        prep = DI.prepare_gradient(f, backend, x, contexts...)
+        prep = DI.prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.gradient(f, prep, backend, x, contexts...)
     end
 end
@@ -360,7 +362,7 @@ struct ForwardDiffGradientPrep{SIG,C,CD} <: DI.GradientPrep{SIG}
     contexts_dual::CD
 end
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val,
     f::F,
     backend::AutoForwardDiff,
@@ -471,7 +473,7 @@ function DI.value_and_jacobian!(
         jac === DR.jacobian(result) || copyto!(jac, DR.jacobian(result))
         return y, jac
     else
-        prep = DI.prepare_jacobian(f, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.value_and_jacobian!(f, jac, prep, backend, x, contexts...)
     end
 end
@@ -487,7 +489,7 @@ function DI.value_and_jacobian(
         fc = DI.with_contexts(f, contexts...)
         return fc(x), jacobian(fc, x)
     else
-        prep = DI.prepare_jacobian(f, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.value_and_jacobian(f, prep, backend, x, contexts...)
     end
 end
@@ -503,7 +505,7 @@ function DI.jacobian!(
         fc = DI.with_contexts(f, contexts...)
         return jacobian!(jac, fc, x)
     else
-        prep = DI.prepare_jacobian(f, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.jacobian!(f, jac, prep, backend, x, contexts...)
     end
 end
@@ -519,7 +521,7 @@ function DI.jacobian(
         fc = DI.with_contexts(f, contexts...)
         return jacobian(fc, x)
     else
-        prep = DI.prepare_jacobian(f, backend, x, contexts...)
+        prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.jacobian(f, prep, backend, x, contexts...)
     end
 end
@@ -532,7 +534,7 @@ struct ForwardDiffOneArgJacobianPrep{SIG,C,CD} <: DI.JacobianPrep{SIG}
     contexts_dual::CD
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C};
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -620,7 +622,7 @@ end
 
 ## Second derivative
 
-function DI.prepare_second_derivative(
+function DI.prepare_second_derivative_nokwarg(
     strict::Val, f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C};
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -719,7 +721,7 @@ function DI.hessian!(
         fc = DI.with_contexts(f, contexts...)
         return hessian!(hess, fc, x)
     else
-        prep = DI.prepare_hessian(f, backend, x, contexts...)
+        prep = DI.prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.hessian!(f, hess, prep, backend, x, contexts...)
     end
 end
@@ -735,7 +737,7 @@ function DI.hessian(
         fc = DI.with_contexts(f, contexts...)
         return hessian(fc, x)
     else
-        prep = DI.prepare_hessian(f, backend, x, contexts...)
+        prep = DI.prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.hessian(f, prep, backend, x, contexts...)
     end
 end
@@ -761,7 +763,7 @@ function DI.value_gradient_and_hessian!(
         hess === DR.hessian(result) || copyto!(hess, DR.hessian(result))
         return (y, grad, hess)
     else
-        prep = DI.prepare_hessian(f, backend, x, contexts...)
+        prep = DI.prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.value_gradient_and_hessian!(f, grad, hess, prep, backend, x, contexts...)
     end
 end
@@ -779,7 +781,7 @@ function DI.value_gradient_and_hessian(
         result = hessian!(result, fc, x)
         return (DR.value(result), DR.gradient(result), DR.hessian(result))
     else
-        prep = DI.prepare_hessian(f, backend, x, contexts...)
+        prep = DI.prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
         return DI.value_gradient_and_hessian(f, prep, backend, x, contexts...)
     end
 end
@@ -793,7 +795,7 @@ struct ForwardDiffHessianPrep{SIG,C1,C2,CD} <: DI.HessianPrep{SIG}
     contexts_dual::CD
 end
 
-function DI.prepare_hessian(
+function DI.prepare_hessian_nokwarg(
     strict::Val, f::F, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context,C};
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)

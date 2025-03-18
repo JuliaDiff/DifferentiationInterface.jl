@@ -1,6 +1,6 @@
 ## Pushforward
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f!::F,
     y,

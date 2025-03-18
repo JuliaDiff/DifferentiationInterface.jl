@@ -10,7 +10,9 @@ DI.pullback_performance(::AutoDiffractor) = DI.PullbackSlow()
 
 ## Pushforward
 
-function DI.prepare_pushforward(strict::Val, f, backend::AutoDiffractor, x, tx::NTuple)
+function DI.prepare_pushforward_nokwarg(
+    strict::Val, f, backend::AutoDiffractor, x, tx::NTuple
+)
     _sig = DI.signature(f, backend, x, tx; strict)
     return DI.NoPushforwardPrep(_sig)
 end

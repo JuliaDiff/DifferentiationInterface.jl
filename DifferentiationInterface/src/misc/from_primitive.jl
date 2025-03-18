@@ -41,7 +41,7 @@ struct FromPrimitivePushforwardPrep{SIG,E<:PushforwardPrep} <: PushforwardPrep{S
     pushforward_prep::E
 end
 
-function prepare_pushforward(
+function prepare_pushforward_nokwarg(
     strict::Val,
     f::F,
     backend::AutoForwardFromPrimitive,
@@ -50,11 +50,13 @@ function prepare_pushforward(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, tx, contexts...; strict)
-    primitive_prep = prepare_pushforward(strict, f, backend.backend, x, tx, contexts...)
+    primitive_prep = prepare_pushforward_nokwarg(
+        strict, f, backend.backend, x, tx, contexts...
+    )
     return FromPrimitivePushforwardPrep(_sig, primitive_prep)
 end
 
-function prepare_pushforward(
+function prepare_pushforward_nokwarg(
     strict::Val,
     f!::F,
     y,
@@ -64,7 +66,9 @@ function prepare_pushforward(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f!, y, backend, x, tx, contexts...; strict)
-    primitive_prep = prepare_pushforward(strict, f!, y, backend.backend, x, tx, contexts...)
+    primitive_prep = prepare_pushforward_nokwarg(
+        strict, f!, y, backend.backend, x, tx, contexts...
+    )
     return FromPrimitivePushforwardPrep(_sig, primitive_prep)
 end
 
@@ -158,7 +162,7 @@ struct FromPrimitivePullbackPrep{SIG,E<:PullbackPrep} <: PullbackPrep{SIG}
     pullback_prep::E
 end
 
-function prepare_pullback(
+function prepare_pullback_nokwarg(
     strict::Val,
     f::F,
     backend::AutoReverseFromPrimitive,
@@ -167,11 +171,13 @@ function prepare_pullback(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, ty, contexts...; strict)
-    primitive_prep = prepare_pullback(strict, f, backend.backend, x, ty, contexts...)
+    primitive_prep = prepare_pullback_nokwarg(
+        strict, f, backend.backend, x, ty, contexts...
+    )
     return FromPrimitivePullbackPrep(_sig, primitive_prep)
 end
 
-function prepare_pullback(
+function prepare_pullback_nokwarg(
     strict::Val,
     f!::F,
     y,
@@ -181,7 +187,9 @@ function prepare_pullback(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f!, y, backend, x, ty, contexts...; strict)
-    primitive_prep = prepare_pullback(strict, f!, y, backend.backend, x, ty, contexts...)
+    primitive_prep = prepare_pullback_nokwarg(
+        strict, f!, y, backend.backend, x, ty, contexts...
+    )
     return FromPrimitivePullbackPrep(_sig, primitive_prep)
 end
 

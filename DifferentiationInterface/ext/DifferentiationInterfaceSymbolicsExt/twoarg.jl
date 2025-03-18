@@ -6,7 +6,7 @@ struct SymbolicsTwoArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPrep{SIG}
     pushforward_exe!::E1!
 end
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f!,
     y,
@@ -104,7 +104,7 @@ struct SymbolicsTwoArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{SIG}
     der_exe!::E1!
 end
 
-function DI.prepare_derivative(
+function DI.prepare_derivative_nokwarg(
     strict::Val, f!, y, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
@@ -182,7 +182,7 @@ struct SymbolicsTwoArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
     jac_exe!::E1!
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val,
     f!,
     y,

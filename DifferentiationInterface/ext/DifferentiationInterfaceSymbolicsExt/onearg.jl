@@ -6,7 +6,7 @@ struct SymbolicsOneArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPrep{SIG}
     pf_exe!::E1!
 end
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
@@ -94,7 +94,7 @@ struct SymbolicsOneArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{SIG}
     der_exe!::E1!
 end
 
-function DI.prepare_derivative(
+function DI.prepare_derivative_nokwarg(
     strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -168,7 +168,7 @@ struct SymbolicsOneArgGradientPrep{SIG,E1,E1!} <: DI.GradientPrep{SIG}
     grad_exe!::E1!
 end
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -238,7 +238,7 @@ struct SymbolicsOneArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
     jac_exe!::E1!
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val,
     f,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
@@ -316,7 +316,7 @@ struct SymbolicsOneArgHessianPrep{SIG,G,E2,E2!} <: DI.HessianPrep{SIG}
     hess_exe!::E2!
 end
 
-function DI.prepare_hessian(
+function DI.prepare_hessian_nokwarg(
     strict::Val,
     f,
     backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
@@ -336,7 +336,9 @@ function DI.prepare_hessian(
     res = build_function(hess_var, vec(x_var), context_vars...; expression=Val(false))
     (hess_exe, hess_exe!) = res
 
-    gradient_prep = DI.prepare_gradient(strict, f, dense_ad(backend), x, contexts...)
+    gradient_prep = DI.prepare_gradient_nokwarg(
+        strict, f, dense_ad(backend), x, contexts...
+    )
     return SymbolicsOneArgHessianPrep(_sig, gradient_prep, hess_exe, hess_exe!)
 end
 
@@ -405,7 +407,7 @@ struct SymbolicsOneArgHVPPrep{SIG,G,E2,E2!} <: DI.HVPPrep{SIG}
     hvp_exe!::E2!
 end
 
-function DI.prepare_hvp(
+function DI.prepare_hvp_nokwarg(
     strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
@@ -422,7 +424,7 @@ function DI.prepare_hvp(
     )
     (hvp_exe, hvp_exe!) = res
 
-    gradient_prep = DI.prepare_gradient(strict, f, backend, x, contexts...)
+    gradient_prep = DI.prepare_gradient_nokwarg(strict, f, backend, x, contexts...)
     return SymbolicsOneArgHVPPrep(_sig, gradient_prep, hvp_exe, hvp_exe!)
 end
 
@@ -497,7 +499,7 @@ struct SymbolicsOneArgSecondDerivativePrep{SIG,D,E1,E1!} <: DI.SecondDerivativeP
     der2_exe!::E1!
 end
 
-function DI.prepare_second_derivative(
+function DI.prepare_second_derivative_nokwarg(
     strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -512,7 +514,7 @@ function DI.prepare_second_derivative(
     elseif res isa RuntimeGeneratedFunction
         res, nothing
     end
-    derivative_prep = DI.prepare_derivative(strict, f, backend, x, contexts...)
+    derivative_prep = DI.prepare_derivative_nokwarg(strict, f, backend, x, contexts...)
     return SymbolicsOneArgSecondDerivativePrep(_sig, derivative_prep, der2_exe, der2_exe!)
 end
 

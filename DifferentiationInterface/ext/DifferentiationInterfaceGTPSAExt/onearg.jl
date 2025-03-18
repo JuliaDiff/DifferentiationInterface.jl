@@ -7,7 +7,7 @@ struct GTPSAOneArgPushforwardPrep{SIG,X} <: DI.PushforwardPrep{SIG}
     xt::X
 end
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f::F,
     backend::AutoGTPSA{D},
@@ -115,7 +115,7 @@ struct GTPSAOneArgGradientPrep{SIG,X} <: DI.GradientPrep{SIG}
 end
 
 # Unlike JVP, this requires us to use all variables 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -198,7 +198,7 @@ struct GTPSAOneArgJacobianPrep{SIG,X} <: DI.JacobianPrep{SIG}
 end
 
 # To materialize the entire Jacobian we use all variables 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -284,7 +284,7 @@ struct GTPSAOneArgSecondDerivativePrep{SIG,X} <: DI.SecondDerivativePrep{SIG}
     xt::X
 end
 
-function DI.prepare_second_derivative(
+function DI.prepare_second_derivative_nokwarg(
     strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -414,7 +414,7 @@ struct GTPSAOneArgHessianPrep{SIG,X,M} <: DI.HessianPrep{SIG}
     m::M
 end
 
-function DI.prepare_hessian(
+function DI.prepare_hessian_nokwarg(
     strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -549,11 +549,11 @@ struct GTPSAOneArgHVPPrep{SIG,E,H} <: DI.HVPPrep{SIG}
     hess::H
 end
 
-function DI.prepare_hvp(
+function DI.prepare_hvp_nokwarg(
     strict::Val, f, backend::AutoGTPSA, x, tx::NTuple, contexts::Vararg{DI.Constant,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
-    hessprep = DI.prepare_hessian(strict, f, backend, x, contexts...)
+    hessprep = DI.prepare_hessian_nokwarg(strict, f, backend, x, contexts...)
     fc = DI.with_contexts(f, contexts...)
     hess = similar(x, typeof(fc(x)), (length(x), length(x)))
     return GTPSAOneArgHVPPrep(_sig, hessprep, hess)

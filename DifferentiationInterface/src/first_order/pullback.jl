@@ -6,8 +6,27 @@
 
 $(docstring_prepare("pullback"; inplace=true))
 """
-function prepare_pullback(args::Vararg{Any,N}; strict=Val(false)) where {N}
-    return prepare_pullback(strict, args...)
+function prepare_pullback(
+    f::F,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
+) where {F,C}
+    return prepare_pullback_nokwarg(strict, f, backend, x, ty, contexts...)
+end
+
+function prepare_pullback(
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
+) where {F,C}
+    return prepare_pullback_nokwarg(strict, f!, y, backend, x, ty, contexts...)
 end
 
 """
@@ -24,8 +43,27 @@ function prepare!_pullback end
 
 $(docstring_prepare("pullback"; samepoint=true, inplace=true))
 """
-function prepare_pullback_same_point(args::Vararg{Any,N}; strict=Val(false)) where {N}
-    return prepare_pullback_same_point(strict, args...)
+function prepare_pullback_same_point(
+    f::F,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
+) where {F,C}
+    return prepare_pullback_same_point_nokwarg(strict, f, backend, x, ty, contexts...)
+end
+
+function prepare_pullback_same_point(
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
+) where {F,C}
+    return prepare_pullback_same_point_nokwarg(strict, f!, y, backend, x, ty, contexts...)
 end
 
 """
@@ -94,7 +132,7 @@ struct PushforwardPullbackPrep{SIG,E} <: PullbackPrep{SIG}
     pushforward_prep::E
 end
 
-function prepare_pullback(
+function prepare_pullback_nokwarg(
     strict::Val, f::F, backend::AbstractADType, x, ty::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
     return _prepare_pullback_aux(
@@ -102,7 +140,7 @@ function prepare_pullback(
     )
 end
 
-function prepare_pullback(
+function prepare_pullback_nokwarg(
     strict::Val,
     f!::F,
     y,
@@ -127,7 +165,9 @@ function _prepare_pullback_aux(
 ) where {F,C}
     _sig = signature(f, backend, x, ty, contexts...; strict)
     dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
-    pushforward_prep = prepare_pushforward(strict, f, backend, x, (dx,), contexts...)
+    pushforward_prep = prepare_pushforward_nokwarg(
+        strict, f, backend, x, (dx,), contexts...
+    )
     return PushforwardPullbackPrep(_sig, pushforward_prep)
 end
 
@@ -143,7 +183,9 @@ function _prepare_pullback_aux(
 ) where {F,C}
     _sig = signature(f!, y, backend, x, ty, contexts...; strict)
     dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
-    pushforward_prep = prepare_pushforward(strict, f!, y, backend, x, (dx,), contexts...)
+    pushforward_prep = prepare_pushforward_nokwarg(
+        strict, f!, y, backend, x, (dx,), contexts...
+    )
     return PushforwardPullbackPrep(_sig, pushforward_prep)
 end
 

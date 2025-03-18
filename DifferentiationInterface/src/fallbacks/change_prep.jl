@@ -20,8 +20,10 @@ for op in [
     end
     val_and_op! = Symbol(val_and_op, "!")
     prep_op = Symbol("prepare_", op)
+    prep_op_nokwarg = Symbol("prepare_", op, "_nokwarg")
     prep_op! = Symbol("prepare!_", op)
     prep_op_same_point = Symbol("prepare_", op, "_same_point")
+    prep_op_same_point_nokwarg = Symbol("prepare_", op, "_same_point_nokwarg")
     P = if op == :derivative
         DerivativePrep
     elseif op == :gradient
@@ -46,7 +48,7 @@ for op in [
             f::F, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
             check_prep(f, old_prep, backend, x, contexts...)
-            return $prep_op(is_strict(old_prep), f, backend, x, contexts...)
+            return $prep_op_nokwarg(is_strict(old_prep), f, backend, x, contexts...)
         end
         op == :gradient && continue
         # 2-arg
@@ -54,7 +56,7 @@ for op in [
             f!::F, y, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C};
         ) where {F,C}
             check_prep(f!, y, old_prep, backend, x, contexts...)
-            return $prep_op(is_strict(old_prep), f!, y, backend, x, contexts...)
+            return $prep_op_nokwarg(is_strict(old_prep), f!, y, backend, x, contexts...)
         end
 
     elseif op in (:second_derivative, :hessian)
@@ -63,7 +65,7 @@ for op in [
             f::F, old_prep::$P, backend::AbstractADType, x, contexts::Vararg{Context,C};
         ) where {F,C}
             check_prep(f, old_prep, backend, x, contexts...)
-            return $prep_op(is_strict(old_prep), f, backend, x, contexts...)
+            return $prep_op_nokwarg(is_strict(old_prep), f, backend, x, contexts...)
         end
 
     elseif op in (:pushforward, :pullback, :hvp)
@@ -77,7 +79,7 @@ for op in [
             contexts::Vararg{Context,C};
         ) where {F,C}
             check_prep(f, old_prep, backend, x, seed, contexts...)
-            return $prep_op(is_strict(old_prep), f, backend, x, seed, contexts...)
+            return $prep_op_nokwarg(is_strict(old_prep), f, backend, x, seed, contexts...)
         end
         @eval function $prep_op_same_point(
             f::F,
@@ -90,7 +92,7 @@ for op in [
             check_prep(f, prep, backend, x, seed, contexts...)
             return prep
         end
-        @eval function $prep_op_same_point(
+        @eval function $prep_op_same_point_nokwarg(
             strict::Val,
             f::F,
             backend::AbstractADType,
@@ -98,7 +100,7 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C};
         ) where {F,C}
-            prep = $prep_op(strict, f, backend, x, seed, contexts...)
+            prep = $prep_op_nokwarg(strict, f, backend, x, seed, contexts...)
             return $prep_op_same_point(f, prep, backend, x, seed, contexts...)
         end
         op == :hvp && continue
@@ -113,7 +115,9 @@ for op in [
             contexts::Vararg{Context,C},
         ) where {F,C}
             check_prep(f!, y, old_prep, backend, x, seed, contexts...)
-            return $prep_op(is_strict(old_prep), f!, y, backend, x, seed, contexts...)
+            return $prep_op_nokwarg(
+                is_strict(old_prep), f!, y, backend, x, seed, contexts...
+            )
         end
         @eval function $prep_op_same_point(
             f!::F,
@@ -127,7 +131,7 @@ for op in [
             check_prep(f!, y, prep, backend, x, seed, contexts...)
             return prep
         end
-        @eval function $prep_op_same_point(
+        @eval function $prep_op_same_point_nokwarg(
             strict::Val,
             f!::F,
             y,
@@ -136,7 +140,7 @@ for op in [
             seed::NTuple,
             contexts::Vararg{Context,C};
         ) where {F,C}
-            prep = $prep_op(strict, f!, y, backend, x, seed, contexts...)
+            prep = $prep_op_nokwarg(strict, f!, y, backend, x, seed, contexts...)
             return $prep_op_same_point(f!, y, prep, backend, x, seed, contexts...)
         end
     end

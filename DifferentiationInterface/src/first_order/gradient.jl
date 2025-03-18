@@ -5,8 +5,10 @@
 
 $(docstring_prepare("gradient"))
 """
-function prepare_gradient(args::Vararg{Any,N}; strict=Val(false)) where {N}
-    return prepare_gradient(strict, args...)
+function prepare_gradient(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+) where {F,C}
+    return prepare_gradient_nokwarg(strict, f, backend, x, contexts...)
 end
 
 """
@@ -60,12 +62,14 @@ struct PullbackGradientPrep{SIG,Y,E<:PullbackPrep} <: GradientPrep{SIG}
     pullback_prep::E
 end
 
-function prepare_gradient(
+function prepare_gradient_nokwarg(
     strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     _sig = signature(f, backend, x, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
-    pullback_prep = prepare_pullback(strict, f, backend, x, (one(typeof(y)),), contexts...)
+    pullback_prep = prepare_pullback_nokwarg(
+        strict, f, backend, x, (one(typeof(y)),), contexts...
+    )
     return PullbackGradientPrep(_sig, y, pullback_prep)
 end
 

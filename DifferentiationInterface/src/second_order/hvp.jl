@@ -5,8 +5,15 @@
 
 $(docstring_prepare("hvp"))
 """
-function prepare_hvp(args::Vararg{Any,N}; strict=Val(false)) where {N}
-    return prepare_hvp(strict, args...)
+function prepare_hvp(
+    f::F,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
+) where {F,C}
+    return prepare_hvp_nokwarg(strict, f, backend, x, tx, contexts...)
 end
 
 """
@@ -21,8 +28,15 @@ function prepare!_hvp end
 
 $(docstring_prepare("hvp"; samepoint=true))
 """
-function prepare_hvp_same_point(args::Vararg{Any,N}; strict=Val(false)) where {N}
-    return prepare_hvp_same_point(strict, args...)
+function prepare_hvp_same_point(
+    f::F,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
+) where {F,C}
+    return prepare_hvp_same_point_nokwarg(strict, f, backend, x, tx, contexts...)
 end
 
 """
@@ -61,7 +75,7 @@ $(docstring_preparation_hint("hvp"; same_point=true))
 """
 function gradient_and_hvp! end
 
-function prepare_hvp(
+function prepare_hvp_nokwarg(
     strict::Val, f::F, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C};
 ) where {F,C}
     return _prepare_hvp_aux(
@@ -105,11 +119,11 @@ function _prepare_hvp_aux(
     new_contexts = (
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
-    outer_pushforward_prep = prepare_pushforward(
+    outer_pushforward_prep = prepare_pushforward_nokwarg(
         strict, shuffled_gradient, outer(backend), x, tx, new_contexts...
     )
     outer_pushforward_in_prep = if inplace_support(outer(backend)) isa InPlaceSupported
-        prepare_pushforward(
+        prepare_pushforward_nokwarg(
             strict,
             shuffled_gradient!,
             grad_buffer,
@@ -140,7 +154,9 @@ function _prepare_hvp_aux(
     grad_buffer = similar(x)
     rewrap = Rewrap(contexts...)
     # Inner gradient
-    inner_gradient_prep = prepare_gradient(strict, f, inner(backend), x, contexts...)
+    inner_gradient_prep = prepare_gradient_nokwarg(
+        strict, f, inner(backend), x, contexts...
+    )
     inner_gradient_in_prep = inner_gradient_prep
     # Outer pushforward
     new_contexts = (
@@ -157,11 +173,11 @@ function _prepare_hvp_aux(
         Constant(rewrap),
         contexts...,
     )
-    outer_pushforward_prep = prepare_pushforward(
+    outer_pushforward_prep = prepare_pushforward_nokwarg(
         strict, shuffled_gradient, outer(backend), x, tx, new_contexts...
     )
     outer_pushforward_in_prep = if inplace_support(outer(backend)) isa InPlaceSupported
-        prepare_pushforward(
+        prepare_pushforward_nokwarg(
             strict,
             shuffled_gradient!,
             grad_buffer,
@@ -203,8 +219,12 @@ function _prepare_hvp_aux(
     )
     contextso = adapt_eltype.(contexts, Ref(eltype(xo)))
     contextsoi = adapt_eltype.(contexts, Ref(eltype(xoi)))
-    inner_gradient_prep = prepare_gradient(strict, f, inner(backend), xo, contextso...)
-    inner_gradient_in_prep = prepare_gradient(strict, f, inner(backend), xoi, contextsoi...)
+    inner_gradient_prep = prepare_gradient_nokwarg(
+        strict, f, inner(backend), xo, contextso...
+    )
+    inner_gradient_in_prep = prepare_gradient_nokwarg(
+        strict, f, inner(backend), xoi, contextsoi...
+    )
     # Outer pushforward
     new_contexts = (
         FunctionContext(f),
@@ -220,11 +240,11 @@ function _prepare_hvp_aux(
         Constant(rewrap),
         contexts...,
     )
-    outer_pushforward_prep = prepare_pushforward(
+    outer_pushforward_prep = prepare_pushforward_nokwarg(
         strict, shuffled_gradient, outer(backend), x, tx, new_contexts...
     )
     outer_pushforward_in_prep = if inplace_support(outer(backend)) isa InPlaceSupported
-        prepare_pushforward(
+        prepare_pushforward_nokwarg(
             strict,
             shuffled_gradient!,
             grad_buffer,
@@ -477,10 +497,10 @@ function _prepare_hvp_aux(
         Constant(rewrap),
         contexts...,
     )
-    outer_gradient_prep = prepare_gradient(
+    outer_gradient_prep = prepare_gradient_nokwarg(
         strict, shuffled_single_pushforward, outer(backend), x, new_contexts...
     )
-    gradient_prep = prepare_gradient(strict, f, inner(backend), x, contexts...)
+    gradient_prep = prepare_gradient_nokwarg(strict, f, inner(backend), x, contexts...)
     return ReverseOverForwardHVPPrep(_sig, outer_gradient_prep, gradient_prep)
 end
 
@@ -596,11 +616,11 @@ function _prepare_hvp_aux(
         FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
-    outer_pullback_prep = prepare_pullback(
+    outer_pullback_prep = prepare_pullback_nokwarg(
         strict, shuffled_gradient, outer(backend), x, tx, new_contexts...
     )
     outer_pullback_in_prep = if inplace_support(outer(backend)) isa InPlaceSupported
-        prepare_pullback(
+        prepare_pullback_nokwarg(
             strict,
             shuffled_gradient!,
             grad_buffer,

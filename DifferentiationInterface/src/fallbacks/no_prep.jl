@@ -20,8 +20,10 @@ for op in [
     end
     val_and_op! = Symbol(val_and_op, "!")
     prep_op = Symbol("prepare_", op)
+    prep_op_nokwarg = Symbol("prepare_", op, "_nokwarg")
     prep_op! = Symbol("prepare!_", op)
     prep_op_same_point = Symbol("prepare_", op, "_same_point")
+    prep_op_same_point_nokwarg = Symbol("prepare_", op, "_same_point_nokwarg")
     P = if op == :derivative
         DerivativePrep
     elseif op == :gradient
@@ -45,25 +47,25 @@ for op in [
         @eval function $op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $op(f, prep, backend, x, contexts...)
         end
         @eval function $op!(
             f::F, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $op!(f, result, prep, backend, x, contexts...)
         end
         @eval function $val_and_op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $val_and_op(f, prep, backend, x, contexts...)
         end
         @eval function $val_and_op!(
             f::F, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $val_and_op!(f, result, prep, backend, x, contexts...)
         end
         op == :gradient && continue
@@ -71,25 +73,25 @@ for op in [
         @eval function $op(
             f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, contexts...)
             return $op(f!, y, prep, backend, x, contexts...)
         end
         @eval function $op!(
             f!::F, y, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, contexts...)
             return $op!(f!, y, result, prep, backend, x, contexts...)
         end
         @eval function $val_and_op(
             f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, contexts...)
             return $val_and_op(f!, y, prep, backend, x, contexts...)
         end
         @eval function $val_and_op!(
             f!::F, y, result, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, contexts...)
             return $val_and_op!(f!, y, result, prep, backend, x, contexts...)
         end
 
@@ -98,25 +100,25 @@ for op in [
         @eval function $op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $op(f, prep, backend, x, contexts...)
         end
         @eval function $op!(
             f::F, result2, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $op!(f, result2, prep, backend, x, contexts...)
         end
         @eval function $val_and_op(
             f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $val_and_op(f, prep, backend, x, contexts...)
         end
         @eval function $val_and_op!(
             f::F, result1, result2, backend::AbstractADType, x, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, contexts...)
             return $val_and_op!(f, result1, result2, prep, backend, x, contexts...)
         end
 
@@ -124,7 +126,7 @@ for op in [
         @eval function $op(
             f::F, backend::AbstractADType, x, tang::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, tang, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, tang, contexts...)
             return $op(f, prep, backend, x, tang, contexts...)
         end
         @eval function $op!(
@@ -135,13 +137,13 @@ for op in [
             tang::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, tang, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, tang, contexts...)
             return $op!(f, result, prep, backend, x, tang, contexts...)
         end
         @eval function $val_and_op(
             f::F, backend::AbstractADType, x, tang::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f, backend, x, tang, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f, backend, x, tang, contexts...)
             return $val_and_op(f, prep, backend, x, tang, contexts...)
         end
 
@@ -154,7 +156,7 @@ for op in [
                 tang::NTuple,
                 contexts::Vararg{Context,C},
             ) where {F,C}
-                prep = $prep_op(Val(true), f, backend, x, tang, contexts...)
+                prep = $prep_op_nokwarg(Val(true), f, backend, x, tang, contexts...)
                 return $val_and_op!(f, result, prep, backend, x, tang, contexts...)
             end
         elseif op == :hvp
@@ -167,7 +169,7 @@ for op in [
                 tang::NTuple,
                 contexts::Vararg{Context,C},
             ) where {F,C}
-                prep = $prep_op(Val(true), f, backend, x, tang, contexts...)
+                prep = $prep_op_nokwarg(Val(true), f, backend, x, tang, contexts...)
                 return $val_and_op!(
                     f, result1, result2, prep, backend, x, tang, contexts...
                 )
@@ -179,7 +181,7 @@ for op in [
         @eval function $op(
             f!::F, y, backend::AbstractADType, x, tang::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, tang, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, tang, contexts...)
             return $op(f!, y, prep, backend, x, tang, contexts...)
         end
         @eval function $op!(
@@ -191,13 +193,13 @@ for op in [
             tang::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, tang, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, tang, contexts...)
             return $op!(f!, y, result, prep, backend, x, tang, contexts...)
         end
         @eval function $val_and_op(
             f!::F, y, backend::AbstractADType, x, tang::NTuple, contexts::Vararg{Context,C}
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, tang, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, tang, contexts...)
             return $val_and_op(f!, y, prep, backend, x, tang, contexts...)
         end
         @eval function $val_and_op!(
@@ -209,7 +211,7 @@ for op in [
             tang::NTuple,
             contexts::Vararg{Context,C},
         ) where {F,C}
-            prep = $prep_op(Val(true), f!, y, backend, x, tang, contexts...)
+            prep = $prep_op_nokwarg(Val(true), f!, y, backend, x, tang, contexts...)
             return $val_and_op!(f!, y, result, prep, backend, x, tang, contexts...)
         end
     end

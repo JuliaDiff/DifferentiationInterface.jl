@@ -5,8 +5,10 @@
 
 $(docstring_prepare("hessian"))
 """
-function prepare_hessian(args::Vararg{Any,N}; strict=Val(false)) where {N}
-    return prepare_hessian(strict, args...)
+function prepare_hessian(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+) where {F,C}
+    return prepare_hessian_nokwarg(strict, f, backend, x, contexts...)
 end
 
 """
@@ -70,7 +72,7 @@ struct HVPGradientHessianPrep{
     gradient_prep::E1
 end
 
-function prepare_hessian(
+function prepare_hessian_nokwarg(
     strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     # type-unstable
@@ -94,8 +96,8 @@ function _prepare_hessian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    hvp_prep = prepare_hvp(strict, f, backend, x, batched_seeds[1], contexts...)
-    gradient_prep = prepare_gradient(strict, f, inner(backend), x, contexts...)
+    hvp_prep = prepare_hvp_nokwarg(strict, f, backend, x, batched_seeds[1], contexts...)
+    gradient_prep = prepare_gradient_nokwarg(strict, f, inner(backend), x, contexts...)
     return HVPGradientHessianPrep(
         _sig, batch_size_settings, batched_seeds, batched_results, hvp_prep, gradient_prep
     )
