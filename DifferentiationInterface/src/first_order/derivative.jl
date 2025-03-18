@@ -7,13 +7,18 @@
 $(docstring_prepare("derivative"; inplace=true))
 """
 function prepare_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
 ) where {F,C}
     return prepare_derivative_nokwarg(strict, f, backend, x, contexts...)
 end
 
 function prepare_derivative(
-    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict=Val(false)
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_derivative_nokwarg(strict, f!, y, backend, x, contexts...)
 end

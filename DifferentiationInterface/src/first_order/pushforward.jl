@@ -12,7 +12,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pushforward_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -24,7 +24,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pushforward_nokwarg(strict, f!, y, backend, x, tx, contexts...)
 end
@@ -49,7 +49,7 @@ function prepare_pushforward_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pushforward_same_point_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -61,7 +61,7 @@ function prepare_pushforward_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pushforward_same_point_nokwarg(
         strict, f!, y, backend, x, tx, contexts...

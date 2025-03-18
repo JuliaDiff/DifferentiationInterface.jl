@@ -47,7 +47,7 @@ test_differentiation(
 
     # Derivative
     x = 1.0
-    @test_skip DI.overloaded_input_type(prepare_derivative_nokwarg(copy, backend, x)) ==
+    @test_skip DI.overloaded_input_type(prepare_derivative(copy, backend, x)) ==
         ReverseDiff.TrackedArray{Float64,Float64,1,Vector{Float64},Vector{Float64}}
 
     # Gradient

@@ -6,7 +6,7 @@
 $(docstring_prepare("hessian"))
 """
 function prepare_hessian(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
 ) where {F,C}
     return prepare_hessian_nokwarg(strict, f, backend, x, contexts...)
 end

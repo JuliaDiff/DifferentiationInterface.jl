@@ -12,7 +12,7 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pullback_nokwarg(strict, f, backend, x, ty, contexts...)
 end
@@ -24,7 +24,7 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pullback_nokwarg(strict, f!, y, backend, x, ty, contexts...)
 end
@@ -49,7 +49,7 @@ function prepare_pullback_same_point(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pullback_same_point_nokwarg(strict, f, backend, x, ty, contexts...)
 end
@@ -61,7 +61,7 @@ function prepare_pullback_same_point(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_pullback_same_point_nokwarg(strict, f!, y, backend, x, ty, contexts...)
 end

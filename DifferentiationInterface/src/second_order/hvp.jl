@@ -11,7 +11,7 @@ function prepare_hvp(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_hvp_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -34,7 +34,7 @@ function prepare_hvp_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict=Val(false),
+    strict::Val=Val(false),
 ) where {F,C}
     return prepare_hvp_same_point_nokwarg(strict, f, backend, x, tx, contexts...)
 end
