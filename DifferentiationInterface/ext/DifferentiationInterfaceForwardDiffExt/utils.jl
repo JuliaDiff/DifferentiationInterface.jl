@@ -89,7 +89,7 @@ function _translate(
 end
 function _translate(::Type{D}, c::DI.Cache) where {D<:Dual}
     c0 = DI.unwrap(c)
-    return similar(c0, D)
+    return DI.recursive_similar(c0, D)
 end
 
 function translate(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:Dual,C}
@@ -106,7 +106,7 @@ function _translate_toprep(
 end
 function _translate_toprep(::Type{D}, c::DI.Cache) where {D<:Dual}
     c0 = DI.unwrap(c)
-    return similar(c0, D)
+    return DI.recursive_similar(c0, D)
 end
 
 function translate_toprep(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:Dual,C}
