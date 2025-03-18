@@ -16,7 +16,7 @@ function DI.prepare_pushforward_nokwarg(
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     single_threaded_prep = DI.prepare_pushforward_nokwarg(
-        f!, y, single_threaded(backend), x, tx, contexts...
+        strict, f!, y, single_threaded(backend), x, tx, contexts...
     )
     return PolyesterForwardDiffTwoArgPushforwardPrep(_sig, single_threaded_prep)
 end
