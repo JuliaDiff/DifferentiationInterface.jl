@@ -28,12 +28,14 @@ gpu_scenarios(;
     include_closurified=true,
     include_batchified=true,
     include_cachified=true,
+    use_tuples=true,
 )
 static_scenarios(;
     include_constantified=true,
     include_closurified=true,
     include_batchified=true,
     include_cachified=true,
+    use_tuples=false,
 )
 
 ## Weird arrays
@@ -54,7 +56,10 @@ test_differentiation(AutoZygote(), gpu_scenarios(); excluded=SECOND_ORDER, loggi
 test_differentiation(
     AutoFiniteDiff(),
     default_scenarios(;
-        include_normal=false, include_closurified=true, include_cachified=true
+        include_normal=false,
+        include_closurified=true,
+        include_cachified=true,
+        use_tuples=true,
     );
     excluded=SECOND_ORDER,
     logging=LOGGING,

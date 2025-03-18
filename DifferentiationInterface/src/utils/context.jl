@@ -77,7 +77,7 @@ The initial values present inside the cache do not matter.
 For some backends, preparation allocates the required memory for `Cache` contexts with the right element type, similar to [PreallocationTools.jl](https://github.com/SciML/PreallocationTools.jl).
 
 !!! warning
-    Some backends require any `Cache` context to be an `AbstractArray or a (named) tuple of `AbstractArray`s.
+    Some backends require any `Cache` context to be an `AbstractArray`, others accept nested (named) tuples of `AbstractArray`s.
 
 # Example
 

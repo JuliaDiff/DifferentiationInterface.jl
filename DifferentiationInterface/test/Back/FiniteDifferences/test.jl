@@ -19,7 +19,9 @@ end
 
 test_differentiation(
     AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(3, 1)),
-    default_scenarios(; include_constantified=true, include_cachified=true);
+    default_scenarios(;
+        include_constantified=true, include_cachified=true, use_tuples=true
+    );
     excluded=SECOND_ORDER,
     logging=LOGGING,
 );

@@ -36,7 +36,10 @@ end
     test_differentiation(
         AutoForwardDiff(),
         default_scenarios(;
-            include_normal=false, include_batchified=false, include_cachified=true
+            include_normal=false,
+            include_batchified=false,
+            include_cachified=true,
+            use_tuples=true,
         );
         logging=LOGGING,
     )

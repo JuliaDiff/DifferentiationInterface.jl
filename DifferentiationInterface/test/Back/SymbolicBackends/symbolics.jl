@@ -21,7 +21,7 @@ test_differentiation(
 
 test_differentiation(
     AutoSymbolics(),
-    default_scenarios(; include_normal=false, include_cachified=true);
+    default_scenarios(; include_normal=false, include_cachified=true, use_tuples=false);
     excluded=[:jacobian],  # TODO: figure out why this fails
     logging=LOGGING,
 );

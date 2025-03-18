@@ -17,7 +17,9 @@ end
 
 test_differentiation(
     AutoFastDifferentiation(),
-    default_scenarios(; include_constantified=true, include_cachified=true);
+    default_scenarios(;
+        include_constantified=true, include_cachified=true, use_tuples=false
+    );
     logging=LOGGING,
 );
 

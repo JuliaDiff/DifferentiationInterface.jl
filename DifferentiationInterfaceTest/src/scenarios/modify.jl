@@ -178,8 +178,12 @@ end
 
 Base.show(io::IO, f::StoreInCache) = print(io, "StoreInCache($(f.f))")
 
-function (sc::StoreInCache{:out})(x, y_cache_tup)
-    y_cache = y_cache_tup.cache
+(sc::StoreInCache{:out})(x, y_cache::NamedTuple) = sc(x, y_cache.useful_cache)
+(sc::StoreInCache{:in})(y, x, y_cache::NamedTuple) = sc(y, x, y_cache.useful_cache)
+(sc::StoreInCache{:out})(x, y_cache::Tuple) = sc(x, first(y_cache))
+(sc::StoreInCache{:in})(y, x, y_cache::Tuple) = sc(y, x, first(y_cache))
+
+function (sc::StoreInCache{:out})(x, y_cache::AbstractArray)
     y = sc.f(x)
     if y isa Number
         y_cache[1] = y
@@ -190,8 +194,7 @@ function (sc::StoreInCache{:out})(x, y_cache_tup)
     end
 end
 
-function (sc::StoreInCache{:in})(y, x, y_cache_tup)
-    y_cache = y_cache_tup.cache
+function (sc::StoreInCache{:in})(y, x, y_cache::AbstractArray)
     sc.f(y_cache, x)
     copyto!(y, y_cache)
     return nothing
@@ -204,14 +207,22 @@ Return a new `Scenario` identical to `scen` except for the function `f`, which i
 
 If `tup=true` the cache is a tuple of arrays, otherwise just an array.
 """
-function cachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+function cachify(scen::Scenario{op,pl_op,pl_fun}; use_tuples) where {op,pl_op,pl_fun}
     (; f,) = scen
     @assert isempty(scen.contexts)
     cache_f = StoreInCache{pl_fun}(f)
-    y_cache = if scen.y isa Number
-        (; cache=[myzero(scen.y)])
+    if use_tuples
+        y_cache = if scen.y isa Number
+            (; useful_cache=[myzero(scen.y)], useless_cache=([myzero(scen.y)],))
+        else
+            (; useful_cache=mysimilar(scen.y), useless_cache=(mysimilar(scen.y),))
+        end
     else
-        (; cache=mysimilar(scen.y))
+        y_cache = if scen.y isa Number
+            [myzero(scen.y)]
+        else
+            mysimilar(scen.y)
+        end
     end
     return Scenario{op,pl_op,pl_fun}(
         cache_f;
@@ -221,7 +232,7 @@ function cachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
         contexts=(Cache(y_cache),),
         res1=scen.res1,
         res2=scen.res2,
-        smaller=isnothing(scen.smaller) ? nothing : cachify(scen.smaller),
+        smaller=isnothing(scen.smaller) ? nothing : cachify(scen.smaller; use_tuples),
         name=isnothing(scen.name) ? nothing : scen.name * " [cachified]",
     )
 end
@@ -233,7 +244,7 @@ end
 
 closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
-cachify(scens::AbstractVector{<:Scenario}) = cachify.(scens)
+cachify(scens::AbstractVector{<:Scenario}; use_tuples) = cachify.(scens; use_tuples)
 
 function set_smaller(
     scen::Scenario{op,pl_op,pl_fun}, smaller::Scenario
