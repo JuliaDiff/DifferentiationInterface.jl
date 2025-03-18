@@ -147,7 +147,7 @@ end
 """
     constantify(scen::Scenario)
 
-Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional constant argument `a` by which the output is multiplied.
+Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional constant argument by which the output is multiplied.
 The output and result fields are updated accordingly.
 """
 function constantify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
@@ -178,7 +178,8 @@ end
 
 Base.show(io::IO, f::StoreInCache) = print(io, "StoreInCache($(f.f))")
 
-function (sc::StoreInCache{:out})(x, y_cache)
+function (sc::StoreInCache{:out})(x, y_cache_tup)
+    y_cache = y_cache_tup.cache
     y = sc.f(x)
     if y isa Number
         y_cache[1] = y
@@ -189,7 +190,8 @@ function (sc::StoreInCache{:out})(x, y_cache)
     end
 end
 
-function (sc::StoreInCache{:in})(y, x, y_cache)
+function (sc::StoreInCache{:in})(y, x, y_cache_tup)
+    y_cache = y_cache_tup.cache
     sc.f(y_cache, x)
     copyto!(y, y_cache)
     return nothing
@@ -198,16 +200,18 @@ end
 """
     cachify(scen::Scenario)
 
-Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional cache argument `a` to store the result before it is returned.
+Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional cache argument to store the result before it is returned.
+
+If `tup=true` the cache is a tuple of arrays, otherwise just an array.
 """
 function cachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
     (; f,) = scen
     @assert isempty(scen.contexts)
     cache_f = StoreInCache{pl_fun}(f)
     y_cache = if scen.y isa Number
-        [myzero(scen.y)]
+        (; cache=[myzero(scen.y)])
     else
-        mysimilar(scen.y)
+        (; cache=mysimilar(scen.y))
     end
     return Scenario{op,pl_op,pl_fun}(
         cache_f;

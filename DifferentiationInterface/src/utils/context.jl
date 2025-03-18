@@ -23,7 +23,6 @@ Abstract supertype for additional context arguments, which can be passed to diff
 abstract type Context end
 
 abstract type GeneralizedConstant <: Context end
-abstract type GeneralizedCache <: Context end
 
 unwrap(c::Context) = c.data
 Base.:(==)(c1::Context, c2::Context) = unwrap(c1) == unwrap(c2)
@@ -78,7 +77,7 @@ The initial values present inside the cache do not matter.
 For some backends, preparation allocates the required memory for `Cache` contexts with the right element type, similar to [PreallocationTools.jl](https://github.com/SciML/PreallocationTools.jl).
 
 !!! warning
-    Most backends require any `Cache` context to be an `AbstractArray`.
+    Some backends require any `Cache` context to be an `AbstractArray or a (named) tuple of `AbstractArray`s.
 
 # Example
 
@@ -97,7 +96,7 @@ julia> gradient(f, prep, AutoForwardDiff(), [3.0, 4.0], Cache(zeros(2)))
  1.0
 ````
 """
-struct Cache{T} <: GeneralizedCache
+struct Cache{T} <: Context
     data::T
 end
 
@@ -114,11 +113,9 @@ struct BackendContext{T} <: GeneralizedConstant
     data::T
 end
 
-struct PrepContext{T} <: GeneralizedCache
+struct PrepContext{T} <: Context
     data::T
 end
-
-struct UnknownContext <: Context end
 
 ## Context manipulation
 
@@ -146,4 +143,4 @@ function with_contexts(f::F, contexts::Vararg{Context,N}) where {F,N}
 end
 
 adapt_eltype(c::Constant, ::Type) = c
-adapt_eltype(c::Cache, ::Type{T}) where {T} = Cache(similar(unwrap(c), T))
+adapt_eltype(c::Cache, ::Type{T}) where {T} = Cache(recursive_similar(unwrap(c), T))
