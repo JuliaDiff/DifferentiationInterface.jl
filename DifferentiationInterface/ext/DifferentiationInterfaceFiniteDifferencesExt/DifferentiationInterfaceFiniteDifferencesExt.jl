@@ -11,7 +11,7 @@ DI.inner_preparation_behavior(::AutoFiniteDifferences) = DI.PrepareInnerSimple()
 
 ## Pushforward
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f,
     backend::AutoFiniteDifferences,
@@ -54,7 +54,7 @@ end
 
 ## Pullback
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val,
     f,
     backend::AutoFiniteDifferences,
@@ -97,7 +97,7 @@ end
 
 ## Gradient
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -154,7 +154,7 @@ end
 
 ## Jacobian
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f, backend::AutoFiniteDifferences, x, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)

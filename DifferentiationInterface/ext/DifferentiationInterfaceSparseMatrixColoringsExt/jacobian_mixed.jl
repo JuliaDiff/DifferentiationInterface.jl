@@ -27,7 +27,7 @@ struct MixedModeSparseJacobianPrep{
     pullback_prep::Er
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val,
     f::F,
     backend::AutoSparse{<:DI.MixedMode},
@@ -38,7 +38,7 @@ function DI.prepare_jacobian(
     return _prepare_mixed_sparse_jacobian_aux(strict, y, (f,), backend, x, contexts...)
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val,
     f!::F,
     y,
@@ -127,7 +127,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         ntuple(b -> similar(x), Val(Br)) for _ in batched_seeds_reverse
     ]
 
-    pushforward_prep = DI.prepare_pushforward(
+    pushforward_prep = DI.prepare_pushforward_nokwarg(
         strict,
         f_or_f!y...,
         DI.forward_backend(dense_backend),
@@ -135,7 +135,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         batched_seeds_forward[1],
         contexts...;
     )
-    pullback_prep = DI.prepare_pullback(
+    pullback_prep = DI.prepare_pullback_nokwarg(
         strict,
         f_or_f!y...,
         DI.reverse_backend(dense_backend),

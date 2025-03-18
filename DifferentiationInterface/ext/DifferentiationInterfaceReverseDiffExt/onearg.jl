@@ -1,6 +1,6 @@
 ## Pullback
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val, f, backend::AutoReverseDiff, x, ty::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
@@ -79,7 +79,7 @@ struct ReverseDiffGradientPrep{SIG,C,T} <: DI.GradientPrep{SIG}
     tape::T
 end
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoReverseDiff{compile}, x
 ) where {compile}
     _sig = DI.signature(f, backend, x; strict)
@@ -143,7 +143,7 @@ end
 
 ### With contexts
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -216,7 +216,7 @@ struct ReverseDiffOneArgJacobianPrep{SIG,C,T} <: DI.JacobianPrep{SIG}
     tape::T
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f, backend::AutoReverseDiff{compile}, x
 ) where {compile}
     _sig = DI.signature(f, backend, x; strict)
@@ -280,7 +280,7 @@ end
 
 ### With contexts
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
@@ -354,11 +354,11 @@ struct ReverseDiffHessianPrep{SIG,G<:ReverseDiffGradientPrep,HC,HT} <: DI.Hessia
     hessian_tape::HT
 end
 
-function DI.prepare_hessian(
+function DI.prepare_hessian_nokwarg(
     strict::Val, f, backend::AutoReverseDiff{compile}, x
 ) where {compile}
     _sig = DI.signature(f, backend, x; strict)
-    gradient_prep = DI.prepare_gradient(strict, f, backend, x)
+    gradient_prep = DI.prepare_gradient_nokwarg(strict, f, backend, x)
     if compile
         hessian_tape = ReverseDiff.compile(HessianTape(f, x))
         return ReverseDiffHessianPrep(_sig, gradient_prep, nothing, hessian_tape)
@@ -412,11 +412,11 @@ end
 
 ### With contexts
 
-function DI.prepare_hessian(
+function DI.prepare_hessian_nokwarg(
     strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    gradient_prep = DI.prepare_gradient(strict, f, backend, x, contexts...)
+    gradient_prep = DI.prepare_gradient_nokwarg(strict, f, backend, x, contexts...)
     hessian_config = HessianConfig(x)
     return ReverseDiffHessianPrep(_sig, gradient_prep, hessian_config, nothing)
 end

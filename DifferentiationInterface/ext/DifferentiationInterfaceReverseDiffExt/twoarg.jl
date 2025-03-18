@@ -1,6 +1,6 @@
 ## Pullback
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val,
     f!,
     y,
@@ -139,7 +139,7 @@ struct ReverseDiffTwoArgJacobianPrep{SIG,C,T} <: DI.JacobianPrep{SIG}
     tape::T
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f!, y, backend::AutoReverseDiff{compile}, x
 ) where {compile}
     _sig = DI.signature(f!, y, backend, x; strict)
@@ -205,7 +205,7 @@ end
 
 ### With contexts
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f!, y, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)

@@ -15,7 +15,7 @@ struct TrackerPullbackPrepSamePoint{SIG,Y,PB} <: DI.PullbackPrep{SIG}
     pb::PB
 end
 
-function DI.prepare_pullback(
+function DI.prepare_pullback_nokwarg(
     strict::Val,
     f,
     backend::AutoTracker,
@@ -91,7 +91,7 @@ end
 
 ## Gradient
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoTracker, x, contexts::Vararg{DI.GeneralizedConstant,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)

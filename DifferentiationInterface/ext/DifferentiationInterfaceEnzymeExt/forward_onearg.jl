@@ -1,6 +1,6 @@
 ## Pushforward
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
@@ -122,7 +122,7 @@ struct EnzymeForwardGradientPrep{SIG,B,O} <: DI.GradientPrep{SIG}
     shadows::O
 end
 
-function DI.prepare_gradient(
+function DI.prepare_gradient_nokwarg(
     strict::Val,
     f::F,
     backend::AutoEnzyme{<:ForwardMode,<:Union{Nothing,Const}},
@@ -203,7 +203,7 @@ struct EnzymeForwardOneArgJacobianPrep{SIG,B,O} <: DI.JacobianPrep{SIG}
     output_length::Int
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val,
     f::F,
     backend::AutoEnzyme{<:Union{ForwardMode,Nothing},<:Union{Nothing,Const}},

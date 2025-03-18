@@ -6,8 +6,16 @@
 
 $(docstring_prepare("jacobian"; inplace=true))
 """
-function prepare_jacobian(args::Vararg{Any,N}; strict=Val(false)) where {N}
-    return prepare_jacobian(strict, args...)
+function prepare_jacobian(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict=Val(false)
+) where {F,C}
+    return prepare_jacobian_nokwarg(strict, f, backend, x, contexts...)
+end
+
+function prepare_jacobian(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict=Val(false)
+) where {F,C}
+    return prepare_jacobian_nokwarg(strict, f!, y, backend, x, contexts...)
 end
 
 """
@@ -90,7 +98,7 @@ struct PullbackJacobianPrep{
     pullback_prep::E
 end
 
-function prepare_jacobian(
+function prepare_jacobian_nokwarg(
     strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
     y = f(x, map(unwrap, contexts)...)
@@ -107,7 +115,7 @@ function prepare_jacobian(
     )
 end
 
-function prepare_jacobian(
+function prepare_jacobian_nokwarg(
     strict::Val, f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C};
 ) where {F,C}
     perf = pushforward_performance(backend)
@@ -140,7 +148,7 @@ function _prepare_jacobian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
-    pushforward_prep = prepare_pushforward(
+    pushforward_prep = prepare_pushforward_nokwarg(
         strict, f_or_f!y..., backend, x, batched_seeds[1], contexts...
     )
     return PushforwardJacobianPrep(
@@ -165,7 +173,7 @@ function _prepare_jacobian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    pullback_prep = prepare_pullback(
+    pullback_prep = prepare_pullback_nokwarg(
         strict, f_or_f!y..., backend, x, batched_seeds[1], contexts...
     )
     return PullbackJacobianPrep(

@@ -25,7 +25,7 @@ SMC.ncolors(prep::SparseHessianPrep) = ncolors(prep.coloring_result)
 
 ## Hessian, one argument
 
-function DI.prepare_hessian(
+function DI.prepare_hessian_nokwarg(
     strict::Val, f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
 ) where {F,C}
     dense_backend = dense_ad(backend)
@@ -62,8 +62,12 @@ function _prepare_sparse_hessian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    hvp_prep = DI.prepare_hvp(strict, f, dense_backend, x, batched_seeds[1], contexts...)
-    gradient_prep = DI.prepare_gradient(strict, f, DI.inner(dense_backend), x, contexts...)
+    hvp_prep = DI.prepare_hvp_nokwarg(
+        strict, f, dense_backend, x, batched_seeds[1], contexts...
+    )
+    gradient_prep = DI.prepare_gradient_nokwarg(
+        strict, f, DI.inner(dense_backend), x, contexts...
+    )
     return SparseHessianPrep(
         _sig,
         batch_size_settings,

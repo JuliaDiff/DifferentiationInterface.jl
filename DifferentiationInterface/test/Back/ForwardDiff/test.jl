@@ -90,9 +90,9 @@ end
     # Derivative
     x = 1.0
     y = [1.0, 1.0]
-    @test DI.overloaded_input_type(prepare_derivative(copy, backend, x)) ==
+    @test DI.overloaded_input_type(prepare_derivative_nokwarg(copy, backend, x)) ==
         ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy),Float64},Float64,1}
-    @test DI.overloaded_input_type(prepare_derivative(copyto!, y, backend, x)) ==
+    @test DI.overloaded_input_type(prepare_derivative_nokwarg(copyto!, y, backend, x)) ==
         Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!),Float64},Float64,1}}
 
     # Gradient

@@ -36,7 +36,7 @@ function threshold_batchsize(
     return AutoSimpleFiniteDiff(backend.ε; chunksize)
 end
 
-function prepare_pushforward(
+function prepare_pushforward_nokwarg(
     strict::Val,
     f::F,
     backend::AutoSimpleFiniteDiff,
@@ -48,7 +48,7 @@ function prepare_pushforward(
     return NoPushforwardPrep(_sig)
 end
 
-function prepare_pushforward(
+function prepare_pushforward_nokwarg(
     strict::Val,
     f!::F,
     y,

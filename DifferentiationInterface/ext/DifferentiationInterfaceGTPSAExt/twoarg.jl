@@ -10,7 +10,7 @@ struct GTPSATwoArgPushforwardPrep{SIG,X,Y} <: DI.PushforwardPrep{SIG}
     yt::Y
 end
 
-function DI.prepare_pushforward(
+function DI.prepare_pushforward_nokwarg(
     strict::Val,
     f!::F,
     y,
@@ -125,7 +125,7 @@ struct GTPSATwoArgJacobianPrep{SIG,X,Y} <: DI.JacobianPrep{SIG}
     yt::Y
 end
 
-function DI.prepare_jacobian(
+function DI.prepare_jacobian_nokwarg(
     strict::Val, f!, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
