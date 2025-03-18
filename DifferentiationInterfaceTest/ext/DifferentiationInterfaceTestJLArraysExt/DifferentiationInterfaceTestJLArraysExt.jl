@@ -18,7 +18,8 @@ myjl(x::Number) = x
 myjl(x::AbstractArray) = jl(x)
 myjl(x::Tuple) = map(myjl, x)
 myjl(x::DI.Constant) = DI.Constant(myjl(DI.unwrap(x)))
-myjl(x::DI.Cache) = DI.Cache(myjl(DI.unwrap(x)))
+myjl(x::DI.Cache{<:AbstractArray}) = DI.Cache(myjl(DI.unwrap(x)))
+myjl(x::DI.Cache{<:Union{Tuple,NamedTuple}}) = map(myjl, map(DI.Cache, DI.unwrap(x)))
 myjl(::Nothing) = nothing
 
 function myjl(scen::DIT.Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
