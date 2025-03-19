@@ -112,20 +112,46 @@ adapt_eltype(c::ConstantOrCache, ::Type) = c
 
 ## Internal contexts for passing stuff around
 
+"""
+    FunctionContext
+
+Private type of [`Context`](@ref) argument used for passing functions inside second-order differentiation.
+
+Behaves differently for Enzyme only, where the function can be annotated.
+"""
 struct FunctionContext{T} <: GeneralizedConstant
     data::T
 end
 
+"""
+    BackendContext
+
+Private type of [`Context`](@ref) argument used for passing backends inside second-order differentiation.
+"""
 struct BackendContext{T} <: GeneralizedConstant
     data::T
 end
 
+"""
+    PrepContext
+
+Private type of [`Context`](@ref) argument used for passing preparation results inside second-order differentiation.
+
+Conceptually similar to [`ConstantOrCache`](@ref) because we assume that preparation was performed with the right types so we don't change anything.
+"""
 struct PrepContext{T} <: GeneralizedConstantOrCache
     data::T
 end
 
 ## Context manipulation
 
+"""
+    Rewrap
+
+Utility for recording context types of additional arguments (e.g. `Constant` or `Cache`) and re-wrapping them into their types after they have been unwrapped.
+
+Useful for second-order differentiation.
+"""
 struct Rewrap{C,T}
     context_makers::T
     function Rewrap(contexts::Vararg{Context,C}) where {C}
@@ -144,6 +170,14 @@ end
 
 ## Closures
 
+"""
+    FixTail
+
+Closure around a function `f` and a set of tail argument `tail_args` such that
+```
+(ft::FixTail)(args...) = ft.f(args..., ft.tail_args...)
+```
+"""
 struct FixTail{F,A<:Tuple}
     f::F
     tail_args::A
@@ -156,5 +190,10 @@ function (ft::FixTail)(args::Vararg{Any,N}) where {N}
     return ft.f(args..., ft.tail_args...)
 end
 
+"""
+    fix_tail(f, tail_args...)
+
+Convenience for constructing a [`FixTail`](@ref), with a shortcut when there are no tail arguments.
+"""
 @inline fix_tail(f::F) where {F} = f
 fix_tail(f::F, args::Vararg{Any,N}) where {F,N} = FixTail(f, args...)
