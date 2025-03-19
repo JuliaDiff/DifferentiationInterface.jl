@@ -559,6 +559,7 @@ function default_scenarios(;
     include_closurified=false,
     include_constantified=false,
     include_cachified=false,
+    include_constantorcachified=false,
     use_tuples=false,
 )
     x_ = 0.42
@@ -637,6 +638,7 @@ function default_scenarios(;
     include_closurified && append!(final_scens, closurify(scens))
     include_constantified && append!(final_scens, constantify(scens))
     include_cachified && append!(final_scens, cachify(scens; use_tuples=use_tuples))
+    include_constantorcachified && append!(final_scens, constantorcachify(scens))
 
     return final_scens
 end

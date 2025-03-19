@@ -1,15 +1,3 @@
-struct FixTail{F,A<:Tuple}
-    f::F
-    tail_args::A
-    function FixTail(f::F, tail_args::Vararg{Any,N}) where {F,N}
-        return new{F,typeof(tail_args)}(f, tail_args)
-    end
-end
-
-function (ft::FixTail)(args::Vararg{Any,N}) where {N}
-    return ft.f(args..., ft.tail_args...)
-end
-
 """
     Context
 
@@ -19,10 +7,12 @@ Abstract supertype for additional context arguments, which can be passed to diff
 
 - [`Constant`](@ref)
 - [`Cache`](@ref)
+- [`ConstantOrCache`](@ref)
 """
 abstract type Context end
 
 abstract type GeneralizedConstant <: Context end
+abstract type GeneralizedConstantOrCache <: Context end
 
 unwrap(c::Context) = c.data
 Base.:(==)(c1::Context, c2::Context) = unwrap(c1) == unwrap(c2)
@@ -66,6 +56,7 @@ end
 
 constant_maker(c) = Constant(c)
 maker(::Constant) = constant_maker
+adapt_eltype(c::Constant, ::Type) = c
 
 """
     Cache
@@ -102,23 +93,65 @@ end
 
 cache_maker(c) = Cache(c)
 maker(::Cache) = cache_maker
+adapt_eltype(c::Cache, ::Type{T}) where {T} = Cache(recursive_similar(unwrap(c), T))
+
+"""
+    ConstantOrCache
+
+Concrete type of [`Context`](@ref) argument which can contain a mixture of constants and caches, passed along to the backend without modification.
+
+Unlike for [`Cache`](@ref), it is up to the user to ensure that the internal storage can adapt to the required element types, for instance by using [PreallocationTools.jl](https://github.com/SciML/PreallocationTools.jl) directly.
+"""
+struct ConstantOrCache{T} <: GeneralizedConstantOrCache
+    data::T
+end
+
+constantorcache_maker(c) = ConstantOrCache(c)
+maker(::ConstantOrCache) = constantorcache_maker
+adapt_eltype(c::ConstantOrCache, ::Type) = c
 
 ## Internal contexts for passing stuff around
 
+"""
+    FunctionContext
+
+Private type of [`Context`](@ref) argument used for passing functions inside second-order differentiation.
+
+Behaves differently for Enzyme only, where the function can be annotated.
+"""
 struct FunctionContext{T} <: GeneralizedConstant
     data::T
 end
 
+"""
+    BackendContext
+
+Private type of [`Context`](@ref) argument used for passing backends inside second-order differentiation.
+"""
 struct BackendContext{T} <: GeneralizedConstant
     data::T
 end
 
-struct PrepContext{T} <: Context
+"""
+    PrepContext
+
+Private type of [`Context`](@ref) argument used for passing preparation results inside second-order differentiation.
+
+Conceptually similar to [`ConstantOrCache`](@ref) because we assume that preparation was performed with the right types so we don't change anything.
+"""
+struct PrepContext{T} <: GeneralizedConstantOrCache
     data::T
 end
 
 ## Context manipulation
 
+"""
+    Rewrap
+
+Utility for recording context types of additional arguments (e.g. `Constant` or `Cache`) and re-wrapping them into their types after they have been unwrapped.
+
+Useful for second-order differentiation.
+"""
 struct Rewrap{C,T}
     context_makers::T
     function Rewrap(contexts::Vararg{Context,C}) where {C}
@@ -135,12 +168,32 @@ function (r::Rewrap{C,T})(unannotated_contexts::Vararg{Any,C}) where {C,T}
     end
 end
 
-with_contexts(f) = f
+## Closures
 
-function with_contexts(f::F, contexts::Vararg{Context,N}) where {F,N}
-    tail_args = map(unwrap, contexts)
-    return FixTail(f, tail_args...)
+"""
+    FixTail
+
+Closure around a function `f` and a set of tail argument `tail_args` such that
+```
+(ft::FixTail)(args...) = ft.f(args..., ft.tail_args...)
+```
+"""
+struct FixTail{F,A<:Tuple}
+    f::F
+    tail_args::A
+    function FixTail(f::F, tail_args::Vararg{Any,N}) where {F,N}
+        return new{F,typeof(tail_args)}(f, tail_args)
+    end
 end
 
-adapt_eltype(c::Constant, ::Type) = c
-adapt_eltype(c::Cache, ::Type{T}) where {T} = Cache(recursive_similar(unwrap(c), T))
+function (ft::FixTail)(args::Vararg{Any,N}) where {N}
+    return ft.f(args..., ft.tail_args...)
+end
+
+"""
+    fix_tail(f, tail_args...)
+
+Convenience for constructing a [`FixTail`](@ref), with a shortcut when there are no tail arguments.
+"""
+@inline fix_tail(f::F) where {F} = f
+fix_tail(f::F, args::Vararg{Any,N}) where {F,N} = FixTail(f, args...)

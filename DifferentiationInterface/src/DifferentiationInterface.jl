@@ -73,7 +73,7 @@ include("misc/overloading.jl")
 
 ## Exported
 
-export Context, Constant, Cache
+export Context, Constant, Cache, ConstantOrCache
 export MixedMode, SecondOrder
 
 export value_and_pushforward!, value_and_pushforward

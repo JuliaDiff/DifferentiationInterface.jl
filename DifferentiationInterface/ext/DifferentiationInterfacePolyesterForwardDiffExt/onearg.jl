@@ -187,7 +187,7 @@ function DI.value_and_gradient!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         threaded_gradient!(fc, grad, x, prep.chunk)
         return fc(x), grad
     else
@@ -208,7 +208,7 @@ function DI.gradient!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         threaded_gradient!(fc, grad, x, prep.chunk)
         return grad
     else
@@ -278,7 +278,7 @@ function DI.value_and_jacobian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return fc(x), threaded_jacobian!(fc, jac, x, prep.chunk)
     else
         return DI.value_and_jacobian!(
@@ -297,7 +297,7 @@ function DI.jacobian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return threaded_jacobian!(fc, jac, x, prep.chunk)
     else
         return DI.jacobian!(

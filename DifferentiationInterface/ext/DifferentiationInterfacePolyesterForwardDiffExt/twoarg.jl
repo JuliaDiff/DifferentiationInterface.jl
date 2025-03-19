@@ -196,7 +196,7 @@ function DI.value_and_jacobian(
 ) where {K,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         jac = similar(y, length(y), length(x))
         threaded_jacobian!(fc!, y, jac, x, prep.chunk)
         fc!(y, x)
@@ -219,7 +219,7 @@ function DI.value_and_jacobian!(
 ) where {K,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         threaded_jacobian!(fc!, y, jac, x, prep.chunk)
         fc!(y, x)
         return y, jac
@@ -240,7 +240,7 @@ function DI.jacobian(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         jac = similar(y, length(y), length(x))
         threaded_jacobian!(fc!, y, jac, x, prep.chunk)
         return jac
@@ -262,7 +262,7 @@ function DI.jacobian!(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     if contexts isa NTuple{C,DI.GeneralizedConstant}
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         threaded_jacobian!(fc!, y, jac, x, prep.chunk)
         return jac
     else

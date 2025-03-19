@@ -25,7 +25,7 @@ function DI.value_and_pullback(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     function dotclosure(x, dy)
         y_copy = similar(y, eltype(x))
         fc!(y_copy, x)
@@ -49,7 +49,7 @@ function DI.value_and_pullback!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     function dotclosure(x, dy)
         y_copy = similar(y, eltype(x))
         fc!(y_copy, x)
@@ -73,7 +73,7 @@ function DI.pullback(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     function dotclosure(x, dy)
         y_copy = similar(y, eltype(x))
         fc!(y_copy, x)
@@ -96,7 +96,7 @@ function DI.pullback!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     function dotclosure(x, dy)
         y_copy = similar(y, eltype(x))
         fc!(y_copy, x)
@@ -222,7 +222,7 @@ function DI.value_and_jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     jac = similar(y, length(y), length(x))
     result = MutableDiffResult(y, (jac,))
     result = jacobian!(result, fc!, y, x, prep.config)
@@ -239,7 +239,7 @@ function DI.value_and_jacobian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     result = MutableDiffResult(y, (jac,))
     result = jacobian!(result, fc!, y, x, prep.config)
     return DiffResults.value(result), DiffResults.derivative(result)
@@ -254,7 +254,7 @@ function DI.jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     jac = jacobian(fc!, y, x, prep.config)
     return jac
 end
@@ -269,7 +269,7 @@ function DI.jacobian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     jac = jacobian!(jac, fc!, y, x, prep.config)
     return jac
 end

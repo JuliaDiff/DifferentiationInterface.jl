@@ -328,6 +328,7 @@ function sparse_scenarios(;
     band_sizes=[5, 10, 20],
     include_constantified=false,
     include_cachified=false,
+    include_constantorcachified=false,
     use_tuples=false,
 )
     x_6 = float.(1:6)
@@ -351,5 +352,6 @@ function sparse_scenarios(;
     append!(final_scens, scens)
     include_constantified && append!(final_scens, constantify(scens))
     include_cachified && append!(final_scens, cachify(scens; use_tuples))
+    include_constantorcachified && append!(final_scens, constantorcachify(scens))
     return final_scens
 end

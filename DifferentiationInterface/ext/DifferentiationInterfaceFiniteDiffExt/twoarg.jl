@@ -80,7 +80,7 @@ function DI.pushforward(
 ) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     ty = map(tx) do dx
         dy = similar(y)
         finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
@@ -100,7 +100,7 @@ function DI.value_and_pushforward(
 ) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     ty = map(tx) do dx
         dy = similar(y)
         finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
@@ -122,7 +122,7 @@ function DI.pushforward!(
 ) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
         finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
@@ -142,7 +142,7 @@ function DI.value_and_pushforward!(
 ) where {SIG,C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
         finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
@@ -214,7 +214,7 @@ function DI.value_and_derivative(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     fc!(y, x)
     der = finite_difference_gradient(fc!, x, prep.cache; relstep, absstep, dir)
     return y, der
@@ -231,7 +231,7 @@ function DI.value_and_derivative!(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     fc!(y, x)
     finite_difference_gradient!(der, fc!, x, prep.cache; relstep, absstep, dir)
     return y, der
@@ -247,7 +247,7 @@ function DI.derivative(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     fc!(y, x)
     der = finite_difference_gradient(fc!, x, prep.cache; relstep, absstep, dir)
     return der
@@ -264,7 +264,7 @@ function DI.derivative!(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     finite_difference_gradient!(der, fc!, x, prep.cache; relstep, absstep, dir)
     return der
 end
@@ -336,7 +336,7 @@ function DI.value_and_jacobian(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     jac = similar(y, length(y), length(x))
     finite_difference_jacobian!(jac, fc!, x, prep.cache; relstep, absstep, dir)
     fc!(y, x)
@@ -354,7 +354,7 @@ function DI.value_and_jacobian!(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     finite_difference_jacobian!(jac, fc!, x, prep.cache; relstep, absstep, dir)
     fc!(y, x)
     return y, jac
@@ -370,7 +370,7 @@ function DI.jacobian(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     jac = similar(y, length(y), length(x))
     finite_difference_jacobian!(jac, fc!, x, prep.cache; relstep, absstep, dir)
     return jac
@@ -387,7 +387,7 @@ function DI.jacobian!(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     finite_difference_jacobian!(jac, fc!, x, prep.cache; relstep, absstep, dir)
     return jac
 end

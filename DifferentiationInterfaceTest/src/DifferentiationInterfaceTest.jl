@@ -89,7 +89,7 @@ using DifferentiationInterface:
     inplace_support,
     pushforward_performance,
     pullback_performance
-using DifferentiationInterface: Rewrap, Context, Constant, Cache, unwrap
+using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCache, unwrap
 using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using JET: @test_opt

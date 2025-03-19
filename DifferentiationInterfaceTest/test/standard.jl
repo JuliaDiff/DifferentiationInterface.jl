@@ -17,10 +17,12 @@ test_differentiation(
     logging=LOGGING,
 )
 
-## Complex
-
 test_differentiation(
-    AutoFiniteDiff(), vcat(complex_scenarios(), complex_sparse_scenarios()); logging=LOGGING
+    [AutoForwardDiff(), AutoFiniteDiff(; relstep=1e-5)],
+    default_scenarios(;
+        include_batchified=false, include_normal=false, include_constantorcachified=true
+    );
+    logging=LOGGING,
 )
 
 ## Sparse
@@ -36,4 +38,10 @@ test_differentiation(
     sparse_scenarios(; include_cachified=true, use_tuples=true);
     sparsity=true,
     logging=LOGGING,
+)
+
+## Complex
+
+test_differentiation(
+    AutoFiniteDiff(), vcat(complex_scenarios(), complex_sparse_scenarios()); logging=LOGGING
 )

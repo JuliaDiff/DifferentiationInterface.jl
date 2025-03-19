@@ -32,7 +32,7 @@ function DI.pushforward(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     ty = map(tx) do dx
         jvp(backend.fdm, fc, (x, dx))
     end
@@ -75,7 +75,7 @@ function DI.pullback(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     tx = map(ty) do dy
         only(j′vp(backend.fdm, fc, dy, x))
     end
@@ -112,7 +112,7 @@ function DI.gradient(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return only(grad(backend.fdm, fc, x))
 end
 
@@ -169,7 +169,7 @@ function DI.jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return only(jacobian(backend.fdm, fc, x))
 end
 

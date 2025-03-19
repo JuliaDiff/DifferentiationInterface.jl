@@ -101,7 +101,7 @@ function Base.:(==)(
     eq_tang = scen1.tang == scen2.tang
     eq_contexts = all(
         map(scen1.contexts, scen2.contexts) do c1, c2
-            if c1 isa Cache || c2 isa Cache
+            if c1 isa Union{Cache,ConstantOrCache} || c2 isa Union{Cache,ConstantOrCache}
                 return true
             else
                 return c1 == c2

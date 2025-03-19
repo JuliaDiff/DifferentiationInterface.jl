@@ -67,7 +67,8 @@ end
     )
 
     test_differentiation(
-        second_order_hvp_backends;
+        second_order_hvp_backends,
+        default_scenarios(; include_constantorcachified=true);
         excluded=vcat(FIRST_ORDER, :hessian, :second_derivative),
         logging=LOGGING,
     )

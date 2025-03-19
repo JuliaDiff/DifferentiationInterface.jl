@@ -132,7 +132,7 @@ function DI.value_and_derivative(
     f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
     if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         result = MutableDiffResult(y, (similar(y),))
         result = derivative!(result, fc!, y, x)
         return DiffResults.value(result), DiffResults.derivative(result)
@@ -146,7 +146,7 @@ function DI.value_and_derivative!(
     f!::F, y, der, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
     if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         result = MutableDiffResult(y, (der,))
         result = derivative!(result, fc!, y, x)
         return DiffResults.value(result), DiffResults.derivative(result)
@@ -160,7 +160,7 @@ function DI.derivative(
     f!::F, y, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
     if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         return derivative(fc!, y, x)
     else
         prep = DI.prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
@@ -172,7 +172,7 @@ function DI.derivative!(
     f!::F, y, der, backend::AutoForwardDiff{chunksize,T}, x, contexts::Vararg{DI.Context,C}
 ) where {F,C,chunksize,T}
     if (T === Nothing && contexts isa NTuple{C,DI.GeneralizedConstant})
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         return derivative!(der, fc!, y, x)
     else
         prep = DI.prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
@@ -228,7 +228,7 @@ function DI.value_and_derivative(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     result = MutableDiffResult(y, (similar(y),))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -249,7 +249,7 @@ function DI.value_and_derivative!(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     result = MutableDiffResult(y, (der,))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -269,7 +269,7 @@ function DI.derivative(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)
@@ -288,7 +288,7 @@ function DI.derivative!(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)
@@ -308,7 +308,7 @@ function DI.value_and_jacobian(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         jac = similar(y, length(y), length(x))
         result = MutableDiffResult(y, (jac,))
         result = jacobian!(result, fc!, y, x)
@@ -327,7 +327,7 @@ function DI.value_and_jacobian!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         result = MutableDiffResult(y, (jac,))
         result = jacobian!(result, fc!, y, x)
         return DiffResults.value(result), DiffResults.jacobian(result)
@@ -345,7 +345,7 @@ function DI.jacobian(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         return jacobian(fc!, y, x)
     else
         prep = DI.prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
@@ -361,7 +361,7 @@ function DI.jacobian!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc! = DI.with_contexts(f!, contexts...)
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
         return jacobian!(jac, fc!, y, x)
     else
         prep = DI.prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
@@ -420,7 +420,7 @@ function DI.value_and_jacobian(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     jac = similar(y, length(y), length(x))
     result = MutableDiffResult(y, (jac,))
     CHK = tag_type(backend) === Nothing
@@ -442,7 +442,7 @@ function DI.value_and_jacobian!(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     result = MutableDiffResult(y, (jac,))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -462,7 +462,7 @@ function DI.jacobian(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)
@@ -481,7 +481,7 @@ function DI.jacobian!(
 ) where {F,C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc! = DI.FixTail(f!, contexts_dual...)
+    fc! = DI.fix_tail(f!, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f!, x)

@@ -54,7 +54,7 @@ function DI.pushforward(
     contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     ty = map(tx) do dx
         foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
         fc!(prep.yt, prep.xt)
@@ -76,7 +76,7 @@ function DI.pushforward!(
     contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
         foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
@@ -163,7 +163,7 @@ function DI.jacobian(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     fc!(prep.yt, prep.xt)
     jac = similar(x, GTPSA.numtype(eltype(prep.yt)), (length(prep.yt), length(x)))
     GTPSA.jacobian!(jac, prep.yt; include_params=true, unsafe_inbounds=true)
@@ -182,7 +182,7 @@ function DI.jacobian!(
 ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc! = DI.with_contexts(f!, contexts...)
+    fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     fc!(prep.yt, prep.xt)
     GTPSA.jacobian!(jac, prep.yt; include_params=true, unsafe_inbounds=true)
     map!(t -> t[0], y, prep.yt)

@@ -292,7 +292,7 @@ function DI.value_and_gradient!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         result = DiffResult(zero(eltype(x)), (grad,))
         result = gradient!(result, fc, x)
         y = DR.value(result)
@@ -312,7 +312,7 @@ function DI.value_and_gradient(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         result = GradientResult(x)
         result = gradient!(result, fc, x)
         return DR.value(result), DR.gradient(result)
@@ -330,7 +330,7 @@ function DI.gradient!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return gradient!(grad, fc, x)
     else
         prep = DI.prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
@@ -346,7 +346,7 @@ function DI.gradient(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return gradient(fc, x)
     else
         prep = DI.prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
@@ -387,7 +387,7 @@ function DI.value_and_gradient!(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     result = DiffResult(zero(eltype(x)), (grad,))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -408,7 +408,7 @@ function DI.value_and_gradient(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     result = GradientResult(x)
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -428,7 +428,7 @@ function DI.gradient!(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f, x)
@@ -445,7 +445,7 @@ function DI.gradient(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f, x)
@@ -465,7 +465,7 @@ function DI.value_and_jacobian!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         y = fc(x)
         result = DiffResult(y, (jac,))
         result = jacobian!(result, fc, x)
@@ -486,7 +486,7 @@ function DI.value_and_jacobian(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return fc(x), jacobian(fc, x)
     else
         prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
@@ -502,7 +502,7 @@ function DI.jacobian!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return jacobian!(jac, fc, x)
     else
         prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
@@ -518,7 +518,7 @@ function DI.jacobian(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return jacobian(fc, x)
     else
         prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
@@ -555,7 +555,7 @@ function DI.value_and_jacobian!(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     y = fc(x)
     result = DiffResult(y, (jac,))
     CHK = tag_type(backend) === Nothing
@@ -577,7 +577,7 @@ function DI.value_and_jacobian(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f, x)
@@ -595,7 +595,7 @@ function DI.jacobian!(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f, x)
@@ -612,7 +612,7 @@ function DI.jacobian(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.config, f, x)
@@ -718,7 +718,7 @@ function DI.hessian!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return hessian!(hess, fc, x)
     else
         prep = DI.prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
@@ -734,7 +734,7 @@ function DI.hessian(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         return hessian(fc, x)
     else
         prep = DI.prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
@@ -755,7 +755,7 @@ function DI.value_gradient_and_hessian!(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         result = DiffResult(one(eltype(x)), (grad, hess))
         result = hessian!(result, fc, x)
         y = DR.value(result)
@@ -776,7 +776,7 @@ function DI.value_gradient_and_hessian(
         T === Nothing &&
         contexts isa NTuple{C,DI.GeneralizedConstant}
     )
-        fc = DI.with_contexts(f, contexts...)
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
         result = HessianResult(x)
         result = hessian!(result, fc, x)
         return (DR.value(result), DR.gradient(result), DR.hessian(result))
@@ -818,7 +818,7 @@ function DI.hessian!(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.array_config, f, x)
@@ -835,7 +835,7 @@ function DI.hessian(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     CHK = tag_type(backend) === Nothing
     if CHK
         checktag(prep.array_config, f, x)
@@ -854,7 +854,7 @@ function DI.value_gradient_and_hessian!(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     result = DiffResult(one(eltype(x)), (grad, hess))
     CHK = tag_type(backend) === Nothing
     if CHK
@@ -876,7 +876,7 @@ function DI.value_gradient_and_hessian(
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     contexts_dual = translate_prepared(contexts, prep.contexts_dual)
-    fc = DI.FixTail(f, contexts_dual...)
+    fc = DI.fix_tail(f, contexts_dual...)
     result = HessianResult(x)
     CHK = tag_type(backend) === Nothing
     if CHK

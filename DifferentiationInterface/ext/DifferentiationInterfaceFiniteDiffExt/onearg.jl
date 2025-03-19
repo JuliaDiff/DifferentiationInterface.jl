@@ -12,7 +12,7 @@ function DI.prepare_pushforward_nokwarg(
     strict::Val, f, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C};
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     cache = if x isa Number || y isa Number
         nothing
@@ -89,7 +89,7 @@ function DI.pushforward(
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     ty = map(tx) do dx
         finite_difference_jvp(fc, x, dx, prep.cache; relstep, absstep, dir)
     end
@@ -106,7 +106,7 @@ function DI.value_and_pushforward(
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     ty = map(tx) do dx
         finite_difference_jvp(fc, x, dx, prep.cache, y; relstep, absstep, dir)
@@ -128,7 +128,7 @@ function DI.prepare_derivative_nokwarg(
     strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     cache = if y isa Number
         nothing
@@ -161,7 +161,7 @@ function DI.derivative(
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_derivative(fc, x, fdtype(backend); relstep, absstep, dir)
 end
 
@@ -174,7 +174,7 @@ function DI.value_and_derivative(
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     return (
         y,
@@ -195,7 +195,7 @@ function DI.derivative(
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_gradient(fc, x, prep.cache; relstep, absstep, dir)
 end
 
@@ -209,7 +209,7 @@ function DI.derivative!(
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_gradient!(der, fc, x, prep.cache; relstep, absstep, dir)
 end
 
@@ -221,7 +221,7 @@ function DI.value_and_derivative(
     contexts::Vararg{DI.Context,C},
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     (; relstep, absstep, dir) = prep
     y = fc(x)
     return (y, finite_difference_gradient(fc, x, prep.cache; relstep, absstep, dir))
@@ -237,7 +237,7 @@ function DI.value_and_derivative!(
 ) where {SIG,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return (
         fc(x), finite_difference_gradient!(der, fc, x, prep.cache; relstep, absstep, dir)
     )
@@ -257,7 +257,7 @@ function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     df = zero(y) .* x
     cache = GradientCache(df, x, fdtype(backend))
@@ -284,7 +284,7 @@ function DI.gradient(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_gradient(fc, x, prep.cache; relstep, absstep, dir)
 end
 
@@ -297,7 +297,7 @@ function DI.value_and_gradient(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return fc(x), finite_difference_gradient(fc, x, prep.cache; relstep, absstep, dir)
 end
 
@@ -311,7 +311,7 @@ function DI.gradient!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_gradient!(grad, fc, x, prep.cache; relstep, absstep, dir)
 end
 
@@ -325,7 +325,7 @@ function DI.value_and_gradient!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return (
         fc(x), finite_difference_gradient!(grad, fc, x, prep.cache; relstep, absstep, dir)
     )
@@ -345,7 +345,7 @@ function DI.prepare_jacobian_nokwarg(
     strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     x1 = similar(x)
     fx = similar(y)
@@ -374,7 +374,7 @@ function DI.jacobian(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_jacobian(fc, x, prep.cache; relstep, absstep, dir)
 end
 
@@ -386,7 +386,7 @@ function DI.value_and_jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     (; relstep, absstep, dir) = prep
     y = fc(x)
     return (y, finite_difference_jacobian(fc, x, prep.cache, y; relstep, absstep, dir))
@@ -402,7 +402,7 @@ function DI.jacobian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return copyto!(
         jac,
         finite_difference_jacobian(
@@ -421,7 +421,7 @@ function DI.value_and_jacobian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     return (
         y,
@@ -450,7 +450,7 @@ function DI.prepare_hessian_nokwarg(
     strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
 ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     df = zero(y) .* x
     gradient_cache = GradientCache(df, x, fdtype(backend))
@@ -481,7 +481,7 @@ function DI.hessian(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_h, absstep_h) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_hessian(
         fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
     )
@@ -497,7 +497,7 @@ function DI.hessian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_h, absstep_h) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_hessian!(
         hess, fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
     )
@@ -512,7 +512,7 @@ function DI.value_gradient_and_hessian(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_g, absstep_g, relstep_h, absstep_h) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     grad = finite_difference_gradient(
         fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g
     )
@@ -533,7 +533,7 @@ function DI.value_gradient_and_hessian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_g, absstep_g, relstep_h, absstep_h) = prep
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     finite_difference_gradient!(
         grad, fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g
     )

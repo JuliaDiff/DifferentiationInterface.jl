@@ -7,13 +7,13 @@ Wrapper around [`ADTypes.jacobian_sparsity`](@extref ADTypes.jacobian_sparsity) 
 function jacobian_sparsity_with_contexts(
     f::F, detector::AbstractSparsityDetector, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    return jacobian_sparsity(with_contexts(f, contexts...), x, detector)
+    return jacobian_sparsity(fix_tail(f, map(unwrap, contexts)...), x, detector)
 end
 
 function jacobian_sparsity_with_contexts(
     f!::F, y, detector::AbstractSparsityDetector, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    return jacobian_sparsity(with_contexts(f!, contexts...), y, x, detector)
+    return jacobian_sparsity(fix_tail(f!, map(unwrap, contexts)...), y, x, detector)
 end
 
 """
@@ -24,5 +24,5 @@ Wrapper around [`ADTypes.hessian_sparsity`](@extref ADTypes.hessian_sparsity) en
 function hessian_sparsity_with_contexts(
     f::F, detector::AbstractSparsityDetector, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    return hessian_sparsity(with_contexts(f, contexts...), x, detector)
+    return hessian_sparsity(fix_tail(f, map(unwrap, contexts)...), x, detector)
 end
