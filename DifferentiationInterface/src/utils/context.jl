@@ -85,7 +85,7 @@ julia> gradient(f, prep, AutoForwardDiff(), [3.0, 4.0], Cache(zeros(2)))
 2-element Vector{Float64}:
  1.0
  1.0
-````
+```
 """
 struct Cache{T} <: Context
     data::T
