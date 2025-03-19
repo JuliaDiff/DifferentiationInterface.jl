@@ -283,7 +283,7 @@ function DI.hessian(
     contexts::Vararg{DI.GeneralizedConstant,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     hess = hessian(fc, x)
     return hess
 end

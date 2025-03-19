@@ -44,7 +44,7 @@ function DI.pushforward(
     contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     ty = map(tx) do dx
         foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
         yt = fc(prep.xt)
@@ -68,7 +68,7 @@ function DI.pushforward!(
     contexts::Vararg{DI.Constant,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
         foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
@@ -139,7 +139,7 @@ function DI.gradient(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part (slopes set in prepare)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     grad = similar(x, GTPSA.numtype(yt))
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
@@ -156,7 +156,7 @@ function DI.gradient!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
     return grad
@@ -167,7 +167,7 @@ function DI.value_and_gradient(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part (slopes set in prepare)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     grad = similar(x, GTPSA.numtype(yt))
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
@@ -184,7 +184,7 @@ function DI.value_and_gradient!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part (slopes set in prepare)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
     return yt[0], grad
@@ -224,7 +224,7 @@ function DI.jacobian(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     jac = similar(x, GTPSA.numtype(eltype(yt)), (length(yt), length(x)))
     GTPSA.jacobian!(jac, yt; include_params=true, unsafe_inbounds=true)
@@ -241,7 +241,7 @@ function DI.jacobian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     GTPSA.jacobian!(jac, yt; include_params=true, unsafe_inbounds=true)
     return jac
@@ -252,7 +252,7 @@ function DI.value_and_jacobian(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     jac = similar(x, GTPSA.numtype(eltype(yt)), (length(yt), length(x)))
     GTPSA.jacobian!(jac, yt; include_params=true, unsafe_inbounds=true)
@@ -270,7 +270,7 @@ function DI.value_and_jacobian!(
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     GTPSA.jacobian!(jac, yt; include_params=true, unsafe_inbounds=true)
     y = map(t -> t[0], yt)
@@ -307,7 +307,7 @@ function DI.second_derivative(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.xt[0] = x
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     if D == Nothing
         idx2 = 2
@@ -336,7 +336,7 @@ function DI.second_derivative!(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.xt[0] = x
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     if D == Nothing
         idx2 = 2
@@ -358,7 +358,7 @@ function DI.value_derivative_and_second_derivative(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.xt[0] = x
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     if D == Nothing
         idx2 = 2
@@ -390,7 +390,7 @@ function DI.value_derivative_and_second_derivative!(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.xt[0] = x
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     y = map(t -> t[0], yt)
     if D == Nothing
@@ -452,7 +452,7 @@ function DI.hessian(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     hess = similar(x, GTPSA.numtype(yt), (length(x), length(x)))
     unsafe_fast = D == Nothing ? true : false
@@ -477,7 +477,7 @@ function DI.hessian!(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     unsafe_fast = D == Nothing ? true : false
     GTPSA.hessian!(
@@ -500,7 +500,7 @@ function DI.value_gradient_and_hessian(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     grad = similar(x, GTPSA.numtype(yt))
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
@@ -528,7 +528,7 @@ function DI.value_gradient_and_hessian!(
 ) where {D,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     yt = fc(prep.xt)
     GTPSA.gradient!(grad, yt; include_params=true, unsafe_inbounds=true)
     unsafe_fast = D == Nothing ? true : false
@@ -554,7 +554,7 @@ function DI.prepare_hvp_nokwarg(
 ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     hessprep = DI.prepare_hessian_nokwarg(strict, f, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     hess = similar(x, typeof(fc(x)), (length(x), length(x)))
     return GTPSAOneArgHVPPrep(_sig, hessprep, hess)
 end

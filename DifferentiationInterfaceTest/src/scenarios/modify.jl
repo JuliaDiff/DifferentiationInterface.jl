@@ -44,6 +44,22 @@ function change_function(
     )
 end
 
+function set_smaller(
+    scen::Scenario{op,pl_op,pl_fun}, smaller::Scenario
+) where {op,pl_op,pl_fun}
+    @assert scen.f == smaller.f
+    return Scenario{op,pl_op,pl_fun}(
+        scen.f;
+        x=scen.x,
+        y=scen.y,
+        tang=scen.tang,
+        contexts=scen.contexts,
+        res1=scen.res1,
+        res2=scen.res2,
+        smaller=smaller,
+    )
+end
+
 """
     batchify(scen::Scenario)
 
@@ -183,7 +199,7 @@ Base.show(io::IO, f::StoreInCache) = print(io, "StoreInCache($(f.f))")
 (sc::StoreInCache{:out})(x, y_cache::Tuple) = sc(x, first(y_cache))
 (sc::StoreInCache{:in})(y, x, y_cache::Tuple) = sc(y, x, first(y_cache))
 
-function (sc::StoreInCache{:out})(x, y_cache)
+function (sc::StoreInCache{:out})(x, y_cache)  # no annotation otherwise Zygote.Buffer cries
     y = sc.f(x)
     if y isa Number
         y_cache[1] = y
@@ -237,6 +253,80 @@ function cachify(scen::Scenario{op,pl_op,pl_fun}; use_tuples) where {op,pl_op,pl
     )
 end
 
+struct MultiplyByConstantAndStoreInCache{pl_fun,F} <: FunctionModifier
+    f::F
+end
+
+function MultiplyByConstantAndStoreInCache{pl_fun}(f::F) where {pl_fun,F}
+    return MultiplyByConstantAndStoreInCache{pl_fun,F}(f)
+end
+
+function Base.show(io::IO, f::MultiplyByConstantAndStoreInCache)
+    return print(io, "MultiplyByConstantAndStoreInCache($(f.f))")
+end
+
+function (sc::MultiplyByConstantAndStoreInCache{:out})(x, constantorcache)
+    (; constant, cache) = constantorcache
+    y = constant * sc.f(x)
+    if eltype(y) == eltype(cache)
+        newcache = cache
+    else
+        # poor man's PreallocationTools
+        newcache = similar(cache, eltype(y))
+    end
+    if y isa Number
+        newcache[1] = y
+        return newcache[1]
+    else
+        copyto!(newcache, y)
+        return copy(newcache)
+    end
+end
+
+function (sc::MultiplyByConstantAndStoreInCache{:in})(y, x, constantorcache)
+    (; constant, cache) = constantorcache
+    if eltype(y) == eltype(cache)
+        newcache = cache
+    else
+        # poor man's PreallocationTools
+        newcache = similar(cache, eltype(y))
+    end
+    sc.f(newcache, x)
+    newcache .*= constant
+    copyto!(y, newcache)
+    return nothing
+end
+
+"""
+    constantorcachify(scen::Scenario)
+
+Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional "constant or cache" argument.
+"""
+function constantorcachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+    (; f,) = scen
+    @assert isempty(scen.contexts)
+    constantorcache_f = MultiplyByConstantAndStoreInCache{pl_fun}(f)
+    a = 3.0
+    constantorcache = if scen.y isa Number
+        (; cache=[myzero(scen.y)], constant=a)
+    else
+        (; cache=mysimilar(scen.y), constant=a)
+    end
+    return Scenario{op,pl_op,pl_fun}(
+        constantorcache_f;
+        x=scen.x,
+        y=mymultiply(scen.y, a),
+        tang=scen.tang,
+        contexts=(ConstantOrCache(constantorcache),),
+        res1=mymultiply(scen.res1, a),
+        res2=mymultiply(scen.res2, a),
+        smaller=isnothing(scen.smaller) ? nothing : constantorcachify(scen.smaller),
+        name=isnothing(scen.name) ? nothing : scen.name * " [constantorcachified]",
+    )
+end
+
+## Group functions
+
 function batchify(scens::AbstractVector{<:Scenario})
     batchifiable_scens = filter(s -> operator(s) in (:pushforward, :pullback, :hvp), scens)
     return batchify.(batchifiable_scens)
@@ -245,19 +335,4 @@ end
 closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
 cachify(scens::AbstractVector{<:Scenario}; use_tuples) = cachify.(scens; use_tuples)
-
-function set_smaller(
-    scen::Scenario{op,pl_op,pl_fun}, smaller::Scenario
-) where {op,pl_op,pl_fun}
-    @assert scen.f == smaller.f
-    return Scenario{op,pl_op,pl_fun}(
-        scen.f;
-        x=scen.x,
-        y=scen.y,
-        tang=scen.tang,
-        contexts=scen.contexts,
-        res1=scen.res1,
-        res2=scen.res2,
-        smaller=smaller,
-    )
-end
+constantorcachify(scens::AbstractVector{<:Scenario}) = constantorcachify.(scens)

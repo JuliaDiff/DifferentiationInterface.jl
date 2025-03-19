@@ -16,7 +16,7 @@ function DI.value_and_pullback(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     dotclosure(z, dy) = dot(fc(z), dy)
     tx = map(ty) do dy
@@ -39,7 +39,7 @@ function DI.value_and_pullback!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     dotclosure(z, dy) = dot(fc(z), dy)
     for b in eachindex(tx, ty)
@@ -160,7 +160,7 @@ function DI.value_and_gradient!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     result = MutableDiffResult(zero(eltype(x)), (grad,))  # ReverseDiff#251
     result = gradient!(result, fc, x, prep.config)
     return DR.value(result), grad  # ReverseDiff#269
@@ -174,7 +174,7 @@ function DI.value_and_gradient(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     # GradientResult tries to mutate an SArray
     result = MutableDiffResult(zero(eltype(x)), (similar(x),))
     result = gradient!(result, fc, x, prep.config)
@@ -190,7 +190,7 @@ function DI.gradient!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return gradient!(grad, fc, x, prep.config)
 end
 
@@ -202,7 +202,7 @@ function DI.gradient(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return gradient(fc, x, prep.config)
 end
 
@@ -297,7 +297,7 @@ function DI.value_and_jacobian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     result = DiffResult(y, (jac,))
     result = jacobian!(result, fc, x, prep.config)
@@ -314,7 +314,7 @@ function DI.value_and_jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return fc(x), jacobian(fc, x, prep.config)
 end
 
@@ -327,7 +327,7 @@ function DI.jacobian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return jacobian!(jac, fc, x, prep.config)
 end
 
@@ -339,7 +339,7 @@ function DI.jacobian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return jacobian(fc, x, prep.config)
 end
 
@@ -430,7 +430,7 @@ function DI.hessian!(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return hessian!(hess, fc, x, prep.hessian_config)
 end
 
@@ -442,7 +442,7 @@ function DI.hessian(
     contexts::Vararg{DI.Context,C},
 ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.with_contexts(f, contexts...)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return hessian(fc, x, prep.hessian_config)
 end
 

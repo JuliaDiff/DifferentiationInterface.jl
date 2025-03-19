@@ -39,6 +39,7 @@ end
             include_normal=false,
             include_batchified=false,
             include_cachified=true,
+            include_constantorcachified=true,
             use_tuples=true,
         );
         logging=LOGGING,
