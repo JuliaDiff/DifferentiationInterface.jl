@@ -117,7 +117,7 @@ function _prepare_hvp_aux(
     rewrap = Rewrap(contexts...)
     # Outer pushforward
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     outer_pushforward_prep = prepare_pushforward_nokwarg(
         strict, shuffled_gradient, outer(backend), x, tx, new_contexts...
@@ -161,15 +161,15 @@ function _prepare_hvp_aux(
     # Outer pushforward
     new_contexts = (
         FunctionContext(f),
-        PrepContext(inner_gradient_prep),
-        BackendContext(inner(backend)),
+        ConstantOrCache(inner_gradient_prep),
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
     new_contexts_in = (
         FunctionContext(f),
-        PrepContext(inner_gradient_in_prep),
-        BackendContext(inner(backend)),
+        ConstantOrCache(inner_gradient_in_prep),
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -228,15 +228,15 @@ function _prepare_hvp_aux(
     # Outer pushforward
     new_contexts = (
         FunctionContext(f),
-        PrepContext(inner_gradient_prep),
-        BackendContext(inner(backend)),
+        ConstantOrCache(inner_gradient_prep),
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
     new_contexts_in = (
         FunctionContext(f),
-        PrepContext(inner_gradient_in_prep),
-        BackendContext(inner(backend)),
+        ConstantOrCache(inner_gradient_in_prep),
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -279,8 +279,8 @@ function hvp(
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
-        map(PrepContext, maybe_inner_gradient_prep)...,
-        BackendContext(inner(backend)),
+        map(ConstantOrCache, maybe_inner_gradient_prep)...,
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -318,8 +318,8 @@ function _hvp_aux!(
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
-        map(PrepContext, maybe_inner_gradient_in_prep)...,
-        BackendContext(inner(backend)),
+        map(ConstantOrCache, maybe_inner_gradient_in_prep)...,
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -349,8 +349,8 @@ function _hvp_aux!(
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
-        map(PrepContext, maybe_inner_gradient_prep)...,
-        BackendContext(inner(backend)),
+        map(ConstantOrCache, maybe_inner_gradient_prep)...,
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -378,8 +378,8 @@ function gradient_and_hvp(
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
-        map(PrepContext, maybe_inner_gradient_prep)...,
-        BackendContext(inner(backend)),
+        map(ConstantOrCache, maybe_inner_gradient_prep)...,
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -419,8 +419,8 @@ function _gradient_and_hvp_aux!(
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
-        map(PrepContext, maybe_inner_gradient_in_prep)...,
-        BackendContext(inner(backend)),
+        map(ConstantOrCache, maybe_inner_gradient_in_prep)...,
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -452,8 +452,8 @@ function _gradient_and_hvp_aux!(
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
-        map(PrepContext, maybe_inner_gradient_prep)...,
-        BackendContext(inner(backend)),
+        map(ConstantOrCache, maybe_inner_gradient_prep)...,
+        Constant(inner(backend)),
         Constant(rewrap),
         contexts...,
     )
@@ -492,7 +492,7 @@ function _prepare_hvp_aux(
     rewrap = Rewrap(contexts...)
     new_contexts = (
         FunctionContext(f),
-        BackendContext(inner(backend)),
+        Constant(inner(backend)),
         Constant(first(tx)),
         Constant(rewrap),
         contexts...,
@@ -522,7 +522,7 @@ function hvp(
             outer(backend),
             x,
             FunctionContext(f),
-            BackendContext(inner(backend)),
+            Constant(inner(backend)),
             Constant(dx),
             Constant(rewrap),
             contexts...,
@@ -551,7 +551,7 @@ function hvp!(
             outer(backend),
             x,
             FunctionContext(f),
-            BackendContext(inner(backend)),
+            Constant(inner(backend)),
             Constant(tx[b]),
             Constant(rewrap),
             contexts...,
@@ -613,7 +613,7 @@ function _prepare_hvp_aux(
     _sig = signature(f, backend, x, tx, contexts...; strict)
     rewrap = Rewrap(contexts...)
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     grad_buffer = similar(x)
     outer_pullback_prep = prepare_pullback_nokwarg(
@@ -649,7 +649,7 @@ function hvp(
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     return pullback(
         shuffled_gradient, outer_pullback_prep, outer(backend), x, tx, new_contexts...
@@ -684,7 +684,7 @@ function _hvp_aux!(
     (; grad_buffer, outer_pullback_in_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     return pullback!(
         shuffled_gradient!,
@@ -711,7 +711,7 @@ function _hvp_aux!(
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     return pullback!(
         shuffled_gradient, tg, outer_pullback_prep, outer(backend), x, tx, new_contexts...
@@ -730,7 +730,7 @@ function gradient_and_hvp(
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     return value_and_pullback(
         shuffled_gradient, outer_pullback_prep, outer(backend), x, tx, new_contexts...
@@ -767,7 +767,7 @@ function _gradient_and_hvp_aux!(
     (; outer_pullback_in_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     new_grad, _ = value_and_pullback!(
         shuffled_gradient!,
@@ -796,7 +796,7 @@ function _gradient_and_hvp_aux!(
     (; outer_pullback_prep) = prep
     rewrap = Rewrap(contexts...)
     new_contexts = (
-        FunctionContext(f), BackendContext(inner(backend)), Constant(rewrap), contexts...
+        FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...
     )
     new_grad, _ = value_and_pullback!(
         shuffled_gradient, tg, outer_pullback_prep, outer(backend), x, tx, new_contexts...

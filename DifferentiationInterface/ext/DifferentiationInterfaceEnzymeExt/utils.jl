@@ -65,7 +65,7 @@ end
 end
 
 @inline function _translate(
-    backend::AutoEnzyme, mode::Mode, valB::Val{B}, c::DI.GeneralizedConstantOrCache
+    backend::AutoEnzyme, mode::Mode, valB::Val{B}, c::DI.ConstantOrCache
 ) where {B}
     IA = guess_activity(typeof(DI.unwrap(c)), mode)
     if IA <: Const
