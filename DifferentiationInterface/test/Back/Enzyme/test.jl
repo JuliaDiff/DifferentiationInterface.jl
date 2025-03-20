@@ -5,6 +5,7 @@ using ADTypes: ADTypes
 using DifferentiationInterface, DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
 using Enzyme: Enzyme
+using LinearAlgebra
 using StaticArrays
 using Test
 
@@ -134,5 +135,16 @@ end
         filtered_static_scenarios;
         excluded=SECOND_ORDER,
         logging=LOGGING,
+    )
+end
+
+@testset "Coverage" begin
+    # ConstantOrCache without cache
+    f_nocontext(x, p) = x
+    @test I == DifferentiationInterface.jacobian(
+        f_nocontext, AutoEnzyme(; mode=Enzyme.Forward), rand(10), ConstantOrCache(nothing)
+    )
+    @test I == DifferentiationInterface.jacobian(
+        f_nocontext, AutoEnzyme(; mode=Enzyme.Reverse), rand(10), ConstantOrCache(nothing)
     )
 end

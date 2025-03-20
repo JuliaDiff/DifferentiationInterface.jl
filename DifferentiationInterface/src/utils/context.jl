@@ -12,7 +12,6 @@ Abstract supertype for additional context arguments, which can be passed to diff
 abstract type Context end
 
 abstract type GeneralizedConstant <: Context end
-abstract type GeneralizedConstantOrCache <: Context end
 
 unwrap(c::Context) = c.data
 Base.:(==)(c1::Context, c2::Context) = unwrap(c1) == unwrap(c2)
@@ -102,7 +101,7 @@ Concrete type of [`Context`](@ref) argument which can contain a mixture of const
 
 Unlike for [`Cache`](@ref), it is up to the user to ensure that the internal storage can adapt to the required element types, for instance by using [PreallocationTools.jl](https://github.com/SciML/PreallocationTools.jl) directly.
 """
-struct ConstantOrCache{T} <: GeneralizedConstantOrCache
+struct ConstantOrCache{T} <: Context
     data::T
 end
 
@@ -120,26 +119,6 @@ Private type of [`Context`](@ref) argument used for passing functions inside sec
 Behaves differently for Enzyme only, where the function can be annotated.
 """
 struct FunctionContext{T} <: GeneralizedConstant
-    data::T
-end
-
-"""
-    BackendContext
-
-Private type of [`Context`](@ref) argument used for passing backends inside second-order differentiation.
-"""
-struct BackendContext{T} <: GeneralizedConstant
-    data::T
-end
-
-"""
-    PrepContext
-
-Private type of [`Context`](@ref) argument used for passing preparation results inside second-order differentiation.
-
-Conceptually similar to [`ConstantOrCache`](@ref) because we assume that preparation was performed with the right types so we don't change anything.
-"""
-struct PrepContext{T} <: GeneralizedConstantOrCache
     data::T
 end
 

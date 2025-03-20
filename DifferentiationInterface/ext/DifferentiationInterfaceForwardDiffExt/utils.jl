@@ -83,7 +83,7 @@ function mypartials!(::Type{T}, ty::NTuple{B}, ydual) where {T,B}
 end
 
 function _translate(
-    ::Type{D}, c::Union{DI.GeneralizedConstant,DI.GeneralizedConstantOrCache}
+    ::Type{D}, c::Union{DI.GeneralizedConstant,DI.ConstantOrCache}
 ) where {D<:Dual}
     return DI.unwrap(c)
 end
@@ -100,7 +100,7 @@ function translate(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:Dual,C}
 end
 
 function _translate_toprep(
-    ::Type{D}, c::Union{DI.GeneralizedConstant,DI.GeneralizedConstantOrCache}
+    ::Type{D}, c::Union{DI.GeneralizedConstant,DI.ConstantOrCache}
 ) where {D<:Dual}
     return nothing
 end
@@ -116,9 +116,7 @@ function translate_toprep(::Type{D}, contexts::NTuple{C,DI.Context}) where {D<:D
     return new_contexts
 end
 
-function _translate_prepared(
-    c::Union{DI.GeneralizedConstant,DI.GeneralizedConstantOrCache}, _pc
-)
+function _translate_prepared(c::Union{DI.GeneralizedConstant,DI.ConstantOrCache}, _pc)
     return DI.unwrap(c)
 end
 _translate_prepared(_c::DI.Cache, pc) = pc
