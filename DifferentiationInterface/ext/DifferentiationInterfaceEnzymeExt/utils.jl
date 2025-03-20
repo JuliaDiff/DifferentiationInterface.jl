@@ -54,12 +54,24 @@ force_annotation(f::F) where {F} = Const(f)
 end
 
 @inline function _translate(
-    backend::AutoEnzyme, ::Mode, ::Val{B}, c::Union{DI.Cache,DI.GeneralizedConstantOrCache}
+    backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.Cache
 ) where {B}
+    # important to keep make_zero here for ConstantOrCache instead of similar
     if B == 1
         return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))
     else
         return BatchDuplicated(DI.unwrap(c), ntuple(_ -> make_zero(DI.unwrap(c)), Val(B)))
+    end
+end
+
+@inline function _translate(
+    backend::AutoEnzyme, mode::Mode, valB::Val{B}, c::DI.GeneralizedConstantOrCache
+) where {B}
+    IA = guess_activity(typeof(DI.unwrap(c)), mode)
+    if IA <: Const
+        return _translate(backend, mode, valB, DI.Constant(DI.unwrap(c)))
+    else
+        return _translate(backend, mode, valB, DI.Cache(DI.unwrap(c)))
     end
 end
 

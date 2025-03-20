@@ -136,3 +136,14 @@ end
         logging=LOGGING,
     )
 end
+
+@testset "Coverage" begin
+    # ConstantOrCache without cache
+    f_nocontext(x, p) = x
+    @test I == DifferentiationInterface.jacobian(
+        f_nocontext, AutoEnzyme(; mode=Enzyme.Forward), rand(10), ConstantOrCache(nothing)
+    )
+    @test I == DifferentiationInterface.jacobian(
+        f_nocontext, AutoEnzyme(; mode=Enzyme.Reverse), rand(10), ConstantOrCache(nothing)
+    )
+end
