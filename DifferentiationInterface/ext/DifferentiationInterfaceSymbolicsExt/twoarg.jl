@@ -26,7 +26,9 @@ function DI.prepare_pushforward_nokwarg(
     step_der_var = derivative(y_var, t_var)
     pf_var = substitute(step_der_var, Dict(t_var => zero(eltype(x))))
 
-    res = build_function(pf_var, x_var, dx_var, context_vars...; expression=Val(false))
+    res = build_function(
+        pf_var, x_var, dx_var, context_vars...; expression=Val(false), cse=true
+    )
     (pushforward_exe, pushforward_exe!) = res
     return SymbolicsTwoArgPushforwardPrep(_sig, pushforward_exe, pushforward_exe!)
 end
@@ -114,7 +116,7 @@ function DI.prepare_derivative_nokwarg(
     f!(y_var, x_var, context_vars...)
     der_var = derivative(y_var, x_var)
 
-    res = build_function(der_var, x_var, context_vars...; expression=Val(false))
+    res = build_function(der_var, x_var, context_vars...; expression=Val(false), cse=true)
     (der_exe, der_exe!) = res
     return SymbolicsTwoArgDerivativePrep(_sig, der_exe, der_exe!)
 end
@@ -201,7 +203,7 @@ function DI.prepare_jacobian_nokwarg(
         jacobian(y_var, x_var)
     end
 
-    res = build_function(jac_var, x_var, context_vars...; expression=Val(false))
+    res = build_function(jac_var, x_var, context_vars...; expression=Val(false), cse=true)
     (jac_exe, jac_exe!) = res
     return SymbolicsTwoArgJacobianPrep(_sig, jac_exe, jac_exe!)
 end
