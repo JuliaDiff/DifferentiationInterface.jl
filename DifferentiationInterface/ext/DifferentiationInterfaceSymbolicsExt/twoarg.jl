@@ -26,7 +26,9 @@ function DI.prepare_pushforward_nokwarg(
     step_der_var = derivative(y_var, t_var)
     pf_var = substitute(step_der_var, Dict(t_var => zero(eltype(x))))
 
-    res = build_function(pf_var, x_var, dx_var, context_vars...; expression=Val(false), cse=true)
+    res = build_function(
+        pf_var, x_var, dx_var, context_vars...; expression=Val(false), cse=true
+    )
     (pushforward_exe, pushforward_exe!) = res
     return SymbolicsTwoArgPushforwardPrep(_sig, pushforward_exe, pushforward_exe!)
 end
