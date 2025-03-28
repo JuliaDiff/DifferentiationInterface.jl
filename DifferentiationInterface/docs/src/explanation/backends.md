@@ -70,7 +70,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoMooncake`             | ✅                  | ✅               |
 | `AutoPolyesterForwardDiff` | ✅                  | ✅               |
 | `AutoReverseDiff`          | ✅                  | ❌               |
-| `AutoSymbolics`            | ✅                  | ❌               |
+| `AutoSymbolics`            | ✅                  | ✅               |
 | `AutoTracker`              | ✅                  | ❌               |
 | `AutoZygote`               | ✅                  | 🔀               |
 
