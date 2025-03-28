@@ -28,8 +28,20 @@ variablize(::Number, name::Symbol) = variable(name)
 variablize(x::AbstractArray, name::Symbol) = variables(name, axes(x)...)
 
 function variablize(contexts::NTuple{C,DI.Context}) where {C}
-    map(enumerate(contexts)) do (k, c)
+    return ntuple(Val(C)) do k
+        c = contexts[k]
         variablize(DI.unwrap(c), Symbol("context$k"))
+    end
+end
+
+function erase_cache_vars!(
+    context_vars::NTuple{C}, contexts::NTuple{C,DI.Context}
+) where {C}
+    # erase the active data from caches before building function
+    for (v, c) in zip(context_vars, contexts)
+        if c isa DI.Cache
+            fill!(v, zero(eltype(v)))
+        end
     end
 end
 
