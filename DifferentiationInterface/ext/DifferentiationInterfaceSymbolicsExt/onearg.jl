@@ -239,8 +239,9 @@ end
 
 ## Jacobian
 
-struct SymbolicsOneArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
+struct SymbolicsOneArgJacobianPrep{SIG,P,E1,E1!} <: DI.SparseJacobianPrep{SIG}
     _sig::Val{SIG}
+    sparsity::P
     jac_exe::E1
     jac_exe!::E1!
 end
@@ -255,16 +256,18 @@ function DI.prepare_jacobian_nokwarg(
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
-    jac_var = if backend isa AutoSparse
-        sparsejacobian(vec(f(x_var, context_vars...)), vec(x_var))
+    if backend isa AutoSparse
+        jac_var = sparsejacobian(vec(f(x_var, context_vars...)), vec(x_var))
+        sparsity = DI.get_pattern(jac_var)
     else
-        jacobian(f(x_var, context_vars...), x_var)
+        jac_var = jacobian(f(x_var, context_vars...), x_var)
+        sparsity = nothing
     end
 
     erase_cache_vars!(context_vars, contexts)
     res = build_function(jac_var, x_var, context_vars...; expression=Val(false), cse=true)
     (jac_exe, jac_exe!) = res
-    return SymbolicsOneArgJacobianPrep(_sig, jac_exe, jac_exe!)
+    return SymbolicsOneArgJacobianPrep(_sig, sparsity, jac_exe, jac_exe!)
 end
 
 function DI.jacobian(
@@ -317,9 +320,10 @@ end
 
 ## Hessian
 
-struct SymbolicsOneArgHessianPrep{SIG,G,E2,E2!} <: DI.HessianPrep{SIG}
+struct SymbolicsOneArgHessianPrep{SIG,G,P,E2,E2!} <: DI.SparseHessianPrep{SIG}
     _sig::Val{SIG}
     gradient_prep::G
+    sparsity::P
     hess_exe::E2
     hess_exe!::E2!
 end
@@ -335,10 +339,12 @@ function DI.prepare_hessian_nokwarg(
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
     # Symbolic.hessian only accepts vectors
-    hess_var = if backend isa AutoSparse
-        sparsehessian(f(x_var, context_vars...), vec(x_var))
+    if backend isa AutoSparse
+        hess_var = sparsehessian(f(x_var, context_vars...), vec(x_var))
+        sparsity = DI.get_pattern(hess_var)
     else
-        hessian(f(x_var, context_vars...), vec(x_var))
+        hess_var = hessian(f(x_var, context_vars...), vec(x_var))
+        sparsity = nothing
     end
 
     erase_cache_vars!(context_vars, contexts)
@@ -350,7 +356,7 @@ function DI.prepare_hessian_nokwarg(
     gradient_prep = DI.prepare_gradient_nokwarg(
         strict, f, dense_ad(backend), x, contexts...
     )
-    return SymbolicsOneArgHessianPrep(_sig, gradient_prep, hess_exe, hess_exe!)
+    return SymbolicsOneArgHessianPrep(_sig, gradient_prep, sparsity, hess_exe, hess_exe!)
 end
 
 function DI.hessian(

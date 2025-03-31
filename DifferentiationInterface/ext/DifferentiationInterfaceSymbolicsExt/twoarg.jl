@@ -180,8 +180,9 @@ end
 
 ## Jacobian
 
-struct SymbolicsTwoArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
+struct SymbolicsTwoArgJacobianPrep{SIG,P,E1,E1!} <: DI.SparseJacobianPrep{SIG}
     _sig::Val{SIG}
+    sparsity::P
     jac_exe::E1
     jac_exe!::E1!
 end
@@ -199,16 +200,19 @@ function DI.prepare_jacobian_nokwarg(
     y_var = variablize(y, :y)
     context_vars = variablize(contexts)
     f!(y_var, x_var, context_vars...)
-    jac_var = if backend isa AutoSparse
-        sparsejacobian(vec(y_var), vec(x_var))
+    if backend isa AutoSparse
+        @info "hello"
+        jac_var = sparsejacobian(vec(y_var), vec(x_var))
+        sparsity = DI.get_pattern(jac_var)
     else
-        jacobian(y_var, x_var)
+        jac_var = jacobian(y_var, x_var)
+        sparsity = nothing
     end
 
     erase_cache_vars!(context_vars, contexts)
     res = build_function(jac_var, x_var, context_vars...; expression=Val(false), cse=true)
     (jac_exe, jac_exe!) = res
-    return SymbolicsTwoArgJacobianPrep(_sig, jac_exe, jac_exe!)
+    return SymbolicsTwoArgJacobianPrep(_sig, sparsity, jac_exe, jac_exe!)
 end
 
 function DI.jacobian(
