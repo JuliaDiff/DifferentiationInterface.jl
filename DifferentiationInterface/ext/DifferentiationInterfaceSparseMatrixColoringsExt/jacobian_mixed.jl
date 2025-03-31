@@ -1,9 +1,10 @@
 ## Preparation
 
-struct MixedModeSparseJacobianPrep{
+struct SMCMixedModeSparseJacobianPrep{
     SIG,
     BSf<:DI.BatchSizeSettings,
     BSr<:DI.BatchSizeSettings,
+    P<:AbstractMatrix,
     C<:AbstractColoringResult{:nonsymmetric,:bidirectional},
     M<:AbstractMatrix{<:Number},
     Sf<:Vector{<:NTuple},
@@ -12,10 +13,11 @@ struct MixedModeSparseJacobianPrep{
     Rr<:Vector{<:NTuple},
     Ef<:DI.PushforwardPrep,
     Er<:DI.PullbackPrep,
-} <: SparseJacobianPrep{SIG}
+} <: SMCSparseJacobianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings_forward::BSf
     batch_size_settings_reverse::BSr
+    sparsity::P
     coloring_result::C
     compressed_matrix_forward::M
     compressed_matrix_reverse::M
@@ -78,6 +80,7 @@ function _prepare_mixed_sparse_jacobian_aux(
         strict,
         batch_size_settings_forward,
         batch_size_settings_reverse,
+        sparsity,
         coloring_result,
         y,
         f_or_f!y,
@@ -91,6 +94,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
     strict::Val,
     batch_size_settings_forward::DI.BatchSizeSettings{Bf},
     batch_size_settings_reverse::DI.BatchSizeSettings{Br},
+    sparsity::AbstractMatrix,
     coloring_result::AbstractColoringResult{:nonsymmetric,:bidirectional},
     y,
     f_or_f!y::FY,
@@ -144,10 +148,11 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         contexts...;
     )
 
-    return MixedModeSparseJacobianPrep(
+    return SMCMixedModeSparseJacobianPrep(
         _sig,
         batch_size_settings_forward,
         batch_size_settings_reverse,
+        sparsity,
         coloring_result,
         compressed_matrix_forward,
         compressed_matrix_reverse,
@@ -165,7 +170,7 @@ end
 function _sparse_jacobian_aux!(
     f_or_f!y::FY,
     jac,
-    prep::MixedModeSparseJacobianPrep{
+    prep::SMCMixedModeSparseJacobianPrep{
         SIG,<:DI.BatchSizeSettings{Bf},<:DI.BatchSizeSettings{Br}
     },
     backend::AutoSparse,

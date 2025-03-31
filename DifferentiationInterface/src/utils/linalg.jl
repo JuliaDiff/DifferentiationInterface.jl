@@ -22,3 +22,14 @@ recursive_similar(x::AbstractArray, ::Type{T}) where {T} = similar(x, T)
 function recursive_similar(x::Union{Tuple,NamedTuple}, ::Type{T}) where {T}
     return map(xi -> recursive_similar(xi, T), x)
 end
+
+"""
+    get_pattern(M::AbstractMatrix)
+
+Return the `Bool`-valued sparsity pattern for a given matrix.
+
+Only specialized on `SparseMatrixCSC` because it is used with symbolic backends, and at the moment their sparse Jacobian/Hessian utilities return a `SparseMatrixCSC`.
+
+The trivial dense fallback is designed to protect against a change of format in these packages.
+"""
+get_pattern(M::AbstractMatrix) = trues(size(M))
