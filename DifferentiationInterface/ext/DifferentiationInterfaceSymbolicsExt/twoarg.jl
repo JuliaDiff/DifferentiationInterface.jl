@@ -201,7 +201,6 @@ function DI.prepare_jacobian_nokwarg(
     context_vars = variablize(contexts)
     f!(y_var, x_var, context_vars...)
     if backend isa AutoSparse
-        @info "hello"
         jac_var = sparsejacobian(vec(y_var), vec(x_var))
         sparsity = DI.get_pattern(jac_var)
     else
