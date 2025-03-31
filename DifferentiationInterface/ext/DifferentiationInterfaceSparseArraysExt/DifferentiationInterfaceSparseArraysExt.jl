@@ -3,7 +3,7 @@ module DifferentiationInterfaceSparseArraysExt
 using ADTypes: ADTypes
 using DifferentiationInterface
 import DifferentiationInterface as DI
-using SparseArrays: SparseMatrixCSC, sparse, nonzeros, nnz
+using SparseArrays: SparseMatrixCSC, sparse, nonzeros
 
 function DI.get_pattern(M::SparseMatrixCSC)
     S = similar(M, Bool)
