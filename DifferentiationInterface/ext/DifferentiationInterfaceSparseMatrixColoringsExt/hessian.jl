@@ -8,7 +8,7 @@ struct SMCSparseHessianPrep{
     R<:AbstractVector{<:NTuple},
     E2<:DI.HVPPrep,
     E1<:DI.GradientPrep,
-} <: DI.HessianPrep{SIG}
+} <: DI.SparseHessianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings::BS
     sparsity::P
