@@ -317,7 +317,7 @@ function DI.prepare_jacobian_nokwarg(
         jac_var = sparse_jacobian(y_vec_var, x_vec_var)
         sparsity = DI.get_pattern(jac_var)
     else
-        jacobian(y_vec_var, x_vec_var)
+        jac_var = jacobian(y_vec_var, x_vec_var)
         sparsity = nothing
     end
     jac_exe = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=false)
