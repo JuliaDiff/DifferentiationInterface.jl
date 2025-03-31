@@ -139,6 +139,7 @@ end
 function _prepare_sparse_jacobian_aux_aux(
     strict::Val,
     batch_size_settings::DI.BatchSizeSettings{B},
+    sparsity::AbstractMatrix,
     coloring_result::AbstractColoringResult{:nonsymmetric,:row},
     y,
     f_or_f!y::FY,
@@ -162,6 +163,7 @@ function _prepare_sparse_jacobian_aux_aux(
     return SMCPullbackSparseJacobianPrep(
         _sig,
         batch_size_settings,
+        sparsity,
         coloring_result,
         compressed_matrix,
         batched_seeds,
