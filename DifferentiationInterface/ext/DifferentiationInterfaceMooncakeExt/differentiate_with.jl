@@ -1,15 +1,22 @@
-function define_rule!(primal_func, primal_args)
-    return eval(:(@from_rrule MinimalCtx Tuple{$primal_func,$primal_args...}))
-end
+@is_primitive MinimalCtx Tuple{CoDual{<:DI.DifferentiateWith},CoDual{<:AbstractArray}}
+@is_primitive MinimalCtx Tuple{CoDual{<:DI.DifferentiateWith},CoDual{<:Number}}
 
 function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, args::CoDual...)
-    primal_func = typeof(Mooncake.primal(dw))
-    primal_args = typeof.(map(arg -> Mooncake.primal(arg), args))
-    # use the DI.chainrule wrapper inside @from_rrule to create a custom rrule!!
+    primal_func = Mooncake.primal(dw)
+    primal_args = map(arg -> Mooncake.primal(arg), args)
 
-    # macro evaluation in global scope with more specialized types (@fromrrule requires non generic types)
-    define_rule!(primal_func, primal_args)
+    (; f, backend) = primal_func
+    y = f(primal_args...)
 
-    # Use the ChainRuleCore rrule mapping with backends, calling Mooncake rule!! that now wraps around that ChainRulesCore rrule.
-    return Base.invokelatest(Mooncake.rrule!!, CoDual(primal_func, dw.dx), args...)
+    prep_same = DI.prepare_pullback_same_point_nokwarg(
+        Val(true), f, backend, primal_args..., (y,)
+    )
+
+    function pullback!!(dy)
+        tx = DI.pullback(f, prep_same, backend, primal_args, (dy,))
+        args_rdata = map((x) -> (x, Mooncake.zero_rdata(x)), only(tx))
+        return NoRData(), args_rdata...
+    end
+
+    return zero_fcodual(y), pullback!!
 end

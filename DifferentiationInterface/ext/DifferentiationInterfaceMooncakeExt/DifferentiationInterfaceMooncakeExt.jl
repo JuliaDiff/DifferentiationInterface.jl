@@ -11,9 +11,11 @@ using Mooncake:
     tangent_type,
     value_and_gradient!!,
     value_and_pullback!!,
-    @from_rrule,
+    zero_tangent,
+    @is_primitive,
+    zero_fcodual,
     MinimalCtx,
-    NoFData
+    NoRData
 
 using ChainRulesCore: ChainRulesCore, rrule
 
