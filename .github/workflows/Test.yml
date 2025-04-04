@@ -57,6 +57,8 @@ jobs:
         exclude:
           - skip_lts: true
             version: "1.10"
+          - skip_lts: true
+            version: "pre"
           - version: "1"
             group: Back/ChainRules
     env:
@@ -103,6 +105,7 @@ jobs:
         version:
           - "1.10"
           - "1"
+          - "pre"
         group:
           - Formalities
           - Zero
@@ -113,6 +116,8 @@ jobs:
         exclude:
           - skip_lts: true
             version: "1.10"
+          - skip_lts: true
+            version: "pre"
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
