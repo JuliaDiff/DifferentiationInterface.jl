@@ -16,7 +16,9 @@ using SparseArrays
 end
 
 @testset "JET" begin
-    JET.test_package(DifferentiationInterface; target_defined_modules=true)
+    if VERSION < v"1.12"
+        JET.test_package(DifferentiationInterface; target_defined_modules=true)
+    end
 end
 
 @testset "JuliaFormatter" begin
