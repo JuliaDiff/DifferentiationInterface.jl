@@ -30,6 +30,7 @@ jobs:
         version:
           - "1.10"
           - "1"
+          - "pre"
         group:
           - Core/Internals
           - Back/DifferentiateWith
