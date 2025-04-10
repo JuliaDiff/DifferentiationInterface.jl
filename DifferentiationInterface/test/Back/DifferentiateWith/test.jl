@@ -25,7 +25,7 @@ function differentiatewith_scenarios()
 end
 
 test_differentiation(
-    [AutoForwardDiff(), AutoZygote(), AutoMooncake()],
+    [AutoForwardDiff(), AutoZygote(), AutoMooncake(; config=nothing)],
     differentiatewith_scenarios();
     excluded=SECOND_ORDER,
     logging=LOGGING,
