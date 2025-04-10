@@ -21,7 +21,7 @@ This generic type should never be used directly: use the specific constructor co
 $(TYPEDFIELDS)
 """
 struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,S}
-    "function `f` (if `args==1`) or `f!` (if `args==2`) to apply"
+    "function `f` (if `pl_fun==:out`) or `f!` (if `pl_fun==:in`) to apply"
     f::F
     "primal input"
     x::X
