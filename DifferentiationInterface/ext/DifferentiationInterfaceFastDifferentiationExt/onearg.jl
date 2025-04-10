@@ -353,9 +353,10 @@ end
 
 ## Jacobian
 
-struct FastDifferentiationOneArgJacobianPrep{SIG,Y,E1,E1!} <: DI.JacobianPrep{SIG}
+struct FastDifferentiationOneArgJacobianPrep{SIG,Y,P,E1,E1!} <: DI.SparseJacobianPrep{SIG}
     _sig::Val{SIG}
     y_prototype::Y
+    sparsity::P
     jac_exe::E1
     jac_exe!::E1!
 end
@@ -376,14 +377,18 @@ function DI.prepare_jacobian_nokwarg(
     x_vec_var = myvec(x_var)
     context_vec_vars = map(myvec, context_vars)
     y_vec_var = myvec(y_var)
-    jac_var = if backend isa AutoSparse
-        sparse_jacobian(y_vec_var, x_vec_var)
+    if backend isa AutoSparse
+        jac_var = sparse_jacobian(y_vec_var, x_vec_var)
+        sparsity = DI.get_pattern(jac_var)
     else
-        jacobian(y_vec_var, x_vec_var)
+        jac_var = jacobian(y_vec_var, x_vec_var)
+        sparsity = nothing
     end
     jac_exe = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=false)
     jac_exe! = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=true)
-    return FastDifferentiationOneArgJacobianPrep(_sig, y_prototype, jac_exe, jac_exe!)
+    return FastDifferentiationOneArgJacobianPrep(
+        _sig, y_prototype, sparsity, jac_exe, jac_exe!
+    )
 end
 
 function DI.jacobian(
@@ -626,9 +631,10 @@ end
 
 ## Hessian
 
-struct FastDifferentiationHessianPrep{SIG,G,E2,E2!} <: DI.HessianPrep{SIG}
+struct FastDifferentiationHessianPrep{SIG,G,P,E2,E2!} <: DI.SparseHessianPrep{SIG}
     _sig::Val{SIG}
     gradient_prep::G
+    sparsity::P
     hess_exe::E2
     hess_exe!::E2!
 end
@@ -648,10 +654,12 @@ function DI.prepare_hessian_nokwarg(
     x_vec_var = myvec(x_var)
     context_vec_vars = map(myvec, context_vars)
 
-    hess_var = if backend isa AutoSparse
-        sparse_hessian(y_var, x_vec_var)
+    if backend isa AutoSparse
+        hess_var = sparse_hessian(y_var, x_vec_var)
+        sparsity = DI.get_pattern(hess_var)
     else
-        hessian(y_var, x_vec_var)
+        hess_var = hessian(y_var, x_vec_var)
+        sparsity = nothing
     end
     hess_exe = make_function(hess_var, x_vec_var, context_vec_vars...; in_place=false)
     hess_exe! = make_function(hess_var, x_vec_var, context_vec_vars...; in_place=true)
@@ -659,7 +667,9 @@ function DI.prepare_hessian_nokwarg(
     gradient_prep = DI.prepare_gradient_nokwarg(
         strict, f, dense_ad(backend), x, contexts...
     )
-    return FastDifferentiationHessianPrep(_sig, gradient_prep, hess_exe, hess_exe!)
+    return FastDifferentiationHessianPrep(
+        _sig, gradient_prep, sparsity, hess_exe, hess_exe!
+    )
 end
 
 function DI.hessian(

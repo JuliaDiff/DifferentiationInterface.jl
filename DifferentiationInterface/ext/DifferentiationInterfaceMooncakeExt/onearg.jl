@@ -17,7 +17,6 @@ function DI.prepare_pullback_nokwarg(
     y = f(x, map(DI.unwrap, contexts)...)
     dy_righttype = zero_tangent(y)
     prep = MooncakeOneArgPullbackPrep(_sig, cache, dy_righttype)
-    DI.value_and_pullback(f, prep, backend, x, ty, contexts...)
     return prep
 end
 
@@ -111,11 +110,10 @@ function DI.prepare_gradient_nokwarg(
 ) where {F,C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = get_config(backend)
-    cache = prepare_pullback_cache(
+    cache = prepare_gradient_cache(
         f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
     )
     prep = MooncakeGradientPrep(_sig, cache)
-    DI.value_and_gradient(f, prep, backend, x, contexts...)
     return prep
 end
 

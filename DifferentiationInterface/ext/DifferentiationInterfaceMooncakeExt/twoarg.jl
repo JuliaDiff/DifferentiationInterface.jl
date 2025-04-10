@@ -31,7 +31,6 @@ function DI.prepare_pullback_nokwarg(
     )
     dy_righttype_after = zero_tangent(y)
     prep = MooncakeTwoArgPullbackPrep(_sig, cache, dy_righttype_after, target_function)
-    DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
     return prep
 end
 

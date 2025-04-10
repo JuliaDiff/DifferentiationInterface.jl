@@ -15,14 +15,21 @@ using SparseMatrixColorings:
     decompress!
 import SparseMatrixColorings as SMC
 
-abstract type SparseJacobianPrep{SIG} <: DI.JacobianPrep{SIG} end
+## SMC overloads
 
-SMC.sparsity_pattern(prep::SparseJacobianPrep) = sparsity_pattern(prep.coloring_result)
-SMC.column_colors(prep::SparseJacobianPrep) = column_colors(prep.coloring_result)
-SMC.column_groups(prep::SparseJacobianPrep) = column_groups(prep.coloring_result)
-SMC.row_colors(prep::SparseJacobianPrep) = row_colors(prep.coloring_result)
-SMC.row_groups(prep::SparseJacobianPrep) = row_groups(prep.coloring_result)
-SMC.ncolors(prep::SparseJacobianPrep) = ncolors(prep.coloring_result)
+abstract type SMCSparseJacobianPrep{SIG} <: DI.SparseJacobianPrep{SIG} end
+
+SMC.sparsity_pattern(prep::DI.SparseJacobianPrep) = prep.sparsity
+SMC.column_colors(prep::DI.SparseJacobianPrep) = column_colors(prep.coloring_result)
+SMC.column_groups(prep::DI.SparseJacobianPrep) = column_groups(prep.coloring_result)
+SMC.row_colors(prep::DI.SparseJacobianPrep) = row_colors(prep.coloring_result)
+SMC.row_groups(prep::DI.SparseJacobianPrep) = row_groups(prep.coloring_result)
+SMC.ncolors(prep::DI.SparseJacobianPrep) = ncolors(prep.coloring_result)
+
+SMC.sparsity_pattern(prep::DI.SparseHessianPrep) = prep.sparsity
+SMC.column_colors(prep::DI.SparseHessianPrep) = column_colors(prep.coloring_result)
+SMC.column_groups(prep::DI.SparseHessianPrep) = column_groups(prep.coloring_result)
+SMC.ncolors(prep::DI.SparseHessianPrep) = ncolors(prep.coloring_result)
 
 include("jacobian.jl")
 include("jacobian_mixed.jl")

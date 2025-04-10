@@ -1,16 +1,18 @@
 ## Preparation
 
-struct PushforwardSparseJacobianPrep{
+struct SMCPushforwardSparseJacobianPrep{
     SIG,
     BS<:DI.BatchSizeSettings,
+    P<:AbstractMatrix,
     C<:AbstractColoringResult{:nonsymmetric,:column},
     M<:AbstractMatrix{<:Number},
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
     E<:DI.PushforwardPrep,
-} <: SparseJacobianPrep{SIG}
+} <: SMCSparseJacobianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings::BS
+    sparsity::P
     coloring_result::C
     compressed_matrix::M
     batched_seeds::S
@@ -18,17 +20,19 @@ struct PushforwardSparseJacobianPrep{
     pushforward_prep::E
 end
 
-struct PullbackSparseJacobianPrep{
+struct SMCPullbackSparseJacobianPrep{
     SIG,
     BS<:DI.BatchSizeSettings,
+    P<:AbstractMatrix,
     C<:AbstractColoringResult{:nonsymmetric,:row},
     M<:AbstractMatrix{<:Number},
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
     E<:DI.PullbackPrep,
-} <: SparseJacobianPrep{SIG}
+} <: SMCSparseJacobianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings::BS
+    sparsity::P
     coloring_result::C
     compressed_matrix::M
     batched_seeds::S
@@ -84,13 +88,22 @@ function _prepare_sparse_jacobian_aux(
     end
     batch_size_settings = DI.pick_batchsize(dense_backend, N)
     return _prepare_sparse_jacobian_aux_aux(
-        strict, batch_size_settings, coloring_result, y, f_or_f!y, backend, x, contexts...
+        strict,
+        batch_size_settings,
+        sparsity,
+        coloring_result,
+        y,
+        f_or_f!y,
+        backend,
+        x,
+        contexts...,
     )
 end
 
 function _prepare_sparse_jacobian_aux_aux(
     strict::Val,
     batch_size_settings::DI.BatchSizeSettings{B},
+    sparsity::AbstractMatrix,
     coloring_result::AbstractColoringResult{:nonsymmetric,:column},
     y,
     f_or_f!y::FY,
@@ -111,9 +124,10 @@ function _prepare_sparse_jacobian_aux_aux(
     pushforward_prep = DI.prepare_pushforward_nokwarg(
         strict, f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
-    return PushforwardSparseJacobianPrep(
+    return SMCPushforwardSparseJacobianPrep(
         _sig,
         batch_size_settings,
+        sparsity,
         coloring_result,
         compressed_matrix,
         batched_seeds,
@@ -125,6 +139,7 @@ end
 function _prepare_sparse_jacobian_aux_aux(
     strict::Val,
     batch_size_settings::DI.BatchSizeSettings{B},
+    sparsity::AbstractMatrix,
     coloring_result::AbstractColoringResult{:nonsymmetric,:row},
     y,
     f_or_f!y::FY,
@@ -145,9 +160,10 @@ function _prepare_sparse_jacobian_aux_aux(
     pullback_prep = DI.prepare_pullback_nokwarg(
         strict, f_or_f!y..., dense_backend, x, batched_seeds[1], contexts...
     )
-    return PullbackSparseJacobianPrep(
+    return SMCPullbackSparseJacobianPrep(
         _sig,
         batch_size_settings,
+        sparsity,
         coloring_result,
         compressed_matrix,
         batched_seeds,
@@ -161,7 +177,7 @@ end
 function DI.jacobian!(
     f::F,
     jac,
-    prep::SparseJacobianPrep,
+    prep::SMCSparseJacobianPrep,
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -171,7 +187,11 @@ function DI.jacobian!(
 end
 
 function DI.jacobian(
-    f::F, prep::SparseJacobianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
+    f::F,
+    prep::SMCSparseJacobianPrep,
+    backend::AutoSparse,
+    x,
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     jac = similar(sparsity_pattern(prep), eltype(x))
@@ -179,7 +199,11 @@ function DI.jacobian(
 end
 
 function DI.value_and_jacobian(
-    f::F, prep::SparseJacobianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
+    f::F,
+    prep::SMCSparseJacobianPrep,
+    backend::AutoSparse,
+    x,
+    contexts::Vararg{DI.Context,C},
 ) where {F,C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...), DI.jacobian(f, prep, backend, x, contexts...)
@@ -188,7 +212,7 @@ end
 function DI.value_and_jacobian!(
     f::F,
     jac,
-    prep::SparseJacobianPrep,
+    prep::SMCSparseJacobianPrep,
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -204,7 +228,7 @@ function DI.jacobian!(
     f!::F,
     y,
     jac,
-    prep::SparseJacobianPrep,
+    prep::SMCSparseJacobianPrep,
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -216,7 +240,7 @@ end
 function DI.jacobian(
     f!::F,
     y,
-    prep::SparseJacobianPrep,
+    prep::SMCSparseJacobianPrep,
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -229,7 +253,7 @@ end
 function DI.value_and_jacobian(
     f!::F,
     y,
-    prep::SparseJacobianPrep,
+    prep::SMCSparseJacobianPrep,
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -244,7 +268,7 @@ function DI.value_and_jacobian!(
     f!::F,
     y,
     jac,
-    prep::SparseJacobianPrep,
+    prep::SMCSparseJacobianPrep,
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -260,7 +284,7 @@ end
 function _sparse_jacobian_aux!(
     f_or_f!y::FY,
     jac,
-    prep::PushforwardSparseJacobianPrep{SIG,<:DI.BatchSizeSettings{B}},
+    prep::SMCPushforwardSparseJacobianPrep{SIG,<:DI.BatchSizeSettings{B}},
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -306,7 +330,7 @@ end
 function _sparse_jacobian_aux!(
     f_or_f!y::FY,
     jac,
-    prep::PullbackSparseJacobianPrep{SIG,<:DI.BatchSizeSettings{B}},
+    prep::SMCPullbackSparseJacobianPrep{SIG,<:DI.BatchSizeSettings{B}},
     backend::AutoSparse,
     x,
     contexts::Vararg{DI.Context,C},
@@ -354,6 +378,6 @@ end
 
 ## Operator overloading
 
-function DI.overloaded_input_type(prep::PushforwardSparseJacobianPrep)
+function DI.overloaded_input_type(prep::SMCPushforwardSparseJacobianPrep)
     return DI.overloaded_input_type(prep.pushforward_prep)
 end
