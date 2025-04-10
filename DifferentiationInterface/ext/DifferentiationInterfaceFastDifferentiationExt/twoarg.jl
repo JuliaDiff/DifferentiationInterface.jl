@@ -289,8 +289,9 @@ end
 
 ## Jacobian
 
-struct FastDifferentiationTwoArgJacobianPrep{SIG,E1,E1!} <: DI.JacobianPrep{SIG}
+struct FastDifferentiationTwoArgJacobianPrep{SIG,P,E1,E1!} <: DI.SparseJacobianPrep{SIG}
     _sig::Val{SIG}
+    sparsity::P
     jac_exe::E1
     jac_exe!::E1!
 end
@@ -312,14 +313,16 @@ function DI.prepare_jacobian_nokwarg(
     x_vec_var = myvec(x_var)
     context_vec_vars = map(myvec, context_vars)
     y_vec_var = myvec(y_var)
-    jac_var = if backend isa AutoSparse
-        sparse_jacobian(y_vec_var, x_vec_var)
+    if backend isa AutoSparse
+        jac_var = sparse_jacobian(y_vec_var, x_vec_var)
+        sparsity = DI.get_pattern(jac_var)
     else
-        jacobian(y_vec_var, x_vec_var)
+        jac_var = jacobian(y_vec_var, x_vec_var)
+        sparsity = nothing
     end
     jac_exe = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=false)
     jac_exe! = make_function(jac_var, x_vec_var, context_vec_vars...; in_place=true)
-    return FastDifferentiationTwoArgJacobianPrep(_sig, jac_exe, jac_exe!)
+    return FastDifferentiationTwoArgJacobianPrep(_sig, sparsity, jac_exe, jac_exe!)
 end
 
 function DI.value_and_jacobian(

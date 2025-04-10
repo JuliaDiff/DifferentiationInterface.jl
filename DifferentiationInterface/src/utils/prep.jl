@@ -45,6 +45,9 @@ struct NoJacobianPrep{SIG} <: JacobianPrep{SIG}
     _sig::Val{SIG}
 end
 
+# assume the existence of a `sparsity` field
+abstract type SparseJacobianPrep{SIG} <: JacobianPrep{SIG} end
+
 """
 $(docstring_preptype("HVPPrep", "hvp"))
 """
@@ -62,6 +65,9 @@ abstract type HessianPrep{SIG} <: Prep{SIG} end
 struct NoHessianPrep{SIG} <: HessianPrep{SIG}
     _sig::Val{SIG}
 end
+
+# assume the existence of a `sparsity` field
+abstract type SparseHessianPrep{SIG} <: HessianPrep{SIG} end
 
 """
 $(docstring_preptype("SecondDerivativePrep", "second_derivative"))
