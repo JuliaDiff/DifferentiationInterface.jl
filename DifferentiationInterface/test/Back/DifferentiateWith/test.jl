@@ -1,11 +1,12 @@
 using Pkg
-Pkg.add(["FiniteDiff", "ForwardDiff", "Zygote"])
+Pkg.add(["FiniteDiff", "ForwardDiff", "Zygote", "Mooncake"])
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
 using FiniteDiff: FiniteDiff
 using ForwardDiff: ForwardDiff
 using Zygote: Zygote
+using Mooncake: Mooncake
 using Test
 
 LOGGING = get(ENV, "CI", "false") == "false"
@@ -24,7 +25,7 @@ function differentiatewith_scenarios()
 end
 
 test_differentiation(
-    [AutoForwardDiff(), AutoZygote()],
+    [AutoForwardDiff(), AutoZygote(), AutoMooncake()],
     differentiatewith_scenarios();
     excluded=SECOND_ORDER,
     logging=LOGGING,

@@ -1,21 +1,31 @@
-@is_primitive MinimalCtx Tuple{CoDual{<:DI.DifferentiateWith},CoDual{<:AbstractArray}}
-@is_primitive MinimalCtx Tuple{CoDual{<:DI.DifferentiateWith},CoDual{<:Number}}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith,<:AbstractArray}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith,<:Number}
 
-function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, args::CoDual...)
-    primal_func = Mooncake.primal(dw)
-    primal_args = map(arg -> Mooncake.primal(arg), args)
-
+function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Number})
+    primal_func = primal(dw)
+    primal_x = primal(x)
     (; f, backend) = primal_func
-    y = f(primal_args...)
-
-    prep_same = DI.prepare_pullback_same_point_nokwarg(
-        Val(true), f, backend, primal_args..., (y,)
-    )
+    y = f(primal_x)
 
     function pullback!!(dy)
-        tx = DI.pullback(f, prep_same, backend, primal_args, (dy,))
-        args_rdata = map((x) -> (x, Mooncake.zero_rdata(x)), only(tx))
-        return NoRData(), args_rdata...
+        tx = DI.pullback(f, backend, primal_x, (dy,))
+        return NoRData(), only(tx)
+    end
+
+    return zero_fcodual(y), pullback!!
+end
+
+function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:AbstractArray})
+    primal_func = primal(dw)
+    primal_x = primal(x)
+    fdata_arg = fdata(x.dx)
+    (; f, backend) = primal_func
+    y = f(primal_x)
+
+    function pullback!!(dy)
+        tx = DI.pullback(f, backend, primal_x, (dy,))
+        fdata_arg .+= only(tx)
+        return NoRData(), NoRData()
     end
 
     return zero_fcodual(y), pullback!!

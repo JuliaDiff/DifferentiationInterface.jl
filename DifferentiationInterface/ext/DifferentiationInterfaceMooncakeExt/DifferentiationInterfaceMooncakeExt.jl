@@ -15,9 +15,9 @@ using Mooncake:
     @is_primitive,
     zero_fcodual,
     MinimalCtx,
-    NoRData
-
-using ChainRulesCore: ChainRulesCore, rrule
+    NoRData,
+    fdata,
+    primal
 
 DI.check_available(::AutoMooncake) = true
 
