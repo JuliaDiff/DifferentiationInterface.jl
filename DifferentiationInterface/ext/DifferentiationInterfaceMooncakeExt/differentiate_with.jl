@@ -8,8 +8,8 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Number
     y = f(primal_x)
 
     function pullback!!(dy)
-        tx = DI.pullback(f, backend, primal_x, (dy...,))
-        return NoRData(), only(tx)
+        tx = DI.pullback(f, backend, primal_x, (dy,))
+        return (NoRData(), only(tx))
     end
 
     return zero_fcodual(y), pullback!!
@@ -23,9 +23,9 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
     y = f(primal_x)
 
     function pullback!!(dy)
-        tx = DI.pullback(f, backend, primal_x, (dy...,))
+        tx = DI.pullback(f, backend, primal_x, (dy,))
         fdata_arg .+= only(tx)
-        return NoRData(), NoRData()
+        return (NoRData(), NoRData())
     end
 
     return zero_fcodual(y), pullback!!
