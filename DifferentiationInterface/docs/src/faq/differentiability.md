@@ -111,4 +111,4 @@ There are, however, translation utilities:
 ### Backend switch
 
 Also note the existence of [`DifferentiationInterface.DifferentiateWith`](@ref), which allows the user to wrap a function that should be differentiated with a specific backend.
-Right now it only targets ForwardDiff.jl and ChainRulesCore.jl, but PRs are welcome to define Enzyme.jl and Mooncake.jl rules for this object.
+Right now it only targets ForwardDiff.jl, ChainRulesCore.jl and Mooncake.jl but PRs are welcome to define Enzyme.jl rules for this object.
