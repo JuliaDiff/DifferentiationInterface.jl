@@ -9,13 +9,13 @@ to_val(::DI.BatchSizeSettings{B}) where {B} = Val(B)
 ## Annotations
 
 @inline function get_f_and_df(
-    f::F, backend::AutoEnzyme{M,Nothing}, mode::Mode, (::Val{B})=Val(1)
+    f::F, backend::AutoEnzyme{M,Nothing}, mode::Mode, ::Val{B}=Val(1)
 ) where {F,M,B}
     return f
 end
 
 @inline function get_f_and_df(
-    f::F, backend::AutoEnzyme{M,<:Const}, mode::Mode, (::Val{B})=Val(1)
+    f::F, backend::AutoEnzyme{M,<:Const}, mode::Mode, ::Val{B}=Val(1)
 ) where {F,M,B}
     return Const(f)
 end
@@ -34,7 +34,7 @@ end
         },
     },
     mode::Mode,
-    (::Val{B})=Val(1),
+    ::Val{B}=Val(1),
 ) where {F,M,B}
     # TODO: needs more sophistication for mixed activities
     if B == 1
