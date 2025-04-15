@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Advanced tutorial · DifferentiationInterface.jl</title><meta name="title" content="Advanced tutorial · DifferentiationInterface.jl"/><meta property="og:title" content="Advanced tutorial · DifferentiationInterface.jl"/><meta property="twitter:title" content="Advanced tutorial · DifferentiationInterface.jl"/><meta name="description" content="Documentation for DifferentiationInterface.jl."/><meta property="og:description" content="Documentation for DifferentiationInterface.jl."/><meta property="twitter:description" content="Documentation for DifferentiationInterface.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="DifferentiationInterface.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">DifferentiationInterface.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../basic/">Basic tutorial</a></li><li class="is-active"><a class="tocitem" href>Advanced tutorial</a><ul class="internal"><li><a class="tocitem" href="#Contexts"><span>Contexts</span></a></li><li><a class="tocitem" href="#Sparsity"><span>Sparsity</span></a></li></ul></li></ul></li><li><span class="tocitem">Explanation</span><ul><li><a class="tocitem" href="../../explanation/operators/">Operators</a></li><li><a class="tocitem" href="../../explanation/backends/">Backends</a></li><li><a class="tocitem" href="../../explanation/advanced/">Advanced features</a></li></ul></li><li><span class="tocitem">FAQ</span><ul><li><a class="tocitem" href="../../faq/limitations/">Limitations</a></li><li><a class="tocitem" href="../../faq/differentiability/">Differentiability</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li><li><a class="tocitem" href="../../dev_guide/">Dev guide</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Advanced tutorial</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Advanced tutorial</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDiff/DifferentiationInterface.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/DifferentiationInterface/docs/src/tutorials/advanced.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Advanced-tutorial"><a class="docs-heading-anchor" href="#Advanced-tutorial">Advanced tutorial</a><a id="Advanced-tutorial-1"></a><a class="docs-heading-anchor-permalink" href="#Advanced-tutorial" title="Permalink"></a></h1><p>We present contexts and sparsity handling with DifferentiationInterface.jl.</p><pre><code class="language-julia hljs">using ADTypes
+using BenchmarkTools
+using DifferentiationInterface
+import ForwardDiff, Zygote
+using Random
+using SparseConnectivityTracer
+using SparseMatrixColorings</code></pre><h2 id="Contexts"><a class="docs-heading-anchor" href="#Contexts">Contexts</a><a id="Contexts-1"></a><a class="docs-heading-anchor-permalink" href="#Contexts" title="Permalink"></a></h2><p>Assume you want differentiate a multi-argument function with respect to the first argument.</p><pre><code class="language-julia hljs">f_multiarg(x, c) = c * sum(abs2, x)</code></pre><p>The first way, which works with every backend, is to create a closure:</p><pre><code class="language-julia hljs">f_singlearg(c) = x -&gt; f_multiarg(x, c)</code></pre><p>Let&#39;s see it in action:</p><pre><code class="language-julia hljs">backend = AutoForwardDiff()
+x = float.(1:3)
+
+gradient(f_singlearg(10), backend, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{Float64}:
+ 20.0
+ 40.0
+ 60.0</code></pre><p>However, for performance reasons, it is sometimes preferrable to avoid closures and pass all arguments to the original function. We can do this by wrapping <code>c</code> into a <a href="../../api/#DifferentiationInterface.Constant"><code>Constant</code></a> and giving this constant to the <code>gradient</code> operator.</p><pre><code class="language-julia hljs">gradient(f_multiarg, backend, x, Constant(10))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{Float64}:
+ 20.0
+ 40.0
+ 60.0</code></pre><p>Preparation also works in this case, even if the constant changes before execution:</p><pre><code class="language-julia hljs">prep_other_constant = prepare_gradient(f_multiarg, backend, x, Constant(-1))
+gradient(f_multiarg, prep_other_constant, backend, x, Constant(10))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{Float64}:
+ 20.0
+ 40.0
+ 60.0</code></pre><p>For additional arguments which act as mutated buffers, the <a href="../../api/#DifferentiationInterface.Cache"><code>Cache</code></a> wrapper is the appropriate choice instead of <a href="../../api/#DifferentiationInterface.Constant"><code>Constant</code></a>.</p><h2 id="Sparsity"><a class="docs-heading-anchor" href="#Sparsity">Sparsity</a><a id="Sparsity-1"></a><a class="docs-heading-anchor-permalink" href="#Sparsity" title="Permalink"></a></h2><div class="admonition is-success"><header class="admonition-header">Tip</header><div class="admonition-body"><p>If you use DifferentiationInterface&#39;s Sparse AD functionality in your research, please cite our preprint <a href="https://arxiv.org/abs/2501.17737"><em>Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians</em></a>.</p></div></div><p>Sparse AD is very useful when Jacobian or Hessian matrices have a lot of zeros. So let us write functions that satisfy this property.</p><pre><code class="language-julia hljs">f_sparse_vector(x::AbstractVector) = diff(x .^ 2) + diff(reverse(x .^ 2))
+f_sparse_scalar(x::AbstractVector) = sum(f_sparse_vector(x) .^ 2)</code></pre><h3 id="Dense-backends"><a class="docs-heading-anchor" href="#Dense-backends">Dense backends</a><a id="Dense-backends-1"></a><a class="docs-heading-anchor-permalink" href="#Dense-backends" title="Permalink"></a></h3><p>When we use the <a href="../../api/#DifferentiationInterface.jacobian"><code>jacobian</code></a> or <a href="../../api/#DifferentiationInterface.hessian"><code>hessian</code></a> operator with a dense backend, we get a dense matrix with plenty of zeros.</p><pre><code class="language-julia hljs">x = float.(1:8);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8-element Vector{Float64}:
+ 1.0
+ 2.0
+ 3.0
+ 4.0
+ 5.0
+ 6.0
+ 7.0
+ 8.0</code></pre><pre><code class="language-julia hljs">dense_forward_backend = AutoForwardDiff()
+J_dense = jacobian(f_sparse_vector, dense_forward_backend, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">7×8 Matrix{Float64}:
+ -2.0   4.0   0.0   0.0    0.0    0.0   14.0  -16.0
+  0.0  -4.0   6.0   0.0    0.0   12.0  -14.0    0.0
+  0.0   0.0  -6.0   8.0   10.0  -12.0    0.0    0.0
+  0.0   0.0   0.0   0.0    0.0    0.0    0.0    0.0
+  0.0   0.0   6.0  -8.0  -10.0   12.0    0.0    0.0
+  0.0   4.0  -6.0   0.0    0.0  -12.0   14.0    0.0
+  2.0  -4.0   0.0   0.0    0.0    0.0  -14.0   16.0</code></pre><pre><code class="language-julia hljs">dense_second_order_backend = SecondOrder(AutoForwardDiff(), AutoZygote())
+H_dense = hessian(f_sparse_scalar, dense_second_order_backend, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8×8 Matrix{Float64}:
+  112.0   -32.0     0.0     0.0     0.0     0.0  -112.0   128.0
+  -32.0    96.0   -96.0     0.0     0.0  -192.0   448.0  -256.0
+    0.0   -96.0   256.0  -192.0  -240.0   576.0  -336.0     0.0
+    0.0     0.0  -192.0   224.0   320.0  -384.0     0.0     0.0
+    0.0     0.0  -240.0   320.0   368.0  -480.0     0.0     0.0
+    0.0  -192.0   576.0  -384.0  -480.0  1120.0  -672.0     0.0
+ -112.0   448.0  -336.0     0.0     0.0  -672.0  1536.0  -896.0
+  128.0  -256.0     0.0     0.0     0.0     0.0  -896.0  1120.0</code></pre><p>The results are correct but the procedure is very slow. By using a sparse backend, we can get the runtime to increase with the number of nonzero elements, instead of the total number of elements.</p><h3 id="Sparse-backends"><a class="docs-heading-anchor" href="#Sparse-backends">Sparse backends</a><a id="Sparse-backends-1"></a><a class="docs-heading-anchor-permalink" href="#Sparse-backends" title="Permalink"></a></h3><p>Recipe to create a sparse backend: combine a dense backend, a sparsity detector and a compatible coloring algorithm inside <a href="https://sciml.github.io/ADTypes.jl/stable/#ADTypes.AutoSparse"><code>AutoSparse</code></a>. The following are reasonable defaults:</p><pre><code class="language-julia hljs">sparse_forward_backend = AutoSparse(
+    dense_forward_backend;  # any object from ADTypes
+    sparsity_detector=TracerSparsityDetector(),
+    coloring_algorithm=GreedyColoringAlgorithm(),
+)
+
+sparse_second_order_backend = AutoSparse(
+    dense_second_order_backend;  # any object from ADTypes or a SecondOrder from DI
+    sparsity_detector=TracerSparsityDetector(),
+    coloring_algorithm=GreedyColoringAlgorithm(),
+)</code></pre><p>Now the resulting matrices are sparse:</p><pre><code class="language-julia hljs">jacobian(f_sparse_vector, sparse_forward_backend, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">7×8 SparseArrays.SparseMatrixCSC{Float64, Int64} with 26 stored entries:
+ -2.0   4.0    ⋅     ⋅      ⋅      ⋅    14.0  -16.0
+   ⋅   -4.0   6.0    ⋅      ⋅    12.0  -14.0     ⋅ 
+   ⋅     ⋅   -6.0   8.0   10.0  -12.0     ⋅      ⋅ 
+   ⋅     ⋅     ⋅    0.0    0.0     ⋅      ⋅      ⋅ 
+   ⋅     ⋅    6.0  -8.0  -10.0   12.0     ⋅      ⋅ 
+   ⋅    4.0  -6.0    ⋅      ⋅   -12.0   14.0     ⋅ 
+  2.0  -4.0    ⋅     ⋅      ⋅      ⋅   -14.0   16.0</code></pre><pre><code class="language-julia hljs">hessian(f_sparse_scalar, sparse_second_order_backend, x)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8×8 SparseArrays.SparseMatrixCSC{Float64, Int64} with 40 stored entries:
+  112.0   -32.0      ⋅       ⋅       ⋅       ⋅   -112.0   128.0
+  -32.0    96.0   -96.0      ⋅       ⋅   -192.0   448.0  -256.0
+     ⋅    -96.0   256.0  -192.0  -240.0   576.0  -336.0      ⋅ 
+     ⋅       ⋅   -192.0   224.0   320.0  -384.0      ⋅       ⋅ 
+     ⋅       ⋅   -240.0   320.0   368.0  -480.0      ⋅       ⋅ 
+     ⋅   -192.0   576.0  -384.0  -480.0  1120.0  -672.0      ⋅ 
+ -112.0   448.0  -336.0      ⋅       ⋅   -672.0  1536.0  -896.0
+  128.0  -256.0      ⋅       ⋅       ⋅       ⋅   -896.0  1120.0</code></pre><h3 id="Sparse-preparation"><a class="docs-heading-anchor" href="#Sparse-preparation">Sparse preparation</a><a id="Sparse-preparation-1"></a><a class="docs-heading-anchor-permalink" href="#Sparse-preparation" title="Permalink"></a></h3><p>In the examples above, we didn&#39;t use preparation. Sparse preparation is more costly than dense preparation, but it is even more essential. Indeed, once preparation is done, sparse differentiation is much faster than dense differentiation, because it makes fewer calls to the underlying function.</p><p>Some result analysis functions from <a href="https://github.com/gdalle/SparseMatrixColorings.jl">SparseMatrixColorings.jl</a> can help you figure out what the preparation contains. First, it records the sparsity pattern itself (the one returned by the detector).</p><pre><code class="language-julia hljs">jac_prep = prepare_jacobian(f_sparse_vector, sparse_forward_backend, x)
+sparsity_pattern(jac_prep)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">7×8 SparseArrays.SparseMatrixCSC{Bool, Int64} with 26 stored entries:
+ 1  1  ⋅  ⋅  ⋅  ⋅  1  1
+ ⋅  1  1  ⋅  ⋅  1  1  ⋅
+ ⋅  ⋅  1  1  1  1  ⋅  ⋅
+ ⋅  ⋅  ⋅  1  1  ⋅  ⋅  ⋅
+ ⋅  ⋅  1  1  1  1  ⋅  ⋅
+ ⋅  1  1  ⋅  ⋅  1  1  ⋅
+ 1  1  ⋅  ⋅  ⋅  ⋅  1  1</code></pre><p>In forward mode, each column of the sparsity pattern gets a color.</p><pre><code class="language-julia hljs">column_colors(jac_prep)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8-element Vector{Int64}:
+ 1
+ 2
+ 1
+ 2
+ 3
+ 4
+ 3
+ 4</code></pre><p>And the colors in turn define non-overlapping groups (for Jacobians at least, Hessians are a bit more complicated).</p><pre><code class="language-julia hljs">column_groups(jac_prep)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">4-element Vector{SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}}:
+ [1, 3]
+ [2, 4]
+ [5, 7]
+ [6, 8]</code></pre><h3 id="Sparsity-speedup"><a class="docs-heading-anchor" href="#Sparsity-speedup">Sparsity speedup</a><a id="Sparsity-speedup-1"></a><a class="docs-heading-anchor-permalink" href="#Sparsity-speedup" title="Permalink"></a></h3><p>When preparation is used, the speedup due to sparsity becomes very visible in large dimensions.</p><pre><code class="language-julia hljs">xbig = rand(1000)</code></pre><pre><code class="language-julia hljs">jac_prep_dense = prepare_jacobian(f_sparse_vector, dense_forward_backend, zero(xbig))
+@benchmark jacobian($f_sparse_vector, $jac_prep_dense, $dense_forward_backend, $xbig)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BenchmarkTools.Trial: 396 samples with 1 evaluation per sample.
+ Range <span class="sgr90">(</span><span class="sgr36"><span class="sgr1">min</span></span> … <span class="sgr35">max</span><span class="sgr90">):  </span><span class="sgr36"><span class="sgr1"> 5.964 ms</span></span> … <span class="sgr35">176.652 ms</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>min … max<span class="sgr90">): </span> 7.09% … 96.34%
+ Time  <span class="sgr90">(</span><span class="sgr34"><span class="sgr1">median</span></span><span class="sgr90">):     </span><span class="sgr34"><span class="sgr1"> 6.679 ms               </span></span><span class="sgr90">┊</span> GC <span class="sgr90">(</span>median<span class="sgr90">):    </span>10.25%
+ Time  <span class="sgr90">(</span><span class="sgr32"><span class="sgr1">mean</span></span> ± <span class="sgr32">σ</span><span class="sgr90">):   </span><span class="sgr32"><span class="sgr1">12.743 ms</span></span> ± <span class="sgr32"> 29.092 ms</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>mean ± σ<span class="sgr90">):  </span>47.48% ± 17.94%
+
+  <span class="sgr34">█</span>▁<span class="sgr32">▁</span>                                                           
+  <span class="sgr34">█</span>█<span class="sgr32">█</span>▆▄▁▁▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▄▁▁▁▁▁▅▆ ▅
+  5.96 ms<span class="sgr90">       Histogram: <span class="sgr1">log(</span>frequency<span class="sgr1">)</span> by time</span>       173 ms <span class="sgr1">&lt;</span>
+
+ Memory estimate<span class="sgr90">: </span><span class="sgr33">57.63 MiB</span>, allocs estimate<span class="sgr90">: </span><span class="sgr33">1515</span>.</code></pre><pre><code class="language-julia hljs">jac_prep_sparse = prepare_jacobian(f_sparse_vector, sparse_forward_backend, zero(xbig))
+@benchmark jacobian($f_sparse_vector, $jac_prep_sparse, $sparse_forward_backend, $xbig)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BenchmarkTools.Trial: 10000 samples with 1 evaluation per sample.
+ Range <span class="sgr90">(</span><span class="sgr36"><span class="sgr1">min</span></span> … <span class="sgr35">max</span><span class="sgr90">):  </span><span class="sgr36"><span class="sgr1">22.822 μs</span></span> … <span class="sgr35"> 4.358 ms</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>min … max<span class="sgr90">): </span> 0.00% … 33.67%
+ Time  <span class="sgr90">(</span><span class="sgr34"><span class="sgr1">median</span></span><span class="sgr90">):     </span><span class="sgr34"><span class="sgr1">29.245 μs              </span></span><span class="sgr90">┊</span> GC <span class="sgr90">(</span>median<span class="sgr90">):    </span> 0.00%
+ Time  <span class="sgr90">(</span><span class="sgr32"><span class="sgr1">mean</span></span> ± <span class="sgr32">σ</span><span class="sgr90">):   </span><span class="sgr32"><span class="sgr1">35.719 μs</span></span> ± <span class="sgr32">68.114 μs</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>mean ± σ<span class="sgr90">):  </span>11.48% ±  7.42%
+
+      ▂██▇▇▅▃▂<span class="sgr34">▅</span>▇▃        <span class="sgr32"> </span>                                     
+  ▁▂▂▅████████<span class="sgr34">█</span>██▆▄▂▂▂▂▂▂<span class="sgr32">▂</span>▂▃▃▄▅▆▆▇▆▄▄▃▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
+  22.8 μs<span class="sgr90">         Histogram: frequency by time</span>        55.5 μs <span class="sgr1">&lt;</span>
+
+ Memory estimate<span class="sgr90">: </span><span class="sgr33">305.38 KiB</span>, allocs estimate<span class="sgr90">: </span><span class="sgr33">27</span>.</code></pre><p>Better memory use can be achieved by pre-allocating the matrix from the preparation result (so that it has the correct structure).</p><pre><code class="language-julia hljs">jac_buffer = similar(sparsity_pattern(jac_prep_sparse), eltype(xbig))
+@benchmark jacobian!($f_sparse_vector, $jac_buffer, $jac_prep_sparse, $sparse_forward_backend, $xbig)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BenchmarkTools.Trial: 10000 samples with 1 evaluation per sample.
+ Range <span class="sgr90">(</span><span class="sgr36"><span class="sgr1">min</span></span> … <span class="sgr35">max</span><span class="sgr90">):  </span><span class="sgr36"><span class="sgr1">19.206 μs</span></span> … <span class="sgr35"> 1.793 ms</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>min … max<span class="sgr90">): </span>0.00% … 97.02%
+ Time  <span class="sgr90">(</span><span class="sgr34"><span class="sgr1">median</span></span><span class="sgr90">):     </span><span class="sgr34"><span class="sgr1">24.165 μs              </span></span><span class="sgr90">┊</span> GC <span class="sgr90">(</span>median<span class="sgr90">):    </span>0.00%
+ Time  <span class="sgr90">(</span><span class="sgr32"><span class="sgr1">mean</span></span> ± <span class="sgr32">σ</span><span class="sgr90">):   </span><span class="sgr32"><span class="sgr1">27.641 μs</span></span> ± <span class="sgr32">42.584 μs</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>mean ± σ<span class="sgr90">):  </span>9.33% ±  6.30%
+
+  ▂▆█<span class="sgr34">█</span>▆▃<span class="sgr32">▁</span> ▁▂▁                                                 ▂
+  ███<span class="sgr34">█</span>██<span class="sgr32">█</span>█████▆▆▆▇▆▄▄▄▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▅▆ █
+  19.2 μs<span class="sgr90">      Histogram: <span class="sgr1">log(</span>frequency<span class="sgr1">)</span> by time</span>       110 μs <span class="sgr1">&lt;</span>
+
+ Memory estimate<span class="sgr90">: </span><span class="sgr33">234.80 KiB</span>, allocs estimate<span class="sgr90">: </span><span class="sgr33">18</span>.</code></pre><p>And for optimal speed, one should write non-allocating and type-stable functions.</p><pre><code class="language-julia hljs">function f_sparse_vector!(y::AbstractVector, x::AbstractVector)
+    n = length(x)
+    for i in eachindex(y)
+        y[i] = abs2(x[i + 1]) - abs2(x[i]) + abs2(x[n - i]) - abs2(x[n - i + 1])
+    end
+    return nothing
+end
+
+ybig = zeros(length(xbig) - 1)
+f_sparse_vector!(ybig, xbig)
+ybig ≈ f_sparse_vector(xbig)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><p>In this case, the sparse Jacobian should also become non-allocating (for our specific choice of backend).</p><pre><code class="language-julia hljs">jac_prep_sparse_nonallocating = prepare_jacobian(f_sparse_vector!, zero(ybig), sparse_forward_backend, zero(xbig))
+jac_buffer = similar(sparsity_pattern(jac_prep_sparse_nonallocating), eltype(xbig))
+@benchmark jacobian!($f_sparse_vector!, $ybig, $jac_buffer, $jac_prep_sparse_nonallocating, $sparse_forward_backend, $xbig)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BenchmarkTools.Trial: 10000 samples with 1 evaluation per sample.
+ Range <span class="sgr90">(</span><span class="sgr36"><span class="sgr1">min</span></span> … <span class="sgr35">max</span><span class="sgr90">):  </span><span class="sgr36"><span class="sgr1">13.045 μs</span></span> … <span class="sgr35">34.254 μs</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>min … max<span class="sgr90">): </span>0.00% … 0.00%
+ Time  <span class="sgr90">(</span><span class="sgr34"><span class="sgr1">median</span></span><span class="sgr90">):     </span><span class="sgr34"><span class="sgr1">13.255 μs              </span></span><span class="sgr90">┊</span> GC <span class="sgr90">(</span>median<span class="sgr90">):    </span>0.00%
+ Time  <span class="sgr90">(</span><span class="sgr32"><span class="sgr1">mean</span></span> ± <span class="sgr32">σ</span><span class="sgr90">):   </span><span class="sgr32"><span class="sgr1">13.431 μs</span></span> ± <span class="sgr32"> 1.152 μs</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>mean ± σ<span class="sgr90">):  </span>0.00% ± 0.00%
+
+  ▃<span class="sgr34">█</span>▄<span class="sgr32"> </span>                                                        ▁
+  █<span class="sgr34">█</span>█<span class="sgr32">▄</span>▄▃▆▃▃▁▃▄▃▇▇▅▄▅▅▅▄▅▄▁▃▄▄▃▄▄▄▅▄▄▄▁▄▄▄▅▄▄▃▁▄▅▃▁▃▃▁▃▁▁▁▃▅▅▇ █
+  13 μs<span class="sgr90">        Histogram: <span class="sgr1">log(</span>frequency<span class="sgr1">)</span> by time</span>      21.4 μs <span class="sgr1">&lt;</span>
+
+ Memory estimate<span class="sgr90">: </span><span class="sgr33">0 bytes</span>, allocs estimate<span class="sgr90">: </span><span class="sgr33">0</span>.</code></pre><h3 id="Mixed-mode"><a class="docs-heading-anchor" href="#Mixed-mode">Mixed mode</a><a id="Mixed-mode-1"></a><a class="docs-heading-anchor-permalink" href="#Mixed-mode" title="Permalink"></a></h3><p>Some Jacobians have a structure which includes dense rows and dense columns, like this one:</p><pre><code class="language-julia hljs">arrowhead(x) = x .+ x[1] .+ vcat(sum(x), zeros(eltype(x), length(x)-1))
+
+jacobian_sparsity(arrowhead, x, TracerSparsityDetector())</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8×8 SparseArrays.SparseMatrixCSC{Bool, Int64} with 22 stored entries:
+ 1  1  1  1  1  1  1  1
+ 1  1  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅
+ 1  ⋅  1  ⋅  ⋅  ⋅  ⋅  ⋅
+ 1  ⋅  ⋅  1  ⋅  ⋅  ⋅  ⋅
+ 1  ⋅  ⋅  ⋅  1  ⋅  ⋅  ⋅
+ 1  ⋅  ⋅  ⋅  ⋅  1  ⋅  ⋅
+ 1  ⋅  ⋅  ⋅  ⋅  ⋅  1  ⋅
+ 1  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  1</code></pre><p>In such cases, sparse AD is only beneficial in &quot;mixed mode&quot;, where we combine a forward and a reverse backend. This is achieved using the <a href="../../api/#DifferentiationInterface.MixedMode"><code>MixedMode</code></a> wrapper, for which we recommend a random coloring order (see <a href="https://gdalle.github.io/SparseMatrixColorings.jl/stable/api/#SparseMatrixColorings.RandomOrder"><code>RandomOrder</code></a>):</p><pre><code class="language-julia hljs">sparse_mixed_backend = AutoSparse(
+    MixedMode(AutoForwardDiff(), AutoZygote()),
+    sparsity_detector=TracerSparsityDetector(),
+    coloring_algorithm=GreedyColoringAlgorithm(RandomOrder(MersenneTwister(), 0)),
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">AutoSparse(dense_ad=MixedMode{AutoForwardDiff{nothing, Nothing}, AutoZygote}(AutoForwardDiff(), AutoZygote()), sparsity_detector=SparseConnectivityTracer.TracerSparsityDetector(), coloring_algorithm=SparseMatrixColorings.GreedyColoringAlgorithm{:direct, SparseMatrixColorings.RandomOrder{Random.MersenneTwister, Int64}}(SparseMatrixColorings.RandomOrder{Random.MersenneTwister, Int64}(Random.MersenneTwister(0xa40c1784fd6e3d8c0f41c2a357aaf6c3), 0), false))</code></pre><p>It unlocks a large speedup compared to pure forward mode, and the same would be true compared to reverse mode:</p><pre><code class="language-julia hljs">@benchmark jacobian($arrowhead, prep, $sparse_forward_backend, $xbig) setup=(prep=prepare_jacobian(arrowhead, sparse_forward_backend, xbig))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BenchmarkTools.Trial: 326 samples with 1 evaluation per sample.
+ Range <span class="sgr90">(</span><span class="sgr36"><span class="sgr1">min</span></span> … <span class="sgr35">max</span><span class="sgr90">):  </span><span class="sgr36"><span class="sgr1">5.433 ms</span></span> … <span class="sgr35">27.781 ms</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>min … max<span class="sgr90">): </span> 0.00% … 78.76%
+ Time  <span class="sgr90">(</span><span class="sgr34"><span class="sgr1">median</span></span><span class="sgr90">):     </span><span class="sgr34"><span class="sgr1">5.840 ms              </span></span><span class="sgr90">┊</span> GC <span class="sgr90">(</span>median<span class="sgr90">):    </span> 0.00%
+ Time  <span class="sgr90">(</span><span class="sgr32"><span class="sgr1">mean</span></span> ± <span class="sgr32">σ</span><span class="sgr90">):   </span><span class="sgr32"><span class="sgr1">6.866 ms</span></span> ± <span class="sgr32"> 3.496 ms</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>mean ± σ<span class="sgr90">):  </span>12.51% ± 13.28%
+
+  █<span class="sgr34">▆</span>▅▁<span class="sgr32"> </span>                                                       
+  █<span class="sgr34">█</span>██<span class="sgr32">█</span>▄▁▇▅▅▅▇▅▄▆▅▄▅▄▄▁▁▄▁▁▁▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▅▅ ▆
+  5.43 ms<span class="sgr90">      Histogram: <span class="sgr1">log(</span>frequency<span class="sgr1">)</span> by time</span>     27.1 ms <span class="sgr1">&lt;</span>
+
+ Memory estimate<span class="sgr90">: </span><span class="sgr33">25.06 MiB</span>, allocs estimate<span class="sgr90">: </span><span class="sgr33">767</span>.</code></pre><pre><code class="language-julia hljs">@benchmark jacobian($arrowhead, prep, $sparse_mixed_backend, $xbig) setup=(prep=prepare_jacobian(arrowhead, sparse_mixed_backend, xbig))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BenchmarkTools.Trial: 2872 samples with 1 evaluation per sample.
+ Range <span class="sgr90">(</span><span class="sgr36"><span class="sgr1">min</span></span> … <span class="sgr35">max</span><span class="sgr90">):  </span><span class="sgr36"><span class="sgr1">41.126 μs</span></span> … <span class="sgr35">  9.971 ms</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>min … max<span class="sgr90">): </span> 0.00% … 20.67%
+ Time  <span class="sgr90">(</span><span class="sgr34"><span class="sgr1">median</span></span><span class="sgr90">):     </span><span class="sgr34"><span class="sgr1">47.970 μs               </span></span><span class="sgr90">┊</span> GC <span class="sgr90">(</span>median<span class="sgr90">):    </span> 0.00%
+ Time  <span class="sgr90">(</span><span class="sgr32"><span class="sgr1">mean</span></span> ± <span class="sgr32">σ</span><span class="sgr90">):   </span><span class="sgr32"><span class="sgr1">75.031 μs</span></span> ± <span class="sgr32">308.183 μs</span>  <span class="sgr90">┊</span> GC <span class="sgr90">(</span>mean ± σ<span class="sgr90">):  </span>29.33% ±  9.03%
+
+   ▁█<span class="sgr34">▂</span>         <span class="sgr32"> </span>                                                
+  ▃██<span class="sgr34">█</span>▄▃▃▂▂▂▂▂▂<span class="sgr32">▂</span>▁▁▂▁▁▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▂▁▁▂▁▁▁▂▁▁▁▁▁▁▁▁▁▂ ▂
+  41.1 μs<span class="sgr90">         Histogram: frequency by time</span>          196 μs <span class="sgr1">&lt;</span>
+
+ Memory estimate<span class="sgr90">: </span><span class="sgr33">275.23 KiB</span>, allocs estimate<span class="sgr90">: </span><span class="sgr33">75</span>.</code></pre><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basic/">« Basic tutorial</a><a class="docs-footer-nextpage" href="../../explanation/operators/">Operators »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.1 on <span class="colophon-date" title="Tuesday 15 April 2025 22:44">Tuesday 15 April 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
