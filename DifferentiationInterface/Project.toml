@@ -1,7 +1,7 @@
 name = "DifferentiationInterface"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 authors = ["Guillaume Dalle", "Adrian Hill"]
-version = "0.6.51"
+version = "0.6.52"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -17,6 +17,7 @@ FastDifferentiation = "eb9bf01b-bf85-4b60-bf87-ee5de06c00be"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+GPUArraysCore = "46192b85-c4d5-4398-a991-12ede77f4527"
 GTPSA = "b27dd330-f138-47c5-815b-40db9dd9b6e8"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 PolyesterForwardDiff = "98d1487c-24ca-40b6-b7ab-df2af84e126b"
@@ -37,6 +38,7 @@ DifferentiationInterfaceFastDifferentiationExt = "FastDifferentiation"
 DifferentiationInterfaceFiniteDiffExt = "FiniteDiff"
 DifferentiationInterfaceFiniteDifferencesExt = "FiniteDifferences"
 DifferentiationInterfaceForwardDiffExt = ["ForwardDiff", "DiffResults"]
+DifferentiationInterfaceGPUArraysCoreExt = "GPUArraysCore"
 DifferentiationInterfaceGTPSAExt = "GTPSA"
 DifferentiationInterfaceMooncakeExt = "Mooncake"
 DifferentiationInterfacePolyesterForwardDiffExt = ["PolyesterForwardDiff", "ForwardDiff", "DiffResults"]
@@ -61,6 +63,7 @@ FastDifferentiation = "0.4.3"
 FiniteDiff = "2.27.0"
 FiniteDifferences = "0.12.31"
 ForwardDiff = "0.10.36,1"
+GPUArraysCore = "0.2"
 GTPSA = "1.4.0"
 JuliaFormatter = "1"
 LinearAlgebra = "<0.0.1,1"
@@ -109,21 +112,4 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
-test = [
-    "ADTypes",
-    "Aqua",
-    "ComponentArrays",
-    "DataFrames",
-    "ExplicitImports",
-    "JET",
-    "JLArrays",
-    "JuliaFormatter",
-    "Pkg",
-    "Random",
-    "SparseArrays",
-    "SparseConnectivityTracer",
-    "SparseMatrixColorings",
-    "StableRNGs",
-    "StaticArrays",
-    "Test",
-]
+test = ["ADTypes", "Aqua", "ComponentArrays", "DataFrames", "ExplicitImports", "JET", "JLArrays", "JuliaFormatter", "Pkg", "Random", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings", "StableRNGs", "StaticArrays", "Test"]

@@ -5,6 +5,7 @@ using DifferentiationInterface:
     AutoReverseFromPrimitive,
     DenseSparsityDetector
 using SparseMatrixColorings
+using JLArrays, StaticArrays
 using Test
 
 LOGGING = get(ENV, "CI", "false") == "false"
@@ -137,3 +138,9 @@ end
         pushforward, copyto!, [1.0], AutoSimpleFiniteDiff(), [1.0], ([1.0], [1.0])
     )
 end
+
+@testset "Weird arrays" begin
+    test_differentiation(
+        AutoSimpleFiniteDiff(), vcat(static_scenarios(), gpu_scenarios()); logging=LOGGING
+    )
+end;

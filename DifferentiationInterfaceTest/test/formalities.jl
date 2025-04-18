@@ -9,7 +9,7 @@ using Test
 
 @testset "Aqua" begin
     Aqua.test_all(
-        DifferentiationInterfaceTest; ambiguities=false, deps_compat=(check_extras = false)
+        DifferentiationInterfaceTest; ambiguities=false, deps_compat=(; check_extras=false)
     )
 end
 @testset "JuliaFormatter" begin
