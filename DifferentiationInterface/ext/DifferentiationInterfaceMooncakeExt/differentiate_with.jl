@@ -7,18 +7,18 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Number
     y = zero_fcodual(f(primal_x))
 
     # output is a vector, so we need to use the vector pullback
-    function pullback!!(dy::NoRData)
+    function pullback_array!!(dy::NoRData)
         tx = DI.pullback(f, backend, primal_x, (fdata(y.dx),))
         return NoRData(), only(tx)
     end
 
     # output is a scalar, so we can use the scalar pullback
-    function pullback!!(dy::Number)
+    function pullback_scalar!!(dy::Number)
         tx = DI.pullback(f, backend, primal_x, (dy,))
         return NoRData(), only(tx)
     end
 
-    return y, pullback!!
+    return y, typeof(primal(y)) <: Number ? pullback_scalar!! : pullback_array!!
 end
 
 function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:AbstractArray})
@@ -27,22 +27,20 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
     fdata_arg = fdata(x.dx)
     (; f, backend) = primal_func
     y = zero_fcodual(f(primal_x))
-    # in case x is mutated in f calls
-    cp_primal_x = copy(primal_x)
 
     # output is a vector, so we need to use the vector pullback
-    function pullback!!(dy::NoRData)
-        tx = DI.pullback(f, backend, cp_primal_x, (fdata(y.dx),))
+    function pullback_array!!(dy::NoRData)
+        tx = DI.pullback(f, backend, primal_x, (fdata(y.dx),))
         fdata_arg .+= only(tx)
         return NoRData(), dy
     end
 
     # output is a scalar, so we can use the scalar pullback
-    function pullback!!(dy::Number)
-        tx = DI.pullback(f, backend, cp_primal_x, (dy,))
+    function pullback_scalar!!(dy::Number)
+        tx = DI.pullback(f, backend, primal_x, (dy,))
         fdata_arg .+= only(tx)
         return NoRData(), NoRData()
     end
 
-    return y, pullback!!
+    return y, typeof(primal(y)) <: Number ? pullback_scalar!! : pullback_array!!
 end
