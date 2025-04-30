@@ -86,7 +86,7 @@ Note that its rule writing is very different from ChainRulesCore.jl due to the p
 
 [Mooncake.jl](https://github.com/chalk-lab/Mooncake.jl) is a recent package which also handles a large subset of all Julia programs out-of-the-box.
 
-Its [rule system](https://chalk-lab.github.io/Mooncake.jl/dev/understanding_mooncake/rule_system/) is less expressive than that of Enzyme.jl, which might make it easier to start with.
+Its [rule system](https://chalk-lab.github.io/Mooncake.jl/stable/understanding_mooncake/rule_system/) is less expressive than that of Enzyme.jl, which might make it easier to start with.
 
 ## A rule mayhem?
 
@@ -106,7 +106,7 @@ There are, however, translation utilities:
 
 - from ChainRulesCore.jl to ForwardDiff.jl with [ForwardDiffChainRules.jl](https://github.com/ThummeTo/ForwardDiffChainRules.jl)
 - from ChainRulesCore.jl to Enzyme.jl with [`Enzyme.@import_rrule`](https://enzymead.github.io/Enzyme.jl/stable/api/#Enzyme.@import_rrule-Tuple)
-- from ChainRulesCore.jl to Mooncake.jl with [`Mooncake.@from_rrule`](https://chalk-lab.github.io/Mooncake.jl/dev/utilities/tools_for_rules/#Using-ChainRules.jl)
+- from ChainRulesCore.jl to Mooncake.jl with [`Mooncake.@from_rrule`](https://chalk-lab.github.io/Mooncake.jl/stable/utilities/defining_rules/#Using-ChainRules.jl)
 
 ### Backend switch
 
