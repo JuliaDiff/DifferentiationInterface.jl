@@ -10,7 +10,7 @@ function comp_to_num(x::ComponentVector)::Number
     return sum(sin.(x.a)) + sum(cos.(x.b))
 end
 
-comp_to_num_gradient(x) = ComponentVector(; a=cos.(x.a), b=-sin.(x.b))
+comp_to_num_gradient(x) = ComponentVector(; a=cos.(x.a), b=(-sin.(x.b)))
 
 function comp_to_num_pushforward(x, dx)
     g = comp_to_num_gradient(x)

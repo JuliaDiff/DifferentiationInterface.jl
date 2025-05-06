@@ -56,8 +56,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -124,8 +123,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -208,8 +206,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -286,8 +283,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -375,8 +371,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -445,8 +440,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -532,8 +526,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -599,8 +592,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -682,8 +674,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -765,8 +756,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -867,8 +857,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)
@@ -934,8 +923,7 @@ for op in ALL_OPS
             contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
             local prepstrict
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
+                new_smaller = if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
                         deepcopy(scen)
                     else
                         deepcopy(smaller)

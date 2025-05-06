@@ -56,7 +56,7 @@ function DI.pushforward(
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     ty = map(tx) do dx
-        foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
+        foreach((t, xi, dxi) -> (t[0]=xi; t[1]=dxi), prep.xt, x, dx)
         fc!(prep.yt, prep.xt)
         dy = map(t -> t[1], prep.yt)
         return dy
@@ -79,7 +79,7 @@ function DI.pushforward!(
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
+        foreach((t, xi, dxi) -> (t[0]=xi; t[1]=dxi), prep.xt, x, dx)
         fc!(prep.yt, prep.xt)
         map!(t -> t[1], dy, prep.yt)
     end
