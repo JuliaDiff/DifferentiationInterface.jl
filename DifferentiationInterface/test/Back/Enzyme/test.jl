@@ -68,10 +68,7 @@ end;
 
     test_differentiation(
         duplicated_backends,
-        filter(
-            s -> !(s.y isa Matrix),  # TODO: remove
-            default_scenarios(; include_normal=false, include_closurified=true),
-        );
+        default_scenarios(; include_normal=false, include_closurified=true);
         excluded=SECOND_ORDER,
         logging=LOGGING,
     )
