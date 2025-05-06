@@ -60,7 +60,6 @@ end
 function get_f_and_df_prepared!(
     df, f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}
 ) where {F,M,B}
-    make_zero!(df)
     if B == 1
         return Duplicated(f, df)
     else
@@ -166,7 +165,6 @@ end
 
 function _translate_prepared!(dc, c_wrapped::DI.Cache, ::Val{B}) where {B}
     c = DI.unwrap(c_wrapped)
-    make_zero!(dc)
     if B == 1
         return Duplicated(c, dc)
     else
@@ -181,13 +179,10 @@ function _translate_prepared!(
     if isnothing(dc)
         return Const(c)
     else
-        # make_zero!(dc)  # doesn't work because of immutable values
         if B == 1
-            dc_new = make_zero(c)
-            return Duplicated(c, dc_new)
+            return Duplicated(c, dc)
         else
-            dc_new = ntuple(_ -> make_zero(c), Val(B))
-            return BatchDuplicated(c, dc_new)
+            return BatchDuplicated(c, dc)
         end
     end
 end

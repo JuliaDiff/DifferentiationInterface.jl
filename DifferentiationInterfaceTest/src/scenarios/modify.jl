@@ -115,13 +115,13 @@ end
 Base.show(io::IO, f::WritableClosure) = print(io, "WritableClosure($(f.f))")
 
 function (mc::WritableClosure{:out})(x)
-    mc.x_buffer[1] = x
+    mc.x_buffer[1] = copy(x)
     mc.y_buffer[1] = mc.f(x)
     return copy(mc.y_buffer[1])
 end
 
 function (mc::WritableClosure{:in})(y, x)
-    mc.x_buffer[1] = x
+    mc.x_buffer[1] = copy(x)
     mc.f(mc.y_buffer[1], mc.x_buffer[1])
     copyto!(y, mc.y_buffer[1])
     return nothing
