@@ -5,10 +5,10 @@ import DifferentiationInterface as DI
 using SparseConnectivityTracer:
     TracerSparsityDetector, TracerLocalSparsityDetector, jacobian_buffer, hessian_buffer
 
-function _translate(::Type, c::Union{DI.GeneralizedConstant,DI.ConstantOrCache})
+@inline function _translate(::Type, c::Union{DI.GeneralizedConstant,DI.ConstantOrCache})
     return DI.unwrap(c)
 end
-function _translate(::Type{T}, c::DI.Cache) where {T}
+@inline function _translate(::Type{T}, c::DI.Cache) where {T}
     return DI.recursive_similar(DI.unwrap(c), T)
 end
 

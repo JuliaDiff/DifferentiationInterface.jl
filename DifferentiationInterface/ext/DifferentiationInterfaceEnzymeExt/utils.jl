@@ -1,3 +1,12 @@
+const AnyDuplicated = Union{
+    Duplicated,
+    MixedDuplicated,
+    BatchDuplicated,
+    BatchMixedDuplicated,
+    DuplicatedNoNeed,
+    BatchDuplicatedNoNeed,
+}
+
 # until https://github.com/EnzymeAD/Enzyme.jl/pull/1545 is merged
 function DI.pick_batchsize(::AutoEnzyme, N::Integer)
     B = DI.reasonable_batchsize(N, 16)
@@ -8,26 +17,17 @@ to_val(::DI.BatchSizeSettings{B}) where {B} = Val(B)
 
 ## Annotations
 
-const AnyDuplicated = Union{
-    Duplicated,
-    MixedDuplicated,
-    BatchDuplicated,
-    BatchMixedDuplicated,
-    DuplicatedNoNeed,
-    BatchDuplicatedNoNeed,
-}
-
-function get_f_and_df(f::F, ::AutoEnzyme{M,Nothing}, ::Val{B}) where {F,M,B}
+function get_f_and_df_prepared!(_df, f::F, ::AutoEnzyme{M,Nothing}, ::Val{B}) where {F,M,B}
     return f
 end
 
-function get_f_and_df(f::F, ::AutoEnzyme{M,<:Const}, ::Val{B}) where {F,M,B}
+function get_f_and_df_prepared!(_df, f::F, ::AutoEnzyme{M,<:Const}, ::Val{B}) where {F,M,B}
     return Const(f)
 end
 
-function get_f_and_df(f::F, backend::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}) where {F,M,B}
-    # TODO: needs more sophistication for mixed activities
-    df = function_shadow(f, backend, Val(B))
+function get_f_and_df_prepared!(
+    df, f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}
+) where {F,M,B}
     if B == 1
         return Duplicated(f, df)
     else
@@ -49,70 +49,8 @@ function function_shadow(f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}) where 
     end
 end
 
-function get_f_and_df_prepared!(_df, f::F, ::AutoEnzyme{M,Nothing}, ::Val{B}) where {F,M,B}
-    return f
-end
-
-function get_f_and_df_prepared!(_df, f::F, ::AutoEnzyme{M,<:Const}, ::Val{B}) where {F,M,B}
-    return Const(f)
-end
-
-function get_f_and_df_prepared!(
-    df, f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}
-) where {F,M,B}
-    if B == 1
-        return Duplicated(f, df)
-    else
-        return BatchDuplicated(f, df)
-    end
-end
-
 force_annotation(f::F) where {F<:Annotation} = f
 force_annotation(f::F) where {F} = Const(f)
-
-function _translate(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.Constant) where {B}
-    c = DI.unwrap(c_wrapped)
-    return Const(c)
-end
-
-function _translate(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.Cache) where {B}
-    c = DI.unwrap(c_wrapped)
-    if B == 1
-        dc = make_zero(c)
-        return Duplicated(c, dc)
-    else
-        dc = ntuple(_ -> make_zero(c), Val(B))
-        return BatchDuplicated(c, dc)
-    end
-end
-
-function _translate(
-    backend::AutoEnzyme, mode::Mode, ::Val{B}, c_wrapped::DI.ConstantOrCache
-) where {B}
-    c = DI.unwrap(c_wrapped)
-    IA = guess_activity(typeof(c), mode)
-    if IA <: Const
-        return _translate(backend, mode, Val(B), DI.Constant(c))
-    else
-        return _translate(backend, mode, Val(B), DI.Cache(c))
-    end
-end
-
-function _translate(
-    backend::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.FunctionContext
-) where {B}
-    f = DI.unwrap(c_wrapped)
-    return force_annotation(get_f_and_df(f, backend, Val(B)))
-end
-
-function translate(
-    backend::AutoEnzyme, mode::Mode, ::Val{B}, contexts::Vararg{DI.Context,C}
-) where {B,C}
-    new_contexts = map(contexts) do c_wrapped
-        _translate(backend, mode, Val(B), c_wrapped)
-    end
-    return new_contexts
-end
 
 function _shadow(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.Constant) where {B}
     return nothing
@@ -128,14 +66,18 @@ function _shadow(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.Cache) where {B}
 end
 
 function _shadow(
-    backend::AutoEnzyme, mode::Mode, valB::Val{B}, c_wrapped::DI.ConstantOrCache
+    ::AutoEnzyme, mode::Mode, valB::Val{B}, c_wrapped::DI.ConstantOrCache
 ) where {B}
     c = DI.unwrap(c_wrapped)
     IA = guess_activity(typeof(c), mode)
     if IA <: Const
-        return _shadow(backend, mode, valB, DI.Constant(c))
+        nothing
     else
-        return _shadow(backend, mode, valB, DI.Cache(c))
+        if B == 1
+            return make_zero(c)
+        else
+            return ntuple(_ -> make_zero(c), Val(B))
+        end
     end
 end
 
@@ -149,7 +91,7 @@ function _shadow(
     return function_shadow(f, backend, Val(B))
 end
 
-function shadows(
+function make_context_shadows(
     backend::AutoEnzyme, mode::Mode, ::Val{B}, contexts::Vararg{DI.Context,C}
 ) where {B,C}
     context_shadows = map(contexts) do c_wrapped
