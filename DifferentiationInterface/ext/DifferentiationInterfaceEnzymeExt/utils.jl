@@ -175,7 +175,7 @@ function _translate_prepared!(dc, c_wrapped::DI.Cache, ::Val{B}) where {B}
 end
 
 function _translate_prepared!(
-    _dc, c_wrapped::Union{DI.ConstantOrCache,DI.FunctionContext}, ::Val{B}
+    dc, c_wrapped::Union{DI.ConstantOrCache,DI.FunctionContext}, ::Val{B}
 ) where {B}
     c = DI.unwrap(c_wrapped)
     if isnothing(dc)
@@ -183,11 +183,11 @@ function _translate_prepared!(
     else
         # make_zero!(dc)  # doesn't work because of immutable values
         if B == 1
-            dc = make_zero(c)
-            return Duplicated(c, dc)
+            dc_new = make_zero(c)
+            return Duplicated(c, dc_new)
         else
-            dc = ntuple(_ -> make_zero(c), Val(B))
-            return BatchDuplicated(c, dc)
+            dc_new = ntuple(_ -> make_zero(c), Val(B))
+            return BatchDuplicated(c, dc_new)
         end
     end
 end
