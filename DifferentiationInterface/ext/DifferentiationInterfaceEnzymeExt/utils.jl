@@ -28,6 +28,11 @@ end
 function get_f_and_df_prepared!(
     df, f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}
 ) where {F,M,B}
+    #=
+    It is not obvious why we don't need a `make_zero` here, in the case of mutable constant data in `f`.
+    - In forward mode, `df` is never incremented if `f` is not mutated, so it remains equal to its initial value of `0`.
+    - In reverse mode, `df` gets incremented but it does not influence the input cotangent `dx`.
+    =#
     if B == 1
         return Duplicated(f, df)
     else
@@ -117,6 +122,11 @@ end
 function _translate_prepared!(
     dc, c_wrapped::Union{DI.ConstantOrCache,DI.FunctionContext}, ::Val{B}
 ) where {B}
+    #=
+    It is not obvious why we don't need a `make_zero` here, in the case of mutable constant contexts.
+    - In forward mode, `dc` is never incremented because `c` is not mutated, so it remains equal to its initial value of `0`.
+    - In reverse mode, `dc` gets incremented but it does not influence the input cotangent `dx`.
+    =#
     c = DI.unwrap(c_wrapped)
     if isnothing(dc)
         return Const(c)
