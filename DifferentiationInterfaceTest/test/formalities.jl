@@ -18,7 +18,9 @@ end
     )
 end
 @testset verbose = true "JET" begin
-    JET.test_package(DifferentiationInterfaceTest; target_defined_modules=true)
+    if VERSION < v"1.12"
+        JET.test_package(DifferentiationInterfaceTest; target_defined_modules=true)
+    end
 end
 
 @testset "Documentation" begin
