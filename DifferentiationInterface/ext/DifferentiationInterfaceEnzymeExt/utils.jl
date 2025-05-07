@@ -1,3 +1,12 @@
+const AnyDuplicated = Union{
+    Duplicated,
+    MixedDuplicated,
+    BatchDuplicated,
+    BatchMixedDuplicated,
+    DuplicatedNoNeed,
+    BatchDuplicatedNoNeed,
+}
+
 # until https://github.com/EnzymeAD/Enzyme.jl/pull/1545 is merged
 function DI.pick_batchsize(::AutoEnzyme, N::Integer)
     B = DI.reasonable_batchsize(N, 16)
@@ -8,84 +17,133 @@ to_val(::DI.BatchSizeSettings{B}) where {B} = Val(B)
 
 ## Annotations
 
-@inline function get_f_and_df(
-    f::F, backend::AutoEnzyme{M,Nothing}, mode::Mode, (::Val{B})=Val(1)
-) where {F,M,B}
+function get_f_and_df_prepared!(_df, f::F, ::AutoEnzyme{M,Nothing}, ::Val{B}) where {F,M,B}
     return f
 end
 
-@inline function get_f_and_df(
-    f::F, backend::AutoEnzyme{M,<:Const}, mode::Mode, (::Val{B})=Val(1)
-) where {F,M,B}
+function get_f_and_df_prepared!(_df, f::F, ::AutoEnzyme{M,<:Const}, ::Val{B}) where {F,M,B}
     return Const(f)
 end
 
-@inline function get_f_and_df(
-    f::F,
-    backend::AutoEnzyme{
-        M,
-        <:Union{
-            Duplicated,
-            MixedDuplicated,
-            BatchDuplicated,
-            BatchMixedDuplicated,
-            DuplicatedNoNeed,
-            BatchDuplicatedNoNeed,
-        },
-    },
-    mode::Mode,
-    (::Val{B})=Val(1),
+function get_f_and_df_prepared!(
+    df, f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}
 ) where {F,M,B}
-    # TODO: needs more sophistication for mixed activities
+    #=
+    It is not obvious why we don't need a `make_zero` here, in the case of mutable constant data in `f`.
+    - In forward mode, `df` is never incremented if `f` is not mutated, so it remains equal to its initial value of `0`.
+    - In reverse mode, `df` gets incremented but it does not influence the input cotangent `dx`.
+    =#
     if B == 1
-        return Duplicated(f, make_zero(f))
+        return Duplicated(f, df)
     else
-        return BatchDuplicated(f, ntuple(_ -> make_zero(f), Val(B)))
+        return BatchDuplicated(f, df)
+    end
+end
+
+function function_shadow(
+    ::F, ::AutoEnzyme{M,<:Union{Const,Nothing}}, ::Val{B}
+) where {M,B,F}
+    return nothing
+end
+
+function function_shadow(f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}) where {F,M,B}
+    if B == 1
+        return make_zero(f)
+    else
+        return ntuple(_ -> make_zero(f), Val(B))
     end
 end
 
 force_annotation(f::F) where {F<:Annotation} = f
 force_annotation(f::F) where {F} = Const(f)
 
-@inline function _translate(
-    backend::AutoEnzyme, ::Mode, ::Val{B}, c::DI.GeneralizedConstant
-) where {B}
-    return Const(DI.unwrap(c))
+function _shadow(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.Constant) where {B}
+    return nothing
 end
 
-@inline function _translate(
-    backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.Cache
-) where {B}
-    # important to keep make_zero here for ConstantOrCache instead of similar
+function _shadow(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.Cache) where {B}
+    c = DI.unwrap(c_wrapped)
     if B == 1
-        return Duplicated(DI.unwrap(c), make_zero(DI.unwrap(c)))
+        return make_zero(c)
     else
-        return BatchDuplicated(DI.unwrap(c), ntuple(_ -> make_zero(DI.unwrap(c)), Val(B)))
+        return ntuple(_ -> make_zero(c), Val(B))
     end
 end
 
-@inline function _translate(
-    backend::AutoEnzyme, mode::Mode, valB::Val{B}, c::DI.ConstantOrCache
+function _shadow(
+    ::AutoEnzyme, mode::Mode, valB::Val{B}, c_wrapped::DI.ConstantOrCache
 ) where {B}
-    IA = guess_activity(typeof(DI.unwrap(c)), mode)
+    c = DI.unwrap(c_wrapped)
+    IA = guess_activity(typeof(c), mode)
     if IA <: Const
-        return _translate(backend, mode, valB, DI.Constant(DI.unwrap(c)))
+        nothing
     else
-        return _translate(backend, mode, valB, DI.Cache(DI.unwrap(c)))
+        if B == 1
+            return make_zero(c)
+        else
+            return ntuple(_ -> make_zero(c), Val(B))
+        end
     end
 end
 
-@inline function _translate(
-    backend::AutoEnzyme, mode::Mode, ::Val{B}, c::DI.FunctionContext
-) where {B}
-    return force_annotation(get_f_and_df(DI.unwrap(c), backend, mode, Val(B)))
+function _shadow(
+    backend::AutoEnzyme{M,<:Union{Const,Nothing}},
+    ::Mode,
+    ::Val{B},
+    c_wrapped::DI.FunctionContext,
+) where {M,B}
+    f = DI.unwrap(c_wrapped)
+    return function_shadow(f, backend, Val(B))
 end
 
-@inline function translate(
+function make_context_shadows(
     backend::AutoEnzyme, mode::Mode, ::Val{B}, contexts::Vararg{DI.Context,C}
 ) where {B,C}
-    new_contexts = map(contexts) do c
-        _translate(backend, mode, Val(B), c)
+    context_shadows = map(contexts) do c_wrapped
+        _shadow(backend, mode, Val(B), c_wrapped)
+    end
+    return context_shadows
+end
+
+function _translate_prepared!(dc, c_wrapped::DI.Constant, ::Val{B}) where {B}
+    c = DI.unwrap(c_wrapped)
+    return Const(c)
+end
+
+function _translate_prepared!(dc, c_wrapped::DI.Cache, ::Val{B}) where {B}
+    c = DI.unwrap(c_wrapped)
+    if B == 1
+        return Duplicated(c, dc)
+    else
+        return BatchDuplicated(c, dc)
+    end
+end
+
+function _translate_prepared!(
+    dc, c_wrapped::Union{DI.ConstantOrCache,DI.FunctionContext}, ::Val{B}
+) where {B}
+    #=
+    It is not obvious why we don't need a `make_zero` here, in the case of mutable constant contexts.
+    - In forward mode, `dc` is never incremented because `c` is not mutated, so it remains equal to its initial value of `0`.
+    - In reverse mode, `dc` gets incremented but it does not influence the input cotangent `dx`.
+    =#
+    c = DI.unwrap(c_wrapped)
+    if isnothing(dc)
+        return Const(c)
+    else
+        if B == 1
+            return Duplicated(c, dc)
+        else
+            return BatchDuplicated(c, dc)
+        end
+    end
+end
+
+function translate_prepared!(
+    context_shadows::NTuple{C,Any}, contexts::NTuple{C,DI.Context}, ::Val{B}
+) where {B,C}
+    new_contexts = map(context_shadows, contexts) do dc, c_wrapped
+        _translate_prepared!(dc, c_wrapped, Val(B))
     end
     return new_contexts
 end

@@ -104,26 +104,31 @@ struct WritableClosure{pl_fun,F,X,Y} <: FunctionModifier
     f::F
     x_buffer::Vector{X}
     y_buffer::Vector{Y}
+    a::Float64
+    b::Vector{Float64}
 end
 
 function WritableClosure{pl_fun}(
-    f::F, x_buffer::Vector{X}, y_buffer::Vector{Y}
+    f::F, x_buffer::Vector{X}, y_buffer::Vector{Y}, a, b
 ) where {pl_fun,F,X,Y}
-    return WritableClosure{pl_fun,F,X,Y}(f, x_buffer, y_buffer)
+    return WritableClosure{pl_fun,F,X,Y}(f, x_buffer, y_buffer, a, b)
 end
 
 Base.show(io::IO, f::WritableClosure) = print(io, "WritableClosure($(f.f))")
 
 function (mc::WritableClosure{:out})(x)
-    mc.x_buffer[1] = x
-    mc.y_buffer[1] = mc.f(x)
-    return copy(mc.y_buffer[1])
+    (; f, x_buffer, y_buffer, a, b) = mc
+    x_buffer[1] = copy(x)
+    y_buffer[1] = (a + only(b)) * f(x)
+    return copy(y_buffer[1])
 end
 
 function (mc::WritableClosure{:in})(y, x)
-    mc.x_buffer[1] = x
-    mc.f(mc.y_buffer[1], mc.x_buffer[1])
-    copyto!(y, mc.y_buffer[1])
+    (; f, x_buffer, y_buffer, a, b) = mc
+    x_buffer[1] = copy(x)
+    f(y_buffer[1], x_buffer[1])
+    y_buffer[1] .*= (a + only(b))
+    copyto!(y, y_buffer[1])
     return nothing
 end
 
@@ -132,13 +137,25 @@ end
 
 Return a new `Scenario` identical to `scen` except for the function `f` which is made to close over differentiable data.
 """
-function closurify(scen::Scenario)
+function closurify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
     (; f, x, y) = scen
     @assert isempty(scen.contexts)
     x_buffer = [zero(x)]
     y_buffer = [zero(y)]
-    closure_f = WritableClosure{function_place(scen)}(f, x_buffer, y_buffer)
-    return change_function(scen, closure_f; keep_smaller=false)
+    a = 3.0
+    b = [4.0]
+    closure_f = WritableClosure{pl_fun}(f, x_buffer, y_buffer, a, b)
+    return Scenario{op,pl_op,pl_fun}(
+        closure_f;
+        x        = scen.x,
+        y        = mymultiply(scen.y, a + only(b)),
+        tang     = scen.tang,
+        contexts = scen.contexts,
+        res1     = mymultiply(scen.res1, a + only(b)),
+        res2     = mymultiply(scen.res2, a + only(b)),
+        smaller  = nothing,
+        name     = isnothing(scen.name) ? nothing : scen.name * " [closurified]",
+    )
 end
 
 struct MultiplyByConstant{pl_fun,F} <: FunctionModifier
@@ -267,7 +284,8 @@ end
 
 function (sc::MultiplyByConstantAndStoreInCache{:out})(x, constantorcache)
     (; constant, cache) = constantorcache
-    y = constant * sc.f(x)
+    (; a, b) = constant
+    y = (a + only(b)) * sc.f(x)
     if eltype(y) == eltype(cache)
         newcache = cache
     else
@@ -285,6 +303,7 @@ end
 
 function (sc::MultiplyByConstantAndStoreInCache{:in})(y, x, constantorcache)
     (; constant, cache) = constantorcache
+    (; a, b) = constant
     if eltype(y) == eltype(cache)
         newcache = cache
     else
@@ -292,7 +311,7 @@ function (sc::MultiplyByConstantAndStoreInCache{:in})(y, x, constantorcache)
         newcache = similar(cache, eltype(y))
     end
     sc.f(newcache, x)
-    newcache .*= constant
+    newcache .*= (a + only(b))
     copyto!(y, newcache)
     return nothing
 end
@@ -307,19 +326,20 @@ function constantorcachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_f
     @assert isempty(scen.contexts)
     constantorcache_f = MultiplyByConstantAndStoreInCache{pl_fun}(f)
     a = 3.0
+    b = [4.0]
     constantorcache = if scen.y isa Number
-        (; cache=[myzero(scen.y)], constant=a)
+        (; cache=[myzero(scen.y)], constant=(; a, b))
     else
-        (; cache=mysimilar(scen.y), constant=a)
+        (; cache=mysimilar(scen.y), constant=(; a, b))
     end
     return Scenario{op,pl_op,pl_fun}(
         constantorcache_f;
         x=scen.x,
-        y=mymultiply(scen.y, a),
+        y=mymultiply(scen.y, a + only(b)),
         tang=scen.tang,
         contexts=(ConstantOrCache(constantorcache),),
-        res1=mymultiply(scen.res1, a),
-        res2=mymultiply(scen.res2, a),
+        res1=mymultiply(scen.res1, a + only(b)),
+        res2=mymultiply(scen.res2, a + only(b)),
         smaller=isnothing(scen.smaller) ? nothing : constantorcachify(scen.smaller),
         name=isnothing(scen.name) ? nothing : scen.name * " [constantorcachified]",
     )
