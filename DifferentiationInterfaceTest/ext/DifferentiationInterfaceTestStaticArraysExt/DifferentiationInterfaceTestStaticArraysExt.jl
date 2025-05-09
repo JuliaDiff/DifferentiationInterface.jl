@@ -36,12 +36,12 @@ end
 mystatic(::Nothing) = nothing
 
 function mystatic(scen::DIT.Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
-    (; f, x, y, tang, contexts, res1, res2) = scen
-    return DIT.Scenario{op,pl_op,pl_fun}(
-        mystatic(f);
+    (; f, x, y, t, contexts, res1, res2) = scen
+    return DIT.Scenario{op,pl_op,pl_fun}(;
+        f=mystatic(f),
         x=mystatic(x),
         y=pl_fun == :in ? mymutablestatic(y) : mystatic(y),
-        tang=mystatic(tang),
+        t=mystatic(t),
         contexts=mystatic(contexts),
         res1=mystatic(res1),
         res2=mystatic(res2),

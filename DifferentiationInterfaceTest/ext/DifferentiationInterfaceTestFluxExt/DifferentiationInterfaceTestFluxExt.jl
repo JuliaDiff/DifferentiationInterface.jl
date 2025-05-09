@@ -162,9 +162,7 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
     for (model, x) in models_and_xs
         Flux.trainmode!(model)
         g = gradient_finite_differences(square_loss, model, x)
-        scen = DIT.Scenario{:gradient,:out}(
-            square_loss, model; contexts=(DI.Constant(x),), res1=g
-        )
+        scen = DIT.Scenario{:gradient,:out}(square_loss, model, DI.Constant(x); res1=g)
         push!(scens, scen)
     end
 
@@ -191,7 +189,7 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
         Flux.trainmode!(model)
         g = gradient_finite_differences(square_loss_iterated, model, x)
         scen = DIT.Scenario{:gradient,:out}(
-            square_loss_iterated, model; contexts=(DI.Constant(x),), res1=g
+            square_loss_iterated, model, DI.Constant(x); res1=g
         )
         push!(scens, scen)
     end

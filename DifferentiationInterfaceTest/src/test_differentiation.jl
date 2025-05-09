@@ -6,7 +6,7 @@ Apply a list of `backends` on a list of `scenarios`, running a variety of differ
 # Return
 
 This function always creates and runs a `@testset`, though its contents may vary.
-    
+
 - if `benchmark == :none`, it returns `nothing`.
 - if `benchmark != :none`, it returns a `DataFrame` of benchmark results, whose columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref).
 
@@ -142,10 +142,7 @@ function test_differentiation(
                             (:input_size, mysize(scen.x)),
                             (:output_type, typeof(scen.y)),
                             (:output_size, mysize(scen.y)),
-                            (
-                                :nb_tangents,
-                                scen.tang isa NTuple ? length(scen.tang) : nothing,
-                            ),
+                            (:nb_tangents, scen.t isa NTuple ? length(scen.t) : nothing),
                             (:nb_contexts, length(scen.contexts)),
                         ],
                     )
