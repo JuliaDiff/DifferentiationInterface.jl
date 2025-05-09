@@ -30,6 +30,7 @@ using EnzymeCore:
     Split,
     WithPrimal
 using Enzyme:
+    Enzyme,
     autodiff,
     autodiff_thunk,
     create_shadows,
@@ -52,5 +53,7 @@ include("forward_twoarg.jl")
 
 include("reverse_onearg.jl")
 include("reverse_twoarg.jl")
+
+include("init.jl")
 
 end # module
