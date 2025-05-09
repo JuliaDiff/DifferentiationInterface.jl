@@ -92,7 +92,11 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
     g = gradient_finite_differences(square_loss, model, x)
 
     scen = DIT.Scenario{:gradient,:out}(
-        square_loss, model; contexts=(DI.Constant(x),), res1=g
+        square_loss,
+        model,
+        DI.Constant(x);
+        prep_args=(x=model, contexts=(DI.Constant(x),)),
+        res1=g,
     )
     push!(scens, scen)
 
