@@ -23,13 +23,14 @@ myjl(x::DI.Cache{<:Union{Tuple,NamedTuple}}) = map(myjl, map(DI.Cache, DI.unwrap
 myjl(::Nothing) = nothing
 
 function myjl(scen::DIT.Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
-    (; f, x, y, t, contexts, res1, res2) = scen
+    (; f, x, y, t, contexts, prep_args, res1, res2) = scen
     return DIT.Scenario{op,pl_op,pl_fun}(;
         f=myjl(f),
         x=myjl(x),
         y=myjl(y),
         t=myjl(t),
         contexts=myjl(contexts),
+        prep_args=map(myjl, prep_args),
         res1=myjl(res1),
         res2=myjl(res2),
     )
