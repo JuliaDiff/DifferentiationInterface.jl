@@ -16,7 +16,12 @@ end
 
 $(docstring_prepare!("hessian"))
 """
-function prepare!_hessian end
+function prepare!_hessian(
+    f::F, old_prep::HessianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C};
+) where {F,C}
+    check_prep(f, old_prep, backend, x, contexts...)
+    return prepare_hessian_nokwarg(is_strict(old_prep), f, backend, x, contexts...)
+end
 
 """
     hessian(f, [prep,] backend, x, [contexts...]) -> hess
@@ -25,7 +30,10 @@ Compute the Hessian matrix of the function `f` at point `x`.
 
 $(docstring_preparation_hint("hessian"))
 """
-function hessian end
+function hessian(f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}) where {F,C}
+    prep = prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
+    return hessian(f, prep, backend, x, contexts...)
+end
 
 """
     hessian!(f, hess, [prep,] backend, x, [contexts...]) -> hess
@@ -34,7 +42,12 @@ Compute the Hessian matrix of the function `f` at point `x`, overwriting `hess`.
 
 $(docstring_preparation_hint("hessian"))
 """
-function hessian! end
+function hessian!(
+    f::F, hess, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
+    return hessian!(f, hess, prep, backend, x, contexts...)
+end
 
 """
     value_gradient_and_hessian(f, [prep,] backend, x, [contexts...]) -> (y, grad, hess)
@@ -43,7 +56,12 @@ Compute the value, gradient vector and Hessian matrix of the function `f` at poi
 
 $(docstring_preparation_hint("hessian"))
 """
-function value_gradient_and_hessian end
+function value_gradient_and_hessian(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_gradient_and_hessian(f, prep, backend, x, contexts...)
+end
 
 """
     value_gradient_and_hessian!(f, grad, hess, [prep,] backend, x, [contexts...]) -> (y, grad, hess)
@@ -52,7 +70,12 @@ Compute the value, gradient vector and Hessian matrix of the function `f` at poi
 
 $(docstring_preparation_hint("hessian"))
 """
-function value_gradient_and_hessian! end
+function value_gradient_and_hessian!(
+    f::F, grad, hess, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_gradient_and_hessian!(f, grad, hess, prep, backend, x, contexts...)
+end
 
 ## Preparation
 

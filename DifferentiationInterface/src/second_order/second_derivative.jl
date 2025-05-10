@@ -16,7 +16,18 @@ end
 
 $(docstring_prepare!("second_derivative"))
 """
-function prepare!_second_derivative end
+function prepare!_second_derivative(
+    f::F,
+    old_prep::SecondDerivativePrep,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C};
+) where {F,C}
+    check_prep(f, old_prep, backend, x, contexts...)
+    return prepare_second_derivative_nokwarg(
+        is_strict(old_prep), f, backend, x, contexts...
+    )
+end
 
 """
     second_derivative(f, [prep,] backend, x, [contexts...]) -> der2
@@ -25,7 +36,12 @@ Compute the second derivative of the function `f` at point `x`.
 
 $(docstring_preparation_hint("second_derivative"))
 """
-function second_derivative end
+function second_derivative(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_second_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return second_derivative(f, prep, backend, x, contexts...)
+end
 
 """
     second_derivative!(f, der2, [prep,] backend, x, [contexts...]) -> der2
@@ -34,7 +50,12 @@ Compute the second derivative of the function `f` at point `x`, overwriting `der
 
 $(docstring_preparation_hint("second_derivative"))
 """
-function second_derivative! end
+function second_derivative!(
+    f::F, der2, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_second_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return second_derivative!(f, der2, prep, backend, x, contexts...)
+end
 
 """
     value_derivative_and_second_derivative(f, [prep,] backend, x, [contexts...]) -> (y, der, der2)
@@ -43,7 +64,12 @@ Compute the value, first derivative and second derivative of the function `f` at
 
 $(docstring_preparation_hint("second_derivative"))
 """
-function value_derivative_and_second_derivative end
+function value_derivative_and_second_derivative(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_second_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_derivative_and_second_derivative(f, prep, backend, x, contexts...)
+end
 
 """
     value_derivative_and_second_derivative!(f, der, der2, [prep,] backend, x, [contexts...]) -> (y, der, der2)
@@ -52,7 +78,14 @@ Compute the value, first derivative and second derivative of the function `f` at
 
 $(docstring_preparation_hint("second_derivative"))
 """
-function value_derivative_and_second_derivative! end
+function value_derivative_and_second_derivative!(
+    f::F, der, der2, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_second_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_derivative_and_second_derivative!(
+        f, der, der2, prep, backend, x, contexts...
+    )
+end
 
 ## Preparation
 

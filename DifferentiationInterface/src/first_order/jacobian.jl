@@ -29,7 +29,25 @@ end
 
 $(docstring_prepare!("jacobian"))
 """
-function prepare!_jacobian end
+function prepare!_jacobian(
+    f::F, old_prep::JacobianPrep, backend::AbstractADType, x, contexts::Vararg{Context,C};
+) where {F,C}
+    check_prep(f, old_prep, backend, x, contexts...)
+    return prepare_jacobian_nokwarg(is_strict(old_prep), f, backend, x, contexts...)
+end
+
+function prepare!_jacobian(
+    f!::F,
+    y,
+    old_prep::JacobianPrep,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C};
+    strict::Val=Val(false),
+) where {F,C}
+    check_prep(f!, y, old_prep, backend, x, contexts...)
+    return prepare_jacobian_nokwarg(is_strict(old_prep), f!, y, backend, x, contexts...)
+end
 
 """
     value_and_jacobian(f,     [prep,] backend, x, [contexts...]) -> (y, jac)
@@ -39,17 +57,41 @@ Compute the value and the Jacobian matrix of the function `f` at point `x`.
 
 $(docstring_preparation_hint("jacobian"))
 """
-function value_and_jacobian end
+function value_and_jacobian(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_jacobian(f, prep, backend, x, contexts...)
+end
+
+function value_and_jacobian(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return value_and_jacobian(f!, y, prep, backend, x, contexts...)
+end
 
 """
     value_and_jacobian!(f,     jac, [prep,] backend, x, [contexts...]) -> (y, jac)
     value_and_jacobian!(f!, y, jac, [prep,] backend, x, [contexts...]) -> (y, jac)
 
 Compute the value and the Jacobian matrix of the function `f` at point `x`, overwriting `jac`.
-    
+
 $(docstring_preparation_hint("jacobian"))
 """
-function value_and_jacobian! end
+function value_and_jacobian!(
+    f::F, jac, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_jacobian!(f, jac, prep, backend, x, contexts...)
+end
+
+function value_and_jacobian!(
+    f!::F, y, jac, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return value_and_jacobian!(f!, y, jac, prep, backend, x, contexts...)
+end
 
 """
     jacobian(f,     [prep,] backend, x, [contexts...]) -> jac
@@ -59,7 +101,17 @@ Compute the Jacobian matrix of the function `f` at point `x`.
 
 $(docstring_preparation_hint("jacobian"))
 """
-function jacobian end
+function jacobian(f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
+    return jacobian(f, prep, backend, x, contexts...)
+end
+
+function jacobian(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return jacobian(f!, y, prep, backend, x, contexts...)
+end
 
 """
     jacobian!(f,     jac, [prep,] backend, x, [contexts...]) -> jac
@@ -69,7 +121,19 @@ Compute the Jacobian matrix of the function `f` at point `x`, overwriting `jac`.
 
 $(docstring_preparation_hint("jacobian"))
 """
-function jacobian! end
+function jacobian!(
+    f::F, jac, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
+    return jacobian!(f, jac, prep, backend, x, contexts...)
+end
+
+function jacobian!(
+    f!::F, y, jac, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_jacobian_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return jacobian!(f!, y, jac, prep, backend, x, contexts...)
+end
 
 ## Preparation
 
