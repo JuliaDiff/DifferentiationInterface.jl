@@ -21,7 +21,17 @@ end
 
 $(docstring_prepare("hvp"))
 """
-function prepare!_hvp end
+function prepare!_hvp(
+    f::F,
+    old_prep::HVPPrep,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f, old_prep, backend, x, tx, contexts...)
+    return prepare_hvp_nokwarg(is_strict(old_prep), f, backend, x, tx, contexts...)
+end
 
 """
     prepare_hvp_same_point(f, backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
@@ -39,6 +49,20 @@ function prepare_hvp_same_point(
     return prepare_hvp_same_point_nokwarg(strict, f, backend, x, tx, contexts...)
 end
 
+function prepare_hvp_same_point_nokwarg(
+    strict::Val, f::F, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C};
+) where {F,C}
+    prep = prepare_hvp_nokwarg(strict, f, backend, x, tx, contexts...)
+    return prepare_hvp_same_point(f, prep, backend, x, tx, contexts...)
+end
+
+function prepare_hvp_same_point(
+    f::F, prep::HVPPrep, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C}
+) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
+    return prep
+end
+
 """
     hvp(f, [prep,] backend, x, tx, [contexts...]) -> tg
 
@@ -46,7 +70,10 @@ Compute the Hessian-vector product of `f` at point `x` with a tuple of tangents 
 
 $(docstring_preparation_hint("hvp"; same_point=true))
 """
-function hvp end
+function hvp(f::F, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}) where {F,C}
+    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return hvp(f, prep, backend, x, tx, contexts...)
+end
 
 """
     hvp!(f, tg, [prep,] backend, x, tx, [contexts...]) -> tg
@@ -55,7 +82,12 @@ Compute the Hessian-vector product of `f` at point `x` with a tuple of tangents 
 
 $(docstring_preparation_hint("hvp"; same_point=true))
 """
-function hvp! end
+function hvp!(
+    f::F, tg, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return hvp!(f, tg, prep, backend, x, tx, contexts...)
+end
 
 """
     gradient_and_hvp(f, [prep,] backend, x, tx, [contexts...]) -> (grad, tg)
@@ -64,7 +96,12 @@ Compute the gradient and the Hessian-vector product of `f` at point `x` with a t
 
 $(docstring_preparation_hint("hvp"; same_point=true))
 """
-function gradient_and_hvp end
+function gradient_and_hvp(
+    f::F, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+end
 
 """
     gradient_and_hvp!(f, grad, tg, [prep,] backend, x, tx, [contexts...]) -> (grad, tg)
@@ -73,7 +110,14 @@ Compute the gradient and the Hessian-vector product of `f` at point `x` with a t
 
 $(docstring_preparation_hint("hvp"; same_point=true))
 """
-function gradient_and_hvp! end
+function gradient_and_hvp!(
+    f::F, grad, tg, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return gradient_and_hvp!(f, grad, tg, prep, backend, x, tx, contexts...)
+end
+
+## Preparation
 
 function prepare_hvp_nokwarg(
     strict::Val, f::F, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C};
