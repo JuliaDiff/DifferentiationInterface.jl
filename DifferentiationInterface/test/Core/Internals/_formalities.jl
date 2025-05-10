@@ -11,7 +11,10 @@ using SparseArrays
 
 @testset "Aqua" begin
     Aqua.test_all(
-        DifferentiationInterface; ambiguities=false, deps_compat=(; check_extras=false)
+        DifferentiationInterface;
+        ambiguities=false,
+        deps_compat=(; check_extras=false),
+        undocumented_names=true,
     )
 end
 

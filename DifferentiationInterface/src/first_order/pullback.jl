@@ -35,7 +35,30 @@ end
 
 $(docstring_prepare!("pullback"))
 """
-function prepare!_pullback end
+function prepare!_pullback(
+    f::F,
+    old_prep::PullbackPrep,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f, old_prep, backend, x, ty, contexts...)
+    return prepare_pullback_nokwarg(is_strict(old_prep), f, backend, x, ty, contexts...)
+end
+
+function prepare!_pullback(
+    f!::F,
+    y,
+    old_prep::PullbackPrep,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f!, y, old_prep, backend, x, ty, contexts...)
+    return prepare_pullback_nokwarg(is_strict(old_prep), f!, y, backend, x, ty, contexts...)
+end
 
 """
     prepare_pullback_same_point(f,     backend, x, ty, [contexts...]; strict=Val(false)) -> prep_same
@@ -66,6 +89,51 @@ function prepare_pullback_same_point(
     return prepare_pullback_same_point_nokwarg(strict, f!, y, backend, x, ty, contexts...)
 end
 
+function prepare_pullback_same_point_nokwarg(
+    strict::Val, f::F, backend::AbstractADType, x, ty::NTuple, contexts::Vararg{Context,C};
+) where {F,C}
+    prep = prepare_pullback_nokwarg(strict, f, backend, x, ty, contexts...)
+    return prepare_pullback_same_point(f, prep, backend, x, ty, contexts...)
+end
+
+function prepare_pullback_same_point_nokwarg(
+    strict::Val,
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C};
+) where {F,C}
+    prep = prepare_pullback_nokwarg(strict, f!, y, backend, x, ty, contexts...)
+    return prepare_pullback_same_point(f!, y, prep, backend, x, ty, contexts...)
+end
+
+function prepare_pullback_same_point(
+    f::F,
+    prep::PullbackPrep,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f, prep, backend, x, ty, contexts...)
+    return prep
+end
+
+function prepare_pullback_same_point(
+    f!::F,
+    y,
+    prep::PullbackPrep,
+    backend::AbstractADType,
+    x,
+    ty::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f!, y, prep, backend, x, ty, contexts...)
+    return prep
+end
+
 """
     value_and_pullback(f,     [prep,] backend, x, ty, [contexts...]) -> (y, tx)
     value_and_pullback(f!, y, [prep,] backend, x, ty, [contexts...]) -> (y, tx)
@@ -74,14 +142,26 @@ Compute the value and the pullback of the function `f` at point `x` with a tuple
 
 $(docstring_preparation_hint("pullback"; same_point=true))
 
-!!! tip 
+!!! tip
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `value_and_vjp`.
 
 !!! info
     Required primitive for reverse mode backends.
 """
-function value_and_pullback end
+function value_and_pullback(
+    f::F, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f, backend, x, ty, contexts...)
+    return value_and_pullback(f, prep, backend, x, ty, contexts...)
+end
+
+function value_and_pullback(
+    f!::F, y, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f!, y, backend, x, ty, contexts...)
+    return value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
+end
 
 """
     value_and_pullback!(f,     dx, [prep,] backend, x, ty, [contexts...]) -> (y, tx)
@@ -91,11 +171,23 @@ Compute the value and the pullback of the function `f` at point `x` with a tuple
 
 $(docstring_preparation_hint("pullback"; same_point=true))
 
-!!! tip 
+!!! tip
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `value_and_vjp!`.
 """
-function value_and_pullback! end
+function value_and_pullback!(
+    f::F, tx, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f, backend, x, ty, contexts...)
+    return value_and_pullback!(f, tx, prep, backend, x, ty, contexts...)
+end
+
+function value_and_pullback!(
+    f!::F, y, tx, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f!, y, backend, x, ty, contexts...)
+    return value_and_pullback!(f!, y, tx, prep, backend, x, ty, contexts...)
+end
 
 """
     pullback(f,     [prep,] backend, x, ty, [contexts...]) -> tx
@@ -105,11 +197,23 @@ Compute the pullback of the function `f` at point `x` with a tuple of tangents `
 
 $(docstring_preparation_hint("pullback"; same_point=true))
 
-!!! tip 
+!!! tip
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `vjp`.
 """
-function pullback end
+function pullback(
+    f::F, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f, backend, x, ty, contexts...)
+    return pullback(f, prep, backend, x, ty, contexts...)
+end
+
+function pullback(
+    f!::F, y, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f!, y, backend, x, ty, contexts...)
+    return pullback(f!, y, prep, backend, x, ty, contexts...)
+end
 
 """
     pullback!(f,     dx, [prep,] backend, x, ty, [contexts...]) -> tx
@@ -119,11 +223,23 @@ Compute the pullback of the function `f` at point `x` with a tuple of tangents `
 
 $(docstring_preparation_hint("pullback"; same_point=true))
 
-!!! tip 
+!!! tip
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `vjp!`.
 """
-function pullback! end
+function pullback!(
+    f::F, tx, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f, backend, x, ty, contexts...)
+    return pullback!(f, tx, prep, backend, x, ty, contexts...)
+end
+
+function pullback!(
+    f!::F, y, tx, backend::AbstractADType, x, ty, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pullback_nokwarg(Val(true), f!, y, backend, x, ty, contexts...)
+    return pullback!(f!, y, tx, prep, backend, x, ty, contexts...)
+end
 
 ## Preparation
 

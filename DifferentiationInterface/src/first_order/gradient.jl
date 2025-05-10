@@ -16,7 +16,12 @@ end
 
 $(docstring_prepare!("gradient"))
 """
-function prepare!_gradient end
+function prepare!_gradient(
+    f::F, old_prep::GradientPrep, backend::AbstractADType, x, contexts::Vararg{Context,C};
+) where {F,C}
+    check_prep(f, old_prep, backend, x, contexts...)
+    return prepare_gradient_nokwarg(is_strict(old_prep), f, backend, x, contexts...)
+end
 
 """
     value_and_gradient(f, [prep,] backend, x, [contexts...]) -> (y, grad)
@@ -25,7 +30,12 @@ Compute the value and the gradient of the function `f` at point `x`.
 
 $(docstring_preparation_hint("gradient"))
 """
-function value_and_gradient end
+function value_and_gradient(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_gradient(f, prep, backend, x, contexts...)
+end
 
 """
     value_and_gradient!(f, grad, [prep,] backend, x, [contexts...]) -> (y, grad)
@@ -34,7 +44,12 @@ Compute the value and the gradient of the function `f` at point `x`, overwriting
 
 $(docstring_preparation_hint("gradient"))
 """
-function value_and_gradient! end
+function value_and_gradient!(
+    f::F, grad, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_gradient!(f, grad, prep, backend, x, contexts...)
+end
 
 """
     gradient(f, [prep,] backend, x, [contexts...]) -> grad
@@ -43,7 +58,10 @@ Compute the gradient of the function `f` at point `x`.
 
 $(docstring_preparation_hint("gradient"))
 """
-function gradient end
+function gradient(f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}) where {F,C}
+    prep = prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
+    return gradient(f, prep, backend, x, contexts...)
+end
 
 """
     gradient!(f, grad, [prep,] backend, x, [contexts...]) -> grad
@@ -52,7 +70,12 @@ Compute the gradient of the function `f` at point `x`, overwriting `grad`.
 
 $(docstring_preparation_hint("gradient"))
 """
-function gradient! end
+function gradient!(
+    f::F, grad, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
+    return gradient!(f, grad, prep, backend, x, contexts...)
+end
 
 ## Preparation
 
