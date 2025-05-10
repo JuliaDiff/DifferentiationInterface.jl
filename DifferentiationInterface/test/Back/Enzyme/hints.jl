@@ -8,13 +8,12 @@ using Test
         x -> sum(copyto!(cache, x))
     end
 
-    msg = try
+    e = nothing
+    try
         gradient(f, AutoEnzyme(), [1.0])
     catch e
-        buf = IOBuffer()
-        showerror(buf, e)
-        String(take!(buf))
     end
+    msg = sprint(showerror, e)
     @test occursin("AutoEnzyme", msg)
     @test occursin("function_annotation", msg)
     @test occursin("ADTypes", msg)
@@ -34,7 +33,8 @@ end
         return [g(active_var, constant_var, cond), g(active_var, constant_var, cond)]
     end
 
-    msg = try
+    e = nothing
+    try
         pushforward(
             h,
             AutoEnzyme(; mode=Enzyme.Forward),
@@ -44,10 +44,8 @@ end
             Constant(true),
         )
     catch e
-        buf = IOBuffer()
-        showerror(buf, e)
-        String(take!(buf))
     end
+    msg = sprint(showerror, e)
     @test occursin("AutoEnzyme", msg)
     @test occursin("mode", msg)
     @test occursin("set_runtime_activity", msg)

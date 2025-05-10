@@ -4,12 +4,11 @@ import DifferentiationInterface as DI
 using Test
 
 @testset "Missing backend" begin
-    msg = try
+    e = nothing
+    try
         gradient(sum, AutoZygote(), [1.0])
     catch e
-        buf = IOBuffer()
-        showerror(buf, e)
-        String(take!(buf))
     end
+    msg = sprint(showerror, e)
     @test occursin("import Zygote", msg)
 end
