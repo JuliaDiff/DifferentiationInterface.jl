@@ -179,11 +179,11 @@ for op in ALL_OPS
                 skip,
                 $prep_op,
                 f,
-                pep_args.y,
+                prep_args.y,
                 ba,
-                pep_args.x,
-                pep_args.t,
-                pep_args.contexts...,
+                prep_args.x,
+                prep_args.t,
+                prep_args.contexts...,
             )
             (subset == :full) && test_noallocs(skip, $op, f, y, ba, x, t, contexts...)
             (subset == :full) &&
