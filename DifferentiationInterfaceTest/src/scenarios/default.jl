@@ -557,6 +557,7 @@ function default_scenarios(;
     include_cachified=false,
     include_constantorcachified=false,
     use_tuples=false,
+    include_smaller=false,
 )
     x_ = 0.42
     dx_ = 3.14
@@ -575,7 +576,7 @@ function default_scenarios(;
     dy_2_3 = float.(reshape(-5:2:5, 2, 3))
     dy_6_2 = float.(reshape(-11:2:11, 6, 2))
 
-    initialscens = vcat(
+    scens = vcat(
         # one argument
         num_to_num_scenarios(x_; dx=dx_, dy=dy_),
         onevec_to_onevec_scenarios_onearg(x_; dx=dx_, dy=dy_),
@@ -623,8 +624,18 @@ function default_scenarios(;
         ),
     )
 
-    scens = map(initialscens, smallerscens) do s1, s2
-        s1  # TODO: readd smaller scens
+    scens_smaller_prep = map(scens, smallerscens) do s1, s2
+        Scenario{operator(s1),operator_place(s1),function_place(s1)}(;
+            f=s1.f,
+            y=s1.y,
+            x=s1.x,
+            t=s1.t,
+            contexts=s1.contexts,
+            res1=s1.res1,
+            res2=s1.res2,
+            name=isnothing(s1.name) ? nothing : s1.name * " [smaller prep]",
+            prep_args=s2.prep_args,
+        )
     end
 
     include_batchified && append!(scens, batchify(scens))
@@ -635,6 +646,7 @@ function default_scenarios(;
     include_constantified && append!(final_scens, constantify(scens))
     include_cachified && append!(final_scens, cachify(scens; use_tuples=use_tuples))
     include_constantorcachified && append!(final_scens, constantorcachify(scens))
+    include_smaller && append!(final_scens, scens_smaller_prep)
 
     return final_scens
 end

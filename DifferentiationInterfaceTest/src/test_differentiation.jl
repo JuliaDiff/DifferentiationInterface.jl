@@ -84,6 +84,7 @@ function test_differentiation(
     rtol::Real=1e-3,
     scenario_intact::Bool=true,
     sparsity::Bool=false,
+    reprepare::Bool=true,
     # type stability options
     ignored_modules=nothing,
     function_filter=if VERSION >= v"1.11"
@@ -160,6 +161,7 @@ function test_differentiation(
                             rtol,
                             scenario_intact,
                             sparsity,
+                            reprepare,
                         )
                     end
                     yield()

@@ -41,6 +41,7 @@ end
             include_cachified=true,
             include_constantorcachified=true,
             use_tuples=true,
+            include_smaller=true,
         );
         logging=LOGGING,
     )

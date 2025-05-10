@@ -1,3 +1,6 @@
+has_size(::Union{Number,AbstractArray}) = true
+has_size(_x) = false
+
 const PME = PreparationMismatchError
 
 for op in ALL_OPS
@@ -49,6 +52,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -57,6 +61,10 @@ for op in ALL_OPS
                 prepstrict = $prep_op(
                     f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
                 )
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                end
                 [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -98,6 +106,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -106,6 +115,10 @@ for op in ALL_OPS
                 prepstrict = $prep_op(
                     f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
                 )
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                end
                 [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -163,6 +176,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -176,6 +190,13 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, contexts...)
+                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, contexts...)
+                end
                 [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -225,6 +246,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -238,6 +260,13 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, contexts...)
+                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, contexts...)
+                end
                 [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -298,6 +327,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -306,6 +336,10 @@ for op in ALL_OPS
                 prepstrict = $prep_op(
                     f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
                 )
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                end
                 [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -349,6 +383,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -357,6 +392,10 @@ for op in ALL_OPS
                 prepstrict = $prep_op(
                     f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
                 )
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                end
                 [(), (prep,), (prepstrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -417,6 +456,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -431,6 +471,11 @@ for op in ALL_OPS
                     strict=Val(true),
                 )
                 prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
+                end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -468,6 +513,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -482,6 +528,11 @@ for op in ALL_OPS
                     strict=Val(true),
                 )
                 prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
+                end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -535,6 +586,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -552,6 +604,14 @@ for op in ALL_OPS
                     strict=Val(true),
                 )
                 prep_same = $prep_op_same(f, prep_args.y, ba, x, prep_args.t, contexts...)
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
+                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, t, contexts...)
+                    prep_same = $prep_op_same(f, y, ba, x, t, contexts...)
+                end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -601,6 +661,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -618,6 +679,14 @@ for op in ALL_OPS
                     strict=Val(true),
                 )
                 prep_same = $prep_op_same(f, prep_args.y, ba, x, prep_args.t, contexts...)
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
+                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, t, contexts...)
+                    prep_same = $prep_op_same(f, y, ba, x, t, contexts...)
+                end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -674,6 +743,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -688,6 +758,11 @@ for op in ALL_OPS
                     strict=Val(true),
                 )
                 prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
+                end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
@@ -725,6 +800,7 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             local prepstrict
@@ -739,6 +815,11 @@ for op in ALL_OPS
                     strict=Val(true),
                 )
                 prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
+                end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)

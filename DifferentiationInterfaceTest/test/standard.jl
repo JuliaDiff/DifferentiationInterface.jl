@@ -13,7 +13,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 test_differentiation(
     [AutoForwardDiff(), AutoForwardDiff(; chunksize=100)],
-    default_scenarios(; include_constantified=true);
+    default_scenarios(; include_smaller=true, include_constantified=true);
     logging=LOGGING,
 )
 
