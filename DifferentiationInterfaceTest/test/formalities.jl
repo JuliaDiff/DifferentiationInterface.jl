@@ -8,9 +8,7 @@ using SparseMatrixColorings: SparseMatrixColorings
 using Test
 
 @testset "Aqua" begin
-    Aqua.test_all(
-        DifferentiationInterfaceTest; ambiguities=false, deps_compat=(; check_extras=false)
-    )
+    Aqua.test_all(DifferentiationInterfaceTest; ambiguities=false, undocumented_names=true)
 end
 @testset "JuliaFormatter" begin
     @test JuliaFormatter.format(
