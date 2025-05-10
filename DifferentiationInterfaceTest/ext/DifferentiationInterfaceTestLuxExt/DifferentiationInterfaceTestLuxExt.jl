@@ -199,8 +199,14 @@ function DIT.lux_scenarios(rng::AbstractRNG=default_rng())
         )
         scen = DIT.Scenario{:gradient,:out}(
             square_loss,
-            ComponentArray(ps);
-            contexts=(DI.Constant(model), DI.Constant(x), DI.Constant(st)),
+            ComponentArray(ps),
+            DI.Constant(model),
+            DI.Constant(x),
+            DI.Constant(st);
+            prep_args=(
+                x=ComponentArray(ps),
+                contexts=(DI.Constant(model), DI.Constant(x), DI.Constant(st)),
+            ),
             res1=g,
         )
         push!(scens, scen)

@@ -137,12 +137,13 @@ for op in ALL_OPS
 
     if op in [:derivative, :gradient, :jacobian]
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, contexts...)
+            (; f, x, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             prepared_valop = @be prep $val_and_op(f, _, ba, x, contexts...) seconds = s
             prepared_op = @be prep $op(f, _, ba, x, contexts...) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, contexts...) seconds = s
+                preparation = @be $prep_op(f, ba, prep_args.x, prep_args.contexts...) seconds =
+                    s
                 unprepared_valop = @be $val_and_op(f, ba, x, contexts...) seconds = s
                 unprepared_op = @be $op(f, ba, x, contexts...) seconds = s
                 return BenchmarkResult(;
@@ -158,9 +159,9 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, contexts) = deepcopy(scen)
+            (; f, x, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.contexts...)
             preparation = reset_count!(cc)
             $val_and_op(cc, prep, ba, x, contexts...)
             prepared_valop = reset_count!(cc)
@@ -176,8 +177,8 @@ for op in ALL_OPS
         end
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, res1, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, contexts...)
+            (; f, x, res1, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             prepared_valop = @be (mysimilar(res1), prep) $val_and_op!(
                 f, _[1], _[2], ba, x, contexts...
             ) seconds = s
@@ -185,7 +186,8 @@ for op in ALL_OPS
                 f, _[1], _[2], ba, x, contexts...
             ) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, contexts...) seconds = s
+                preparation = @be $prep_op(f, ba, prep_args.x, prep_args.contexts...) seconds =
+                    s
                 unprepared_valop = @be mysimilar(res1) $val_and_op!(
                     f, _, ba, x, contexts...
                 ) seconds = s
@@ -204,9 +206,9 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, res1, contexts) = deepcopy(scen)
+            (; f, x, res1, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.contexts...)
             preparation = reset_count!(cc)
             $val_and_op!(cc, mysimilar(res1), prep, ba, x, contexts...)
             prepared_valop = reset_count!(cc)
@@ -224,13 +226,15 @@ for op in ALL_OPS
         op == :gradient && continue
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S2out; subset::Symbol, s)
-            (; f, x, y, contexts) = deepcopy(scen)
-            prep = $prep_op(f, y, ba, x, contexts...)
+            (; f, x, y, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
             prepared_valop = @be (y, prep) $val_and_op(f, _[1], _[2], ba, x, contexts...) seconds =
                 s
             prepared_op = @be (y, prep) $op(f, _[1], _[2], ba, x, contexts...) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, y, ba, x, contexts...) seconds = s
+                preparation = @be $prep_op(
+                    f, prep_args.y, ba, prep_args.x, prep_args.contexts...
+                ) seconds = s
                 unprepared_valop = @be y $val_and_op(f, _, ba, x, contexts...) seconds = s
                 unprepared_op = @be y $op(f, _, ba, x, contexts...) seconds = s
                 return BenchmarkResult(;
@@ -246,9 +250,9 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S2out; subset::Symbol, s)
-            (; f, x, y, contexts) = deepcopy(scen)
+            (; f, x, y, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, y, ba, x, contexts...)
+            prep = $prep_op(cc, prep_args.y, ba, prep_args.x, prep_args.contexts...)
             preparation = reset_count!(cc)
             $val_and_op(cc, y, prep, ba, x, contexts...)
             prepared_valop = reset_count!(cc)
@@ -264,8 +268,8 @@ for op in ALL_OPS
         end
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S2in; subset::Symbol, s)
-            (; f, x, y, res1, contexts) = deepcopy(scen)
-            prep = $prep_op(f, y, ba, x, contexts...)
+            (; f, x, y, res1, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
             prepared_valop = @be (y, mysimilar(res1), prep) $val_and_op!(
                 f, _[1], _[2], _[3], ba, x, contexts...
             ) seconds = s
@@ -273,7 +277,9 @@ for op in ALL_OPS
                 f, _[1], _[2], _[3], ba, x, contexts...
             ) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, y, ba, x, contexts...) seconds = s
+                preparation = @be $prep_op(
+                    f, prep_args.y, ba, prep_args.x, prep_args.contexts...
+                ) seconds = s
                 unprepared_valop = @be (y, mysimilar(res1)) $val_and_op!(
                     f, _[1], _[2], ba, x, contexts...
                 ) seconds = s
@@ -293,9 +299,9 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S2in; subset::Symbol, s)
-            (; f, x, y, res1, contexts) = deepcopy(scen)
+            (; f, x, y, res1, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, y, ba, x, contexts...)
+            prep = $prep_op(cc, prep_args.y, ba, prep_args.x, prep_args.contexts...)
             preparation = reset_count!(cc)
             $val_and_op!(cc, y, mysimilar(res1), prep, ba, x, contexts...)
             prepared_valop = reset_count!(cc)
@@ -312,12 +318,13 @@ for op in ALL_OPS
 
     elseif op in [:hessian, :second_derivative]
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, contexts...)
+            (; f, x, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             prepared_valop = @be prep $val_and_op(f, _, ba, x, contexts...) seconds = s
             prepared_op = @be prep $op(f, _, ba, x, contexts...) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, contexts...) seconds = s
+                preparation = @be $prep_op(f, ba, prep_args.x, prep_args.contexts...) seconds =
+                    s
                 unprepared_valop = @be $val_and_op(f, ba, x, contexts...) seconds = s
                 unprepared_op = @be $op(f, ba, x, contexts...) seconds = s
                 return BenchmarkResult(;
@@ -333,9 +340,9 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, contexts) = deepcopy(scen)
+            (; f, x, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.contexts...)
             preparation = reset_count!(cc)
             $val_and_op(cc, prep, ba, x, contexts...)
             prepared_valop = reset_count!(cc)
@@ -351,9 +358,8 @@ for op in ALL_OPS
         end
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, res1, res2, contexts) = deepcopy(scen)
-
-            prep = $prep_op(f, ba, x, contexts...)
+            (; f, x, res1, res2, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             prepared_valop = @be (mysimilar(res1), mysimilar(res2), prep) $val_and_op!(
                 f, _[1], _[2], _[3], ba, x, contexts...
             ) seconds = s
@@ -361,7 +367,8 @@ for op in ALL_OPS
                 f, _[1], _[2], ba, x, contexts...
             ) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, contexts...) seconds = s
+                preparation = @be $prep_op(f, ba, prep_args.x, prep_args.contexts...) seconds =
+                    s
                 unprepared_valop = @be (mysimilar(res1), mysimilar(res2)) $val_and_op!(
                     f, _[1], _[2], ba, x, contexts...
                 ) seconds = s
@@ -380,9 +387,9 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, res1, res2, contexts) = deepcopy(scen)
+            (; f, x, res1, res2, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.contexts...)
             preparation = reset_count!(cc)
             $val_and_op!(cc, mysimilar(res1), mysimilar(res2), prep, ba, x, contexts...)
             prepared_valop = reset_count!(cc)
@@ -399,15 +406,16 @@ for op in ALL_OPS
 
     elseif op in [:pushforward, :pullback]
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, tang, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, tang, contexts...)
-            prepared_valop = @be prep $val_and_op(f, _, ba, x, tang, contexts...) seconds =
-                s
-            prepared_op = @be prep $op(f, _, ba, x, tang, contexts...) seconds = s
+            (; f, x, t, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+            prepared_valop = @be prep $val_and_op(f, _, ba, x, t, contexts...) seconds = s
+            prepared_op = @be prep $op(f, _, ba, x, t, contexts...) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, tang, contexts...) seconds = s
-                unprepared_valop = @be $val_and_op(f, ba, x, tang, contexts...) seconds = s
-                unprepared_op = @be $op(f, ba, x, tang, contexts...) seconds = s
+                preparation = @be $prep_op(
+                    f, ba, prep_args.x, prep_args.t, prep_args.contexts...
+                ) seconds = s
+                unprepared_valop = @be $val_and_op(f, ba, x, t, contexts...) seconds = s
+                unprepared_op = @be $op(f, ba, x, t, contexts...) seconds = s
                 return BenchmarkResult(;
                     prepared_valop,
                     prepared_op,
@@ -420,17 +428,17 @@ for op in ALL_OPS
             end
         end
         @eval function calls_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, tang, contexts) = deepcopy(scen)
+            (; f, x, t, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, tang, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             preparation = reset_count!(cc)
-            $val_and_op(cc, prep, ba, x, tang, contexts...)
+            $val_and_op(cc, prep, ba, x, t, contexts...)
             prepared_valop = reset_count!(cc)
-            $op(cc, prep, ba, x, tang, contexts...)
+            $op(cc, prep, ba, x, t, contexts...)
             prepared_op = reset_count!(cc)
-            $val_and_op(cc, ba, x, tang, contexts...)
+            $val_and_op(cc, ba, x, t, contexts...)
             unprepared_valop = reset_count!(cc)
-            $op(cc, ba, x, tang, contexts...)
+            $op(cc, ba, x, t, contexts...)
             unprepared_op = reset_count!(cc)
             return CallsResult(;
                 prepared_valop, prepared_op, preparation, unprepared_valop, unprepared_op
@@ -438,20 +446,22 @@ for op in ALL_OPS
         end
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, tang, res1, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, tang, contexts...)
+            (; f, x, t, res1, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             prepared_valop = @be (mysimilar(res1), prep) $val_and_op!(
-                f, _[1], _[2], ba, x, tang, contexts...
+                f, _[1], _[2], ba, x, t, contexts...
             ) seconds = s
             prepared_op = @be (mysimilar(res1), prep) $op!(
-                f, _[1], _[2], ba, x, tang, contexts...
+                f, _[1], _[2], ba, x, t, contexts...
             ) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, tang, contexts...) seconds = s
-                unprepared_valop = @be mysimilar(res1) $val_and_op!(
-                    f, _, ba, x, tang, contexts...
+                preparation = @be $prep_op(
+                    f, ba, prep_args.x, prep_args.t, prep_args.contexts...
                 ) seconds = s
-                unprepared_op = @be mysimilar(res1) $op!(f, _, ba, x, tang, contexts...) seconds =
+                unprepared_valop = @be mysimilar(res1) $val_and_op!(
+                    f, _, ba, x, t, contexts...
+                ) seconds = s
+                unprepared_op = @be mysimilar(res1) $op!(f, _, ba, x, t, contexts...) seconds =
                     s
                 return BenchmarkResult(;
                     prepared_valop,
@@ -466,17 +476,17 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, tang, res1, contexts) = deepcopy(scen)
+            (; f, x, t, res1, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, tang, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             preparation = reset_count!(cc)
-            $val_and_op!(cc, mysimilar(res1), prep, ba, x, tang, contexts...)
+            $val_and_op!(cc, mysimilar(res1), prep, ba, x, t, contexts...)
             prepared_valop = reset_count!(cc)
-            $op!(cc, mysimilar(res1), prep, ba, x, tang, contexts...)
+            $op!(cc, mysimilar(res1), prep, ba, x, t, contexts...)
             prepared_op = reset_count!(cc)
-            $val_and_op!(cc, mysimilar(res1), ba, x, tang, contexts...)
+            $val_and_op!(cc, mysimilar(res1), ba, x, t, contexts...)
             unprepared_valop = reset_count!(cc)
-            $op!(cc, mysimilar(res1), ba, x, tang, contexts...)
+            $op!(cc, mysimilar(res1), ba, x, t, contexts...)
             unprepared_op = reset_count!(cc)
             return CallsResult(;
                 prepared_valop, prepared_op, preparation, unprepared_valop, unprepared_op
@@ -484,17 +494,19 @@ for op in ALL_OPS
         end
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S2out; subset::Symbol, s)
-            (; f, x, y, tang, contexts) = deepcopy(scen)
-            prep = $prep_op(f, y, ba, x, tang, contexts...)
-            prepared_valop = @be (y, prep) $val_and_op(
-                f, _[1], _[2], ba, x, tang, contexts...
+            (; f, x, y, t, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(
+                f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
             )
-            prepared_op = @be (y, prep) $op(f, _[1], _[2], ba, x, tang, contexts...)
+            prepared_valop = @be (y, prep) $val_and_op(f, _[1], _[2], ba, x, t, contexts...)
+            prepared_op = @be (y, prep) $op(f, _[1], _[2], ba, x, t, contexts...)
             if subset == :full
-                preparation = @be $prep_op(f, y, ba, x, tang, contexts...) seconds = s
-                unprepared_valop = @be y $val_and_op(f, _, ba, x, tang, contexts...) seconds =
+                preparation = @be $prep_op(
+                    f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
+                ) seconds = s
+                unprepared_valop = @be y $val_and_op(f, _, ba, x, t, contexts...) seconds =
                     s
-                unprepared_op = @be y $op(f, _, ba, x, tang, contexts...) seconds = s
+                unprepared_op = @be y $op(f, _, ba, x, t, contexts...) seconds = s
                 return BenchmarkResult(;
                     prepared_valop,
                     prepared_op,
@@ -508,17 +520,19 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S2out; subset::Symbol, s)
-            (; f, x, y, tang, contexts) = deepcopy(scen)
+            (; f, x, y, t, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, y, ba, x, tang, contexts...)
+            prep = $prep_op(
+                cc, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
             preparation = reset_count!(cc)
-            $val_and_op(cc, y, prep, ba, x, tang, contexts...)
+            $val_and_op(cc, y, prep, ba, x, t, contexts...)
             prepared_valop = reset_count!(cc)
-            $op(cc, y, prep, ba, x, tang, contexts...)
+            $op(cc, y, prep, ba, x, t, contexts...)
             prepared_op = reset_count!(cc)
-            $val_and_op(cc, y, ba, x, tang, contexts...)
+            $val_and_op(cc, y, ba, x, t, contexts...)
             unprepared_valop = reset_count!(cc)
-            $op(cc, y, ba, x, tang, contexts...)
+            $op(cc, y, ba, x, t, contexts...)
             unprepared_op = reset_count!(cc)
             return CallsResult(;
                 prepared_valop, prepared_op, preparation, unprepared_valop, unprepared_op
@@ -526,21 +540,25 @@ for op in ALL_OPS
         end
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S2in; subset::Symbol, s)
-            (; f, x, y, tang, res1, contexts) = deepcopy(scen)
-            prep = $prep_op(f, y, ba, x, tang, contexts...)
+            (; f, x, y, t, res1, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(
+                f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
             prepared_valop = @be (y, mysimilar(res1), prep) $val_and_op!(
-                f, _[1], _[2], _[3], ba, x, tang, contexts...
+                f, _[1], _[2], _[3], ba, x, t, contexts...
             ) seconds = s
             prepared_op = @be (y, mysimilar(res1), prep) $op!(
-                f, _[1], _[2], _[3], ba, x, tang, contexts...
+                f, _[1], _[2], _[3], ba, x, t, contexts...
             ) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, y, ba, x, tang, contexts...) seconds = s
+                preparation = @be $prep_op(
+                    f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
+                ) seconds = s
                 unprepared_valop = @be (y, mysimilar(res1)) $val_and_op!(
-                    f, _[1], _[2], ba, x, tang, contexts...
+                    f, _[1], _[2], ba, x, t, contexts...
                 ) seconds = s
                 unprepared_op = @be (y, mysimilar(res1)) $op!(
-                    f, _[1], _[2], ba, x, tang, contexts...
+                    f, _[1], _[2], ba, x, t, contexts...
                 ) seconds = s
                 return BenchmarkResult(;
                     prepared_valop,
@@ -555,17 +573,19 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S2in; subset::Symbol, s)
-            (; f, x, y, tang, res1, contexts) = deepcopy(scen)
+            (; f, x, y, t, res1, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, y, ba, x, tang, contexts...)
+            prep = $prep_op(
+                cc, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
             preparation = reset_count!(cc)
-            $val_and_op!(cc, y, mysimilar(res1), prep, ba, x, tang, contexts...)
+            $val_and_op!(cc, y, mysimilar(res1), prep, ba, x, t, contexts...)
             prepared_valop = reset_count!(cc)
-            $op!(cc, y, mysimilar(res1), prep, ba, x, tang, contexts...)
+            $op!(cc, y, mysimilar(res1), prep, ba, x, t, contexts...)
             prepared_op = reset_count!(cc)
-            $val_and_op!(cc, y, mysimilar(res1), ba, x, tang, contexts...)
+            $val_and_op!(cc, y, mysimilar(res1), ba, x, t, contexts...)
             unprepared_valop = reset_count!(cc)
-            $op!(cc, y, mysimilar(res1), ba, x, tang, contexts...)
+            $op!(cc, y, mysimilar(res1), ba, x, t, contexts...)
             unprepared_op = reset_count!(cc)
             return CallsResult(;
                 prepared_valop, prepared_op, preparation, unprepared_valop, unprepared_op
@@ -574,15 +594,16 @@ for op in ALL_OPS
 
     elseif op in [:hvp]
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, tang, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, tang, contexts...)
-            prepared_valop = @be prep $val_and_op(f, _, ba, x, tang, contexts...) seconds =
-                s
-            prepared_op = @be prep $op(f, _, ba, x, tang, contexts...) seconds = s
+            (; f, x, t, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+            prepared_valop = @be prep $val_and_op(f, _, ba, x, t, contexts...) seconds = s
+            prepared_op = @be prep $op(f, _, ba, x, t, contexts...) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, tang, contexts...) seconds = s
-                unprepared_valop = @be $val_and_op(f, ba, x, tang, contexts...) seconds = s
-                unprepared_op = @be $op(f, ba, x, tang, contexts...) seconds = s
+                preparation = @be $prep_op(
+                    f, ba, prep_args.x, prep_args.t, prep_args.contexts...
+                ) seconds = s
+                unprepared_valop = @be $val_and_op(f, ba, x, t, contexts...) seconds = s
+                unprepared_op = @be $op(f, ba, x, t, contexts...) seconds = s
                 return BenchmarkResult(;
                     prepared_valop,
                     prepared_op,
@@ -596,17 +617,17 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S1out; subset::Symbol, s)
-            (; f, x, tang, contexts) = deepcopy(scen)
+            (; f, x, t, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, tang, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             preparation = reset_count!(cc)
-            $val_and_op(cc, prep, ba, x, tang, contexts...)
+            $val_and_op(cc, prep, ba, x, t, contexts...)
             prepared_valop = reset_count!(cc)
-            $op(cc, prep, ba, x, tang, contexts...)
+            $op(cc, prep, ba, x, t, contexts...)
             prepared_op = reset_count!(cc)
-            $val_and_op(cc, ba, x, tang, contexts...)
+            $val_and_op(cc, ba, x, t, contexts...)
             unprepared_valop = reset_count!(cc)
-            $op(cc, ba, x, tang, contexts...)
+            $op(cc, ba, x, t, contexts...)
             unprepared_op = reset_count!(cc)
             return CallsResult(;
                 prepared_valop, prepared_op, preparation, unprepared_valop, unprepared_op
@@ -614,20 +635,22 @@ for op in ALL_OPS
         end
 
         @eval function benchmark_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, tang, res1, res2, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, tang, contexts...)
+            (; f, x, t, res1, res2, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             prepared_valop = @be (mysimilar(res1), mysimilar(res2), prep) $val_and_op!(
-                f, _[1], _[2], _[3], ba, x, tang, contexts...
+                f, _[1], _[2], _[3], ba, x, t, contexts...
             ) seconds = s
             prepared_op = @be (mysimilar(res2), prep) $op!(
-                f, _[1], _[2], ba, x, tang, contexts...
+                f, _[1], _[2], ba, x, t, contexts...
             ) seconds = s
             if subset == :full
-                preparation = @be $prep_op(f, ba, x, tang, contexts...) seconds = s
-                unprepared_valop = @be (mysimilar(res1), mysimilar(res2)) $val_and_op!(
-                    f, _[1], _[2], ba, x, tang, contexts...
+                preparation = @be $prep_op(
+                    f, ba, prep_args.x, prep_args.t, prep_args.contexts...
                 ) seconds = s
-                unprepared_op = @be mysimilar(res2) $op!(f, _, ba, x, tang, contexts...) seconds =
+                unprepared_valop = @be (mysimilar(res1), mysimilar(res2)) $val_and_op!(
+                    f, _[1], _[2], ba, x, t, contexts...
+                ) seconds = s
+                unprepared_op = @be mysimilar(res2) $op!(f, _, ba, x, t, contexts...) seconds =
                     s
                 return BenchmarkResult(;
                     prepared_valop,
@@ -642,19 +665,17 @@ for op in ALL_OPS
         end
 
         @eval function calls_aux(ba::AbstractADType, scen::$S1in; subset::Symbol, s)
-            (; f, x, tang, res1, res2, contexts) = deepcopy(scen)
+            (; f, x, t, res1, res2, contexts, prep_args) = deepcopy(scen)
             cc = CallCounter(f)
-            prep = $prep_op(cc, ba, x, tang, contexts...)
+            prep = $prep_op(cc, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             preparation = reset_count!(cc)
-            $val_and_op!(
-                cc, mysimilar(res1), mysimilar(res2), prep, ba, x, tang, contexts...
-            )
+            $val_and_op!(cc, mysimilar(res1), mysimilar(res2), prep, ba, x, t, contexts...)
             prepared_valop = reset_count!(cc)
-            $op!(cc, mysimilar(res2), prep, ba, x, tang, contexts...)
+            $op!(cc, mysimilar(res2), prep, ba, x, t, contexts...)
             prepared_op = reset_count!(cc)
-            $val_and_op!(cc, mysimilar(res1), mysimilar(res2), ba, x, tang, contexts...)
+            $val_and_op!(cc, mysimilar(res1), mysimilar(res2), ba, x, t, contexts...)
             unprepared_valop = reset_count!(cc)
-            $op!(cc, mysimilar(res2), ba, x, tang, contexts...)
+            $op!(cc, mysimilar(res2), ba, x, t, contexts...)
             unprepared_op = reset_count!(cc)
             return CallsResult(;
                 prepared_valop, prepared_op, preparation, unprepared_valop, unprepared_op

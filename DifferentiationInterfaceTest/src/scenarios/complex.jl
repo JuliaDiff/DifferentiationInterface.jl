@@ -9,8 +9,8 @@ function complex_holomorphic_gradient_scenarios()
     scens = Scenario[
         Scenario{:gradient,:out}(square_only, x; res1=grad),
         Scenario{:gradient,:in}(square_only, x; res1=grad),
-        Scenario{:pullback,:out}(square_only, x; tang=(dy,), res1=(grad,)),
-        Scenario{:pullback,:in}(square_only, x; tang=(dy,), res1=(grad,)),
+        Scenario{:pullback,:out}(square_only, x, (dy,); res1=(grad,)),
+        Scenario{:pullback,:in}(square_only, x, (dy,); res1=(grad,)),
     ]
     return scens
 end
@@ -22,8 +22,8 @@ function complex_gradient_scenarios()
     scens = Scenario[
         Scenario{:gradient,:out}(abs2_only, x; res1=grad),
         Scenario{:gradient,:in}(abs2_only, x; res1=grad),
-        Scenario{:pullback,:out}(abs2_only, x; tang=(dy,), res1=(grad,)),
-        Scenario{:pullback,:in}(abs2_only, x; tang=(dy,), res1=(grad,)),
+        Scenario{:pullback,:out}(abs2_only, x, (dy,); res1=(grad,)),
+        Scenario{:pullback,:in}(abs2_only, x, (dy,); res1=(grad,)),
     ]
     return scens
 end

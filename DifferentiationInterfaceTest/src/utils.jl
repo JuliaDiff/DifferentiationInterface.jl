@@ -6,14 +6,6 @@ myzero(::Nothing) = nothing
 mysimilar(x::Number) = one(x)
 mysimilar(x::AbstractArray) = similar(x)
 mysimilar(x::Union{Tuple,NamedTuple}) = map(mysimilar, x)
-mysimilar(x) = deepcopy(x)
-
-myrandom(rng::AbstractRNG, x::Number) = randn(rng, typeof(x))
-myrandom(rng::AbstractRNG, x::AbstractArray) = map(Base.Fix1(myrandom, rng), x)
-myrandom(rng::AbstractRNG, x::Union{Tuple,NamedTuple}) = map(Base.Fix1(myrandom, rng), x)
-myrandom(rng::AbstractRNG, x) = deepcopy(x)
-
-myrandom(x) = myrandom(default_rng(), x)
 
 mysize(x::Number) = size(x)
 mysize(x::AbstractArray) = size(x)

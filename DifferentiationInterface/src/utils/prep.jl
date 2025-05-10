@@ -198,7 +198,7 @@ function check_prep(
         if SIG != EXEC_SIG
             throw(
                 PreparationMismatchError(
-                    SIG, EXEC_SIG; format=[:f, :backend, :x, :tang, :contexts]
+                    SIG, EXEC_SIG; format=[:f, :backend, :x, :t, :contexts]
                 ),
             )
         end
@@ -213,7 +213,7 @@ function check_prep(
         if SIG != EXEC_SIG
             throw(
                 PreparationMismatchError(
-                    SIG, EXEC_SIG; format=[:f!, :y, :backend, :x, :tang, :contexts]
+                    SIG, EXEC_SIG; format=[:f!, :y, :backend, :x, :t, :contexts]
                 ),
             )
         end

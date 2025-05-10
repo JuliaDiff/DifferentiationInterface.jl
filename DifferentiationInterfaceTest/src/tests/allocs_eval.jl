@@ -27,9 +27,10 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1out; subset::Symbol, skip::Bool
         )
-            (; f, x, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, contexts...)
+            (; f, x, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+            (subset == :full) &&
+                test_noallocs(skip, $prep_op, f, ba, prep_args.x, prep_args.contexts...)
             (subset == :full) && test_noallocs(skip, $op, f, ba, x, contexts...)
             (subset == :full) && test_noallocs(skip, $val_and_op, f, ba, x, contexts...)
             (subset != :none) && test_noallocs(skip, $op, f, prep, ba, x, contexts...)
@@ -41,10 +42,11 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1in; subset::Symbol, skip::Bool
         )
-            (; f, x, res1, contexts) = deepcopy(scen)
+            (; f, x, res1, contexts, prep_args) = deepcopy(scen)
             res1_sim = mysimilar(res1)
-            prep = $prep_op(f, ba, x, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, contexts...)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+            (subset == :full) &&
+                test_noallocs(skip, $prep_op, f, ba, prep_args.x, prep_args.contexts...)
             (subset == :full) &&
                 test_noallocs(skip, $op!, f, res1_sim, prep, ba, x, contexts...)
             (subset == :full) &&
@@ -61,9 +63,11 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S2out; subset::Symbol, skip::Bool
         )
-            (; f, x, y, contexts) = deepcopy(scen)
-            prep = $prep_op(f, y, ba, x, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, y, ba, x, contexts...)
+            (; f, x, y, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
+            (subset == :full) && test_noallocs(
+                skip, $prep_op, f, prep_args.y, ba, prep_args.x, prep_args.contexts...
+            )
             (subset == :full) && test_noallocs(skip, $op, f, y, ba, x, contexts...)
             (subset == :full) && test_noallocs(skip, $val_and_op, f, y, ba, x, contexts...)
             (subset != :none) && test_noallocs(skip, $op, f, y, prep, ba, x, contexts...)
@@ -75,10 +79,12 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S2in; subset::Symbol, skip::Bool
         )
-            (; f, x, y, res1, contexts) = deepcopy(scen)
+            (; f, x, y, res1, contexts, prep_args) = deepcopy(scen)
             res1_sim = mysimilar(res1)
-            prep = $prep_op(f, y, ba, x, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, y, ba, x, contexts...)
+            prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
+            (subset == :full) && test_noallocs(
+                skip, $prep_op, f, prep_args.y, ba, prep_args.x, prep_args.contexts...
+            )
             (subset == :full) &&
                 test_noallocs(skip, $op!, f, y, res1_sim, ba, x, contexts...)
             (subset == :full) &&
@@ -94,9 +100,10 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1out; subset::Symbol, skip::Bool
         )
-            (; f, x, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, contexts...)
+            (; f, x, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+            (subset == :full) &&
+                test_noallocs(skip, $prep_op, f, ba, prep_args.x, prep_args.contexts...)
             (subset == :full) && test_noallocs(skip, $op, f, ba, x, contexts...)
             (subset == :full) && test_noallocs(skip, $val_and_op, f, ba, x, contexts...)
             (subset != :none) && test_noallocs(skip, $op, f, prep, ba, x, contexts...)
@@ -108,10 +115,11 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1in; subset::Symbol, skip::Bool
         )
-            (; f, x, res1, res2, contexts) = deepcopy(scen)
+            (; f, x, res1, res2, contexts, prep_args) = deepcopy(scen)
             res1_sim, res2_sim = mysimilar(res1), mysimilar(res2)
-            prep = $prep_op(f, ba, x, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, contexts...)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+            (subset == :full) &&
+                test_noallocs(skip, $prep_op, f, ba, prep_args.x, prep_args.contexts...)
             (subset == :full) && test_noallocs(skip, $op!, f, res2_sim, ba, x, contexts...)
             (subset == :full) &&
                 test_noallocs(skip, $val_and_op!, f, res1_sim, res2_sim, ba, x, contexts...)
@@ -127,70 +135,91 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1out; subset::Symbol, skip::Bool
         )
-            (; f, x, tang, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, tang, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, tang, contexts...)
-            (subset == :full) && test_noallocs(skip, $op, f, ba, x, tang, contexts...)
-            (subset == :full) &&
-                test_noallocs(skip, $val_and_op, f, ba, x, tang, contexts...)
-            (subset != :none) && test_noallocs(skip, $op, f, prep, ba, x, tang, contexts...)
+            (; f, x, t, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+            (subset == :full) && test_noallocs(
+                skip, $prep_op, f, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
+            (subset == :full) && test_noallocs(skip, $op, f, ba, x, t, contexts...)
+            (subset == :full) && test_noallocs(skip, $val_and_op, f, ba, x, t, contexts...)
+            (subset != :none) && test_noallocs(skip, $op, f, prep, ba, x, t, contexts...)
             (subset != :none) &&
-                test_noallocs(skip, $val_and_op, f, prep, ba, x, tang, contexts...)
+                test_noallocs(skip, $val_and_op, f, prep, ba, x, t, contexts...)
             return nothing
         end
 
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1in; subset::Symbol, skip::Bool
         )
-            (; f, x, tang, res1, contexts) = deepcopy(scen)
+            (; f, x, t, res1, contexts, prep_args) = deepcopy(scen)
             res1_sim = mysimilar(res1)
-            prep = $prep_op(f, ba, x, tang, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, tang, contexts...)
-            (subset == :full) &&
-                test_noallocs(skip, $op!, f, res1_sim, ba, x, tang, contexts...)
-            (subset == :full) &&
-                test_noallocs(skip, $val_and_op!, f, res1_sim, ba, x, tang, contexts...)
-            (subset != :none) &&
-                test_noallocs(skip, $op!, f, res1_sim, prep, ba, x, tang, contexts...)
-            (subset != :none) && test_noallocs(
-                skip, $val_and_op!, f, res1_sim, prep, ba, x, tang, contexts...
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+            (subset == :full) && test_noallocs(
+                skip, $prep_op, f, ba, prep_args.x, prep_args.t, prep_args.contexts...
             )
+            (subset == :full) &&
+                test_noallocs(skip, $op!, f, res1_sim, ba, x, t, contexts...)
+            (subset == :full) &&
+                test_noallocs(skip, $val_and_op!, f, res1_sim, ba, x, t, contexts...)
+            (subset != :none) &&
+                test_noallocs(skip, $op!, f, res1_sim, prep, ba, x, t, contexts...)
+            (subset != :none) &&
+                test_noallocs(skip, $val_and_op!, f, res1_sim, prep, ba, x, t, contexts...)
             return nothing
         end
 
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S2out; subset::Symbol, skip::Bool
         )
-            (; f, x, y, tang, contexts) = deepcopy(scen)
-            prep = $prep_op(f, y, ba, x, tang, contexts...)
+            (; f, x, y, t, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(
+                f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
+            (subset == :full) && test_noallocs(
+                skip,
+                $prep_op,
+                f,
+                prep_args.y,
+                ba,
+                prep_args.x,
+                prep_args.t,
+                prep_args.contexts...,
+            )
+            (subset == :full) && test_noallocs(skip, $op, f, y, ba, x, t, contexts...)
             (subset == :full) &&
-                test_noallocs(skip, $prep_op, f, y, ba, x, tang, contexts...)
-            (subset == :full) && test_noallocs(skip, $op, f, y, ba, x, tang, contexts...)
-            (subset == :full) &&
-                test_noallocs(skip, $val_and_op, f, y, ba, x, tang, contexts...)
+                test_noallocs(skip, $val_and_op, f, y, ba, x, t, contexts...)
+            (subset != :none) && test_noallocs(skip, $op, f, y, prep, ba, x, t, contexts...)
             (subset != :none) &&
-                test_noallocs(skip, $op, f, y, prep, ba, x, tang, contexts...)
-            (subset != :none) &&
-                test_noallocs(skip, $val_and_op, f, y, prep, ba, x, tang, contexts...)
+                test_noallocs(skip, $val_and_op, f, y, prep, ba, x, t, contexts...)
             return nothing
         end
 
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S2in; subset::Symbol, skip::Bool
         )
-            (; f, x, y, tang, res1, contexts) = deepcopy(scen)
+            (; f, x, y, t, res1, contexts, prep_args) = deepcopy(scen)
             res1_sim = mysimilar(res1)
-            prep = $prep_op(f, y, ba, x, tang, contexts...)
+            prep = $prep_op(
+                f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
+            (subset == :full) && test_noallocs(
+                skip,
+                $prep_op,
+                f,
+                prep_args.y,
+                ba,
+                prep_args.x,
+                prep_args.t,
+                prep_args.contexts...,
+            )
             (subset == :full) &&
-                test_noallocs(skip, $prep_op, f, y, ba, x, tang, contexts...)
+                test_noallocs(skip, $op!, f, y, res1_sim, ba, x, t, contexts...)
             (subset == :full) &&
-                test_noallocs(skip, $op!, f, y, res1_sim, ba, x, tang, contexts...)
-            (subset == :full) &&
-                test_noallocs(skip, $val_and_op!, f, y, res1_sim, ba, x, tang, contexts...)
+                test_noallocs(skip, $val_and_op!, f, y, res1_sim, ba, x, t, contexts...)
             (subset != :none) &&
-                test_noallocs(skip, $op!, f, y, res1_sim, prep, ba, x, tang, contexts...)
+                test_noallocs(skip, $op!, f, y, res1_sim, prep, ba, x, t, contexts...)
             (subset != :none) && test_noallocs(
-                skip, $val_and_op!, f, y, res1_sim, prep, ba, x, tang, contexts...
+                skip, $val_and_op!, f, y, res1_sim, prep, ba, x, t, contexts...
             )
             return nothing
         end
@@ -199,43 +228,37 @@ for op in ALL_OPS
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1out; subset::Symbol, skip::Bool
         )
-            (; f, x, tang, contexts) = deepcopy(scen)
-            prep = $prep_op(f, ba, x, tang, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, tang, contexts...)
-            (subset == :full) &&
-                test_noallocs(skip, $val_and_op, f, ba, x, tang, contexts...)
-            (subset == :full) && test_noallocs(skip, $op, f, ba, x, tang, contexts...)
+            (; f, x, t, contexts, prep_args) = deepcopy(scen)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+            (subset == :full) && test_noallocs(
+                skip, $prep_op, f, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
+            (subset == :full) && test_noallocs(skip, $val_and_op, f, ba, x, t, contexts...)
+            (subset == :full) && test_noallocs(skip, $op, f, ba, x, t, contexts...)
             (subset != :none) &&
-                test_noallocs(skip, $val_and_op, f, prep, ba, x, tang, contexts...)
-            (subset != :none) && test_noallocs(skip, $op, f, prep, ba, x, tang, contexts...)
+                test_noallocs(skip, $val_and_op, f, prep, ba, x, t, contexts...)
+            (subset != :none) && test_noallocs(skip, $op, f, prep, ba, x, t, contexts...)
             return nothing
         end
 
         @eval function test_alloccheck(
             ba::AbstractADType, scen::$S1in; subset::Symbol, skip::Bool
         )
-            (; f, x, tang, res1, res2, contexts) = deepcopy(scen)
+            (; f, x, t, res1, res2, contexts, prep_args) = deepcopy(scen)
             res1_sim, res2_sim = mysimilar(res1), mysimilar(res2)
-            prep = $prep_op(f, ba, x, tang, contexts...)
-            (subset == :full) && test_noallocs(skip, $prep_op, f, ba, x, tang, contexts...)
-            (subset == :full) &&
-                test_noallocs(skip, $op!, f, res2_sim, ba, x, tang, contexts...)
+            prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             (subset == :full) && test_noallocs(
-                skip, $val_and_op!, f, res1_sim, res2_sim, ba, x, tang, contexts...
+                skip, $prep_op, f, ba, prep_args.x, prep_args.t, prep_args.contexts...
+            )
+            (subset == :full) &&
+                test_noallocs(skip, $op!, f, res2_sim, ba, x, t, contexts...)
+            (subset == :full) && test_noallocs(
+                skip, $val_and_op!, f, res1_sim, res2_sim, ba, x, t, contexts...
             )
             (subset != :none) &&
-                test_noallocs(skip, $op!, f, res2_sim, prep, ba, x, tang, contexts...)
+                test_noallocs(skip, $op!, f, res2_sim, prep, ba, x, t, contexts...)
             (subset != :none) && test_noallocs(
-                skip,
-                $val_and_op!,
-                f,
-                res1_sim,
-                res2_sim,
-                prep,
-                ba,
-                x,
-                tang,
-                contexts...,
+                skip, $val_and_op!, f, res1_sim, res2_sim, prep, ba, x, t, contexts...
             )
             return nothing
         end
