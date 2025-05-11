@@ -63,7 +63,7 @@ end
 @testset "Dense" begin
     test_differentiation(
         vcat(backends, second_order_backends),
-        default_scenarios(; include_constantified=true);
+        default_scenarios(; include_constantified=true, include_smaller=true);
         logging=LOGGING,
     )
 

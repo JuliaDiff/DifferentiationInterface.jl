@@ -13,81 +13,116 @@ This generic type should never be used directly: use the specific constructor co
 
 # Constructors
 
-    Scenario{op,pl_op}(f, x; tang, contexts, res1, res2, name)
-    Scenario{op,pl_op}(f!, y, x; tang, contexts, res1, res2, name)
+    Scenario{op,pl_op}(f, x, [t], contexts...; res1, res2, name)
+    Scenario{op,pl_op}(f!, y, x, [t,] contexts...; res1, res2, name)
 
 # Fields
 
 $(TYPEDFIELDS)
 """
-struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,S}
+struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,P<:NamedTuple}
     "function `f` (if `pl_fun==:out`) or `f!` (if `pl_fun==:in`) to apply"
     f::F
-    "primal input"
-    x::X
     "primal output"
     y::Y
-    "tangents for pushforward, pullback or HVP"
-    tang::T
+    "primal input"
+    x::X
+    "tangents (if applicable)"
+    t::T
     "contexts (if applicable)"
     contexts::C
     "first-order result of the operator (if applicable)"
     res1::R1
     "second-order result of the operator (if applicable)"
     res2::R2
-    "private field (not part of the public API) containing a variant of the scenario to test preparation resizing"
-    smaller::S
+    "named tuple of arguments passed to preparation, without the function - the required keys are a subset of `(; y, x, t, contexts)` depending on the operator"
+    prep_args::P
     "name of the scenario for display in test sets and dataframes"
     name::Union{String,Nothing}
+
+    function Scenario{op,pl_op,pl_fun}(;
+        f::F,
+        y::Y,
+        x::X,
+        t::T,
+        contexts::C,
+        res1::R1,
+        res2::R2,
+        prep_args::P,
+        name::Union{String,Nothing},
+    ) where {op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,P}
+        @assert op in ALL_OPS
+        @assert pl_op in (:in, :out)
+        @assert pl_fun in (:in, :out)
+        return new{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,P}(
+            f, y, x, t, contexts, res1, res2, prep_args, name
+        )
+    end
 end
 
-function Scenario{op,pl_op,pl_fun}(
-    f::F;
-    x::X,
-    y::Y,
-    tang::T,
-    contexts::C,
-    res1::R1,
-    res2::R2,
-    smaller::S=nothing,
+function zero_contexts(contexts...)
+    rewrap = Rewrap(contexts...)
+    return rewrap(map(zero ∘ unwrap, contexts)...)
+end
+
+function Scenario{op,pl_op}(
+    f,
+    x,
+    contexts::Vararg{Context};
+    res1=nothing,
+    res2=nothing,
+    prep_args=(; x=zero(x), contexts=zero_contexts(contexts...)),
     name=nothing,
-) where {op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S<:Union{Nothing,Scenario}}
-    @assert smaller isa Union{Nothing,Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2}}
-    return Scenario{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,S}(
-        f, x, y, tang, contexts, res1, res2, smaller, name
+) where {op,pl_op}
+    y = f(x, map(unwrap, contexts)...)
+    return Scenario{op,pl_op,:out}(;
+        f, y, x, t=nothing, contexts, res1, res2, prep_args, name
     )
 end
 
 function Scenario{op,pl_op}(
     f,
-    x;
-    tang=nothing,
-    contexts=(),
+    y,
+    x,
+    contexts::Vararg{Context};
     res1=nothing,
     res2=nothing,
-    smaller=nothing,
+    prep_args=(; y=zero(y), x=zero(x), contexts=zero_contexts(contexts...)),
     name=nothing,
 ) where {op,pl_op}
-    @assert op in ALL_OPS
-    @assert pl_op in (:in, :out)
-    y = f(x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:out}(f; x, y, tang, contexts, res1, res2, smaller, name)
+    f(y, x, map(unwrap, contexts)...)
+    return Scenario{op,pl_op,:in}(;
+        f, y, x, t=nothing, contexts, res1, res2, prep_args, name
+    )
 end
 
 function Scenario{op,pl_op}(
-    f!,
-    y,
-    x;
-    tang=nothing,
-    contexts=(),
+    f,
+    x,
+    t::NTuple,
+    contexts::Vararg{Context};
     res1=nothing,
     res2=nothing,
-    smaller=nothing,
+    prep_args=(; x=zero(x), t=map(zero, t), contexts=zero_contexts(contexts...)),
     name=nothing,
 ) where {op,pl_op}
-    @assert op in ALL_OPS
-    @assert pl_op in (:in, :out)
-    return Scenario{op,pl_op,:in}(f!; x, y, tang, contexts, res1, res2, smaller, name)
+    y = f(x, map(unwrap, contexts)...)
+    return Scenario{op,pl_op,:out}(; f, y, x, t, contexts, res1, res2, prep_args, name)
+end
+
+function Scenario{op,pl_op}(
+    f,
+    y,
+    x,
+    t::NTuple,
+    contexts::Vararg{Context};
+    res1=nothing,
+    res2=nothing,
+    prep_args=(; y=zero(y), x=zero(x), t=map(zero, t), contexts=zero_contexts(contexts...)),
+    name=nothing,
+) where {op,pl_op}
+    f(y, x, map(unwrap, contexts)...)
+    return Scenario{op,pl_op,:in}(; f, y, x, t, contexts, res1, res2, prep_args, name)
 end
 
 Base.:(==)(scen1::Scenario, scen2::Scenario) = false
@@ -98,7 +133,7 @@ function Base.:(==)(
     eq_f = scen1.f == scen2.f
     eq_x = scen1.x == scen2.x
     eq_y = scen1.y == scen2.y
-    eq_tang = scen1.tang == scen2.tang
+    eq_t = scen1.t == scen2.t
     eq_contexts = all(
         map(scen1.contexts, scen2.contexts) do c1, c2
             if c1 isa Union{Cache,ConstantOrCache} || c2 isa Union{Cache,ConstantOrCache}
@@ -111,7 +146,7 @@ function Base.:(==)(
     eq_res1 = scen1.res1 == scen2.res1
     eq_res2 = scen1.res2 == scen2.res2
     eq_name = scen1.name == scen2.name
-    return (eq_x && eq_y && eq_tang && eq_contexts && eq_res1 && eq_res2 && eq_name)
+    return (eq_x && eq_y && eq_t && eq_contexts && eq_res1 && eq_res2 && eq_name)
 end
 
 operator(::Scenario{op}) where {op} = op
@@ -152,7 +187,7 @@ function Base.show(
     if isnothing(scen.name)
         print(io, "Scenario{$(repr(op)),$(repr(pl_op))} $(string(scen.f)) : $X -> $Y")
         if op in (:pushforward, :pullback, :hvp)
-            print(io, " ($(length(scen.tang)) tangents)")
+            print(io, " ($(length(scen.t)) tangents)")
         end
         if length(scen.contexts) > 0
             print(io, " ($(length(scen.contexts)) contexts)")
@@ -164,13 +199,15 @@ function Base.show(
 end
 
 function adapt_batchsize(backend::AbstractADType, scen::Scenario)
-    (; x, y) = scen
+    (; x, y, prep_args) = scen
+    xprep = prep_args.x
+    yprep = hasproperty(prep_args, :y) ? prep_args.y : y
     Bmax = if x isa AbstractArray && y isa AbstractArray
-        min(length(x), length(y))
+        min(length(x), length(y), length(xprep), length(yprep))
     elseif x isa AbstractArray
-        length(x)
+        min(length(x), length(xprep))
     elseif y isa AbstractArray
-        length(y)
+        min(length(y), length(yprep))
     else
         typemax(Int)
     end

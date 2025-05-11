@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Specify preparation arguments in DIT Scenario ([#786])
+
 ## [0.9.6] - 2025-03-28
 
 ### Added
@@ -18,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [unreleased]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.9.6...main
 [0.9.6]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.9.5...DifferentiationInterfaceTest-v0.9.6
 
+[#786]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/786
 [#749]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/749
 [#748]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/748
 [#745]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/745

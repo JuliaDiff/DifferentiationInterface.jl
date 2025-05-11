@@ -11,15 +11,17 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 test_differentiation(
     AutoZeroForward(),
-    default_scenarios(; include_batchified=false);
-    correctness=false,
+    map(zero, default_scenarios(; include_batchified=false));
     type_stability=:full,
     logging=LOGGING,
 )
 
 test_differentiation(
     AutoZeroReverse(),
-    default_scenarios(; include_batchified=false);
+    map(
+        DifferentiationInterfaceTest.same_function,
+        default_scenarios(; include_batchified=false),
+    );
     correctness=false,
     type_stability=:prepared,
     logging=LOGGING,
