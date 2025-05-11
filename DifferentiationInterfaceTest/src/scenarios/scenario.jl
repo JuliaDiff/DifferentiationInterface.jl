@@ -35,7 +35,7 @@ struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,P<
     res1::R1
     "second-order result of the operator (if applicable)"
     res2::R2
-    "named tuple of arguments passed to preparation, without the function"
+    "named tuple of arguments passed to preparation, without the function - the required keys are a subset of `(; y, x, t, contexts)` depending on the operator"
     prep_args::P
     "name of the scenario for display in test sets and dataframes"
     name::Union{String,Nothing}
