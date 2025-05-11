@@ -48,6 +48,7 @@ Each setting tests/benchmarks a different subset of calls:
 - `rtol=1e-3`: relative precision for correctness testing (when comparing to the reference outputs)
 - `scenario_intact=true`: whether to check that the scenario remains unchanged after the operators are applied
 - `sparsity=false`: whether to check sparsity patterns for Jacobians / Hessians
+- `reprepare::Bool=true`: whether to modify preparation before testing when the preparation arguments have the wrong size
 
 **Type stability options:**
 

@@ -20,7 +20,10 @@ test_differentiation(
 test_differentiation(
     [AutoForwardDiff(), AutoFiniteDiff(; relstep=1e-5)],
     default_scenarios(;
-        include_batchified=false, include_normal=false, include_constantorcachified=true
+        include_batchified=false,
+        include_normal=false,
+        include_cachified=true,
+        include_constantorcachified=true,
     );
     logging=LOGGING,
 )
@@ -35,7 +38,7 @@ sparse_backend = AutoSparse(
 
 test_differentiation(
     sparse_backend,
-    sparse_scenarios(; include_cachified=true, use_tuples=true);
+    sparse_scenarios(; include_cachified=true, use_tuples=false);
     sparsity=true,
     logging=LOGGING,
 )

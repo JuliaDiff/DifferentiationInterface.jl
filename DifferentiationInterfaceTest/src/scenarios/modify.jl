@@ -36,9 +36,7 @@ end
 
 Return a new `Scenario` identical to `scen` except for the function `f` which is changed to `new_f`.
 """
-function change_function(
-    scen::Scenario{op,pl_op,pl_fun}, new_f; keep_smaller
-) where {op,pl_op,pl_fun}
+function change_function(scen::Scenario{op,pl_op,pl_fun}, new_f) where {op,pl_op,pl_fun}
     return Scenario{op,pl_op,pl_fun}(;
         f=new_f,
         x=scen.x,
@@ -51,6 +49,8 @@ function change_function(
         name=isnothing(scen.name) ? nothing : scen.name * " [new function]",
     )
 end
+
+same_function(scen) = change_function(scen, scen.f)
 
 """
     batchify(scen::Scenario)

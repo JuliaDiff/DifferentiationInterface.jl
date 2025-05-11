@@ -199,13 +199,15 @@ function Base.show(
 end
 
 function adapt_batchsize(backend::AbstractADType, scen::Scenario)
-    (; x, y) = scen
+    (; x, y, prep_args) = scen
+    xprep = prep_args.x
+    yprep = hasproperty(prep_args, :y) ? prep_args.y : y
     Bmax = if x isa AbstractArray && y isa AbstractArray
-        min(length(x), length(y))
+        min(length(x), length(y), length(xprep), length(yprep))
     elseif x isa AbstractArray
-        length(x)
+        min(length(x), length(xprep))
     elseif y isa AbstractArray
-        length(y)
+        min(length(y), length(yprep))
     else
         typemax(Int)
     end
