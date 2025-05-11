@@ -470,11 +470,10 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
-                prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
                     prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
-                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
                 end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
@@ -527,11 +526,10 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
-                prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
                     prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
-                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
                 end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
@@ -603,14 +601,13 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
-                prep_same = $prep_op_same(f, prep_args.y, ba, x, prep_args.t, contexts...)
+                prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
                 if reprepare &&
                     has_size(x) &&
                     has_size(y) &&
                     (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
                     prepstrict = $prep_op!(f, y, prepstrict, ba, x, t, contexts...)
-                    prep_same = $prep_op_same(f, y, ba, x, t, contexts...)
                 end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
@@ -678,14 +675,13 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
-                prep_same = $prep_op_same(f, prep_args.y, ba, x, prep_args.t, contexts...)
+                prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
                 if reprepare &&
                     has_size(x) &&
                     has_size(y) &&
                     (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
                     prepstrict = $prep_op!(f, y, prepstrict, ba, x, t, contexts...)
-                    prep_same = $prep_op_same(f, y, ba, x, t, contexts...)
                 end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
@@ -757,11 +753,10 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
-                prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
                     prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
-                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
                 end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end
@@ -814,11 +809,10 @@ for op in ALL_OPS
                     prep_args.contexts...;
                     strict=Val(true),
                 )
-                prep_same = $prep_op_same(f, ba, x, prep_args.t, contexts...)
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
                     prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
-                    prep_same = $prep_op_same(f, ba, x, t, contexts...)
                 end
                 [(), (prep,), (prepstrict,), (prep_same,)]
             end

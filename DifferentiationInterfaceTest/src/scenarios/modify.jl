@@ -6,14 +6,26 @@ abstract type FunctionModifier end
 Return a new `Scenario` identical to `scen` except for the first- and second-order results which are set to zero.
 """
 function Base.zero(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+    zero_res1 = if op in (:pushforward, :pullback)
+        map(zero, scen.res1)
+    else
+        zero(scen.res1)
+    end
+    zero_res2 = if isnothing(scen.res2)
+        nothing
+    elseif op == :hvp
+        map(zero, scen.res2)
+    else
+        zero(scen.res2)
+    end
     return Scenario{op,pl_op,pl_fun}(;
         f=scen.f,
         x=scen.x,
         y=scen.y,
         t=scen.t,
         contexts=scen.contexts,
-        res1=myzero(scen.res1),
-        res2=myzero(scen.res2),
+        res1=zero_res1,
+        res2=zero_res2,
         prep_args=scen.prep_args,
         name=isnothing(scen.name) ? nothing : scen.name * " [zero]",
     )
@@ -239,15 +251,15 @@ function cachify(scen::Scenario{op,pl_op,pl_fun}; use_tuples) where {op,pl_op,pl
     cache_f = StoreInCache{pl_fun}(f)
     if use_tuples
         y_cache = if scen.y isa Number
-            (; useful_cache=([myzero(scen.y)],), useless_cache=[myzero(scen.y)])
+            (; useful_cache=([zero(scen.y)],), useless_cache=[zero(scen.y)])
         else
-            (; useful_cache=(mysimilar(scen.y),), useless_cache=mysimilar(scen.y))
+            (; useful_cache=(similar(scen.y),), useless_cache=similar(scen.y))
         end
     else
         y_cache = if scen.y isa Number
-            [myzero(scen.y)]
+            [zero(scen.y)]
         else
-            mysimilar(scen.y)
+            similar(scen.y)
         end
     end
     return Scenario{op,pl_op,pl_fun}(;
@@ -321,14 +333,14 @@ function constantorcachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_f
     a = 3.0
     b = [4.0]
     constantorcache = if scen.y isa Number
-        (; cache=[myzero(scen.y)], constant=(; a, b))
+        (; cache=[zero(scen.y)], constant=(; a, b))
     else
-        (; cache=mysimilar(scen.y), constant=(; a, b))
+        (; cache=similar(scen.y), constant=(; a, b))
     end
     prep_constantorcache = if scen.y isa Number
-        (; cache=[myzero(scen.y)], constant=(; a=2a, b=3b))
+        (; cache=[zero(scen.y)], constant=(; a=2a, b=3b))
     else
-        (; cache=mysimilar(scen.y), constant=(; a=2a, b=3b))
+        (; cache=similar(scen.y), constant=(; a=2a, b=3b))
     end
     return Scenario{op,pl_op,pl_fun}(;
         f=constantorcache_f,

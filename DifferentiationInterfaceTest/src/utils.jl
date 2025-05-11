@@ -1,8 +1,3 @@
-myzero(x::Number) = zero(x)
-myzero(x::AbstractArray) = zero(x)
-myzero(x::Union{Tuple,NamedTuple}) = map(myzero, x)
-myzero(::Nothing) = nothing
-
 mysimilar(x::Number) = one(x)
 mysimilar(x::AbstractArray) = similar(x)
 mysimilar(x::Union{Tuple,NamedTuple}) = map(mysimilar, x)

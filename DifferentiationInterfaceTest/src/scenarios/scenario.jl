@@ -60,9 +60,9 @@ struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,P<
     end
 end
 
-function myzero_contexts(contexts...)
+function zero_contexts(contexts...)
     rewrap = Rewrap(contexts...)
-    return rewrap(map(myzero ∘ unwrap, contexts)...)
+    return rewrap(map(zero ∘ unwrap, contexts)...)
 end
 
 function Scenario{op,pl_op}(
@@ -71,7 +71,7 @@ function Scenario{op,pl_op}(
     contexts::Vararg{Context};
     res1=nothing,
     res2=nothing,
-    prep_args=(; x=myzero(x), contexts=myzero_contexts(contexts...)),
+    prep_args=(; x=zero(x), contexts=zero_contexts(contexts...)),
     name=nothing,
 ) where {op,pl_op}
     y = f(x, map(unwrap, contexts)...)
@@ -87,7 +87,7 @@ function Scenario{op,pl_op}(
     contexts::Vararg{Context};
     res1=nothing,
     res2=nothing,
-    prep_args=(; y=myzero(y), x=myzero(x), contexts=myzero_contexts(contexts...)),
+    prep_args=(; y=zero(y), x=zero(x), contexts=zero_contexts(contexts...)),
     name=nothing,
 ) where {op,pl_op}
     f(y, x, map(unwrap, contexts)...)
@@ -103,7 +103,7 @@ function Scenario{op,pl_op}(
     contexts::Vararg{Context};
     res1=nothing,
     res2=nothing,
-    prep_args=(; x=myzero(x), t=map(myzero, t), contexts=myzero_contexts(contexts...)),
+    prep_args=(; x=zero(x), t=map(zero, t), contexts=zero_contexts(contexts...)),
     name=nothing,
 ) where {op,pl_op}
     y = f(x, map(unwrap, contexts)...)
@@ -118,9 +118,7 @@ function Scenario{op,pl_op}(
     contexts::Vararg{Context};
     res1=nothing,
     res2=nothing,
-    prep_args=(;
-        y=myzero(y), x=myzero(x), t=map(myzero, t), contexts=myzero_contexts(contexts...)
-    ),
+    prep_args=(; y=zero(y), x=zero(x), t=map(zero, t), contexts=zero_contexts(contexts...)),
     name=nothing,
 ) where {op,pl_op}
     f(y, x, map(unwrap, contexts)...)
