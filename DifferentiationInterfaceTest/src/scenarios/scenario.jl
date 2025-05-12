@@ -13,8 +13,21 @@ This generic type should never be used directly: use the specific constructor co
 
 # Constructors
 
-    Scenario{op,pl_op}(f, x, [t], contexts...; res1, res2, name)
-    Scenario{op,pl_op}(f!, y, x, [t,] contexts...; res1, res2, name)
+    Scenario{op,pl_op}(
+        f, x, [t], contexts...;
+        prep_args, res1, res2, name
+    )
+
+    Scenario{op,pl_op}(
+        f!, y, x, [t,] contexts...;
+        prep_args, res1, res2, name
+    )
+
+Default values:
+
+- `prep_args = ` the result of `zero` applied to each execution argument
+- `res1 = res2 = nothing`
+- `name = nothing`
 
 # Fields
 

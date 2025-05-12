@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- New Arxiv preprint for citation (#795)
+- New Arxiv preprint for citation ([#795])
 
 ## [0.6.54] - 2025-05-11
 

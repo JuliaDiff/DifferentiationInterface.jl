@@ -27,13 +27,14 @@ Of course we know the true gradient mapping:
 ∇f(x::AbstractArray) = cos.(x)
 ```
 
-DifferentiationInterfaceTest.jl relies with so-called "scenarios", in which you encapsulate the information needed for your test:
+DifferentiationInterfaceTest.jl relies with so-called [`Scenario`](@ref)s, in which you encapsulate the information needed for your test:
 
-- the operator category (`:gradient`)
+- the operator category (here `:gradient`)
 - the behavior of the operator (either `:in` or `:out` of place)
 - the function `f`
-- the input `x` of the function `f`
-- the reference first-order result `res1` of the operator
+- the input `x` of the function `f` (and possible tangents or contexts)
+- the reference first-order result `res1` (and possible second-order result `res2`) of the operator
+- the arguments `prep_args` passed during preparation
 
 ```@example tuto
 xv = rand(Float32, 3)
@@ -69,4 +70,4 @@ This is made easy by the [`benchmark_differentiation`](@ref) function, whose syn
 df = benchmark_differentiation(backends, scenarios);
 ```
 
-The resulting object is a `DataFrame` from [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl), whose columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref):
+The resulting object is a `DataFrame` from [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl), whose columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref).
