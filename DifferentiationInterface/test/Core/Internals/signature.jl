@@ -12,7 +12,7 @@ c = 2.0
 
 @testset "Out of place, no tangents" begin
     prep = prepare_derivative(f, backend, x, Constant(c))
-    prep_chill = prepare_derivative(f, backend, x, Constant(c))
+    prep_chill = prepare_derivative(f, backend, x, Constant(c); strict=Val(false))
 
     @test_throws MethodError derivative(nothing, prep_chill, backend, x, Constant(c))
 
@@ -69,7 +69,7 @@ end
 
 @testset "In place, no tangents" begin
     prep = prepare_derivative(f!, y, backend, x)
-    prep_chill = prepare_derivative(f!, y, backend, x)
+    prep_chill = prepare_derivative(f!, y, backend, x; strict=Val(false))
 
     @test_throws MethodError derivative(nothing, y, prep_chill, backend, x, Constant(c))
 
@@ -87,7 +87,7 @@ end
 
 @testset "Out of place, with tangents" begin
     prep = prepare_pushforward(f, backend, x, (x,), Constant(c))
-    prep_chill = prepare_pushforward(f, backend, x, (x,), Constant(c))
+    prep_chill = prepare_pushforward(f, backend, x, (x,), Constant(c); strict=Val(false))
 
     @test_throws MethodError pushforward(nothing, prep_chill, backend, x, (x,))
 
@@ -105,7 +105,9 @@ end
 
 @testset "In place, with tangents" begin
     prep = prepare_pushforward(f!, y, backend, x, (x,))
-    prep_chill = prepare_pushforward(f!, y, backend, x, (x,), Constant(c))
+    prep_chill = prepare_pushforward(
+        f!, y, backend, x, (x,), Constant(c); strict=Val(false)
+    )
 
     @test_throws MethodError pushforward(nothing, y, prep_chill, backend, x, (x,))
 
