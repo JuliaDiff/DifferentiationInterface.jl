@@ -90,18 +90,22 @@ To improve your performance by up to several orders of magnitude compared to thi
 
 ## Citation
 
-Whenever you refer to this package or the ideas it contains, please cite our preprint [*Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians*](https://arxiv.org/abs/2501.17737) and DifferentiationInterface.jl's inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl).
+Whenever you refer to this package or the ideas it contains, please cite:
+
+1. our preprint [*A Common Interface for Automatic Differentiation*](https://arxiv.org/abs/2505.05542);
+2. our inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl).
+
 You can use the provided [`CITATION.cff`](https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/CITATION.cff) file or the following BibTeX entries:
 
-```bibtex   
-@misc{hill2025sparserbetterfasterstronger,
-      title={Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians}, 
-      author={Adrian Hill and Guillaume Dalle},
+```bibtex
+@misc{dalle2025commoninterfaceautomaticdifferentiation,
+      title={A Common Interface for Automatic Differentiation}, 
+      author={Guillaume Dalle and Adrian Hill},
       year={2025},
-      eprint={2501.17737},
+      eprint={2505.05542},
       archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2501.17737}, 
+      primaryClass={cs.MS},
+      url={https://arxiv.org/abs/2505.05542}, 
 }
 
 @misc{schäfer2022abstractdifferentiationjlbackendagnosticdifferentiableprogramming,
