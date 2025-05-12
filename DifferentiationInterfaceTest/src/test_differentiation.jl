@@ -13,7 +13,7 @@ This function always creates and runs a `@testset`, though its contents may vary
 # Positional arguments
 
 - `backends::Vector{<:AbstractADType}`: the backends to test
-- `scenarios::Vector{<:Scenario}`: the scenarios on which to test them (defaults to the output of [`default_scenarios()`](@ref))
+- `scenarios::Vector{<:Scenario}`: the scenarios on which to test these backends. Defaults to a standard set of first- and second-order scenarios, whose contents are not part of the public API and may change without notice.
 
 # Keyword arguments
 
