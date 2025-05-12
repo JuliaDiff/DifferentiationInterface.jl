@@ -1,12 +1,12 @@
 ## Docstrings
 
 """
-    prepare_hessian(f, backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_hessian(f, backend, x, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("hessian"))
 """
 function prepare_hessian(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_hessian_nokwarg(strict, f, backend, x, contexts...)
 end

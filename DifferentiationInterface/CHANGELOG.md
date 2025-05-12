@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Preparation is now strict by default ([#799])
 - New Arxiv preprint for citation ([#795])
 
 ## [0.6.54] - 2025-05-11
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.54]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.6.53...DifferentiationInterface-v0.6.54
 [0.6.53]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.6.52...DifferentiationInterface-v0.6.53
 
+[#799]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/799
 [#795]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/795
 [#790]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/790
 [#788]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/788

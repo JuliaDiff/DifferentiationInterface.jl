@@ -1,24 +1,19 @@
 ## Docstrings
 
 """
-    prepare_derivative(f,     backend, x, [contexts...]; strict=Val(false)) -> prep
-    prepare_derivative(f!, y, backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_derivative(f,     backend, x, [contexts...]; strict=Val(true)) -> prep
+    prepare_derivative(f!, y, backend, x, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("derivative"; inplace=true))
 """
 function prepare_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_derivative_nokwarg(strict, f, backend, x, contexts...)
 end
 
 function prepare_derivative(
-    f!::F,
-    y,
-    backend::AbstractADType,
-    x,
-    contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_derivative_nokwarg(strict, f!, y, backend, x, contexts...)
 end
@@ -42,8 +37,7 @@ function prepare!_derivative(
     old_prep::DerivativePrep,
     backend::AbstractADType,
     x,
-    contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    contexts::Vararg{Context,C},
 ) where {F,C}
     check_prep(f!, y, old_prep, backend, x, contexts...)
     return prepare_derivative_nokwarg(is_strict(old_prep), f!, y, backend, x, contexts...)

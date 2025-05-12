@@ -1,12 +1,12 @@
 ## Docstrings
 
 """
-    prepare_second_derivative(f, backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_second_derivative(f, backend, x, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("second_derivative"))
 """
 function prepare_second_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_second_derivative_nokwarg(strict, f, backend, x, contexts...)
 end

@@ -109,7 +109,7 @@ function Base.showerror(
     end
     println(
         io,
-        "If you are confident that this check is superfluous, you can disable it by running preparation with the keyword argument `strict=Val(false)` inside DifferentiationInterface.",
+        "If you are confident that this check is superfluous, you can disable it by running preparation with the keyword argument `strict=Val(true)` inside DifferentiationInterface.",
     )
     return nothing
 end

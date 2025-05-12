@@ -55,17 +55,17 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
-                prepstrict = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
                 end
-                [(), (prep,), (prepstrict,)]
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val = $val_and_op(
@@ -92,8 +92,8 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
-            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, contexts...)
-            @test_throws PME $op(nothing, prepstrict, ba, x, contexts...)
+            @test_throws PME $val_and_op(nothing, prep, ba, x, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -109,17 +109,17 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
-                prepstrict = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
                 end
-                [(), (prep,), (prepstrict,)]
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val = mysimilar(res1)
@@ -159,9 +159,9 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, mysimilar(res1), prepstrict, ba, x, contexts...
+                nothing, mysimilar(res1), prep, ba, x, contexts...
             )
-            @test_throws PME $op!(nothing, mysimilar(res1), prepstrict, ba, x, contexts...)
+            @test_throws PME $op!(nothing, mysimilar(res1), prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -179,25 +179,25 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     prep_args.y,
                     ba,
                     prep_args.x,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 if reprepare &&
                     has_size(x) &&
                     has_size(y) &&
                     (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep, ba, x, contexts...)
-                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, contexts...)
                 end
-                [(), (prep,), (prepstrict,)]
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val = mysimilar(y)
@@ -230,10 +230,8 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
-            @test_throws PME $val_and_op(
-                nothing, mysimilar(y), prepstrict, ba, x, contexts...
-            )
-            @test_throws PME $op(nothing, mysimilar(y), prepstrict, ba, x, contexts...)
+            @test_throws PME $val_and_op(nothing, mysimilar(y), prep, ba, x, contexts...)
+            @test_throws PME $op(nothing, mysimilar(y), prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -249,25 +247,25 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     prep_args.y,
                     ba,
                     prep_args.x,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 if reprepare &&
                     has_size(x) &&
                     has_size(y) &&
                     (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep, ba, x, contexts...)
-                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, contexts...)
                 end
-                [(), (prep,), (prepstrict,)]
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val, res1_in1_val = mysimilar(y), mysimilar(res1)
@@ -309,10 +307,10 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, contexts...
             )
             @test_throws PME $op!(
-                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, contexts...
             )
             scenario_intact && @test new_scen == scen
             return nothing
@@ -330,17 +328,17 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
-                prepstrict = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
                 end
-                [(), (prep,), (prepstrict,)]
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val, res2_out1_val = $val_and_op(
@@ -369,8 +367,8 @@ for op in ALL_OPS
                     @test mynnz(res2_out2_noval) == mynnz(scen.res2)
                 end
             end
-            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, contexts...)
-            @test_throws PME $op(nothing, prepstrict, ba, x, contexts...)
+            @test_throws PME $val_and_op(nothing, prep, ba, x, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -386,17 +384,17 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
-                prepstrict = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(true)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
                 end
-                [(), (prep,), (prepstrict,)]
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val, res2_in1_val = mysimilar(res1), mysimilar(res2)
@@ -440,9 +438,9 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, mysimilar(res1), mysimilar(res2), prepstrict, ba, x, contexts...
+                nothing, mysimilar(res1), mysimilar(res2), prep, ba, x, contexts...
             )
-            @test_throws PME $op!(nothing, mysimilar(res2), prepstrict, ba, x, contexts...)
+            @test_throws PME $op!(nothing, mysimilar(res2), prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -459,23 +457,23 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     ba,
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
                 end
-                [(), (prep,), (prepstrict,), (prep_same,)]
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val = $val_and_op(
@@ -498,8 +496,8 @@ for op in ALL_OPS
                     end
                 end
             end
-            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, t, contexts...)
-            @test_throws PME $op(nothing, prepstrict, ba, x, t, contexts...)
+            @test_throws PME $val_and_op(nothing, prep, ba, x, t, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -515,23 +513,23 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     ba,
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
                 end
-                [(), (prep,), (prepstrict,), (prep_same,)]
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val = mysimilar(res1)
@@ -567,11 +565,9 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, mysimilar(res1), prepstrict, ba, x, t, contexts...
+                nothing, mysimilar(res1), prep, ba, x, t, contexts...
             )
-            @test_throws PME $op!(
-                nothing, mysimilar(res1), prepstrict, ba, x, t, contexts...
-            )
+            @test_throws PME $op!(nothing, mysimilar(res1), prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -587,19 +583,19 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(
                     f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
                 )
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     prep_args.y,
                     ba,
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
                 if reprepare &&
@@ -607,9 +603,9 @@ for op in ALL_OPS
                     has_size(y) &&
                     (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
-                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, t, contexts...)
                 end
-                [(), (prep,), (prepstrict,), (prep_same,)]
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val = mysimilar(y)
@@ -642,10 +638,8 @@ for op in ALL_OPS
                     end
                 end
             end
-            @test_throws PME $val_and_op(
-                nothing, mysimilar(y), prepstrict, ba, x, t, contexts...
-            )
-            @test_throws PME $op(nothing, mysimilar(y), prepstrict, ba, x, t, contexts...)
+            @test_throws PME $val_and_op(nothing, mysimilar(y), prep, ba, x, t, contexts...)
+            @test_throws PME $op(nothing, mysimilar(y), prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -661,19 +655,19 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(
                     f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
                 )
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     prep_args.y,
                     ba,
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
                 if reprepare &&
@@ -681,9 +675,9 @@ for op in ALL_OPS
                     has_size(y) &&
                     (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
-                    prepstrict = $prep_op!(f, y, prepstrict, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, t, contexts...)
                 end
-                [(), (prep,), (prepstrict,), (prep_same,)]
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val, res1_in1_val = mysimilar(y), mysimilar(res1)
@@ -721,10 +715,10 @@ for op in ALL_OPS
                 end
             end
             @test_throws PME $val_and_op!(
-                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, t, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, t, contexts...
             )
             @test_throws PME $op!(
-                nothing, mysimilar(y), mysimilar(res1), prepstrict, ba, x, t, contexts...
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, t, contexts...
             )
             scenario_intact && @test new_scen == scen
             return nothing
@@ -742,23 +736,23 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     ba,
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
                 end
-                [(), (prep,), (prepstrict,), (prep_same,)]
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res2_out1_noval = $op(f, preptup_noval..., ba, x, t, contexts...)
@@ -781,8 +775,8 @@ for op in ALL_OPS
                     end
                 end
             end
-            @test_throws PME $val_and_op(nothing, prepstrict, ba, x, t, contexts...)
-            @test_throws PME $op(nothing, prepstrict, ba, x, t, contexts...)
+            @test_throws PME $val_and_op(nothing, prep, ba, x, t, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -798,23 +792,23 @@ for op in ALL_OPS
             reprepare::Bool,
         )
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
-            local prepstrict
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
-                prepstrict = $prep_op(
+                prep_nostrict = $prep_op(
                     f,
                     ba,
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(true),
+                    strict=Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
                     prep = $prep_op!(f, prep, ba, x, t, contexts...)
-                    prepstrict = $prep_op!(f, prepstrict, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
                 end
-                [(), (prep,), (prepstrict,), (prep_same,)]
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res2_in1_noval = mysimilar(res2)
@@ -851,11 +845,9 @@ for op in ALL_OPS
                     end
                 end
             end
-            @test_throws PME $op!(
-                nothing, mysimilar(res2), prepstrict, ba, x, t, contexts...
-            )
+            @test_throws PME $op!(nothing, mysimilar(res2), prep, ba, x, t, contexts...)
             @test_throws PME $val_and_op!(
-                nothing, mysimilar(res1), mysimilar(res2), prepstrict, ba, x, t, contexts...
+                nothing, mysimilar(res1), mysimilar(res2), prep, ba, x, t, contexts...
             )
             scenario_intact && @test new_scen == scen
             return nothing

@@ -1,8 +1,8 @@
 ## Docstrings
 
 """
-    prepare_pushforward(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep
-    prepare_pushforward(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep
+    prepare_pushforward(f,     backend, x, tx, [contexts...]; strict=Val(true)) -> prep
+    prepare_pushforward(f!, y, backend, x, tx, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("pushforward"; inplace=true))
 """
@@ -12,7 +12,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -24,7 +24,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_nokwarg(strict, f!, y, backend, x, tx, contexts...)
 end
@@ -63,8 +63,8 @@ function prepare!_pushforward(
 end
 
 """
-    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
-    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
+    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]; strict=Val(true)) -> prep_same
+    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]; strict=Val(true)) -> prep_same
 
 $(docstring_prepare("pushforward"; samepoint=true, inplace=true))
 """
@@ -74,7 +74,7 @@ function prepare_pushforward_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_same_point_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -86,7 +86,7 @@ function prepare_pushforward_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_same_point_nokwarg(
         strict, f!, y, backend, x, tx, contexts...

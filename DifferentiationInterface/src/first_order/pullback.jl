@@ -1,8 +1,8 @@
 ## Docstrings
 
 """
-    prepare_pullback(f,     backend, x, ty, [contexts...]; strict=Val(false)) -> prep
-    prepare_pullback(f!, y, backend, x, ty, [contexts...]; strict=Val(false)) -> prep
+    prepare_pullback(f,     backend, x, ty, [contexts...]; strict=Val(true)) -> prep
+    prepare_pullback(f!, y, backend, x, ty, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("pullback"; inplace=true))
 """
@@ -12,7 +12,7 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pullback_nokwarg(strict, f, backend, x, ty, contexts...)
 end
@@ -24,7 +24,7 @@ function prepare_pullback(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pullback_nokwarg(strict, f!, y, backend, x, ty, contexts...)
 end
@@ -61,8 +61,8 @@ function prepare!_pullback(
 end
 
 """
-    prepare_pullback_same_point(f,     backend, x, ty, [contexts...]; strict=Val(false)) -> prep_same
-    prepare_pullback_same_point(f!, y, backend, x, ty, [contexts...]; strict=Val(false)) -> prep_same
+    prepare_pullback_same_point(f,     backend, x, ty, [contexts...]; strict=Val(true)) -> prep_same
+    prepare_pullback_same_point(f!, y, backend, x, ty, [contexts...]; strict=Val(true)) -> prep_same
 
 $(docstring_prepare("pullback"; samepoint=true, inplace=true))
 """
@@ -72,7 +72,7 @@ function prepare_pullback_same_point(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pullback_same_point_nokwarg(strict, f, backend, x, ty, contexts...)
 end
@@ -84,7 +84,7 @@ function prepare_pullback_same_point(
     x,
     ty::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pullback_same_point_nokwarg(strict, f!, y, backend, x, ty, contexts...)
 end

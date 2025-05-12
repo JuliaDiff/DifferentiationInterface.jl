@@ -1,24 +1,19 @@
 ## Docstrings
 
 """
-    prepare_jacobian(f,     backend, x, [contexts...]; strict=Val(false)) -> prep
-    prepare_jacobian(f!, y, backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_jacobian(f,     backend, x, [contexts...]; strict=Val(true)) -> prep
+    prepare_jacobian(f!, y, backend, x, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("jacobian"; inplace=true))
 """
 function prepare_jacobian(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_jacobian_nokwarg(strict, f, backend, x, contexts...)
 end
 
 function prepare_jacobian(
-    f!::F,
-    y,
-    backend::AbstractADType,
-    x,
-    contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_jacobian_nokwarg(strict, f!, y, backend, x, contexts...)
 end
@@ -43,7 +38,6 @@ function prepare!_jacobian(
     backend::AbstractADType,
     x,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
 ) where {F,C}
     check_prep(f!, y, old_prep, backend, x, contexts...)
     return prepare_jacobian_nokwarg(is_strict(old_prep), f!, y, backend, x, contexts...)

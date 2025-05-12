@@ -26,7 +26,8 @@ function docstring_prepare(operator; samepoint=false, inplace=false)
         Otherwise, preparation becomes invalid and you need to run it again.
         In some settings, invalid preparations may still give correct results (e.g. for backends that require no preparation), but this is not a semantic guarantee and should not be relied upon.
 
-    When `strict=Val(true)`, type checking is enforced between preparation and execution (but size checking is left to the user).
+    When `strict=Val(true)` (the default), type checking is enforced between preparation and execution (but size checking is left to the user).
+    While your code may work for different types by setting `strict=Val(false)`, this is not guaranteed by the API and can break without warning.
     """
 end
 

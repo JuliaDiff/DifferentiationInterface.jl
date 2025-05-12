@@ -1,7 +1,7 @@
 ## Docstrings
 
 """
-    prepare_hvp(f, backend, x, tx, [contexts...]; strict=Val(false)) -> prep
+    prepare_hvp(f, backend, x, tx, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("hvp"))
 """
@@ -11,7 +11,7 @@ function prepare_hvp(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_hvp_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -34,7 +34,7 @@ function prepare!_hvp(
 end
 
 """
-    prepare_hvp_same_point(f, backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
+    prepare_hvp_same_point(f, backend, x, tx, [contexts...]; strict=Val(true)) -> prep_same
 
 $(docstring_prepare("hvp"; samepoint=true))
 """
@@ -44,7 +44,7 @@ function prepare_hvp_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_hvp_same_point_nokwarg(strict, f, backend, x, tx, contexts...)
 end
