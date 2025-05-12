@@ -1,12 +1,12 @@
 ## Docstrings
 
 """
-    prepare_gradient(f, backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_gradient(f, backend, x, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("gradient"))
 """
 function prepare_gradient(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_gradient_nokwarg(strict, f, backend, x, contexts...)
 end
