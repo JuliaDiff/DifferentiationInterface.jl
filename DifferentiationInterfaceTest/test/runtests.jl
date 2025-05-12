@@ -5,6 +5,15 @@ using Pkg
 using SparseConnectivityTracer
 using Test
 
+using DifferentiationInterfaceTest:
+    default_scenarios,
+    sparse_scenarios,
+    complex_scenarios,
+    complex_sparse_scenarios,
+    static_scenarios,
+    component_scenarios,
+    gpu_scenarios
+
 GROUP = get(ENV, "JULIA_DIT_TEST_GROUP", "All")
 
 ## Main tests
