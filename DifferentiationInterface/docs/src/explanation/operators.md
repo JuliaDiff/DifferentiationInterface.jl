@@ -117,6 +117,7 @@ op(f, prep, backend, x, [t])  # fast because it skips preparation
 
 !!! warning
     The `prep` object is the last argument before `backend` and it is always mutated, regardless of the bang `!` in the operator name.
+    As a consequence preparation is **not thread safe** and  sharing  `prep` object between threads may lead to undefined behavior.   If you need to run differentiation concurrently, prepare separate `prep` objects for each thread.
 
 ### Reusing preparation
 
