@@ -106,7 +106,7 @@ There are, however, translation utilities:
 
 - from ChainRulesCore.jl to ForwardDiff.jl with [ForwardDiffChainRules.jl](https://github.com/ThummeTo/ForwardDiffChainRules.jl)
 - from ChainRulesCore.jl to Enzyme.jl with [`Enzyme.@import_rrule`](https://enzymead.github.io/Enzyme.jl/stable/api/#Enzyme.@import_rrule-Tuple)
-- from ChainRulesCore.jl to Mooncake.jl with [`Mooncake.@from_rrule`](https://chalk-lab.github.io/Mooncake.jl/stable/utilities/tools_for_rules/#Using-ChainRules.jl)
+- from ChainRulesCore.jl to Mooncake.jl with [`Mooncake.@from_rrule`](https://chalk-lab.github.io/Mooncake.jl/stable/utilities/defining_rules/#Using-ChainRules.jl)
 
 ### Backend switch
 
