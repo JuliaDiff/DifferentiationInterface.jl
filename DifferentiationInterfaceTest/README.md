@@ -22,12 +22,11 @@ Make it easy to know, for a given function:
 
 ## Features
 
-- Predefined or custom test scenarios
+- Definition of custom test scenarios
 - Correctness tests
 - Type stability tests
 - Count calls to the function
 - Benchmark runtime and allocations
-- Scenarios with weird array types (GPU, static) in package extensions
 
 ## Installation
 

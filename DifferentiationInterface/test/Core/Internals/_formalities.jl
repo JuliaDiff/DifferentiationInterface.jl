@@ -10,9 +10,7 @@ using SparseMatrixColorings
 using SparseArrays
 
 @testset "Aqua" begin
-    Aqua.test_all(
-        DifferentiationInterface; ambiguities=false, deps_compat=(; check_extras=false)
-    )
+    Aqua.test_all(DifferentiationInterface; ambiguities=false, undocumented_names=true)
 end
 
 @testset "JET" begin

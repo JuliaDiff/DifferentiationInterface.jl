@@ -60,16 +60,16 @@ references:
 preferred-citation:
   type: generic
   authors:
-  - family-names: "Hill"
-    given-names: "Adrian"
-    orcid: "https://orcid.org/0009-0009-5977-301X"
   - family-names: "Dalle"
     given-names: "Guillaume"
     orcid: "https://orcid.org/0000-0003-4866-1687"
-  title: "Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians"
+  - family-names: "Hill"
+    given-names: "Adrian"
+    orcid: "https://orcid.org/0009-0009-5977-301X"
+  title: "A Common Interface for Automatic Differentiation"
   year: 2025
-  eprint: "2501.17737"
+  eprint: "2505.05542"
   archivePrefix: "arXiv"
-  primaryClass: "cs.LG"
-  url: "https://arxiv.org/abs/2501.17737"
-  doi: "10.48550/arXiv.2501.17737"
+  primaryClass: "cs.MS"
+  url: "https://arxiv.org/abs/2505.05542"
+  doi: "10.48550/arXiv.2505.05542"

@@ -1,24 +1,19 @@
 ## Docstrings
 
 """
-    prepare_derivative(f,     backend, x, [contexts...]; strict=Val(false)) -> prep
-    prepare_derivative(f!, y, backend, x, [contexts...]; strict=Val(false)) -> prep
+    prepare_derivative(f,     backend, x, [contexts...]; strict=Val(true)) -> prep
+    prepare_derivative(f!, y, backend, x, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("derivative"; inplace=true))
 """
 function prepare_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(false)
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_derivative_nokwarg(strict, f, backend, x, contexts...)
 end
 
 function prepare_derivative(
-    f!::F,
-    y,
-    backend::AbstractADType,
-    x,
-    contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
 ) where {F,C}
     return prepare_derivative_nokwarg(strict, f!, y, backend, x, contexts...)
 end
@@ -29,7 +24,24 @@ end
 
 $(docstring_prepare!("derivative"))
 """
-function prepare!_derivative end
+function prepare!_derivative(
+    f::F, old_prep::DerivativePrep, backend::AbstractADType, x, contexts::Vararg{Context,C};
+) where {F,C}
+    check_prep(f, old_prep, backend, x, contexts...)
+    return prepare_derivative_nokwarg(is_strict(old_prep), f, backend, x, contexts...)
+end
+
+function prepare!_derivative(
+    f!::F,
+    y,
+    old_prep::DerivativePrep,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f!, y, old_prep, backend, x, contexts...)
+    return prepare_derivative_nokwarg(is_strict(old_prep), f!, y, backend, x, contexts...)
+end
 
 """
     value_and_derivative(f,     [prep,] backend, x, [contexts...]) -> (y, der)
@@ -39,7 +51,19 @@ Compute the value and the derivative of the function `f` at point `x`.
 
 $(docstring_preparation_hint("derivative"))
 """
-function value_and_derivative end
+function value_and_derivative(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_derivative(f, prep, backend, x, contexts...)
+end
+
+function value_and_derivative(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return value_and_derivative(f!, y, prep, backend, x, contexts...)
+end
 
 """
     value_and_derivative!(f,     der, [prep,] backend, x, [contexts...]) -> (y, der)
@@ -49,7 +73,19 @@ Compute the value and the derivative of the function `f` at point `x`, overwriti
 
 $(docstring_preparation_hint("derivative"))
 """
-function value_and_derivative! end
+function value_and_derivative!(
+    f::F, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_derivative!(f, der, prep, backend, x, contexts...)
+end
+
+function value_and_derivative!(
+    f!::F, y, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return value_and_derivative!(f!, y, der, prep, backend, x, contexts...)
+end
 
 """
     derivative(f,     [prep,] backend, x, [contexts...]) -> der
@@ -59,7 +95,19 @@ Compute the derivative of the function `f` at point `x`.
 
 $(docstring_preparation_hint("derivative"))
 """
-function derivative end
+function derivative(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return derivative(f, prep, backend, x, contexts...)
+end
+
+function derivative(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return derivative(f!, y, prep, backend, x, contexts...)
+end
 
 """
     derivative!(f,     der, [prep,] backend, x, [contexts...]) -> der
@@ -69,7 +117,19 @@ Compute the derivative of the function `f` at point `x`, overwriting `der`.
 
 $(docstring_preparation_hint("derivative"))
 """
-function derivative! end
+function derivative!(
+    f::F, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return derivative!(f, der, prep, backend, x, contexts...)
+end
+
+function derivative!(
+    f!::F, y, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return derivative!(f!, y, der, prep, backend, x, contexts...)
+end
 
 ## Preparation
 

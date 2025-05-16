@@ -1,8 +1,8 @@
 ## Docstrings
 
 """
-    prepare_pushforward(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep
-    prepare_pushforward(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep
+    prepare_pushforward(f,     backend, x, tx, [contexts...]; strict=Val(true)) -> prep
+    prepare_pushforward(f!, y, backend, x, tx, [contexts...]; strict=Val(true)) -> prep
 
 $(docstring_prepare("pushforward"; inplace=true))
 """
@@ -12,7 +12,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -24,7 +24,7 @@ function prepare_pushforward(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_nokwarg(strict, f!, y, backend, x, tx, contexts...)
 end
@@ -35,11 +35,36 @@ end
 
 $(docstring_prepare!("pushforward"))
 """
-function prepare!_pushforward end
+function prepare!_pushforward(
+    f::F,
+    old_prep::PushforwardPrep,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f, old_prep, backend, x, tx, contexts...)
+    return prepare_pushforward_nokwarg(is_strict(old_prep), f, backend, x, tx, contexts...)
+end
+
+function prepare!_pushforward(
+    f!::F,
+    y,
+    old_prep::PushforwardPrep,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f!, y, old_prep, backend, x, tx, contexts...)
+    return prepare_pushforward_nokwarg(
+        is_strict(old_prep), f!, y, backend, x, tx, contexts...
+    )
+end
 
 """
-    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
-    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]; strict=Val(false)) -> prep_same
+    prepare_pushforward_same_point(f,     backend, x, tx, [contexts...]; strict=Val(true)) -> prep_same
+    prepare_pushforward_same_point(f!, y, backend, x, tx, [contexts...]; strict=Val(true)) -> prep_same
 
 $(docstring_prepare("pushforward"; samepoint=true, inplace=true))
 """
@@ -49,7 +74,7 @@ function prepare_pushforward_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_same_point_nokwarg(strict, f, backend, x, tx, contexts...)
 end
@@ -61,11 +86,56 @@ function prepare_pushforward_same_point(
     x,
     tx::NTuple,
     contexts::Vararg{Context,C};
-    strict::Val=Val(false),
+    strict::Val=Val(true),
 ) where {F,C}
     return prepare_pushforward_same_point_nokwarg(
         strict, f!, y, backend, x, tx, contexts...
     )
+end
+
+function prepare_pushforward_same_point_nokwarg(
+    strict::Val, f::F, backend::AbstractADType, x, tx::NTuple, contexts::Vararg{Context,C};
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(strict, f, backend, x, tx, contexts...)
+    return prepare_pushforward_same_point(f, prep, backend, x, tx, contexts...)
+end
+
+function prepare_pushforward_same_point_nokwarg(
+    strict::Val,
+    f!::F,
+    y,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C};
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(strict, f!, y, backend, x, tx, contexts...)
+    return prepare_pushforward_same_point(f!, y, prep, backend, x, tx, contexts...)
+end
+
+function prepare_pushforward_same_point(
+    f::F,
+    prep::PushforwardPrep,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f, prep, backend, x, tx, contexts...)
+    return prep
+end
+
+function prepare_pushforward_same_point(
+    f!::F,
+    y,
+    prep::PushforwardPrep,
+    backend::AbstractADType,
+    x,
+    tx::NTuple,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f!, y, prep, backend, x, tx, contexts...)
+    return prep
 end
 
 """
@@ -76,14 +146,26 @@ Compute the value and the pushforward of the function `f` at point `x` with a tu
 
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
-!!! tip 
+!!! tip
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `value_and_jvp`.
 
 !!! info
     Required primitive for forward mode backends.
 """
-function value_and_pushforward end
+function value_and_pushforward(
+    f::F, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return value_and_pushforward(f, prep, backend, x, tx, contexts...)
+end
+
+function value_and_pushforward(
+    f!::F, y, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f!, y, backend, x, tx, contexts...)
+    return value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
+end
 
 """
     value_and_pushforward!(f,     dy, [prep,] backend, x, tx, [contexts...]) -> (y, ty)
@@ -93,11 +175,23 @@ Compute the value and the pushforward of the function `f` at point `x` with a tu
 
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
-!!! tip 
+!!! tip
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `value_and_jvp!`.
 """
-function value_and_pushforward! end
+function value_and_pushforward!(
+    f::F, ty, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return value_and_pushforward!(f, ty, prep, backend, x, tx, contexts...)
+end
+
+function value_and_pushforward!(
+    f!::F, y, ty, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f!, y, backend, x, tx, contexts...)
+    return value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
+end
 
 """
     pushforward(f,     [prep,] backend, x, tx, [contexts...]) -> ty
@@ -107,11 +201,23 @@ Compute the pushforward of the function `f` at point `x` with a tuple of tangent
 
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
-!!! tip 
+!!! tip
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `jvp`.
 """
-function pushforward end
+function pushforward(
+    f::F, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return pushforward(f, prep, backend, x, tx, contexts...)
+end
+
+function pushforward(
+    f!::F, y, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f!, y, backend, x, tx, contexts...)
+    return pushforward(f!, y, prep, backend, x, tx, contexts...)
+end
 
 """
     pushforward!(f,     dy, [prep,] backend, x, tx, [contexts...]) -> ty
@@ -121,11 +227,23 @@ Compute the pushforward of the function `f` at point `x` with a tuple of tangent
 
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
-!!! tip 
+!!! tip
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `jvp!`.
 """
-function pushforward! end
+function pushforward!(
+    f::F, ty, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return pushforward!(f, ty, prep, backend, x, tx, contexts...)
+end
+
+function pushforward!(
+    f!::F, y, ty, backend::AbstractADType, x, tx, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_pushforward_nokwarg(Val(true), f!, y, backend, x, tx, contexts...)
+    return pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
+end
 
 ## Preparation
 

@@ -6,14 +6,14 @@ Apply a list of `backends` on a list of `scenarios`, running a variety of differ
 # Return
 
 This function always creates and runs a `@testset`, though its contents may vary.
-    
+
 - if `benchmark == :none`, it returns `nothing`.
 - if `benchmark != :none`, it returns a `DataFrame` of benchmark results, whose columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref).
 
 # Positional arguments
 
 - `backends::Vector{<:AbstractADType}`: the backends to test
-- `scenarios::Vector{<:Scenario}`: the scenarios on which to test them (defaults to the output of [`default_scenarios()`](@ref))
+- `scenarios::Vector{<:Scenario}`: the scenarios on which to test these backends. Defaults to a standard set of first- and second-order scenarios, whose contents are not part of the public API and may change without notice.
 
 # Keyword arguments
 
@@ -48,6 +48,7 @@ Each setting tests/benchmarks a different subset of calls:
 - `rtol=1e-3`: relative precision for correctness testing (when comparing to the reference outputs)
 - `scenario_intact=true`: whether to check that the scenario remains unchanged after the operators are applied
 - `sparsity=false`: whether to check sparsity patterns for Jacobians / Hessians
+- `reprepare::Bool=true`: whether to modify preparation before testing when the preparation arguments have the wrong size
 
 **Type stability options:**
 
@@ -84,6 +85,7 @@ function test_differentiation(
     rtol::Real=1e-3,
     scenario_intact::Bool=true,
     sparsity::Bool=false,
+    reprepare::Bool=true,
     # type stability options
     ignored_modules=nothing,
     function_filter=if VERSION >= v"1.11"
@@ -142,10 +144,7 @@ function test_differentiation(
                             (:input_size, mysize(scen.x)),
                             (:output_type, typeof(scen.y)),
                             (:output_size, mysize(scen.y)),
-                            (
-                                :nb_tangents,
-                                scen.tang isa NTuple ? length(scen.tang) : nothing,
-                            ),
+                            (:nb_tangents, scen.t isa NTuple ? length(scen.t) : nothing),
                             (:nb_contexts, length(scen.contexts)),
                         ],
                     )
@@ -163,6 +162,7 @@ function test_differentiation(
                             rtol,
                             scenario_intact,
                             sparsity,
+                            reprepare,
                         )
                     end
                     yield()
