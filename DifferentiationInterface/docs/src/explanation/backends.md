@@ -95,7 +95,7 @@ In general, using a forward outer backend over a reverse inner backend will yiel
 The wrapper [`DifferentiateWith`](@ref) allows you to switch between backends.
 It takes a function `f` and specifies that `f` should be differentiated with the substitute backend of your choice, instead of whatever true backend the surrounding code is trying to use.
 In other words, when someone tries to differentiate `dw = DifferentiateWith(f, substitute_backend)` with `true_backend`, then `substitute_backend` steps in and `true_backend` does not dive into the function `f` itself.
-At the moment, `DifferentiateWith` only works when `true_backend` is either [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl), [Mooncake.jl](https://github.com/compintell/Mooncake.jl), or a [ChainRules.jl](https://github.com/JuliaDiff/ChainRules.jl)-compatible backend (e.g., [Zygote.jl](https://github.com/FluxML/Zygote.jl)).
+At the moment, `DifferentiateWith` only works when `true_backend` is either [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl), [Mooncake.jl](https://github.com/chalk-lab/Mooncake.jl), or a [ChainRules.jl](https://github.com/JuliaDiff/ChainRules.jl)-compatible backend (e.g., [Zygote.jl](https://github.com/FluxML/Zygote.jl)).
 
 ## Implementations
 
@@ -177,7 +177,7 @@ For all operators, preparation generates an [executable function](https://docs.s
 
 ### Mooncake
 
-For `pullback`, preparation [builds the reverse rule](https://github.com/compintell/Mooncake.jl?tab=readme-ov-file#how-it-works) of the function.
+For `pullback`, preparation [builds the reverse rule](https://github.com/chalk-lab/Mooncake.jl?tab=readme-ov-file#how-it-works) of the function.
 
 ### Tracker
 

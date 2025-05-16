@@ -12,6 +12,7 @@ using Mooncake:
     value_and_gradient!!,
     value_and_pullback!!,
     zero_tangent,
+    rdata_type,
     @is_primitive,
     zero_fcodual,
     MinimalCtx,
