@@ -13,7 +13,9 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 function differentiatewith_scenarios()
     bad_scens =  # these closurified scenarios have mutation and type constraints
-        filter(default_scenarios(; include_normal=false, include_closurified=true)) do scen
+        filter(
+            DIT.default_scenarios(; include_normal=false, include_closurified=true)
+        ) do scen
             DIT.function_place(scen) == :out
         end
     good_scens = map(bad_scens) do scen

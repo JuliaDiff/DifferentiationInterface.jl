@@ -33,7 +33,7 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
     # output is a vector, so we need to use the vector pullback
     function pullback_array!!(dy::NoRData)
         tx = DI.pullback(f, backend, primal_x, (fdata(y.dx),))
-        @assert only(tx) isa rdata_type(typeof(primal_x))
+        @assert first(only(tx)) isa rdata_type(typeof(first(primal_x)))
         fdata_arg .+= only(tx)
         return NoRData(), dy
     end
@@ -41,7 +41,7 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
     # output is a scalar, so we can use the scalar pullback
     function pullback_scalar!!(dy::Number)
         tx = DI.pullback(f, backend, primal_x, (dy,))
-        @assert only(tx) isa rdata_type(typeof(primal_x))
+        @assert first(only(tx)) isa rdata_type(typeof(first(primal_x)))
         fdata_arg .+= only(tx)
         return NoRData(), NoRData()
     end
