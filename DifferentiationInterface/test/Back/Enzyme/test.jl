@@ -32,7 +32,7 @@ backends = [
 
 duplicated_backends = [
     AutoEnzyme(; mode=Enzyme.Forward, function_annotation=Enzyme.Duplicated),
-    AutoEnzyme(; mode=Enzyme.Reverse, function_annotation=Enzyme.Duplicated),
+    AutoEnzyme(; mode=Enzyme.Reverse, function_annotation=Enzyme.DuplicatedNoNeed),
 ]
 
 @testset "Checks" begin
