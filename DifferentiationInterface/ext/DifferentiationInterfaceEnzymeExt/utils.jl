@@ -1,6 +1,11 @@
-const AnyDuplicated = Union{Duplicated,MixedDuplicated,BatchDuplicated,BatchMixedDuplicated}
-
-const AnyDuplicatedNoNeed = Union{DuplicatedNoNeed,BatchDuplicatedNoNeed}
+const AnyDuplicated = Union{
+    Duplicated,
+    MixedDuplicated,
+    BatchDuplicated,
+    BatchMixedDuplicated,
+    DuplicatedNoNeed,
+    BatchDuplicatedNoNeed,
+}
 
 # until https://github.com/EnzymeAD/Enzyme.jl/pull/1545 is merged
 function DI.pick_batchsize(::AutoEnzyme, N::Integer)
@@ -35,25 +40,13 @@ function get_f_and_df_prepared!(
     end
 end
 
-function get_f_and_df_prepared!(
-    df, f::F, ::AutoEnzyme{M,<:AnyDuplicatedNoNeed}, ::Val{B}
-) where {F,M,B}
-    if B == 1
-        return DuplicatedNoNeed(f, df)
-    else
-        return BatchDuplicatedNoNeed(f, df)
-    end
-end
-
 function function_shadow(
     ::F, ::AutoEnzyme{M,<:Union{Const,Nothing}}, ::Val{B}
 ) where {M,B,F}
     return nothing
 end
 
-function function_shadow(
-    f::F, ::AutoEnzyme{M,<:Union{AnyDuplicated,AnyDuplicatedNoNeed}}, ::Val{B}
-) where {F,M,B}
+function function_shadow(f::F, ::AutoEnzyme{M,<:AnyDuplicated}, ::Val{B}) where {F,M,B}
     if B == 1
         return make_zero(f)
     else
