@@ -7,7 +7,7 @@ using FiniteDiff: FiniteDiff
 using ForwardDiff: ForwardDiff
 using Zygote: Zygote
 using Mooncake: Mooncake
-using Test
+using StableRNGs, Test
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
@@ -30,3 +30,7 @@ test_differentiation(
     excluded=SECOND_ORDER,
     logging=LOGGING,
 )
+
+@testset "new" begin
+    Mooncake.TestUtils.run_rrule!!_test_cases(StableRNG, Val(:diffwith))
+end
