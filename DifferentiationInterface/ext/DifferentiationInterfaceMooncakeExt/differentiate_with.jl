@@ -1,7 +1,7 @@
 @is_primitive MinimalCtx Tuple{DI.DifferentiateWith,<:Union{Number,AbstractArray,Tuple}}
 
 function Mooncake.rrule!!(
-    dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{Union{<:Number,<:Tuple}}
+    dw::CoDual{<:DI.DifferentiateWith}, x::Union{CoDual{<:Number},CoDual{<:Tuple}}
 )
     primal_func = primal(dw)
     primal_x = primal(x)
@@ -82,11 +82,11 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
     return y, pullback
 end
 
-function generate_derived_rrule!!_test_cases(rng_ctor, ::Val{:diffwith})
+function Mooncake.generate_derived_rrule!!_test_cases(rng_ctor, ::Val{:diffwith})
     return Any[], Any[]
 end
 
-function generate_hand_written_rrule!!_test_cases(rng_ctor, ::Val{:diffwith})
+function Mooncake.generate_hand_written_rrule!!_test_cases(rng_ctor, ::Val{:diffwith})
     test_cases = reduce(
         vcat,
         map([Float64, Float32]) do P
