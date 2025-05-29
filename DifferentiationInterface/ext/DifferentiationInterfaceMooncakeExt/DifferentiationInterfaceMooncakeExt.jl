@@ -3,6 +3,7 @@ module DifferentiationInterfaceMooncakeExt
 using ADTypes: ADTypes, AutoMooncake
 import DifferentiationInterface as DI
 using Mooncake:
+    Mooncake,
     CoDual,
     Config,
     prepare_gradient_cache,
@@ -10,7 +11,14 @@ using Mooncake:
     tangent_type,
     value_and_gradient!!,
     value_and_pullback!!,
-    zero_tangent
+    zero_tangent,
+    rdata_type,
+    @is_primitive,
+    zero_fcodual,
+    MinimalCtx,
+    NoRData,
+    fdata,
+    primal
 
 DI.check_available(::AutoMooncake) = true
 
@@ -26,5 +34,6 @@ mycopy(x) = deepcopy(x)
 
 include("onearg.jl")
 include("twoarg.jl")
+include("differentiate_with.jl")
 
 end
