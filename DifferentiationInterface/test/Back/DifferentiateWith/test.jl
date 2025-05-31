@@ -31,6 +31,6 @@ test_differentiation(
     logging=LOGGING,
 )
 
-@testset "new" begin
+@testset "Mooncake tests" begin
     Mooncake.TestUtils.run_rrule!!_test_cases(StableRNG, Val(:diffwith))
 end

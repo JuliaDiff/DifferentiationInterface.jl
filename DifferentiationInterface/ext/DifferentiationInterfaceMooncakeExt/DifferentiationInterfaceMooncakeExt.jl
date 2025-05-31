@@ -13,11 +13,14 @@ using Mooncake:
     value_and_pullback!!,
     zero_tangent,
     rdata_type,
+    fdata,
+    rdata,
+    tangent_type,
+    NoTangent,
     @is_primitive,
     zero_fcodual,
     MinimalCtx,
     NoRData,
-    fdata,
     primal
 
 DI.check_available(::AutoMooncake) = true
