@@ -32,7 +32,7 @@ We support the following backends defined by [ADTypes.jl](https://github.com/Sci
 
 - [ChainRulesCore.jl](https://github.com/JuliaDiff/ChainRulesCore.jl)
 - [Diffractor.jl](https://github.com/JuliaDiff/Diffractor.jl) (currently broken)
-- [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl)
+- [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl) (see below)
 - [FastDifferentiation.jl](https://github.com/brianguenter/FastDifferentiation.jl)
 - [FiniteDiff.jl](https://github.com/JuliaDiff/FiniteDiff.jl)
 - [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl)
@@ -45,10 +45,8 @@ We support the following backends defined by [ADTypes.jl](https://github.com/Sci
 - [Tracker.jl](https://github.com/FluxML/Tracker.jl)
 - [Zygote.jl](https://github.com/FluxML/Zygote.jl)
 
-Note that in some cases, going through DifferentiationInterface.jl might be slower than a direct call to the backend's API.
-This is mostly true for Enzyme.jl, whose handling of activities and multiple arguments unlocks additional performance.
-We are working on this challenge, and welcome any suggestions or contributions.
-Meanwhile, if differentiation fails or takes too long, consider using Enzyme.jl directly.
+> [!CAUTION]
+> Note that in some cases, going through DifferentiationInterface.jl might be slower or cause more errors than a direct call to the backend's API. This is especially true for Enzyme.jl, whose handling of activities and multiple arguments is not fully supported here. We are working on this challenge, and welcome any suggestions or contributions. Meanwhile, if differentiation fails or takes too long, consider using Enzyme.jl through its [native API](https://enzymead.github.io/Enzyme.jl/stable/) instead.
 
 ## Installation
 
