@@ -16,7 +16,9 @@ links = InterLinks(
     "Symbolics" => "https://symbolics.juliasymbolics.org/stable/",
 )
 
-cp(joinpath(@__DIR__, "..", "README.md"), joinpath(@__DIR__, "src", "index.md"); force=true)
+readme_str = read(joinpath(@__DIR__, "..", "README.md"), String)
+readme_str = replace(readme_str, "> [!CAUTION]\n> " => "!!! warning\n    ")
+write(joinpath(@__DIR__, "src", "index.md"), readme_str)
 
 makedocs(;
     modules=[DifferentiationInterface],
