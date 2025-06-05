@@ -58,7 +58,7 @@ function DI.value_and_pullback(
         map(DI.unwrap, contexts)...,
     )
     copyto!(y, y_after)
-    return y, (mycopy(dx),)
+    return y, (_copy_output(dx),)
 end
 
 function DI.value_and_pullback(
@@ -83,7 +83,7 @@ function DI.value_and_pullback(
             map(DI.unwrap, contexts)...,
         )
         copyto!(y, y_after)
-        mycopy(dx)
+        _copy_output(dx)
     end
     return y, tx
 end
