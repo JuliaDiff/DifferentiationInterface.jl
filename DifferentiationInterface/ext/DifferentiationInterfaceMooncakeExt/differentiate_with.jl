@@ -1,6 +1,8 @@
 @is_primitive MinimalCtx Tuple{DI.DifferentiateWith,<:Union{Number,AbstractArray,Tuple}}
 
-# nested vectors, similar are not supported
+# nested vectors (eg. [[1.0]]), Tuples (eg. ((1.0,),)) or similar (eg. [(1.0,)]) primal types are not supported by DI yet !
+# This is because basis construction (DI.basis) does not have overloads for these types.
+# For details, refer commented out test cases to see where the pullback creation fails.
 function Mooncake.rrule!!(
     dw::CoDual{<:DI.DifferentiateWith}, x::Union{CoDual{<:Number},CoDual{<:Tuple}}
 )
@@ -45,7 +47,9 @@ function Mooncake.rrule!!(
     elseif typeof(primal(y)) <: Tuple
         pullback_tuple!!
     else
-        error("$(typeof(primal(y))) primal type currently not supported.")
+        error(
+            "For the function type $(typeof(primal_func)) and input type $(typeof(primal_x)), the primal type $(typeof(primal(y))) is currently not supported.",
+        )
     end
 
     return y, pullback
@@ -97,7 +101,9 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
     elseif typeof(primal(y)) <: Tuple
         pullback_tuple!!
     else
-        error("$(typeof(primal(y))) primal type currently not supported.")
+        error(
+            "For the function type $(typeof(primal_func)) and input type $(typeof(primal_x)), the primal type $(typeof(primal(y))) is currently not supported.",
+        )
     end
 
     return y, pullback
@@ -113,39 +119,36 @@ function Mooncake.generate_hand_written_rrule!!_test_cases(rng_ctor, ::Val{:diff
         map([(x) -> DI.DifferentiateWith(x, DI.AutoFiniteDiff())]) do F
             map([Float64, Float32]) do P
                 return Any[
-                    (false, :stability, nothing, F(cosh), P(0.3)),
-                    (false, :stability, nothing, F(sinh), P(0.3)),
-                    (false, :stability, nothing, F(Base.FastMath.exp10_fast), P(0.5)),
-                    (false, :stability, nothing, F(Base.FastMath.exp2_fast), P(0.5)),
-                    (false, :stability, nothing, F(Base.FastMath.exp_fast), P(5.0)),
-                    (false, :none, nothing, F(copy), rand(Int32, 5)),
+                    # (false, :none, nothing, F(identity), ((1.0,),)), # (DI.basis fails for this, correct it!)
+                    # (false, :none, nothing, F(identity), [[1.0]]), # (DI.basis fails for this, correct it!)
+                    (false, :stability_and_allocs, nothing, F(cosh), P(0.3)),
+                    (false, :stability_and_allocs, nothing, F(sinh), P(0.3)),
+                    (
+                        false,
+                        :stability_and_allocs,
+                        nothing,
+                        F(Base.FastMath.exp10_fast),
+                        P(0.5),
+                    ),
+                    (
+                        false,
+                        :stability_and_allocs,
+                        nothing,
+                        F(Base.FastMath.exp2_fast),
+                        P(0.5),
+                    ),
+                    (
+                        false,
+                        :stability_and_allocs,
+                        nothing,
+                        F(Base.FastMath.exp_fast),
+                        P(5.0),
+                    ),
+                    (false, :stability, nothing, F(copy), rand(Int32, 5)),
                 ]
             end
         end...,
     )
-
-    map([(x) -> DI.DifferentiateWith(x, DI.AutoZygote())]) do F
-        map([Float64, Float32]) do P
-            push!(
-                test_cases,
-                Any[
-                    (false, :stability, nothing, F(Base.FastMath.sincos), P(3.0)),
-                    (false, :none, nothing, F(Mooncake.__vec_to_tuple), Any[P(1.0)]),
-                ]...,
-            )
-        end
-    end
-
-    map([(x) -> DI.DifferentiateWith(x, DI.AutoZygote())]) do F
-        push!(
-            test_cases,
-            Any[
-                (false, :stability, nothing, F(Mooncake.IntrinsicsWrappers.ctlz_int), 5),
-                (false, :stability, nothing, F(Mooncake.IntrinsicsWrappers.ctpop_int), 5),
-                (false, :stability, nothing, F(Mooncake.IntrinsicsWrappers.cttz_int), 5),
-            ]...,
-        )
-    end
 
     map([(x) -> DI.DifferentiateWith(x, DI.AutoFiniteDiff())]) do F
         push!(
@@ -155,14 +158,14 @@ function Mooncake.generate_hand_written_rrule!!_test_cases(rng_ctor, ::Val{:diff
                 (
                     # Check that Core._apply_iterate gets lifted to _apply_iterate_equivalent.
                     false,
-                    :none,
+                    :stability,
                     nothing,
                     F(x -> +(x...)),
                     randn(33),
                 ),
                 (
                     false,
-                    :none,
+                    :stability,
                     nothing,
                     (F(
                         function (x)
@@ -174,19 +177,36 @@ function Mooncake.generate_hand_written_rrule!!_test_cases(rng_ctor, ::Val{:diff
                     )),
                     5.0,
                 ),
-                (false, :none, nothing, F(Mooncake.__vec_to_tuple), [1.0]),
-                # (false, :none, nothing, F(Mooncake.__vec_to_tuple), Any[(1.0,)]), DI.basis fails for this, correct it!
-                (false, :stability, nothing, F(Mooncake.IntrinsicsWrappers.ctlz_int), 5),
-                (false, :stability, nothing, F(Mooncake.IntrinsicsWrappers.ctpop_int), 5),
-                (false, :stability, nothing, F(Mooncake.IntrinsicsWrappers.cttz_int), 5),
+                # (false, :none, nothing, F(Mooncake.__vec_to_tuple), Any[(1.0,)]), # (DI.basis fails for this, correct it!)
                 (
                     false,
-                    :stability,
+                    :stability_and_allocs,
+                    nothing,
+                    F(Mooncake.IntrinsicsWrappers.ctlz_int),
+                    5,
+                ),
+                (
+                    false,
+                    :stability_and_allocs,
+                    nothing,
+                    F(Mooncake.IntrinsicsWrappers.ctpop_int),
+                    5,
+                ),
+                (
+                    false,
+                    :stability_and_allocs,
+                    nothing,
+                    F(Mooncake.IntrinsicsWrappers.cttz_int),
+                    5,
+                ),
+                (
+                    false,
+                    :stability_and_allocs,
                     nothing,
                     F(Mooncake.IntrinsicsWrappers.abs_float),
                     5.0f0,
                 ),
-                (false, :stability, nothing, F(deepcopy), 5.0),
+                (false, :stability_and_allocs, nothing, F(deepcopy), 5.0),
                 (false, :stability, nothing, F(deepcopy), randn(5)),
                 (false, :stability_and_allocs, nothing, F(sin), 1.1),
                 (false, :stability_and_allocs, nothing, F(sin), 1.0f1),
@@ -194,6 +214,51 @@ function Mooncake.generate_hand_written_rrule!!_test_cases(rng_ctor, ::Val{:diff
                 (false, :stability_and_allocs, nothing, F(cos), 1.0f1),
                 (false, :stability_and_allocs, nothing, F(exp), 1.1),
                 (false, :stability_and_allocs, nothing, F(exp), 1.0f1),
+            ]...,
+        )
+    end
+
+    map([(x) -> DI.DifferentiateWith(x, DI.AutoForwardDiff())]) do F
+        map([Float64, Float32]) do P
+            push!(
+                test_cases,
+                Any[
+                    (
+                        false,
+                        :stability_and_allocs,
+                        nothing,
+                        F(Base.FastMath.sincos),
+                        P(3.0),
+                    ),
+                    (false, :none, nothing, F(Mooncake.__vec_to_tuple), [P(1.0)]),
+                ]...,
+            )
+        end
+
+        push!(
+            test_cases,
+            Any[
+                (
+                    false,
+                    :stability_and_allocs,
+                    nothing,
+                    F(Mooncake.IntrinsicsWrappers.ctlz_int),
+                    5,
+                ),
+                (
+                    false,
+                    :stability_and_allocs,
+                    nothing,
+                    F(Mooncake.IntrinsicsWrappers.ctpop_int),
+                    5,
+                ),
+                (
+                    false,
+                    :stability_and_allocs,
+                    nothing,
+                    F(Mooncake.IntrinsicsWrappers.cttz_int),
+                    5,
+                ),
             ]...,
         )
     end
