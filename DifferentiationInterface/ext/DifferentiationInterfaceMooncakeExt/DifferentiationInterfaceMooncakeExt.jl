@@ -10,12 +10,11 @@ using Mooncake:
     tangent_type,
     value_and_gradient!!,
     value_and_pullback!!,
-    zero_tangent
+    zero_tangent,
+    _copy_output,
+    _copy_to_output!!
 
 DI.check_available(::AutoMooncake) = true
-
-copyto!!(dst::Number, src::Number) = convert(typeof(dst), src)
-copyto!!(dst, src) = DI.ismutable_array(dst) ? copyto!(dst, src) : convert(typeof(dst), src)
 
 get_config(::AutoMooncake{Nothing}) = Config()
 get_config(backend::AutoMooncake{<:Config}) = backend.config

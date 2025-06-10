@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.1]
 
+### Feat
+
+- Use Mooncake's internal copy utilities ([#809])
+
 ### Fixed
 
 - Take `absstep` into account for FiniteDiff ([#812])
@@ -42,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [#812]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/812
 [#810]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/810
+[#809]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/809
 [#799]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/799
 [#795]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/795
 [#790]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/790
