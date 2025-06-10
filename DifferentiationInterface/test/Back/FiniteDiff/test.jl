@@ -88,6 +88,11 @@ end;
         @test prep.relstep == 0.1
         @test prep.absstep == 1000
     end
+    prep = prepare_hessian(sum, backend, [1.0])
+    @test prep.absstep_g == 1000
+    @test prep.absstep_h == 1000
+    @test prep.relstep_g == 0.1
+    @test prep.relstep_h == 0.1
 
     backend = AutoFiniteDiff(; relstep=0.1)
     preps = [
@@ -103,4 +108,9 @@ end;
         @test prep.relstep == 0.1
         @test prep.absstep == 0.1
     end
+    prep = prepare_hessian(sum, backend, [1.0])
+    @test prep.absstep_g == 0.1
+    @test prep.absstep_h == 0.1
+    @test prep.relstep_g == 0.1
+    @test prep.relstep_h == 0.1
 end

@@ -463,10 +463,18 @@ function DI.prepare_hessian_nokwarg(
     relstep_h = if isnothing(backend.relstep)
         default_relstep(fdhtype(backend), eltype(x))
     else
+        backend.relstep
+    end
+    absstep_g = if isnothing(backend.absstep)
+        relstep_g
+    else
         backend.absstep
     end
-    absstep_g = isnothing(backend.absstep) ? relstep_g : backend.absstep
-    absstep_h = isnothing(backend.absstep) ? relstep_h : backend.absstep
+    absstep_h = if isnothing(backend.absstep)
+        relstep_h
+    else
+        backend.absstep
+    end
     return FiniteDiffHessianPrep(
         _sig, gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h
     )
