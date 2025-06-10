@@ -5,7 +5,7 @@ steps:
       - JuliaCI/julia#v1:
           version: "1"
     command: |
-      julia ./DifferentiationInterface/test/GPU/CUDA/simple.jl
+      julia ./DifferentiationInterface/test/GPU/CUDA/main.jl
     agents:
       queue: "juliagpu"
       cuda: "*"
