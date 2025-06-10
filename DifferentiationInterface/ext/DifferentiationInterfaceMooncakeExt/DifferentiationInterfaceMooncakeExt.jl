@@ -12,7 +12,7 @@ using Mooncake:
     value_and_pullback!!,
     zero_tangent,
     _copy_output,
-    _copy_to_output!
+    _copy_to_output!!
 
 DI.check_available(::AutoMooncake) = true
 

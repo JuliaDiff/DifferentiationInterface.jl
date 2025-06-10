@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.1]
 
+### Feat
+
+- Use Mooncake's internal copy utilities ([#809])
+
 ### Fixed
 
 - Make basis work for `CuArray` ([#810])
@@ -40,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.53]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.6.52...DifferentiationInterface-v0.6.53
 
 [#810]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/810
+[#809]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/809
 [#799]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/799
 [#795]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/795
 [#790]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/790

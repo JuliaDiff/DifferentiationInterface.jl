@@ -30,7 +30,7 @@ function DI.value_and_pullback(
 ) where {F,Y,C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     dy = only(ty)
-    dy_righttype = dy isa tangent_type(Y) ? dy : _copy_to_output!(prep.dy_righttype, dy)
+    dy_righttype = dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
     new_y, (_, new_dx) = value_and_pullback!!(
         prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...
     )
@@ -47,7 +47,8 @@ function DI.value_and_pullback(
 ) where {F,Y,C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     ys_and_tx = map(ty) do dy
-        dy_righttype = dy isa tangent_type(Y) ? dy : _copy_to_output!(prep.dy_righttype, dy)
+        dy_righttype =
+            dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
         y, (_, new_dx) = value_and_pullback!!(
             prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...
         )
