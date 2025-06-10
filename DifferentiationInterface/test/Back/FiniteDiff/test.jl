@@ -72,3 +72,35 @@ end
         logging=LOGGING,
     )
 end;
+
+@testset "Step size" begin  # fix 811
+    backend = AutoFiniteDiff(; absstep=1000, relstep=0.1)
+    preps = [
+        prepare_pushforward(identity, backend, 1.0, (1.0,))
+        prepare_pushforward(copyto!, [0.0], backend, [1.0], ([1.0],))
+        prepare_derivative(identity, backend, 1.0)
+        prepare_derivative((y, x) -> y .= x, [0.0], backend, 1.0)
+        prepare_gradient(sum, backend, [1.0])
+        prepare_jacobian(identity, backend, [1.0])
+        prepare_jacobian(copyto!, [0.0], backend, [1.0])
+    ]
+    for prep in preps
+        @test prep.relstep == 0.1
+        @test prep.absstep == 1000
+    end
+
+    backend = AutoFiniteDiff(; relstep=0.1)
+    preps = [
+        prepare_pushforward(identity, backend, 1.0, (1.0,))
+        prepare_pushforward(copyto!, [0.0], backend, [1.0], ([1.0],))
+        prepare_derivative(identity, backend, 1.0)
+        prepare_derivative((y, x) -> y .= x, [0.0], backend, 1.0)
+        prepare_gradient(sum, backend, [1.0])
+        prepare_jacobian(identity, backend, [1.0])
+        prepare_jacobian(copyto!, [0.0], backend, [1.0])
+    ]
+    for prep in preps
+        @test prep.relstep == 0.1
+        @test prep.absstep == 0.1
+    end
+end
