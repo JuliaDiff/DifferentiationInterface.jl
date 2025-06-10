@@ -27,7 +27,7 @@ function DI.prepare_pushforward_nokwarg(
     absstep = if isnothing(backend.absstep)
         relstep
     else
-        backend.relstep
+        backend.absstep
     end
     dir = backend.dir
     return FiniteDiffOneArgPushforwardPrep(_sig, cache, relstep, absstep, dir)
@@ -144,7 +144,7 @@ function DI.prepare_derivative_nokwarg(
     absstep = if isnothing(backend.absstep)
         relstep
     else
-        backend.relstep
+        backend.absstep
     end
     dir = backend.dir
     return FiniteDiffOneArgDerivativePrep(_sig, cache, relstep, absstep, dir)
@@ -269,7 +269,7 @@ function DI.prepare_gradient_nokwarg(
     absstep = if isnothing(backend.absstep)
         relstep
     else
-        backend.relstep
+        backend.absstep
     end
     dir = backend.dir
     return FiniteDiffGradientPrep(_sig, cache, relstep, absstep, dir)
@@ -359,7 +359,7 @@ function DI.prepare_jacobian_nokwarg(
     absstep = if isnothing(backend.absstep)
         relstep
     else
-        backend.relstep
+        backend.absstep
     end
     dir = backend.dir
     return FiniteDiffOneArgJacobianPrep(_sig, cache, relstep, absstep, dir)
@@ -465,8 +465,16 @@ function DI.prepare_hessian_nokwarg(
     else
         backend.relstep
     end
-    absstep_g = isnothing(backend.absstep) ? relstep_g : backend.absstep
-    absstep_h = isnothing(backend.absstep) ? relstep_h : backend.absstep
+    absstep_g = if isnothing(backend.absstep)
+        relstep_g
+    else
+        backend.absstep
+    end
+    absstep_h = if isnothing(backend.absstep)
+        relstep_h
+    else
+        backend.absstep
+    end
     return FiniteDiffHessianPrep(
         _sig, gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h
     )
