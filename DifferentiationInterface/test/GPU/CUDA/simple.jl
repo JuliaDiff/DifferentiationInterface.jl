@@ -8,7 +8,7 @@ CUDA.versioninfo()
 
 @testset "Basis" begin
     x = CuVector(rand(Float32, 3))
-    b = basis(x, 2)
+    b = DI.basis(x, 2)
     @test Array(b) == [0, 1, 0]
 
     X = CuMatrix(rand(Float32, 2, 2))
