@@ -18,9 +18,6 @@ end
     multibasis(a::AbstractArray, inds)
 
 Construct the sum of the `i`-th standard basis arrays in the vector space of `a` for all `i ∈ inds`.
-
-!!! warning
-    Does not work on GPU, since this is intended for sparse autodiff and SparseMatrixColorings.jl doesn't work on GPUs either.
 """
 function multibasis(a::AbstractArray{T}, inds) where {T}
     b = similar(a)
