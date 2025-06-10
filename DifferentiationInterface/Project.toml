@@ -1,7 +1,7 @@
 name = "DifferentiationInterface"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 authors = ["Guillaume Dalle", "Adrian Hill"]
-version = "0.7.0"
+version = "0.7.1"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -41,7 +41,9 @@ DifferentiationInterfaceForwardDiffExt = ["ForwardDiff", "DiffResults"]
 DifferentiationInterfaceGPUArraysCoreExt = "GPUArraysCore"
 DifferentiationInterfaceGTPSAExt = "GTPSA"
 DifferentiationInterfaceMooncakeExt = "Mooncake"
-DifferentiationInterfacePolyesterForwardDiffExt = ["PolyesterForwardDiff", "ForwardDiff", "DiffResults"]
+DifferentiationInterfacePolyesterForwardDiffExt = [
+    "PolyesterForwardDiff", "ForwardDiff", "DiffResults"
+]
 DifferentiationInterfaceReverseDiffExt = ["ReverseDiff", "DiffResults"]
 DifferentiationInterfaceSparseArraysExt = "SparseArrays"
 DifferentiationInterfaceSparseConnectivityTracerExt = "SparseConnectivityTracer"
@@ -121,4 +123,21 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
-test = ["ADTypes", "Aqua", "ComponentArrays", "DataFrames", "ExplicitImports", "JET", "JLArrays", "JuliaFormatter", "Pkg", "Random", "SparseArrays", "SparseConnectivityTracer", "SparseMatrixColorings", "StableRNGs", "StaticArrays", "Test"]
+test = [
+    "ADTypes",
+    "Aqua",
+    "ComponentArrays",
+    "DataFrames",
+    "ExplicitImports",
+    "JET",
+    "JLArrays",
+    "JuliaFormatter",
+    "Pkg",
+    "Random",
+    "SparseArrays",
+    "SparseConnectivityTracer",
+    "SparseMatrixColorings",
+    "StableRNGs",
+    "StaticArrays",
+    "Test",
+]
