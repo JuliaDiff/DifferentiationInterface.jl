@@ -55,7 +55,7 @@ DifferentiationInterfaceZygoteExt = ["Zygote", "ForwardDiff"]
 
 [compat]
 Aqua = "0.8.12"
-ADTypes = "1.15.0"
+ADTypes = "1.13.0"
 ChainRulesCore = "1.23.0"
 ComponentArrays = "0.15.27"
 DataFrames = "1.7.0"
