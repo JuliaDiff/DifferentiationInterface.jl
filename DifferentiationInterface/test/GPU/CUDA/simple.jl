@@ -1,6 +1,3 @@
-@info "Testing on CUDA"
-using Pkg
-Pkg.add("CUDA")
 using CUDA
 using DifferentiationInterface
 import DifferentiationInterface as DI
