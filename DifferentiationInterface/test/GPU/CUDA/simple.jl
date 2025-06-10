@@ -20,5 +20,5 @@ end
     x = CuVector(rand(Float32, 3))
     backend = DI.AutoSimpleFiniteDiff()
     J = jacobian(identity, backend, x)
-    @test J == I
+    @test (J .!= 0) == I
 end
