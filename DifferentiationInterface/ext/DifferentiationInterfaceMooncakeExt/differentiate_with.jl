@@ -1,11 +1,23 @@
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith,<:Union{Number,AbstractArray,Tuple}}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith,<:Any}
 
-# nested vectors (eg. [[1.0]]), Tuples (eg. ((1.0,),)) or similar (eg. [(1.0,)]) primal types are not supported by DI yet !
-# This is because basis construction (DI.basis) does not have overloads for these types.
+struct MooncakeDifferentiateWithError <: Exception
+    F::Type
+    X::Type
+    Y::Type
+    function MooncakeDifferentiateWithError(::F, ::X, ::Y) where {F,X,Y}
+        return new(F, X, Y)
+    end
+end
+
+function Base.showerror(io::IO, e::MooncakeDifferentiateWithError)
+    return print(
+        io,
+        "MooncakeDifferentiateWithError: For the function type $(e.F) and input type $(e.X), the output type $(e.Y) is currently not supported.",
+    )
+end
+
 # For details, refer commented out test cases to see where the pullback creation fails.
-function Mooncake.rrule!!(
-    dw::CoDual{<:DI.DifferentiateWith}, x::Union{CoDual{<:Number},CoDual{<:Tuple}}
-)
+function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Number})
     primal_func = primal(dw)
     primal_x = primal(x)
     (; f, backend) = primal_func
@@ -25,31 +37,12 @@ function Mooncake.rrule!!(
         return NoRData(), rdata(only(tx))
     end
 
-    # output is a Tuple, NTuple
-    function pullback_tuple!!(dy::Tuple)
-        tx = DI.pullback(f, backend, primal_x, (dy,))
-        @assert rdata(only(tx)) isa rdata_type(tangent_type(typeof(primal_x)))
-        return NoRData(), rdata(only(tx))
-    end
-
-    # inputs are non Differentiable
-    function pullback_nodiff!!(dy::NoRData)
-        @assert tangent_type(typeof(primal(x))) <: NoTangent
-        return NoRData(), dy
-    end
-
-    pullback = if tangent_type(typeof(primal(x))) <: NoTangent
-        pullback_nodiff!!
-    elseif primal(y) isa Number
+    pullback = if primal(y) isa Number
         pullback_scalar!!
-    elseif primal(y) <: AbstractArray
+    elseif primal(y) isa AbstractArray
         pullback_array!!
-    elseif primal(y) <: Tuple
-        pullback_tuple!!
     else
-        error(
-            "For the function type $(typeof(primal_func)) and input type $(typeof(primal_x)), the primal type $(typeof(primal(y))) is currently not supported.",
-        )
+        throw(MooncakeDifferentiateWithError(primal_func, primal_x, primal(y)))
     end
 
     return y, pullback
@@ -78,191 +71,13 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
         return NoRData(), NoRData()
     end
 
-    # output is a Tuple, NTuple
-    function pullback_tuple!!(dy::Tuple)
-        tx = DI.pullback(f, backend, primal_x, (dy,))
-        @assert rdata(first(only(tx))) isa rdata_type(tangent_type(typeof(first(primal_x))))
-        fdata_arg .+= only(tx)
-        return NoRData(), NoRData()
-    end
-
-    # inputs are non Differentiable
-    function pullback_nodiff!!(dy::NoRData)
-        @assert tangent_type(typeof(primal(x))) <: Vector{NoTangent}
-        return NoRData(), dy
-    end
-
-    pullback = if tangent_type(typeof(primal(x))) <: Vector{NoTangent}
-        pullback_nodiff!!
-    elseif primal(y) isa Number
+    pullback = if primal(y) isa Number
         pullback_scalar!!
-    elseif primal(y) <: AbstractArray
+    elseif primal(y) isa AbstractArray
         pullback_array!!
-    elseif primal(y) <: Tuple
-        pullback_tuple!!
     else
-        error(
-            "For the function type $(typeof(primal_func)) and input type $(typeof(primal_x)), the primal type $(typeof(primal(y))) is currently not supported.",
-        )
+        throw(MooncakeDifferentiateWithError(primal_func, primal_x, primal(y)))
     end
 
     return y, pullback
-end
-
-function Mooncake.generate_derived_rrule!!_test_cases(rng_ctor, ::Val{:diffwith})
-    return Any[], Any[]
-end
-
-function Mooncake.generate_hand_written_rrule!!_test_cases(rng_ctor, ::Val{:diffwith})
-    test_cases = reduce(
-        vcat,
-        map([(x) -> DI.DifferentiateWith(x, DI.AutoFiniteDiff())]) do F
-            map([Float64, Float32]) do P
-                return Any[
-                    # (false, :none, nothing, F(identity), ((1.0,),)), # (DI.basis fails for this, correct it!)
-                    # (false, :none, nothing, F(identity), [[1.0]]), # (DI.basis fails for this, correct it!)
-                    (false, :stability_and_allocs, nothing, F(cosh), P(0.3)),
-                    (false, :stability_and_allocs, nothing, F(sinh), P(0.3)),
-                    (
-                        false,
-                        :stability_and_allocs,
-                        nothing,
-                        F(Base.FastMath.exp10_fast),
-                        P(0.5),
-                    ),
-                    (
-                        false,
-                        :stability_and_allocs,
-                        nothing,
-                        F(Base.FastMath.exp2_fast),
-                        P(0.5),
-                    ),
-                    (
-                        false,
-                        :stability_and_allocs,
-                        nothing,
-                        F(Base.FastMath.exp_fast),
-                        P(5.0),
-                    ),
-                    (false, :stability, nothing, F(copy), rand(Int32, 5)),
-                ]
-            end
-        end...,
-    )
-
-    map([(x) -> DI.DifferentiateWith(x, DI.AutoFiniteDiff())]) do F
-        push!(
-            test_cases,
-            Any[
-                (false, :stability, nothing, copy, randn(5, 4)),
-                (
-                    # Check that Core._apply_iterate gets lifted to _apply_iterate_equivalent.
-                    false,
-                    :stability,
-                    nothing,
-                    F(x -> +(x...)),
-                    randn(33),
-                ),
-                (
-                    false,
-                    :stability,
-                    nothing,
-                    (F(
-                        function (x)
-                            rx = Ref(x)
-                            return Base.pointerref(
-                                Base.bitcast(Ptr{Float64}, pointer_from_objref(rx)), 1, 1
-                            )
-                        end,
-                    )),
-                    5.0,
-                ),
-                # (false, :none, nothing, F(Mooncake.__vec_to_tuple), Any[(1.0,)]), # (DI.basis fails for this, correct it!)
-                (
-                    false,
-                    :stability_and_allocs,
-                    nothing,
-                    F(Mooncake.IntrinsicsWrappers.ctlz_int),
-                    5,
-                ),
-                (
-                    false,
-                    :stability_and_allocs,
-                    nothing,
-                    F(Mooncake.IntrinsicsWrappers.ctpop_int),
-                    5,
-                ),
-                (
-                    false,
-                    :stability_and_allocs,
-                    nothing,
-                    F(Mooncake.IntrinsicsWrappers.cttz_int),
-                    5,
-                ),
-                (
-                    false,
-                    :stability_and_allocs,
-                    nothing,
-                    F(Mooncake.IntrinsicsWrappers.abs_float),
-                    5.0f0,
-                ),
-                (false, :stability_and_allocs, nothing, F(deepcopy), 5.0),
-                (false, :stability, nothing, F(deepcopy), randn(5)),
-                (false, :stability_and_allocs, nothing, F(sin), 1.1),
-                (false, :stability_and_allocs, nothing, F(sin), 1.0f1),
-                (false, :stability_and_allocs, nothing, F(cos), 1.1),
-                (false, :stability_and_allocs, nothing, F(cos), 1.0f1),
-                (false, :stability_and_allocs, nothing, F(exp), 1.1),
-                (false, :stability_and_allocs, nothing, F(exp), 1.0f1),
-            ]...,
-        )
-    end
-
-    map([(x) -> DI.DifferentiateWith(x, DI.AutoForwardDiff())]) do F
-        map([Float64, Float32]) do P
-            push!(
-                test_cases,
-                Any[
-                    (
-                        false,
-                        :stability_and_allocs,
-                        nothing,
-                        F(Base.FastMath.sincos),
-                        P(3.0),
-                    ),
-                    (false, :none, nothing, F(Mooncake.__vec_to_tuple), [P(1.0)]),
-                ]...,
-            )
-        end
-
-        push!(
-            test_cases,
-            Any[
-                (
-                    false,
-                    :stability_and_allocs,
-                    nothing,
-                    F(Mooncake.IntrinsicsWrappers.ctlz_int),
-                    5,
-                ),
-                (
-                    false,
-                    :stability_and_allocs,
-                    nothing,
-                    F(Mooncake.IntrinsicsWrappers.ctpop_int),
-                    5,
-                ),
-                (
-                    false,
-                    :stability_and_allocs,
-                    nothing,
-                    F(Mooncake.IntrinsicsWrappers.cttz_int),
-                    5,
-                ),
-            ]...,
-        )
-    end
-
-    memory = Any[]
-    return test_cases, memory
 end
