@@ -68,9 +68,7 @@ end;
 
 @testset "Mooncake errors" begin
     MooncakeDifferentiateWithError =
-        Base.get_extension(
-            DifferentiationInterface, :DifferentiationInterfaceMooncakeExt
-        ).MooncakeDifferentiateWithError
+        Base.get_extension(DifferentiationInterface, :DifferentiationInterfaceMooncakeExt).MooncakeDifferentiateWithError
 
     e = MooncakeDifferentiateWithError(identity, 1.0, 2.0)
     @test sprint(showerror, e) ==
