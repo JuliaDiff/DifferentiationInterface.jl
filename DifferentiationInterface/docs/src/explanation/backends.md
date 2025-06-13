@@ -120,6 +120,10 @@ We only implement `pushforward`.
 Depending on the `mode` attribute inside [`AutoEnzyme`](@extref ADTypes.AutoEnzyme), we implement either `pushforward` or `pullback` based on `Enzyme.autodiff`.
 When necessary, preparation chooses a number of chunks (for `gradient` and `jacobian` in forward mode, for `jacobian` only in reverse mode).
 
+!!! warning
+    Enzyme.jl's handling of activities and multiple arguments is not fully supported here, which can cause slowdowns or errors.
+    If differentiation fails or takes too long, consider using Enzyme.jl through its [native API](https://enzymead.github.io/Enzyme.jl/stable/) instead.
+
 ### FastDifferentiation
 
 For every operator, preparation generates an [executable function](https://brianguenter.github.io/FastDifferentiation.jl/stable/makefunction/) from the symbolic expression of the differentiated function.

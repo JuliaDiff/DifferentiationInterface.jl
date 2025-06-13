@@ -31,7 +31,7 @@ function DI.prepare_pushforward_nokwarg(
     absstep = if isnothing(backend.absstep)
         relstep
     else
-        backend.relstep
+        backend.absstep
     end
     dir = backend.dir
     return FiniteDiffTwoArgPushforwardPrep(_sig, cache, relstep, absstep, dir)
@@ -175,7 +175,7 @@ function DI.prepare_derivative_nokwarg(
     absstep = if isnothing(backend.absstep)
         relstep
     else
-        backend.relstep
+        backend.absstep
     end
     dir = backend.dir
     return FiniteDiffTwoArgDerivativePrep(_sig, cache, relstep, absstep, dir)
@@ -295,7 +295,7 @@ function DI.prepare_jacobian_nokwarg(
     absstep = if isnothing(backend.absstep)
         relstep
     else
-        backend.relstep
+        backend.absstep
     end
     dir = backend.dir
     return FiniteDiffTwoArgJacobianPrep(_sig, cache, relstep, absstep, dir)
