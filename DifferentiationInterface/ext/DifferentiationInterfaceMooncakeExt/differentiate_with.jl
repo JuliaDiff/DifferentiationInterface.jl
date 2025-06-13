@@ -40,11 +40,11 @@ function Mooncake.rrule!!(
 
     pullback = if tangent_type(typeof(primal(x))) <: NoTangent
         pullback_nodiff!!
-    elseif typeof(primal(y)) <: Number
+    elseif primal(y) isa Number
         pullback_scalar!!
-    elseif typeof(primal(y)) <: Array
+    elseif primal(y) <: AbstractArray
         pullback_array!!
-    elseif typeof(primal(y)) <: Tuple
+    elseif primal(y) <: Tuple
         pullback_tuple!!
     else
         error(
@@ -94,11 +94,11 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Abstra
 
     pullback = if tangent_type(typeof(primal(x))) <: Vector{NoTangent}
         pullback_nodiff!!
-    elseif typeof(primal(y)) <: Number
+    elseif primal(y) isa Number
         pullback_scalar!!
-    elseif typeof(primal(y)) <: AbstractArray
+    elseif primal(y) <: AbstractArray
         pullback_array!!
-    elseif typeof(primal(y)) <: Tuple
+    elseif primal(y) <: Tuple
         pullback_tuple!!
     else
         error(
