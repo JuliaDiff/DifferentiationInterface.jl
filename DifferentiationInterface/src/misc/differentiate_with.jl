@@ -17,7 +17,7 @@ Moreover, any larger algorithm `alg` that calls `f2` instead of `f` will also be
     For any other true backend, the differentiation behavior is not altered by `DifferentiateWith` (it becomes a transparent wrapper).
 
 !!! warning
-    When using Mooncake as a substitute backend via `DifferentiateWith(f, AutoMooncake())`. The function `f` must not close over any active data.
+    When using `DifferentiateWith(f, AutoSomething())`, the function `f` must not close over any active data.
     As of now, we cannot differentiate with respect to parameters stored inside `f`.
 
 # Fields
