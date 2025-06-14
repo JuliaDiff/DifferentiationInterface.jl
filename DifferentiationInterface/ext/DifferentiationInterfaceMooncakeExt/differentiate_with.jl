@@ -48,7 +48,9 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Number
     return y, pullback
 end
 
-function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:AbstractArray})
+function Mooncake.rrule!!(
+    dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:AbstractArray{<:Number}}
+)
     primal_func = primal(dw)
     primal_x = primal(x)
     fdata_arg = x.dx
