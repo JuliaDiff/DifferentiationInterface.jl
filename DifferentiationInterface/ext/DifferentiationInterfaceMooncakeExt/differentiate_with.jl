@@ -16,7 +16,6 @@ function Base.showerror(io::IO, e::MooncakeDifferentiateWithError)
     )
 end
 
-# For details, refer commented out test cases to see where the pullback creation fails.
 function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Number})
     primal_func = primal(dw)
     primal_x = primal(x)
