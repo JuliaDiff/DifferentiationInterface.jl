@@ -13,7 +13,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
 backends = [
     AutoMooncake(; config=nothing),
     AutoMooncake(; config=Mooncake.Config()),
-    AutoMooncakeForward(; config=nothing);
+    AutoMooncakeForward(; config=nothing),
 ]
 
 for backend in backends
