@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Feat
+
+- Backend switching for Mooncake ([#768])
+
 ## [0.7.1]
 
 ### Feat
@@ -52,3 +56,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#790]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/790
 [#788]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/788
 [#782]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/782
+[#768]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/768

@@ -86,7 +86,16 @@ AutoSparse(
 )
 ```
 
-At the moment, mixed mode tends to work best when the [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) is provided with a [`RandomOrder`](@extref SparseMatrixColorings.RandomOrder) instead of the usual [`NaturalOrder`](@extref SparseMatrixColorings.NaturalOrder).
+At the moment, mixed mode tends to work best (output fewer colors) when the [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) is provided with a [`RandomOrder`](@extref SparseMatrixColorings.RandomOrder) instead of the usual [`NaturalOrder`](@extref SparseMatrixColorings.NaturalOrder), and when "post-processing" is activated after coloring.
+For full reproducibility, you should use a random number generator from [StableRNGs.jl](https://github.com/JuliaRandom/StableRNGs.jl).
+Thus, the right setup looks like:
+
+```julia
+using StableRNGs
+
+seed = 3
+coloring_algorithm = GreedyColoringAlgorithm(RandomOrder(StableRNG(seed), seed); postprocessing=true)
+```
 
 ## Batch mode
 
