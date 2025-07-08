@@ -1,6 +1,5 @@
 steps:
   - label: "DI GPU tests"
-    if: build.pull_request.labels includes "gpu"
     plugins:
       - JuliaCI/julia#v1:
           version: "1"
