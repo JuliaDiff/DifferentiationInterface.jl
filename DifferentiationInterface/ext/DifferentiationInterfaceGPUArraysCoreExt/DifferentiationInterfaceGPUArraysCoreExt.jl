@@ -13,9 +13,7 @@ end
 function DI.multibasis(a::AbstractGPUArray{T}, inds) where {T}
     b = similar(a)
     fill!(b, zero(T))
-    for i in inds
-        @allowscalar b[i] = one(T)
-    end
+    view(b, inds) .= one(T)
     return b
 end
 
