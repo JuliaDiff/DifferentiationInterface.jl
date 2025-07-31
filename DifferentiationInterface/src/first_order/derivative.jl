@@ -143,7 +143,7 @@ function prepare_derivative_nokwarg(
 ) where {F,C}
     _sig = signature(f, backend, x, contexts...; strict)
     pushforward_prep = prepare_pushforward_nokwarg(
-        strict, f, backend, x, (one(x),), contexts...
+        strict, f, backend, x, (oneunit(x),), contexts...
     )
     return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
@@ -153,7 +153,7 @@ function prepare_derivative_nokwarg(
 ) where {F,C}
     _sig = signature(f!, y, backend, x, contexts...; strict)
     pushforward_prep = prepare_pushforward_nokwarg(
-        strict, f!, y, backend, x, (one(x),), contexts...
+        strict, f!, y, backend, x, (oneunit(x),), contexts...
     )
     return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
@@ -169,7 +169,7 @@ function value_and_derivative(
 ) where {F,C}
     check_prep(f, prep, backend, x, contexts...)
     y, ty = value_and_pushforward(
-        f, prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, only(ty)
 end
@@ -184,7 +184,7 @@ function value_and_derivative!(
 ) where {F,C}
     check_prep(f, prep, backend, x, contexts...)
     y, _ = value_and_pushforward!(
-        f, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, der
 end
@@ -197,7 +197,7 @@ function derivative(
     contexts::Vararg{Context,C},
 ) where {F,C}
     check_prep(f, prep, backend, x, contexts...)
-    ty = pushforward(f, prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    ty = pushforward(f, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...)
     return only(ty)
 end
 
@@ -210,7 +210,7 @@ function derivative!(
     contexts::Vararg{Context,C},
 ) where {F,C}
     check_prep(f, prep, backend, x, contexts...)
-    pushforward!(f, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    pushforward!(f, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...)
     return der
 end
 
@@ -226,7 +226,7 @@ function value_and_derivative(
 ) where {F,C}
     check_prep(f!, y, prep, backend, x, contexts...)
     y, ty = value_and_pushforward(
-        f!, y, prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f!, y, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, only(ty)
 end
@@ -242,7 +242,7 @@ function value_and_derivative!(
 ) where {F,C}
     check_prep(f!, y, prep, backend, x, contexts...)
     y, _ = value_and_pushforward!(
-        f!, y, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f!, y, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, der
 end
@@ -256,7 +256,7 @@ function derivative(
     contexts::Vararg{Context,C},
 ) where {F,C}
     check_prep(f!, y, prep, backend, x, contexts...)
-    ty = pushforward(f!, y, prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    ty = pushforward(f!, y, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...)
     return only(ty)
 end
 
@@ -270,7 +270,9 @@ function derivative!(
     contexts::Vararg{Context,C},
 ) where {F,C}
     check_prep(f!, y, prep, backend, x, contexts...)
-    pushforward!(f!, y, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    pushforward!(
+        f!, y, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
+    )
     return der
 end
 

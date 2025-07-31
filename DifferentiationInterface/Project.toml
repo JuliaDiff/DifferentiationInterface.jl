@@ -61,6 +61,7 @@ Aqua = "0.8.12"
 ChainRulesCore = "1.23.0"
 ComponentArrays = "0.15.27"
 DataFrames = "1.7.0"
+Dates = "1"
 DiffResults = "1.1.0"
 Diffractor = "=0.2.6"
 Enzyme = "0.13.39"
@@ -98,6 +99,7 @@ Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Diffractor = "9f5e2b26-1114-432f-b630-d3fe2085c51c"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
@@ -130,6 +132,7 @@ test = [
     "Aqua",
     "ComponentArrays",
     "DataFrames",
+    "Dates",
     "ExplicitImports",
     "JET",
     "JLArrays",
