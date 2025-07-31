@@ -135,8 +135,8 @@ DenseSparsityDetector
 ### From primitive
 
 ```@docs
-AutoForwardFromPrimitive
-AutoReverseFromPrimitive
+DifferentiationInterface.AutoForwardFromPrimitive
+DifferentiationInterface.AutoReverseFromPrimitive
 ```
 
 ## Internals
