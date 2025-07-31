@@ -12,17 +12,21 @@ function pick_batchsize(backend::FromPrimitive, N::Integer)
 end
 
 """
-    AutoForwardFromPrimitive
+    AutoForwardFromPrimitive(backend::AbstractADType)
 
-Wrapper which forces a given backend to act as a reverse-mode backend.
+Wrapper which forces a given backend to act as a forward-mode backend, using only its native `value_and_pushforward` primitive and re-implementing the rest from scratch.
 
-Used in internal testing.
+!!! tip
+    This can be useful to circumvent high-level operators when they have impractical limitations.
+    For instance, ForwardDiff.jl's `jacobian` does not support GPU arrays but its `pushforward` does, so `AutoForwardFromPrimitive(AutoForwardDiff())` has a GPU-friendly `jacobian`.
 """
 struct AutoForwardFromPrimitive{inplace,B<:AbstractADType} <: FromPrimitive{inplace}
     backend::B
 end
 
-function AutoForwardFromPrimitive(backend::AbstractADType; inplace=true)
+function AutoForwardFromPrimitive(
+    backend::AbstractADType; inplace::Bool=Bool(inplace_support(backend))
+)
     return AutoForwardFromPrimitive{inplace,typeof(backend)}(backend)
 end
 
@@ -133,17 +137,17 @@ function value_and_pushforward!(
 end
 
 """
-    AutoReverseFromPrimitive
+    AutoReverseFromPrimitive(backend::AbstractADType)
 
-Wrapper which forces a given backend to act as a reverse-mode backend.
-
-Used in internal testing.
+Wrapper which forces a given backend to act as a reverse-mode backend, using only its native `value_and_pullback` implementation and rebuilding the rest from scratch.
 """
 struct AutoReverseFromPrimitive{inplace,B<:AbstractADType} <: FromPrimitive{inplace}
     backend::B
 end
 
-function AutoReverseFromPrimitive(backend::AbstractADType; inplace=true)
+function AutoReverseFromPrimitive(
+    backend::AbstractADType; inplace::Bool=Bool(inplace_support(backend))
+)
     return AutoReverseFromPrimitive{inplace,typeof(backend)}(backend)
 end
 

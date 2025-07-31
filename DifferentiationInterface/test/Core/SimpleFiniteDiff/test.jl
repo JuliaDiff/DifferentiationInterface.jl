@@ -141,6 +141,12 @@ end
 
 @testset "Weird arrays" begin
     test_differentiation(
-        AutoSimpleFiniteDiff(), vcat(static_scenarios(), gpu_scenarios()); logging=LOGGING
+        [
+            AutoSimpleFiniteDiff(),
+            AutoForwardFromPrimitive(AutoSimpleFiniteDiff()),
+            AutoReverseFromPrimitive(AutoSimpleFiniteDiff()),
+        ],
+        vcat(static_scenarios(), gpu_scenarios());
+        logging=LOGGING,
     )
 end;
