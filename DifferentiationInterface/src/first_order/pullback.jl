@@ -280,7 +280,7 @@ function _prepare_pullback_aux(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, ty, contexts...; strict)
-    dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
+    dx = x isa Number ? oneunit(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward_nokwarg(
         strict, f, backend, x, (dx,), contexts...
     )
@@ -298,7 +298,7 @@ function _prepare_pullback_aux(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f!, y, backend, x, ty, contexts...; strict)
-    dx = x isa Number ? one(x) : basis(x, first(CartesianIndices(x)))
+    dx = x isa Number ? oneunit(x) : basis(x, first(CartesianIndices(x)))
     pushforward_prep = prepare_pushforward_nokwarg(
         strict, f!, y, backend, x, (dx,), contexts...
     )
@@ -315,7 +315,7 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    a = only(pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...))
+    a = only(pushforward(f, pushforward_prep, backend, x, (oneunit(x),), contexts...))
     dx = dot(a, dy)
     return dx
 end
@@ -328,8 +328,8 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    a = only(pushforward(f, pushforward_prep, backend, x, (one(x),), contexts...))
-    b = only(pushforward(f, pushforward_prep, backend, x, (im * one(x),), contexts...))
+    a = only(pushforward(f, pushforward_prep, backend, x, (oneunit(x),), contexts...))
+    b = only(pushforward(f, pushforward_prep, backend, x, (im * oneunit(x),), contexts...))
     dx = real(dot(a, dy)) + im * real(dot(b, dy))
     return dx
 end
@@ -436,7 +436,7 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    a = only(pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...))
+    a = only(pushforward(f!, y, pushforward_prep, backend, x, (oneunit(x),), contexts...))
     dx = dot(a, dy)
     return dx
 end
@@ -450,8 +450,10 @@ function _pullback_via_pushforward(
     dy,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    a = only(pushforward(f!, y, pushforward_prep, backend, x, (one(x),), contexts...))
-    b = only(pushforward(f!, y, pushforward_prep, backend, x, (im * one(x),), contexts...))
+    a = only(pushforward(f!, y, pushforward_prep, backend, x, (oneunit(x),), contexts...))
+    b = only(
+        pushforward(f!, y, pushforward_prep, backend, x, (im * oneunit(x),), contexts...)
+    )
     dx = real(dot(a, dy)) + im * real(dot(b, dy))
     return dx
 end

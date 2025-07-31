@@ -152,4 +152,4 @@ For same-point preparation, the same rules hold with two modifications:
 
 !!! warning
     These rules hold for the majority of backends, but there are some exceptions.
-    The most important exception is [ReverseDiff](@ref) and its taping mechanism, which is sensitive to control flow inside the function.
+    The most important exception is [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl) and its taping mechanism, which is sensitive to control flow inside the function.

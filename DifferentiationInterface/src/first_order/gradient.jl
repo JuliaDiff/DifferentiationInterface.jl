@@ -91,7 +91,7 @@ function prepare_gradient_nokwarg(
     _sig = signature(f, backend, x, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
     pullback_prep = prepare_pullback_nokwarg(
-        strict, f, backend, x, (one(typeof(y)),), contexts...
+        strict, f, backend, x, (oneunit(typeof(y)),), contexts...
     )
     return PullbackGradientPrep(_sig, y, pullback_prep)
 end
