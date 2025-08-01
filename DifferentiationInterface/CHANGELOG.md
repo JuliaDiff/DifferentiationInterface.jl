@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Make `AutoForwardFromPrimitive` and `AutoReverseFromPrimitive` public ([#824])
+- Make `AutoForwardFromPrimitive` and `AutoReverseFromPrimitive` public ([#825])
+
+### Fixed
+
+- Replace `one` with `oneunit` in basis computation ([#826])
 
 ## [0.7.3]
 
@@ -66,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.54]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.6.53...DifferentiationInterface-v0.6.54
 [0.6.53]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.6.52...DifferentiationInterface-v0.6.53
 
+[#825]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/825
 [#824]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/824
 [#823]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/823
 [#818]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/818

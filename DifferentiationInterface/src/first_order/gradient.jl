@@ -91,7 +91,7 @@ function prepare_gradient_nokwarg(
     _sig = signature(f, backend, x, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)  # TODO: replace with output type inference?
     pullback_prep = prepare_pullback_nokwarg(
-        strict, f, backend, x, (one(typeof(y)),), contexts...
+        strict, f, backend, x, (oneunit(typeof(y)),), contexts...
     )
     return PullbackGradientPrep(_sig, y, pullback_prep)
 end
@@ -106,7 +106,9 @@ function value_and_gradient(
     contexts::Vararg{Context,C},
 ) where {F,SIG,Y,C}
     check_prep(f, prep, backend, x, contexts...)
-    y, tx = value_and_pullback(f, prep.pullback_prep, backend, x, (one(Y),), contexts...)
+    y, tx = value_and_pullback(
+        f, prep.pullback_prep, backend, x, (oneunit(Y),), contexts...
+    )
     return y, only(tx)
 end
 
@@ -120,7 +122,7 @@ function value_and_gradient!(
 ) where {F,SIG,Y,C}
     check_prep(f, prep, backend, x, contexts...)
     y, _ = value_and_pullback!(
-        f, (grad,), prep.pullback_prep, backend, x, (one(Y),), contexts...
+        f, (grad,), prep.pullback_prep, backend, x, (oneunit(Y),), contexts...
     )
     return y, grad
 end
@@ -133,7 +135,7 @@ function gradient(
     contexts::Vararg{Context,C},
 ) where {F,SIG,Y,C}
     check_prep(f, prep, backend, x, contexts...)
-    tx = pullback(f, prep.pullback_prep, backend, x, (one(Y),), contexts...)
+    tx = pullback(f, prep.pullback_prep, backend, x, (oneunit(Y),), contexts...)
     return only(tx)
 end
 
@@ -146,7 +148,7 @@ function gradient!(
     contexts::Vararg{Context,C},
 ) where {F,SIG,Y,C}
     check_prep(f, prep, backend, x, contexts...)
-    pullback!(f, (grad,), prep.pullback_prep, backend, x, (one(Y),), contexts...)
+    pullback!(f, (grad,), prep.pullback_prep, backend, x, (oneunit(Y),), contexts...)
     return grad
 end
 

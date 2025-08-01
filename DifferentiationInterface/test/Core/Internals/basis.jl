@@ -2,6 +2,7 @@ using DifferentiationInterface: basis, multibasis
 using LinearAlgebra
 using StaticArrays, JLArrays
 using Test
+using Dates
 
 @testset "Basis" begin
     b_ref = [0, 1, 0]
@@ -22,4 +23,7 @@ using Test
     @test all(basis(jl(rand(3, 3)), 4) .== b_ref)
     @test basis(@SMatrix(rand(3, 3)), 4) isa SMatrix
     @test basis(@SMatrix(rand(3, 3)), 4) == b_ref
+
+    t = [Time(1) - Time(0)]
+    @test basis(t, 1) isa Vector{Nanosecond}
 end
