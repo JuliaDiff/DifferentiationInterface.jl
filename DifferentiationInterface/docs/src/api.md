@@ -132,6 +132,13 @@ MixedMode
 DenseSparsityDetector
 ```
 
+### From primitive
+
+```@docs
+DifferentiationInterface.AutoForwardFromPrimitive
+DifferentiationInterface.AutoReverseFromPrimitive
+```
+
 ## Internals
 
 The following is not part of the public API.

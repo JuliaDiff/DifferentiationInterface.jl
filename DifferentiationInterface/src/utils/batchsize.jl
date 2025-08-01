@@ -112,13 +112,6 @@ function threshold_batchsize(backend::SecondOrder, B::Integer)
     )
 end
 
-function threshold_batchsize(backend::MixedMode, B::Integer)
-    return MixedMode(
-        threshold_batchsize(forward_backend(backend), B),
-        threshold_batchsize(reverse_backend(backend), B),
-    )
-end
-
 """
     reasonable_batchsize(N::Integer, Bmax::Integer)
 
