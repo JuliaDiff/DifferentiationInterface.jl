@@ -3,12 +3,27 @@ abstract type FromPrimitive{inplace} <: AbstractADType end
 check_available(backend::FromPrimitive) = check_available(backend.backend)
 inplace_support(::FromPrimitive{true}) = InPlaceSupported()
 inplace_support(::FromPrimitive{false}) = InPlaceNotSupported()
-function inner_preparation_behavior(backend::FromPrimitive)
-    return inner_preparation_behavior(backend.backend)
+
+function pick_batchsize(backend::FromPrimitive, x_or_y::AbstractArray)
+    return pick_batchsize(backend.backend, x_or_y)
 end
 
 function pick_batchsize(backend::FromPrimitive, N::Integer)
     return pick_batchsize(backend.backend, N)
+end
+
+function inner_preparation_behavior(backend::FromPrimitive)
+    return inner_preparation_behavior(backend.backend)
+end
+
+function overloaded_input(::typeof(pushforward), f, backend::FromPrimitive, x, tx::NTuple)
+    return overloaded_input(pushforward, f, backend.backend, x, tx)
+end
+
+function overloaded_input(
+    ::typeof(pushforward), f!, y, backend::FromPrimitive, x, tx::NTuple
+)
+    return overloaded_input(pushforward, f!, y, backend.backend, x, tx)
 end
 
 """
