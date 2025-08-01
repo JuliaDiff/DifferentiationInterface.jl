@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Replace `one` with `oneunit` in basis computation ([#826])
+
 ## [0.7.3]
 
 ### Fixed
@@ -62,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.54]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.6.53...DifferentiationInterface-v0.6.54
 [0.6.53]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.6.52...DifferentiationInterface-v0.6.53
 
+[#826]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/826
 [#823]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/823
 [#818]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/818
 [#812]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/812
