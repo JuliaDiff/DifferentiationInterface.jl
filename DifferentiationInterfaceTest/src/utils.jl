@@ -1,4 +1,3 @@
-mysimilar(x::Number) = oneunit(x)
 mysimilar(x::AbstractArray) = similar(x)
 mysimilar(x::Union{Tuple,NamedTuple}) = map(mysimilar, x)
 
