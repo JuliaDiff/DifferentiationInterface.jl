@@ -28,6 +28,7 @@ using ADTypes:
     AutoForwardDiff,
     AutoGTPSA,
     AutoMooncake,
+    AutoMooncakeForward,
     AutoPolyesterForwardDiff,
     AutoReverseDiff,
     AutoSymbolics,
@@ -115,6 +116,7 @@ export AutoFiniteDifferences
 export AutoForwardDiff
 export AutoGTPSA
 export AutoMooncake
+export AutoMooncakeForward
 export AutoPolyesterForwardDiff
 export AutoReverseDiff
 export AutoSymbolics
