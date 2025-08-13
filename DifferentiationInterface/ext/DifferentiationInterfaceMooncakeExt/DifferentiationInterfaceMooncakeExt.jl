@@ -33,7 +33,7 @@ using Mooncake:
 
 const AnyAutoMooncake{C} = Union{AutoMooncake{C},AutoMooncakeForward{C}}
 
-DI.check_available(::AnyAutoMooncake) = true
+DI.check_available(::AnyAutoMooncake{C}) where {C} = true
 
 get_config(::AnyAutoMooncake{Nothing}) = Config()
 get_config(backend::AnyAutoMooncake{<:Config}) = backend.config
