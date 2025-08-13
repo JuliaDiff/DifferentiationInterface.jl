@@ -6,16 +6,14 @@ using GPUArraysCore: @allowscalar, AbstractGPUArray
 function DI.basis(a::AbstractGPUArray{T}, i) where {T}
     b = similar(a)
     fill!(b, zero(T))
-    @allowscalar b[i] = one(T)
+    @allowscalar b[i] = oneunit(T)
     return b
 end
 
 function DI.multibasis(a::AbstractGPUArray{T}, inds) where {T}
     b = similar(a)
     fill!(b, zero(T))
-    for i in inds
-        @allowscalar b[i] = one(T)
-    end
+    view(b, inds) .= oneunit(T)
     return b
 end
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Bump compat for SparseConnectivityTracer v1 ([#823])
+
 ## [0.10.0]
 
 ### Changed
@@ -29,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.0]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.9.6...DifferentiationInterfaceTest-v0.10.0
 [0.9.6]: https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.9.5...DifferentiationInterfaceTest-v0.9.6
 
+[#823]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/823
 [#796]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/796
 [#786]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/786
 [#749]: https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/749

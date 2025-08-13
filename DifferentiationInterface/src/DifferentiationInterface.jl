@@ -128,6 +128,7 @@ export AutoSparse
 ## Public but not exported
 
 @public inner, outer
+@public AutoForwardFromPrimitive, AutoReverseFromPrimitive
 
 include("init.jl")
 

@@ -8,6 +8,7 @@ import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using ForwardDiff: ForwardDiff
 using StaticArrays: StaticArrays, @SVector
+using JLArrays: JLArrays
 using Test
 
 using ExplicitImports
@@ -75,6 +76,9 @@ end
 @testset "Weird" begin
     test_differentiation(AutoForwardDiff(), component_scenarios(); logging=LOGGING)
     test_differentiation(AutoForwardDiff(), static_scenarios(); logging=LOGGING)
+    test_differentiation(
+        DI.AutoForwardFromPrimitive(AutoForwardDiff()), gpu_scenarios(); logging=LOGGING
+    )
 
     @testset "Batch size" begin
         @test DI.pick_batchsize(AutoForwardDiff(), rand(7)) isa DI.BatchSizeSettings{7}

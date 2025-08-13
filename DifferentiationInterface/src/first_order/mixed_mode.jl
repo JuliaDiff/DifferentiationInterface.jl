@@ -41,3 +41,10 @@ Appropriate mode type for `MixedMode` backends.
 """
 struct ForwardAndReverseMode <: ADTypes.AbstractMode end
 ADTypes.mode(::MixedMode) = ForwardAndReverseMode()
+
+function threshold_batchsize(backend::MixedMode, B::Integer)
+    return MixedMode(
+        threshold_batchsize(forward_backend(backend), B),
+        threshold_batchsize(reverse_backend(backend), B),
+    )
+end

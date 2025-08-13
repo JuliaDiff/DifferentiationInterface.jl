@@ -2,7 +2,7 @@ function identity_scenarios(x::Number; dx::Number, dy::Number)
     f = identity
     dy_from_dx = dx
     dx_from_dy = dy
-    der = one(x)
+    der = oneunit(x)
 
     return [
         Scenario{:pushforward,:out}(f, x, (dx,); res1=(dy_from_dx,)),
@@ -16,7 +16,7 @@ function sum_scenarios(x::AbstractArray; dx::AbstractArray, dy::Number)
     dy_from_dx = sum(dx)
     dx_from_dy = (similar(x) .= dy)
     grad = similar(x)
-    grad .= one(eltype(x))
+    grad .= oneunit(eltype(x))
 
     return [
         Scenario{:pushforward,:out}(f, x, (dx,); res1=(dy_from_dx,)),
