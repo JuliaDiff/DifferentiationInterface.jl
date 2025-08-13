@@ -106,7 +106,7 @@ function DI.pushforward!(
     tx::NTuple,
     contexts::Vararg{DI.Context,C};
 ) where {F,C}
-    DI.check_prep(f!, y, ty, prep, backend, x, tx, contexts...)
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     DI.pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
     return ty
 end
