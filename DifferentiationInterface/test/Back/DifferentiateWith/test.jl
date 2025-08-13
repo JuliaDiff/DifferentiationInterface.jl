@@ -63,14 +63,16 @@ end;
         DIT.operator(scen) == :pullback
     end
         Mooncake.TestUtils.test_rule(
-            StableRNG(0), scen.f, scen.x; is_primitive=true, mode=Mooncake.ReverseMode()
+            StableRNG(0), scen.f, scen.x; is_primitive=true, mode=Mooncake.ReverseMode
         )
     end
 end;
 
 @testset "Mooncake errors" begin
     MooncakeDifferentiateWithError =
-        Base.get_extension(DifferentiationInterface, :DifferentiationInterfaceMooncakeExt).MooncakeDifferentiateWithError
+        Base.get_extension(
+            DifferentiationInterface, :DifferentiationInterfaceMooncakeExt
+        ).MooncakeDifferentiateWithError
 
     e = MooncakeDifferentiateWithError(identity, 1.0, 2.0)
     @test sprint(showerror, e) ==
