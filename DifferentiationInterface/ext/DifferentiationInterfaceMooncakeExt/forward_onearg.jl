@@ -16,8 +16,9 @@ function DI.prepare_pushforward_nokwarg(
 ) where {F,C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     config = get_config(backend)
-    # TODO: silence_debug_messages
-    cache = prepare_derivative_cache(f, x, map(DI.unwrap, contexts)...; config.debug_mode)
+    cache = prepare_derivative_cache(
+        f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
+    )
     dx_righttype = zero_tangent(x)
     prep = MooncakeOneArgPushforwardPrep(_sig, cache, dx_righttype)
     return prep

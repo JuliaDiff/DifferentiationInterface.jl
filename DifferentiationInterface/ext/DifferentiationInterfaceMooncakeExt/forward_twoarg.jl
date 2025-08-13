@@ -18,9 +18,13 @@ function DI.prepare_pushforward_nokwarg(
 ) where {F,C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     config = get_config(backend)
-    # TODO: silence_debug_messages
     cache = prepare_derivative_cache(
-        f!, y, x, map(DI.unwrap, contexts)...; config.debug_mode
+        f!,
+        y,
+        x,
+        map(DI.unwrap, contexts)...;
+        config.debug_mode,
+        config.silence_debug_messages,
     )
     dx_righttype = zero_tangent(x)
     dy_righttype = zero_tangent(y)
