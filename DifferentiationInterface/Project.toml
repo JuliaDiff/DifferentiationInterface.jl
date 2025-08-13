@@ -1,7 +1,7 @@
 name = "DifferentiationInterface"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 authors = ["Guillaume Dalle", "Adrian Hill"]
-version = "0.7.4"
+version = "0.7.5"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -56,7 +56,7 @@ DifferentiationInterfaceTrackerExt = "Tracker"
 DifferentiationInterfaceZygoteExt = ["Zygote", "ForwardDiff"]
 
 [compat]
-ADTypes = "1.13.0"
+ADTypes = "1.17.0"
 Aqua = "0.8.12"
 ChainRulesCore = "1.23.0"
 ComponentArrays = "0.15.27"
@@ -77,7 +77,7 @@ JET = "0.9"
 JLArrays = "0.2.0"
 JuliaFormatter = "1,2"
 LinearAlgebra = "1"
-Mooncake = "0.4.122"
+Mooncake = "0.4.147"
 Pkg = "1"
 PolyesterForwardDiff = "0.1.2"
 Random = "1"
