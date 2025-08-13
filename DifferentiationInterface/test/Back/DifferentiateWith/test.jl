@@ -62,7 +62,9 @@ end;
     @testset for scen in filter(differentiatewith_scenarios()) do scen
         DIT.operator(scen) == :pullback
     end
-        Mooncake.TestUtils.test_rule(StableRNG(0), scen.f, scen.x; is_primitive=true)
+        Mooncake.TestUtils.test_rule(
+            StableRNG(0), scen.f, scen.x; is_primitive=true, mode=Mooncake.ReverseMode
+        )
     end
 end;
 

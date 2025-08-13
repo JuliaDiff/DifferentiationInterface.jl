@@ -10,7 +10,11 @@ check_no_implicit_imports(DifferentiationInterface)
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
-backends = [AutoMooncake(; config=nothing), AutoMooncake(; config=Mooncake.Config())]
+backends = [
+    AutoMooncake(; config=nothing),
+    AutoMooncake(; config=Mooncake.Config()),
+    AutoMooncakeForward(; config=nothing),
+]
 
 for backend in backends
     @test check_available(backend)
