@@ -6,7 +6,8 @@ We present contexts and sparsity handling with DifferentiationInterface.jl.
 using ADTypes
 using BenchmarkTools
 using DifferentiationInterface
-import ForwardDiff, Zygote
+using ForwardDiff: ForwardDiff
+using Zygote: Zygote
 using Random
 using SparseConnectivityTracer
 using SparseMatrixColorings
@@ -56,6 +57,7 @@ For additional arguments which act as mutated buffers, the [`Cache`](@ref) wrapp
 ## Sparsity
 
 !!! tip
+    
     If you use DifferentiationInterface's Sparse AD functionality in your research,
     please cite our preprint [*Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians*](https://arxiv.org/abs/2501.17737).
 
@@ -168,7 +170,9 @@ Better memory use can be achieved by pre-allocating the matrix from the preparat
 
 ```@example tuto_advanced
 jac_buffer = similar(sparsity_pattern(jac_prep_sparse), eltype(xbig))
-@benchmark jacobian!($f_sparse_vector, $jac_buffer, $jac_prep_sparse, $sparse_forward_backend, $xbig)
+@benchmark jacobian!(
+    $f_sparse_vector, $jac_buffer, $jac_prep_sparse, $sparse_forward_backend, $xbig
+)
 ```
 
 And for optimal speed, one should write non-allocating and type-stable functions.
@@ -190,9 +194,18 @@ ybig ≈ f_sparse_vector(xbig)
 In this case, the sparse Jacobian should also become non-allocating (for our specific choice of backend).
 
 ```@example tuto_advanced
-jac_prep_sparse_nonallocating = prepare_jacobian(f_sparse_vector!, zero(ybig), sparse_forward_backend, zero(xbig))
+jac_prep_sparse_nonallocating = prepare_jacobian(
+    f_sparse_vector!, zero(ybig), sparse_forward_backend, zero(xbig)
+)
 jac_buffer = similar(sparsity_pattern(jac_prep_sparse_nonallocating), eltype(xbig))
-@benchmark jacobian!($f_sparse_vector!, $ybig, $jac_buffer, $jac_prep_sparse_nonallocating, $sparse_forward_backend, $xbig)
+@benchmark jacobian!(
+    $f_sparse_vector!,
+    $ybig,
+    $jac_buffer,
+    $jac_prep_sparse_nonallocating,
+    $sparse_forward_backend,
+    $xbig,
+)
 ```
 
 ### Mixed mode
@@ -210,7 +223,7 @@ This is achieved using the [`MixedMode`](@ref) wrapper, for which we recommend a
 
 ```@example tuto_advanced
 sparse_mixed_backend = AutoSparse(
-    MixedMode(AutoForwardDiff(), AutoZygote()),
+    MixedMode(AutoForwardDiff(), AutoZygote());
     sparsity_detector=TracerSparsityDetector(),
     coloring_algorithm=GreedyColoringAlgorithm(RandomOrder(MersenneTwister(), 0)),
 )
@@ -219,9 +232,13 @@ sparse_mixed_backend = AutoSparse(
 It unlocks a large speedup compared to pure forward mode, and the same would be true compared to reverse mode:
 
 ```@example tuto_advanced
-@benchmark jacobian($arrowhead, prep, $sparse_forward_backend, $xbig) setup=(prep=prepare_jacobian(arrowhead, sparse_forward_backend, xbig))
+@benchmark jacobian($arrowhead, prep, $sparse_forward_backend, $xbig) setup=(
+    prep=prepare_jacobian(arrowhead, sparse_forward_backend, xbig)
+)
 ```
 
 ```@example tuto_advanced
-@benchmark jacobian($arrowhead, prep, $sparse_mixed_backend, $xbig) setup=(prep=prepare_jacobian(arrowhead, sparse_mixed_backend, xbig))
+@benchmark jacobian($arrowhead, prep, $sparse_mixed_backend, $xbig) setup=(
+    prep=prepare_jacobian(arrowhead, sparse_mixed_backend, xbig)
+)
 ```

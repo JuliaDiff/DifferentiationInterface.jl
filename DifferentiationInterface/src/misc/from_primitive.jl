@@ -32,6 +32,7 @@ end
 Wrapper which forces a given backend to act as a forward-mode backend, using only its native `value_and_pushforward` primitive and re-implementing the rest from scratch.
 
 !!! tip
+
     This can be useful to circumvent high-level operators when they have impractical limitations.
     For instance, ForwardDiff.jl's `jacobian` does not support GPU arrays but its `pushforward` does, so `AutoForwardFromPrimitive(AutoForwardDiff())` has a GPU-friendly `jacobian`.
 """

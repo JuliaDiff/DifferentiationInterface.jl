@@ -7,9 +7,9 @@ This generic type should never be used directly: use the specific constructor co
 
 # Type parameters
 
-- `op`: one  of `:pushforward`, `:pullback`, `:derivative`, `:gradient`, `:jacobian`,`:second_derivative`, `:hvp`, `:hessian`
-- `pl_op`: either `:in` (for `op!(f, result, backend, x)`) or `:out` (for `result = op(f, backend, x)`)
-- `pl_fun`: either `:in` (for `f!(y, x)`) or `:out` (for `y = f(x)`)
+  - `op`: one  of `:pushforward`, `:pullback`, `:derivative`, `:gradient`, `:jacobian`,`:second_derivative`, `:hvp`, `:hessian`
+  - `pl_op`: either `:in` (for `op!(f, result, backend, x)`) or `:out` (for `result = op(f, backend, x)`)
+  - `pl_fun`: either `:in` (for `f!(y, x)`) or `:out` (for `y = f(x)`)
 
 # Constructors
 
@@ -25,9 +25,9 @@ This generic type should never be used directly: use the specific constructor co
 
 Default values:
 
-- `prep_args = ` the result of `zero` applied to each execution argument
-- `res1 = res2 = nothing`
-- `name = nothing`
+  - `prep_args = ` the result of `zero` applied to each execution argument
+  - `res1 = res2 = nothing`
+  - `name = nothing`
 
 # Fields
 

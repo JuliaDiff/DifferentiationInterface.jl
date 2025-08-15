@@ -147,10 +147,12 @@ Compute the value and the pushforward of the function `f` at point `x` with a tu
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip
+
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `value_and_jvp`.
 
 !!! info
+
     Required primitive for forward mode backends.
 """
 function value_and_pushforward(
@@ -176,6 +178,7 @@ Compute the value and the pushforward of the function `f` at point `x` with a tu
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip
+
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `value_and_jvp!`.
 """
@@ -202,6 +205,7 @@ Compute the pushforward of the function `f` at point `x` with a tuple of tangent
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip
+
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `jvp`.
 """
@@ -228,6 +232,7 @@ Compute the pushforward of the function `f` at point `x` with a tuple of tangent
 $(docstring_preparation_hint("pushforward"; same_point=true))
 
 !!! tip
+
     Pushforwards are also commonly called Jacobian-vector products or JVPs.
     This function could have been named `jvp!`.
 """

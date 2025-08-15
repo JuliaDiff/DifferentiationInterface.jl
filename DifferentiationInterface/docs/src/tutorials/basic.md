@@ -25,12 +25,13 @@ Most backend types are defined by [ADTypes.jl](https://github.com/SciML/ADTypes.
 [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl) is very generic and efficient for low-dimensional inputs, so it's a good starting point:
 
 ```@example tuto_basic
-import ForwardDiff
+using ForwardDiff: ForwardDiff
 
 backend = AutoForwardDiff()
 ```
 
 !!! tip
+    
     To avoid name conflicts, load AD packages with `import` instead of `using`.
     Indeed, most AD packages also export operators like `gradient` and `jacobian`, but you only want to use the ones from DifferentiationInterface.jl.
 
@@ -107,7 +108,7 @@ The whole point of DifferentiationInterface.jl is that you can easily experiment
 Typically, for gradients, reverse mode AD might be a better fit, so let's try [Zygote.jl](https://github.com/FluxML/Zygote.jl)!
 
 ```@example tuto_basic
-import Zygote
+using Zygote: Zygote
 
 backend2 = AutoZygote()
 ```

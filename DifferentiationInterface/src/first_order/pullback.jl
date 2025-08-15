@@ -143,10 +143,12 @@ Compute the value and the pullback of the function `f` at point `x` with a tuple
 $(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip
+
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `value_and_vjp`.
 
 !!! info
+
     Required primitive for reverse mode backends.
 """
 function value_and_pullback(
@@ -172,6 +174,7 @@ Compute the value and the pullback of the function `f` at point `x` with a tuple
 $(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip
+
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `value_and_vjp!`.
 """
@@ -198,6 +201,7 @@ Compute the pullback of the function `f` at point `x` with a tuple of tangents `
 $(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip
+
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `vjp`.
 """
@@ -224,6 +228,7 @@ Compute the pullback of the function `f` at point `x` with a tuple of tangents `
 $(docstring_preparation_hint("pullback"; same_point=true))
 
 !!! tip
+
     Pullbacks are also commonly called vector-Jacobian products or VJPs.
     This function could have been named `vjp!`.
 """

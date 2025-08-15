@@ -4,6 +4,7 @@
 Combination of a forward and a reverse mode backend for mixed-mode sparse Jacobian computation.
 
 !!! danger
+
     `MixedMode` backends only support [`jacobian`](@ref) and its variants, and it should be used inside an [`AutoSparse`](@extref ADTypes.AutoSparse) wrapper.
 
 # Constructor
