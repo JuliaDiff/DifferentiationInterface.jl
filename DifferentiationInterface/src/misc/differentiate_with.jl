@@ -8,24 +8,28 @@ Then `f2 = DifferentiateWith(f, AutoEnzyme())` is a new function that behaves li
 Moreover, any larger algorithm `alg` that calls `f2` instead of `f` will also be differentiable with Zygote (as long as `f` was the only Zygote blocker).
 
 !!! tip
+
     This is mainly relevant for package developers who want to produce differentiable code at low cost, without writing the differentiation rules themselves.
     If you sprinkle a few `DifferentiateWith` in places where some AD backends may struggle, end users can pick from a wider variety of packages to differentiate your algorithms.
 
 !!! warning
+
     `DifferentiateWith` only supports out-of-place functions `y = f(x)` without additional context arguments.
     It only makes these functions differentiable if the true backend is either [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl), reverse-mode [Mooncake](https://github.com/chalk-lab/Mooncake.jl), or if it automatically importing rules from [ChainRules](https://github.com/JuliaDiff/ChainRules.jl) (e.g. [Zygote](https://github.com/FluxML/Zygote.jl)). Some backends are also able to [manually import rules](https://juliadiff.org/ChainRulesCore.jl/stable/#Packages-supporting-importing-rules-from-ChainRules.) from ChainRules.
     For any other true backend, the differentiation behavior is not altered by `DifferentiateWith` (it becomes a transparent wrapper).
 
 !!! warning
+
     When using `DifferentiateWith(f, AutoSomething())`, the function `f` must not close over any active data.
     As of now, we cannot differentiate with respect to parameters stored inside `f`.
 
 # Fields
 
-- `f`: the function in question, with signature `f(x)`
-- `backend::AbstractADType`: the substitute backend to use for differentiation
+  - `f`: the function in question, with signature `f(x)`
+  - `backend::AbstractADType`: the substitute backend to use for differentiation
 
 !!! note
+
     For the substitute AD backend to be called under the hood, its package needs to be loaded in addition to the package of the true AD backend.
 
 # Constructor
@@ -37,7 +41,9 @@ Moreover, any larger algorithm `alg` that calls `f2` instead of `f` will also be
 ```jldoctest
 julia> using DifferentiationInterface
 
-julia> import FiniteDiff, ForwardDiff, Zygote
+julia> using FiniteDiff: FiniteDiff
+       using ForwardDiff: ForwardDiff
+       using Zygote: Zygote
 
 julia> function f(x::Vector{Float64})
            a = Vector{Float64}(undef, 1)  # type constraint breaks ForwardDiff

@@ -7,15 +7,17 @@ The nonzeros in a Jacobian or Hessian are detected by computing the relevant mat
 This process can be very slow, and should only be used if its output can be exploited multiple times to compute many sparse matrices.
 
 !!! danger
+
     In general, the sparsity pattern you obtain can depend on the provided input `x`. If you want to reuse the pattern, make sure that it is input-agnostic.
 
 !!! warning
+
     `DenseSparsityDetector` functionality is now located in a package extension, please load the SparseArrays.jl standard library before you use it.
 
 # Fields
 
-- `backend::AbstractADType` is the dense AD backend used under the hood
-- `atol::Float64` is the minimum magnitude of a matrix entry to be considered nonzero
+  - `backend::AbstractADType` is the dense AD backend used under the hood
+  - `atol::Float64` is the minimum magnitude of a matrix entry to be considered nonzero
 
 # Constructor
 
@@ -23,8 +25,8 @@ This process can be very slow, and should only be used if its output can be expl
 
 The keyword argument `method::Symbol` can be either:
 
-- `:iterative`: compute the matrix in a sequence of matrix-vector products (memory-efficient)
-- `:direct`: compute the matrix all at once (memory-hungry but sometimes faster).
+  - `:iterative`: compute the matrix in a sequence of matrix-vector products (memory-efficient)
+  - `:direct`: compute the matrix all at once (memory-hungry but sometimes faster).
 
 Note that the constructor is type-unstable because `method` ends up being a type parameter of the `DenseSparsityDetector` object (this is not part of the API and might change).
 
@@ -32,7 +34,7 @@ Note that the constructor is type-unstable because `method` ends up being a type
 
 ```jldoctest detector
 using ADTypes, DifferentiationInterface, SparseArrays
-import ForwardDiff
+using ForwardDiff: ForwardDiff
 
 detector = DenseSparsityDetector(AutoForwardDiff(); atol=1e-5, method=:direct)
 

@@ -148,10 +148,10 @@ const ForwardOverAnything = Union{ForwardOverForward,ForwardOverReverse}
 
 Return the best combination of modes for [`hvp`](@ref) and its variants, among the following options:
 
-- [`ForwardOverForward`](@ref)
-- [`ForwardOverReverse`](@ref)
-- [`ReverseOverForward`](@ref)
-- [`ReverseOverReverse`](@ref)
+  - [`ForwardOverForward`](@ref)
+  - [`ForwardOverReverse`](@ref)
+  - [`ReverseOverForward`](@ref)
+  - [`ReverseOverReverse`](@ref)
 """
 hvp_mode(backend::AbstractADType) = hvp_mode(SecondOrder(backend, backend))
 

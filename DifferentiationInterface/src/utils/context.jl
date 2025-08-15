@@ -5,9 +5,9 @@ Abstract supertype for additional context arguments, which can be passed to diff
 
 # Subtypes
 
-- [`Constant`](@ref)
-- [`Cache`](@ref)
-- [`ConstantOrCache`](@ref)
+  - [`Constant`](@ref)
+  - [`Cache`](@ref)
+  - [`ConstantOrCache`](@ref)
 """
 abstract type Context end
 
@@ -27,6 +27,7 @@ Note that an operator can be prepared with an arbitrary value of the constant.
 However, same-point preparation must occur with the exact value that will be reused later.
 
 !!! warning
+
     Some backends require any `Constant` context to be a `Number` or an `AbstractArray`.
 
 # Example
@@ -34,7 +35,7 @@ However, same-point preparation must occur with the exact value that will be reu
 ```jldoctest
 julia> using DifferentiationInterface
 
-julia> import ForwardDiff
+julia> using ForwardDiff: ForwardDiff
 
 julia> f(x, c) = c * sum(abs2, x);
 
@@ -67,6 +68,7 @@ The initial values present inside the cache do not matter.
 For some backends, preparation allocates the required memory for `Cache` contexts with the right element type, similar to [PreallocationTools.jl](https://github.com/SciML/PreallocationTools.jl).
 
 !!! warning
+
     Some backends require any `Cache` context to be an `AbstractArray`, others accept nested (named) tuples of `AbstractArray`s.
 
 # Example
@@ -74,7 +76,7 @@ For some backends, preparation allocates the required memory for `Cache` context
 ```jldoctest
 julia> using DifferentiationInterface
 
-julia> import ForwardDiff
+julia> using ForwardDiff: ForwardDiff
 
 julia> f(x, c) = sum(copyto!(c, x));
 
@@ -153,6 +155,7 @@ end
     FixTail
 
 Closure around a function `f` and a set of tail argument `tail_args` such that
+
 ```
 (ft::FixTail)(args...) = ft.f(args..., ft.tail_args...)
 ```
