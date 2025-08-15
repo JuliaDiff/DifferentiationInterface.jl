@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Julia
         uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/cache@v2
       - name: Install JuliaFormatter
         run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
       - name: Install uv
