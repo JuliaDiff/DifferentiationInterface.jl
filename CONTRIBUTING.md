@@ -9,5 +9,7 @@ _Only the two maintainers are allowed to approve and merge pull requests._
 Feel free to ping them if they do not answer within a week or so.
 
 Apart from the conditions above, this repository follows the [ColPrac](https://github.com/SciML/ColPrac) best practices and [Conventional Commits](https://www.conventionalcommits.org/en/).
-Its code is formatted using [JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl) with [BlueStyle](https://github.com/JuliaDiff/BlueStyle) -- please format any modified code before opening a pull request, otherwise CI will fail.
+Its code is formatted using [JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl) with [BlueStyle](https://github.com/JuliaDiff/BlueStyle).
+As part of continuous integration, a set of formal tests is run using [pre-commit](https://pre-commit.com/).
+We invite you to install pre-commit so that these checks are performed locally before you open or update a pull request.
 You can refer to the [dev guide](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/dev/dev_guide/) for details on the package structure and the testing pipeline.
