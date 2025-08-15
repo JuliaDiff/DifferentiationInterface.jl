@@ -1,0 +1,17 @@
+name: Pre-Commit
+
+on:
+  push:
+    branches:
+      - main
+    tags: ["*"]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+
+jobs:
+  pre-commit-ci-lite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pre-commit-ci/lite-action@v1.1.0
+        if: always()
