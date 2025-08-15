@@ -4,7 +4,6 @@ using Aqua: Aqua
 using DifferentiationInterface
 using ExplicitImports
 using JET: JET
-using JuliaFormatter: JuliaFormatter
 using Test
 using SparseMatrixColorings
 using SparseArrays
@@ -15,10 +14,6 @@ end
 
 @testset "JET" begin
     JET.test_package(DifferentiationInterface; target_defined_modules=true)
-end
-
-@testset "JuliaFormatter" begin
-    @test JuliaFormatter.format(DifferentiationInterface; verbose=false, overwrite=false)
 end
 
 @testset "Documentation" begin

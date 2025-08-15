@@ -73,7 +73,7 @@ Pkg.add(
 
 ```julia
 using DifferentiationInterface
-import ForwardDiff, Enzyme, Zygote  # AD backends you want to use 
+import ForwardDiff, Enzyme, Zygote  # AD backends you want to use
 
 f(x) = sum(abs2, x)
 
@@ -97,23 +97,23 @@ You can use the provided [`CITATION.cff`](https://github.com/JuliaDiff/Different
 
 ```bibtex
 @misc{dalle2025commoninterfaceautomaticdifferentiation,
-      title={A Common Interface for Automatic Differentiation}, 
+      title={A Common Interface for Automatic Differentiation},
       author={Guillaume Dalle and Adrian Hill},
       year={2025},
       eprint={2505.05542},
       archivePrefix={arXiv},
       primaryClass={cs.MS},
-      url={https://arxiv.org/abs/2505.05542}, 
+      url={https://arxiv.org/abs/2505.05542},
 }
 
 @misc{schäfer2022abstractdifferentiationjlbackendagnosticdifferentiableprogramming,
-      title={AbstractDifferentiation.jl: Backend-Agnostic Differentiable Programming in Julia}, 
+      title={AbstractDifferentiation.jl: Backend-Agnostic Differentiable Programming in Julia},
       author={Frank Schäfer and Mohamed Tarek and Lyndon White and Chris Rackauckas},
       year={2022},
       eprint={2109.12449},
       archivePrefix={arXiv},
       primaryClass={cs.MS},
-      url={https://arxiv.org/abs/2109.12449}, 
+      url={https://arxiv.org/abs/2109.12449},
 }
 ```
 

@@ -75,7 +75,6 @@ GPUArraysCore = "0.2"
 GTPSA = "1.4.0"
 JET = "0.9"
 JLArrays = "0.2.0"
-JuliaFormatter = "1,2"
 LinearAlgebra = "1"
 Mooncake = "0.4.147"
 Pkg = "1"
@@ -110,7 +109,6 @@ ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 GTPSA = "b27dd330-f138-47c5-815b-40db9dd9b6e8"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 JLArrays = "27aeb0d3-9eb9-45fb-866b-73c2ecf80fcb"
-JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 PolyesterForwardDiff = "98d1487c-24ca-40b6-b7ab-df2af84e126b"
@@ -136,7 +134,6 @@ test = [
     "ExplicitImports",
     "JET",
     "JLArrays",
-    "JuliaFormatter",
     "Pkg",
     "Random",
     "SparseArrays",
