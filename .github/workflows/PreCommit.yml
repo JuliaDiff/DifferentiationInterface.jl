@@ -1,5 +1,10 @@
 name: Pre-Commit
 
+# needed to allow julia-actions/cache to delete old caches that it has created
+permissions:
+  actions: write
+  contents: read
+
 on:
   push:
     branches:
@@ -14,14 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Julia
-        uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v2
       - uses: julia-actions/cache@v2
-      - name: Install JuliaFormatter
-        run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-      - name: Install pre-commit
-        run: uv tool install pre-commit
-      - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure --color always
+      - run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv tool install pre-commit
+      - run: pre-commit run --all-files --show-diff-on-failure --color always
