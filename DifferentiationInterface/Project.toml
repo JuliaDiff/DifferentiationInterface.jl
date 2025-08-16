@@ -58,8 +58,6 @@ DifferentiationInterfaceZygoteExt = ["Zygote", "ForwardDiff"]
 [compat]
 ADTypes = "1.17.0"
 ChainRulesCore = "1.23.0"
-DataFrames = "1.7.0"
-Dates = "1"
 DiffResults = "1.1.0"
 Diffractor = "=0.2.6"
 Enzyme = "0.13.39"
