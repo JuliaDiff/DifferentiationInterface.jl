@@ -18,8 +18,10 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Aqua = "0.8.12"
+ComponentArrays = "0.15.27"
 ExplicitImports = "1.10.1"
 JET = "0.9"
+JLArrays = "0.2.0"
 Pkg = "1"
 Random = "1"
 StableRNGs = "1.0.1"
