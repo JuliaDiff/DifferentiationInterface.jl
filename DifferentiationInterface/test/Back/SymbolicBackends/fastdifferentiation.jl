@@ -2,6 +2,8 @@ using Pkg
 Pkg.add("FastDifferentiation")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
+using SparseMatrixColorings
+using LinearAlgebra
 using FastDifferentiation: FastDifferentiation
 using Test
 
@@ -17,9 +19,9 @@ end
 
 test_differentiation(
     AutoFastDifferentiation(),
-    filter(default_scenarios(; include_constantified=true, include_cachified=true)) do s
-        !(s.x isa AbstractMatrix) && !(s.y isa AbstractMatrix)
-    end;
+    default_scenarios(;
+        include_constantified=true, include_cachified=true, use_tuples=false
+    );
     logging=LOGGING,
 );
 
@@ -29,3 +31,14 @@ test_differentiation(
     sparsity=true,
     logging=LOGGING,
 );
+
+@testset "SparseMatrixColorings access" begin
+    x = rand(10)
+    backend = AutoSparse(AutoFastDifferentiation())
+    jac_prep = prepare_jacobian(copy, backend, x)
+    jac!_prep = prepare_jacobian(copyto!, similar(x), backend, x)
+    hess_prep = prepare_hessian(x -> sum(abs2, x), backend, x)
+    @test sparsity_pattern(jac_prep) == Diagonal(trues(10))
+    @test sparsity_pattern(jac!_prep) == Diagonal(trues(10))
+    @test sparsity_pattern(hess_prep) == Diagonal(trues(10))
+end

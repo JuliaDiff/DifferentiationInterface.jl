@@ -1,3 +1,8 @@
+has_size(::Union{Number,AbstractArray}) = true
+has_size(_x) = false
+
+const PME = PreparationMismatchError
+
 for op in ALL_OPS
     op! = Symbol(op, "!")
     val_prefix = if op == :second_derivative
@@ -47,27 +52,20 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand = myrandom(x)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
-                    f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
-                    ba,
-                    xrand,
-                    contextsrand...,
+                prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
-                [(), (prep,), (prepprep,)]
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val = $val_and_op(
@@ -94,6 +92,8 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op(nothing, prep, ba, x, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -106,27 +106,20 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand = myrandom(x)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
-                    f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
-                    ba,
-                    xrand,
-                    contextsrand...,
+                prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
-                [(), (prep,), (prepprep,)]
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val = mysimilar(res1)
@@ -165,6 +158,10 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, mysimilar(res1), prep, ba, x, contexts...
+            )
+            @test_throws PME $op!(nothing, mysimilar(res1), prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -179,34 +176,28 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, yrand = myrandom(x), myrandom(y)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
+                prep_nostrict = $prep_op(
                     f,
-                    copy(yrand),
-                    $prep_op(
-                        new_smaller.f,
-                        copy(new_smaller.y),
-                        ba,
-                        new_smaller.x,
-                        new_smaller.contexts...,
-                    ),
+                    prep_args.y,
                     ba,
-                    xrand,
-                    contextsrand...,
+                    prep_args.x,
+                    prep_args.contexts...;
+                    strict=Val(false),
                 )
-                [(), (prep,), (prepprep,)]
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val = mysimilar(y)
@@ -239,6 +230,8 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op(nothing, mysimilar(y), prep, ba, x, contexts...)
+            @test_throws PME $op(nothing, mysimilar(y), prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -251,34 +244,28 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, yrand = myrandom(x), myrandom(y)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, copy(yrand), ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
+                prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
+                prep_nostrict = $prep_op(
                     f,
-                    copy(yrand),
-                    $prep_op(
-                        new_smaller.f,
-                        copy(new_smaller.y),
-                        ba,
-                        new_smaller.x,
-                        new_smaller.contexts...,
-                    ),
+                    prep_args.y,
                     ba,
-                    xrand,
-                    contextsrand...,
+                    prep_args.x,
+                    prep_args.contexts...;
+                    strict=Val(false),
                 )
-                [(), (prep,), (prepprep,)]
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val, res1_in1_val = mysimilar(y), mysimilar(res1)
@@ -319,6 +306,12 @@ for op in ALL_OPS
                     @test mynnz(res1_out2_noval) == mynnz(scen.res1)
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, contexts...
+            )
+            @test_throws PME $op!(
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -332,27 +325,20 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand = myrandom(x)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
-                    f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
-                    ba,
-                    xrand,
-                    contextsrand...,
+                prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
-                [(), (prep,), (prepprep,)]
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val, res2_out1_val = $val_and_op(
@@ -381,6 +367,8 @@ for op in ALL_OPS
                     @test mynnz(res2_out2_noval) == mynnz(scen.res2)
                 end
             end
+            @test_throws PME $val_and_op(nothing, prep, ba, x, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -393,27 +381,20 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand = myrandom(x)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, contextsrand...)
-                prepprep = $prep_op!(
-                    f,
-                    $prep_op(new_smaller.f, ba, new_smaller.x, new_smaller.contexts...),
-                    ba,
-                    xrand,
-                    contextsrand...,
+                prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
+                prep_nostrict = $prep_op(
+                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
                 )
-                [(), (prep,), (prepprep,)]
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val, res2_in1_val = mysimilar(res1), mysimilar(res2)
@@ -456,6 +437,10 @@ for op in ALL_OPS
                     @test mynnz(res2_out2_noval) == mynnz(scen.res2)
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, mysimilar(res1), mysimilar(res2), prep, ba, x, contexts...
+            )
+            @test_throws PME $op!(nothing, mysimilar(res2), prep, ba, x, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -469,45 +454,36 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, tangrand = myrandom(x), myrandom(tang)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+                prep_nostrict = $prep_op(
                     f,
-                    $prep_op(
-                        new_smaller.f,
-                        ba,
-                        new_smaller.x,
-                        new_smaller.tang,
-                        new_smaller.contexts...,
-                    ),
                     ba,
-                    xrand,
-                    tangrand,
-                    contextsrand...,
+                    prep_args.x,
+                    prep_args.t,
+                    prep_args.contexts...;
+                    strict=Val(false),
                 )
-                prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_out1_val, res1_out1_val = $val_and_op(
-                    f, preptup_val..., ba, x, tang, contexts...
+                    f, preptup_val..., ba, x, t, contexts...
                 )
                 y_out2_val, res1_out2_val = $val_and_op(
-                    f, preptup_val..., ba, x, tang, contexts...
+                    f, preptup_val..., ba, x, t, contexts...
                 )
-                res1_out1_noval = $op(f, preptup_noval..., ba, x, tang, contexts...)
-                res1_out2_noval = $op(f, preptup_noval..., ba, x, tang, contexts...)
+                res1_out1_noval = $op(f, preptup_noval..., ba, x, t, contexts...)
+                res1_out2_noval = $op(f, preptup_noval..., ba, x, t, contexts...)
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
                     @test y_out1_val ≈ scen.y
@@ -520,6 +496,8 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op(nothing, prep, ba, x, t, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -532,35 +510,26 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, tangrand = myrandom(x), myrandom(tang)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+                prep_nostrict = $prep_op(
                     f,
-                    $prep_op(
-                        new_smaller.f,
-                        ba,
-                        new_smaller.x,
-                        new_smaller.tang,
-                        new_smaller.contexts...,
-                    ),
                     ba,
-                    xrand,
-                    tangrand,
-                    contextsrand...,
+                    prep_args.x,
+                    prep_args.t,
+                    prep_args.contexts...;
+                    strict=Val(false),
                 )
-                prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res1_in1_val = mysimilar(res1)
@@ -568,33 +537,37 @@ for op in ALL_OPS
                 res1_in1_noval = mysimilar(res1)
                 res1_in2_noval = mysimilar(res1)
                 y_out1_val, res1_out1_val = $val_and_op!(
-                    f, res1_in1_val, preptup_val..., ba, x, tang, contexts...
+                    f, res1_in1_val, preptup_val..., ba, x, t, contexts...
                 )
                 y_out2_val, res1_out2_val = $val_and_op!(
-                    f, res1_in2_val, preptup_val..., ba, x, tang, contexts...
+                    f, res1_in2_val, preptup_val..., ba, x, t, contexts...
                 )
                 res1_out1_noval = $op!(
-                    f, res1_in1_noval, preptup_noval..., ba, x, tang, contexts...
+                    f, res1_in1_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 res1_out2_noval = $op!(
-                    f, res1_in2_noval, preptup_noval..., ba, x, tang, contexts...
+                    f, res1_in2_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
+                    @test res1_in1_val === res1_out1_val
+                    @test res1_in2_val === res1_out2_val
+                    @test res1_in1_noval === res1_out1_noval
+                    @test res1_in2_noval === res1_out2_noval
                     for b in eachindex(scen.res1)
-                        @test res1_in1_val[b] === res1_out1_val[b]
-                        @test res1_in2_val[b] === res1_out2_val[b]
                         @test res1_out1_val[b] ≈ scen.res1[b]
                         @test res1_out2_val[b] ≈ scen.res1[b]
-                        @test res1_in1_noval[b] === res1_out1_noval[b]
-                        @test res1_in2_noval[b] === res1_out2_noval[b]
                         @test res1_out1_noval[b] ≈ scen.res1[b]
                         @test res1_out2_noval[b] ≈ scen.res1[b]
                     end
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, mysimilar(res1), prep, ba, x, t, contexts...
+            )
+            @test_throws PME $op!(nothing, mysimilar(res1), prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -607,37 +580,32 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
-                    f,
-                    copy(yrand),
-                    $prep_op(
-                        new_smaller.f,
-                        copy(new_smaller.y),
-                        ba,
-                        new_smaller.x,
-                        new_smaller.tang,
-                        new_smaller.contexts...,
-                    ),
-                    ba,
-                    xrand,
-                    tangrand,
-                    contextsrand...,
+                prep = $prep_op(
+                    f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
                 )
-                prep_same = $prep_op_same(f, copy(yrand), ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                prep_nostrict = $prep_op(
+                    f,
+                    prep_args.y,
+                    ba,
+                    prep_args.x,
+                    prep_args.t,
+                    prep_args.contexts...;
+                    strict=Val(false),
+                )
+                prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, t, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val = mysimilar(y)
@@ -645,16 +613,16 @@ for op in ALL_OPS
                 y_in1_noval = mysimilar(y)
                 y_in2_noval = mysimilar(y)
                 y_out1_val, res1_out1_val = $val_and_op(
-                    f, y_in1_val, preptup_val..., ba, x, tang, contexts...
+                    f, y_in1_val, preptup_val..., ba, x, t, contexts...
                 )
                 y_out2_val, res1_out2_val = $val_and_op(
-                    f, y_in2_val, preptup_val..., ba, x, tang, contexts...
+                    f, y_in2_val, preptup_val..., ba, x, t, contexts...
                 )
                 res1_out1_noval = $op(
-                    f, y_in1_noval, preptup_noval..., ba, x, tang, contexts...
+                    f, y_in1_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 res1_out2_noval = $op(
-                    f, y_in2_noval, preptup_noval..., ba, x, tang, contexts...
+                    f, y_in2_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
@@ -670,6 +638,8 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op(nothing, mysimilar(y), prep, ba, x, t, contexts...)
+            @test_throws PME $op(nothing, mysimilar(y), prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -682,37 +652,32 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, tang, res1, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, yrand, tangrand = myrandom(x), myrandom(y), myrandom(tang)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, copy(yrand), ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
-                    f,
-                    copy(yrand),
-                    $prep_op(
-                        new_smaller.f,
-                        copy(new_smaller.y),
-                        ba,
-                        new_smaller.x,
-                        new_smaller.tang,
-                        new_smaller.contexts...,
-                    ),
-                    ba,
-                    xrand,
-                    tangrand,
-                    contextsrand...,
+                prep = $prep_op(
+                    f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
                 )
-                prep_same = $prep_op_same(f, copy(yrand), ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                prep_nostrict = $prep_op(
+                    f,
+                    prep_args.y,
+                    ba,
+                    prep_args.x,
+                    prep_args.t,
+                    prep_args.contexts...;
+                    strict=Val(false),
+                )
+                prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
+                if reprepare &&
+                    has_size(x) &&
+                    has_size(y) &&
+                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                    prep = $prep_op!(f, y, prep, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, y, prep_nostrict, ba, x, t, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 y_in1_val, res1_in1_val = mysimilar(y), mysimilar(res1)
@@ -720,30 +685,16 @@ for op in ALL_OPS
                 y_in1_noval, res1_in1_noval = mysimilar(y), mysimilar(res1)
                 y_in2_noval, res1_in2_noval = mysimilar(y), mysimilar(res1)
                 y_out1_val, res1_out1_val = $val_and_op!(
-                    f, y_in1_val, res1_in1_val, preptup_val..., ba, x, tang, contexts...
+                    f, y_in1_val, res1_in1_val, preptup_val..., ba, x, t, contexts...
                 )
                 y_out2_val, res1_out2_val = $val_and_op!(
-                    f, y_in2_val, res1_in2_val, preptup_val..., ba, x, tang, contexts...
+                    f, y_in2_val, res1_in2_val, preptup_val..., ba, x, t, contexts...
                 )
                 res1_out1_noval = $op!(
-                    f,
-                    y_in1_noval,
-                    res1_in1_noval,
-                    preptup_noval...,
-                    ba,
-                    x,
-                    tang,
-                    contexts...,
+                    f, y_in1_noval, res1_in1_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 res1_out2_noval = $op!(
-                    f,
-                    y_in2_noval,
-                    res1_in2_noval,
-                    preptup_noval...,
-                    ba,
-                    x,
-                    tang,
-                    contexts...,
+                    f, y_in2_noval, res1_in2_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
@@ -751,18 +702,24 @@ for op in ALL_OPS
                     @test y_in2_val === y_out2_val
                     @test y_out1_val ≈ scen.y
                     @test y_out2_val ≈ scen.y
+                    @test res1_in1_val === res1_out1_val
+                    @test res1_in2_val === res1_out2_val
+                    @test res1_in1_noval === res1_out1_noval
+                    @test res1_in2_noval === res1_out2_noval
                     for b in eachindex(scen.res1)
-                        @test res1_in1_val[b] === res1_out1_val[b]
-                        @test res1_in2_val[b] === res1_out2_val[b]
                         @test res1_out1_val[b] ≈ scen.res1[b]
                         @test res1_out2_val[b] ≈ scen.res1[b]
-                        @test res1_in1_noval[b] === res1_out1_noval[b]
-                        @test res1_in2_noval[b] === res1_out2_noval[b]
                         @test res1_out1_noval[b] ≈ scen.res1[b]
                         @test res1_out2_noval[b] ≈ scen.res1[b]
                     end
                 end
             end
+            @test_throws PME $val_and_op!(
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, t, contexts...
+            )
+            @test_throws PME $op!(
+                nothing, mysimilar(y), mysimilar(res1), prep, ba, x, t, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -776,44 +733,35 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, tang, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, tangrand = myrandom(x), myrandom(tang)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+                prep_nostrict = $prep_op(
                     f,
-                    $prep_op(
-                        new_smaller.f,
-                        ba,
-                        new_smaller.x,
-                        new_smaller.tang,
-                        new_smaller.contexts...,
-                    ),
                     ba,
-                    xrand,
-                    tangrand,
-                    contextsrand...,
+                    prep_args.x,
+                    prep_args.t,
+                    prep_args.contexts...;
+                    strict=Val(false),
                 )
-                prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
-                res2_out1_noval = $op(f, preptup_noval..., ba, x, tang, contexts...)
-                res2_out2_noval = $op(f, preptup_noval..., ba, x, tang, contexts...)
+                res2_out1_noval = $op(f, preptup_noval..., ba, x, t, contexts...)
+                res2_out2_noval = $op(f, preptup_noval..., ba, x, t, contexts...)
                 res1_out1_val, res2_out1_val = $val_and_op(
-                    f, preptup_noval..., ba, x, tang, contexts...
+                    f, preptup_noval..., ba, x, t, contexts...
                 )
                 res1_out2_val, res2_out2_val = $val_and_op(
-                    f, preptup_noval..., ba, x, tang, contexts...
+                    f, preptup_noval..., ba, x, t, contexts...
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
@@ -827,6 +775,8 @@ for op in ALL_OPS
                     end
                 end
             end
+            @test_throws PME $val_and_op(nothing, prep, ba, x, t, contexts...)
+            @test_throws PME $op(nothing, prep, ba, x, t, contexts...)
             scenario_intact && @test new_scen == scen
             return nothing
         end
@@ -839,35 +789,26 @@ for op in ALL_OPS
             rtol::Real,
             scenario_intact::Bool,
             sparsity::Bool,
+            reprepare::Bool,
         )
-            (; f, x, y, tang, res1, res2, contexts, smaller) = new_scen = deepcopy(scen)
-            xrand, tangrand = myrandom(x), myrandom(tang)
-            rewrap = Rewrap(contexts...)
-            contextsrand = rewrap(map(myrandom ∘ unwrap, contexts)...)
+            (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
+            local prep
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
-                new_smaller =
-                    if isnothing(smaller) || adapt_batchsize(ba, smaller) != ba
-                        deepcopy(scen)
-                    else
-                        deepcopy(smaller)
-                    end
-                prep = $prep_op(f, ba, xrand, tangrand, contextsrand...)
-                prepprep = $prep_op!(
+                prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
+                prep_nostrict = $prep_op(
                     f,
-                    $prep_op(
-                        new_smaller.f,
-                        ba,
-                        new_smaller.x,
-                        new_smaller.tang,
-                        new_smaller.contexts...,
-                    ),
                     ba,
-                    xrand,
-                    tangrand,
-                    contextsrand...,
+                    prep_args.x,
+                    prep_args.t,
+                    prep_args.contexts...;
+                    strict=Val(false),
                 )
-                prep_same = $prep_op_same(f, ba, x, tangrand, contexts...)
-                [(), (prep,), (prepprep,), (prep_same,)]
+                prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
+                if reprepare && has_size(x) && has_size(y) && (size(x) != size(prep_args.x))
+                    prep = $prep_op!(f, prep, ba, x, t, contexts...)
+                    prep_nostrict = $prep_op!(f, prep_nostrict, ba, x, t, contexts...)
+                end
+                [(), (prep,), (prep_nostrict,), (prep_same,)]
             end
             for (preptup_val, preptup_noval) in zip(preptup_cands_val, preptup_cands_noval)
                 res2_in1_noval = mysimilar(res2)
@@ -875,30 +816,16 @@ for op in ALL_OPS
                 res1_in1_val, res2_in1_val = mysimilar(res1), mysimilar(res2)
                 res1_in2_val, res2_in2_val = mysimilar(res1), mysimilar(res2)
                 res2_out1_noval = $op!(
-                    f, res2_in1_noval, preptup_noval..., ba, x, tang, contexts...
+                    f, res2_in1_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 res2_out2_noval = $op!(
-                    f, res2_in2_noval, preptup_noval..., ba, x, tang, contexts...
+                    f, res2_in2_noval, preptup_noval..., ba, x, t, contexts...
                 )
                 res1_out1_val, res2_out1_val = $val_and_op!(
-                    f,
-                    res1_in1_val,
-                    res2_in1_val,
-                    preptup_noval...,
-                    ba,
-                    x,
-                    tang,
-                    contexts...,
+                    f, res1_in1_val, res2_in1_val, preptup_noval..., ba, x, t, contexts...
                 )
                 res1_out2_val, res2_out2_val = $val_and_op!(
-                    f,
-                    res1_in2_val,
-                    res2_in2_val,
-                    preptup_noval...,
-                    ba,
-                    x,
-                    tang,
-                    contexts...,
+                    f, res1_in2_val, res2_in2_val, preptup_noval..., ba, x, t, contexts...
                 )
                 let (≈)(x, y) = isapprox(x, y; atol, rtol)
                     @test isempty(preptup_noval) || only(preptup_noval) isa $P
@@ -906,18 +833,22 @@ for op in ALL_OPS
                     @test res1_in2_val === res1_out2_val
                     @test res1_out1_val ≈ scen.res1
                     @test res1_out2_val ≈ scen.res1
+                    @test res2_in1_noval === res2_out1_noval
+                    @test res2_in2_noval === res2_out2_noval
+                    @test res2_in1_val === res2_out1_val
+                    @test res2_in2_val === res2_out2_val
                     for b in eachindex(scen.res2)
-                        @test res2_in1_noval[b] === res2_out1_noval[b]
-                        @test res2_in2_noval[b] === res2_out2_noval[b]
                         @test res2_out1_noval[b] ≈ scen.res2[b]
                         @test res2_out2_noval[b] ≈ scen.res2[b]
-                        @test res2_in1_val[b] === res2_out1_val[b]
-                        @test res2_in2_val[b] === res2_out2_val[b]
                         @test res2_out1_val[b] ≈ scen.res2[b]
                         @test res2_out2_val[b] ≈ scen.res2[b]
                     end
                 end
             end
+            @test_throws PME $op!(nothing, mysimilar(res2), prep, ba, x, t, contexts...)
+            @test_throws PME $val_and_op!(
+                nothing, mysimilar(res1), mysimilar(res2), prep, ba, x, t, contexts...
+            )
             scenario_intact && @test new_scen == scen
             return nothing
         end

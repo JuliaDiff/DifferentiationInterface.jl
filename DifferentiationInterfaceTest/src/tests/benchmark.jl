@@ -50,7 +50,7 @@ end
 
 Ad-hoc storage type for differentiation benchmarking results.
 
-#  Fields
+# Fields
 
 $(TYPEDFIELDS)
 

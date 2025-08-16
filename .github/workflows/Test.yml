@@ -20,12 +20,12 @@ jobs:
     name: ${{ matrix.version }} - DI (${{ matrix.group }})
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
     strategy:
-      fail-fast: false  # TODO: toggle
+      fail-fast: true  # TODO: toggle
       matrix:
         version:
           - "1.10"
@@ -60,6 +60,7 @@ jobs:
             group: Back/ChainRules
     env:
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
+      JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -69,10 +70,14 @@ jobs:
       - uses: julia-actions/cache@v2
       - name: Install dependencies & run tests
         # how to add the local DIT to the DI test env?
-        run: julia --project=./DifferentiationInterface -e '
+        run: julia --project=./DifferentiationInterface --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
-          Pkg.test("DifferentiationInterface"; coverage=true);'
+          if ENV["JULIA_DI_PR_DRAFT"] == "true";
+              Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);
+          else;
+              Pkg.test("DifferentiationInterface"; coverage=true);
+          end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
@@ -109,6 +114,7 @@ jobs:
             version: "1.10"
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
+      JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -117,11 +123,15 @@ jobs:
           arch: x64
       - uses: julia-actions/cache@v2
       - name: Install dependencies & run tests
-        run: julia --project=./DifferentiationInterfaceTest -e '
+        run: julia --project=./DifferentiationInterfaceTest --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
           Pkg.develop(path="./DifferentiationInterface");
-          Pkg.test("DifferentiationInterfaceTest"; coverage=true);'
+          if ENV["JULIA_DI_PR_DRAFT"] == "true";
+              Pkg.test("DifferentiationInterfaceTest"; coverage=true, julia_args=["-O1"]);
+          else;
+              Pkg.test("DifferentiationInterfaceTest"; coverage=true);
+          end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test

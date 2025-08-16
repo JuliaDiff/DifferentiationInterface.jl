@@ -1,24 +1,48 @@
 using DifferentiationInterface, DifferentiationInterfaceTest
 using DifferentiationInterface:
-    AutoSimpleFiniteDiff, AutoReverseFromPrimitive, DenseSparsityDetector
+    AutoSimpleFiniteDiff,
+    AutoForwardFromPrimitive,
+    AutoReverseFromPrimitive,
+    DenseSparsityDetector
 using SparseMatrixColorings
+using JLArrays, StaticArrays
 using Test
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [ #
     AutoSimpleFiniteDiff(; chunksize=5),
+    AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
     AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
 ]
 
 second_order_backends = [ #
     SecondOrder(
-        AutoSimpleFiniteDiff(; chunksize=5),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=5)),
         AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
     ),
     SecondOrder(
         AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=5)),
-        AutoSimpleFiniteDiff(; chunksize=4),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
+    ),
+]
+
+second_order_hvp_backends = [ #
+    SecondOrder(
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff()),
+    ),
+    SecondOrder(
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff();),
+    ),
+    SecondOrder(
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff();),
+    ),
+    SecondOrder(
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff();),
     ),
 ]
 
@@ -39,7 +63,14 @@ end
 @testset "Dense" begin
     test_differentiation(
         vcat(backends, second_order_backends),
-        default_scenarios(; include_constantified=true);
+        default_scenarios(; include_constantified=true, include_smaller=true);
+        logging=LOGGING,
+    )
+
+    test_differentiation(
+        second_order_hvp_backends,
+        default_scenarios(; include_constantorcachified=true);
+        excluded=vcat(FIRST_ORDER, :hessian, :second_derivative),
         logging=LOGGING,
     )
 
@@ -57,7 +88,12 @@ end
         MyAutoSparse.(
             vcat(adaptive_backends, MixedMode(adaptive_backends[1], adaptive_backends[2]))
         ),
-        sparse_scenarios(; include_constantified=true);
+        sparse_scenarios(;
+            include_constantified=true,
+            include_cachified=true,
+            include_constantorcachified=true,
+            use_tuples=true,
+        );
         sparsity=true,
         logging=LOGGING,
     )
@@ -93,3 +129,24 @@ end
         @test only(column_groups(hess_prep)) == 1:10
     end
 end
+
+@testset "Misc" begin
+    @test_throws ArgumentError DifferentiationInterface.overloaded_input(
+        pushforward, sum, AutoSimpleFiniteDiff(), 1, (1, 2)
+    )
+    @test_throws ArgumentError DifferentiationInterface.overloaded_input(
+        pushforward, copyto!, [1.0], AutoSimpleFiniteDiff(), [1.0], ([1.0], [1.0])
+    )
+end
+
+@testset "Weird arrays" begin
+    test_differentiation(
+        [
+            AutoSimpleFiniteDiff(),
+            AutoForwardFromPrimitive(AutoSimpleFiniteDiff()),
+            AutoReverseFromPrimitive(AutoSimpleFiniteDiff()),
+        ],
+        vcat(static_scenarios(), gpu_scenarios());
+        logging=LOGGING,
+    )
+end;

@@ -13,6 +13,7 @@ using ForwardDiff:
     HessianConfig,
     JacobianConfig,
     Tag,
+    checktag,
     derivative,
     derivative!,
     extract_derivative,
@@ -23,14 +24,15 @@ using ForwardDiff:
     jacobian,
     jacobian!,
     partials,
+    pickchunksize,
     value
 
 DI.check_available(::AutoForwardDiff) = true
+DI.inner_preparation_behavior(::AutoForwardDiff) = DI.PrepareInnerOverload()
 
 include("utils.jl")
 include("onearg.jl")
 include("twoarg.jl")
-include("secondorder.jl")
 include("differentiate_with.jl")
 include("misc.jl")
 

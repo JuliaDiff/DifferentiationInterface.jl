@@ -1,13 +1,13 @@
 using DifferentiationInterface
-using DifferentiationInterface: Rewrap, with_contexts
+using DifferentiationInterface: Rewrap, fix_tail
 using Test
 
 f1(x) = x
-g1 = @inferred with_contexts(f1)
+g1 = @inferred fix_tail(f1)
 @test @inferred g1(4) == 4
 
 f2(x, a, b) = a * x + b
-g2 = @inferred with_contexts(f2, Constant(2), Constant(3))
+g2 = @inferred fix_tail(f2, 2, 3)
 @test @inferred g2(4) == 2 * 4 + 3
 
 contexts = ()

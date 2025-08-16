@@ -2,11 +2,11 @@ function identity_scenarios(x::Number; dx::Number, dy::Number)
     f = identity
     dy_from_dx = dx
     dx_from_dy = dy
-    der = one(x)
+    der = oneunit(x)
 
     return [
-        Scenario{:pushforward,:out}(f, x; tang=(dx,), res1=(dy_from_dx,)),
-        Scenario{:pullback,:out}(f, x; tang=(dy,), res1=(dx_from_dy,)),
+        Scenario{:pushforward,:out}(f, x, (dx,); res1=(dy_from_dx,)),
+        Scenario{:pullback,:out}(f, x, (dy,); res1=(dx_from_dy,)),
         Scenario{:derivative,:out}(f, x; res1=der),
     ]
 end
@@ -16,11 +16,11 @@ function sum_scenarios(x::AbstractArray; dx::AbstractArray, dy::Number)
     dy_from_dx = sum(dx)
     dx_from_dy = (similar(x) .= dy)
     grad = similar(x)
-    grad .= one(eltype(x))
+    grad .= oneunit(eltype(x))
 
     return [
-        Scenario{:pushforward,:out}(f, x; tang=(dx,), res1=(dy_from_dx,)),
-        Scenario{:pullback,:in}(f, x; tang=(dy,), res1=(dx_from_dy,)),
+        Scenario{:pushforward,:out}(f, x, (dx,); res1=(dy_from_dx,)),
+        Scenario{:pullback,:in}(f, x, (dy,); res1=(dx_from_dy,)),
         Scenario{:gradient,:in}(f, x; res1=grad),
     ]
 end
@@ -34,8 +34,8 @@ function copyto!_scenarios(x::AbstractArray; dx::AbstractArray, dy::AbstractArra
     jac = Matrix(Diagonal(ones(eltype(x), length(x))))
 
     return [
-        Scenario{:pushforward,:in}(f!, y, x; tang=(dx,), res1=(dy_from_dx,)),
-        Scenario{:pullback,:in}(f!, y, x; tang=(dy,), res1=(dx_from_dy,)),
+        Scenario{:pushforward,:in}(f!, y, x, (dx,); res1=(dy_from_dx,)),
+        Scenario{:pullback,:in}(f!, y, x, (dy,); res1=(dx_from_dy,)),
         Scenario{:jacobian,:in}(f!, y, x; res1=jac),
     ]
 end
@@ -46,6 +46,7 @@ end
 Create a vector of [`Scenario`](@ref)s with functions that do not allocate.
 
 !!! warning
+
     At the moment, second-order scenarios are excluded.
 """
 function allocfree_scenarios()

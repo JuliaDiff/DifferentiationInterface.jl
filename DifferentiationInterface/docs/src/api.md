@@ -14,6 +14,7 @@ DifferentiationInterface
 Context
 Constant
 Cache
+ConstantOrCache
 ```
 
 ## First order
@@ -129,6 +130,13 @@ DifferentiateWith
 ```@docs
 MixedMode
 DenseSparsityDetector
+```
+
+### From primitive
+
+```@docs
+DifferentiationInterface.AutoForwardFromPrimitive
+DifferentiationInterface.AutoReverseFromPrimitive
 ```
 
 ## Internals

@@ -5,14 +5,26 @@ using Pkg
 using SparseConnectivityTracer
 using Test
 
+using DifferentiationInterfaceTest:
+    default_scenarios,
+    sparse_scenarios,
+    complex_scenarios,
+    complex_sparse_scenarios,
+    static_scenarios,
+    component_scenarios,
+    gpu_scenarios
+
 GROUP = get(ENV, "JULIA_DIT_TEST_GROUP", "All")
 
 ## Main tests
 
-@testset verbose = true "DifferentiationInterfaceTest.jl" begin
+@time @testset verbose = true "DifferentiationInterfaceTest.jl" begin
     if GROUP == "Formalities" || GROUP == "All"
         @testset verbose = true "Formalities" begin
             include("formalities.jl")
+        end
+        @testset verbose = true "Scenarios" begin
+            include("scenario.jl")
         end
     end
 

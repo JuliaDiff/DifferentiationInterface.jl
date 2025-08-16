@@ -34,14 +34,19 @@ function sparse_vec_to_vec_scenarios(x::AbstractVector)
     f! = diffsquare!
     y = f(x)
     jac = diffsquare_jacobian(x)
+    x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
 
     scens = Scenario[]
     for pl_op in (:out, :in)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(f, x; res1=jac),
-                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
+                Scenario{:jacobian,pl_op}(
+                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                ),
+                Scenario{:jacobian,pl_op}(
+                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                ),
             ],
         )
     end
@@ -70,14 +75,19 @@ function sparse_mat_to_vec_scenarios(x::AbstractMatrix)
     f! = diffsquarecube_matvec!
     y = f(x)
     jac = diffsquarecube_matvec_jacobian(x)
+    x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
 
     scens = Scenario[]
     for pl_op in (:out, :in)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(f, x; res1=jac),
-                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
+                Scenario{:jacobian,pl_op}(
+                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                ),
+                Scenario{:jacobian,pl_op}(
+                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                ),
             ],
         )
     end
@@ -103,14 +113,19 @@ function sparse_vec_to_mat_scenarios(x::AbstractVector)
     f! = diffsquarecube_vecmat!
     y = f(x)
     jac = diffsquarecube_vecmat_jacobian(vec(x))
+    x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
 
     scens = Scenario[]
     for pl_op in (:out, :in)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(f, x; res1=jac),
-                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
+                Scenario{:jacobian,pl_op}(
+                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                ),
+                Scenario{:jacobian,pl_op}(
+                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                ),
             ],
         )
     end
@@ -138,14 +153,19 @@ function sparse_mat_to_mat_scenarios(x::AbstractMatrix)
     f! = diffsquarecube_matmat!
     y = f(x)
     jac = diffsquarecube_matmat_jacobian(x)
+    x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
 
     scens = Scenario[]
     for pl_op in (:out, :in)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(f, x; res1=jac),
-                Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
+                Scenario{:jacobian,pl_op}(
+                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                ),
+                Scenario{:jacobian,pl_op}(
+                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                ),
             ],
         )
     end
@@ -180,10 +200,18 @@ function sparse_vec_to_num_scenarios(x::AbstractVector)
     f = sumdiffcube
     grad = sumdiffcube_gradient(x)
     hess = sumdiffcube_hessian(x)
+    x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
 
     scens = Scenario[]
     for pl_op in (:out, :in)
-        append!(scens, [Scenario{:hessian,pl_op}(f, x; res1=grad, res2=hess)])
+        append!(
+            scens,
+            [
+                Scenario{:hessian,pl_op}(
+                    f, x; prep_args=(; x=x_prep, contexts=()), res1=grad, res2=hess
+                ),
+            ],
+        )
     end
     return scens
 end
@@ -204,10 +232,18 @@ function sparse_mat_to_num_scenarios(x::AbstractMatrix)
     f = sumdiffcube_mat
     grad = sumdiffcube_mat_gradient(x)
     hess = sumdiffcube_mat_hessian(x)
+    x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
 
     scens = Scenario[]
     for pl_op in (:out, :in)
-        append!(scens, [Scenario{:hessian,pl_op}(f, x; res1=grad, res2=hess)])
+        append!(
+            scens,
+            [
+                Scenario{:hessian,pl_op}(
+                    f, x; prep_args=(; x=x_prep, contexts=()), res1=grad, res2=hess
+                ),
+            ],
+        )
     end
     return scens
 end
@@ -251,12 +287,17 @@ function squarelinearmap_scenarios(x::AbstractVector, band_sizes)
         f! = f
         y = f(x)
         jac = sparse(squarelinearmap_jacobian(x, A))
+        x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
         for pl_op in (:out, :in)
             append!(
                 scens,
                 [
-                    Scenario{:jacobian,pl_op}(f, x; res1=jac),
-                    Scenario{:jacobian,pl_op}(f!, y, x; res1=jac),
+                    Scenario{:jacobian,pl_op}(
+                        f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                    ),
+                    Scenario{:jacobian,pl_op}(
+                        f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                    ),
                 ],
             )
         end
@@ -306,12 +347,18 @@ end
 function squarequadraticform_scenarios(x::AbstractVector, band_sizes)
     n = length(x)
     scens = Scenario[]
+    x_prep = reshape(eltype(x).(1:length(x)) .^ 3, size(x))
     for A in banded_matrix.(eltype(x), n, band_sizes)
         f = SquareQuadraticForm(A)
         grad = squarequadraticform_gradient(x, A)
         hess = sparse(squarequadraticform_hessian(x, A))
         for pl_op in (:out, :in)
-            push!(scens, Scenario{:hessian,pl_op}(f, x; res1=grad, res2=hess))
+            push!(
+                scens,
+                Scenario{:hessian,pl_op}(
+                    f, x; prep_args=(; x=x_prep, contexts=()), res1=grad, res2=hess
+                ),
+            )
         end
     end
     return scens
@@ -324,7 +371,13 @@ end
 
 Create a vector of [`Scenario`](@ref)s with sparse array types, focused on sparse Jacobians and Hessians.
 """
-function sparse_scenarios(; band_sizes=[5, 10, 20], include_constantified=false)
+function sparse_scenarios(;
+    band_sizes=[5, 10, 20],
+    include_constantified=false,
+    include_cachified=false,
+    include_constantorcachified=false,
+    use_tuples=false,
+)
     x_6 = float.(1:6)
     x_2_3 = float.(reshape(1:6, 2, 3))
     x_50 = float.(range(1, 2, 50))
@@ -341,6 +394,11 @@ function sparse_scenarios(; band_sizes=[5, 10, 20], include_constantified=false)
         append!(scens, squarelinearmap_scenarios(x_50, band_sizes))
         append!(scens, squarequadraticform_scenarios(x_50, band_sizes))
     end
-    include_constantified && append!(scens, constantify(scens))
-    return scens
+
+    final_scens = Scenario[]
+    append!(final_scens, scens)
+    include_constantified && append!(final_scens, constantify(scens))
+    include_cachified && append!(final_scens, cachify(scens; use_tuples))
+    include_constantorcachified && append!(final_scens, constantorcachify(scens))
+    return final_scens
 end

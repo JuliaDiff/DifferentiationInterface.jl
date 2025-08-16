@@ -5,6 +5,7 @@ using ADTypes: ADTypes
 using DifferentiationInterface, DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
 using Enzyme: Enzyme
+using LinearAlgebra
 using StaticArrays
 using Test
 
@@ -49,6 +50,18 @@ end;
     test_differentiation(
         backends[1:3],
         default_scenarios(; include_normal=false, include_constantified=true);
+        excluded=SECOND_ORDER,
+        logging=LOGGING,
+    )
+
+    test_differentiation(
+        backends[2],
+        default_scenarios(;
+            include_normal=false,
+            include_cachified=true,
+            include_constantorcachified=true,
+            use_tuples=true,
+        );
         excluded=SECOND_ORDER,
         logging=LOGGING,
     )
@@ -123,4 +136,68 @@ end
         excluded=SECOND_ORDER,
         logging=LOGGING,
     )
+end
+
+@testset "Coverage" begin
+    # ConstantOrCache without cache
+    f_nocontext(x, p) = x
+    @test I == DifferentiationInterface.jacobian(
+        f_nocontext, AutoEnzyme(; mode=Enzyme.Forward), rand(10), ConstantOrCache(nothing)
+    )
+    @test I == DifferentiationInterface.jacobian(
+        f_nocontext, AutoEnzyme(; mode=Enzyme.Reverse), rand(10), ConstantOrCache(nothing)
+    )
+end
+
+@testset "Hints" begin
+    @testset "MutabilityError" begin
+        f = let
+            cache = [0.0]
+            x -> sum(copyto!(cache, x))
+        end
+
+        e = nothing
+        try
+            gradient(f, AutoEnzyme(), [1.0])
+        catch e
+        end
+        msg = sprint(showerror, e)
+        @test occursin("AutoEnzyme", msg)
+        @test occursin("function_annotation", msg)
+        @test occursin("ADTypes", msg)
+        @test occursin("DifferentiationInterface", msg)
+    end
+
+    @testset "RuntimeActivityError" begin
+        function g(active_var, constant_var, cond)
+            if cond
+                return active_var
+            else
+                return constant_var
+            end
+        end
+
+        function h(active_var, constant_var, cond)
+            return [g(active_var, constant_var, cond), g(active_var, constant_var, cond)]
+        end
+
+        e = nothing
+        try
+            pushforward(
+                h,
+                AutoEnzyme(; mode=Enzyme.Forward),
+                [1.0],
+                ([1.0],),
+                Constant([1.0]),
+                Constant(true),
+            )
+        catch e
+        end
+        msg = sprint(showerror, e)
+        @test occursin("AutoEnzyme", msg)
+        @test occursin("mode", msg)
+        @test occursin("set_runtime_activity", msg)
+        @test occursin("ADTypes", msg)
+        @test occursin("DifferentiationInterface", msg)
+    end
 end

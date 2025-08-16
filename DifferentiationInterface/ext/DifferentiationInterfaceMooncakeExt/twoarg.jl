@@ -1,12 +1,20 @@
-struct MooncakeTwoArgPullbackPrep{Tcache,DY,F} <: DI.PullbackPrep
+struct MooncakeTwoArgPullbackPrep{SIG,Tcache,DY,F} <: DI.PullbackPrep{SIG}
+    _sig::Val{SIG}
     cache::Tcache
     dy_righttype::DY
     target_function::F
 end
 
-function DI.prepare_pullback(
-    f!, y, backend::AutoMooncake, x, ty::NTuple, contexts::Vararg{DI.Context,C}
-) where {C}
+function DI.prepare_pullback_nokwarg(
+    strict::Val,
+    f!::F,
+    y,
+    backend::AutoMooncake,
+    x,
+    ty::NTuple,
+    contexts::Vararg{DI.Context,C};
+) where {F,C}
+    _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     target_function = function (f!, y, x, contexts...)
         f!(y, x, contexts...)
         return y
@@ -22,49 +30,66 @@ function DI.prepare_pullback(
         silence_debug_messages=config.silence_debug_messages,
     )
     dy_righttype_after = zero_tangent(y)
-    return MooncakeTwoArgPullbackPrep(cache, dy_righttype_after, target_function)
+    prep = MooncakeTwoArgPullbackPrep(_sig, cache, dy_righttype_after, target_function)
+    return prep
 end
 
 function DI.value_and_pullback(
-    f!,
+    f!::F,
     y,
     prep::MooncakeTwoArgPullbackPrep,
-    ::AutoMooncake,
+    backend::AutoMooncake,
     x,
     ty::NTuple{1},
     contexts::Vararg{DI.Context,C},
-) where {C}
-    # Prepare cotangent to add after the forward pass.
+) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     dy = only(ty)
+    # Prepare cotangent to add after the forward pass.
     dy_righttype_after = copyto!(prep.dy_righttype, dy)
-
     # Run the reverse-pass and return the results.
-    contexts = map(DI.unwrap, contexts)
-    y_after, (_, _, _, dx) = Mooncake.value_and_pullback!!(
-        prep.cache, dy_righttype_after, prep.target_function, f!, y, x, contexts...
+    y_after, (_, _, _, dx) = value_and_pullback!!(
+        prep.cache,
+        dy_righttype_after,
+        prep.target_function,
+        f!,
+        y,
+        x,
+        map(DI.unwrap, contexts)...,
     )
     copyto!(y, y_after)
-    return y, (copy(dx),) # TODO: remove this allocation in `value_and_pullback!`
+    return y, (_copy_output(dx),)
 end
 
 function DI.value_and_pullback(
-    f!,
+    f!::F,
     y,
     prep::MooncakeTwoArgPullbackPrep,
     backend::AutoMooncake,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     tx = map(ty) do dy
-        _, tx = DI.value_and_pullback(f!, y, prep, backend, x, (dy,), contexts...)
-        only(tx)
+        dy_righttype_after = copyto!(prep.dy_righttype, dy)
+        y_after, (_, _, _, dx) = value_and_pullback!!(
+            prep.cache,
+            dy_righttype_after,
+            prep.target_function,
+            f!,
+            y,
+            x,
+            map(DI.unwrap, contexts)...,
+        )
+        copyto!(y, y_after)
+        _copy_output(dx)
     end
     return y, tx
 end
 
 function DI.value_and_pullback!(
-    f!,
+    f!::F,
     y,
     tx::NTuple,
     prep::MooncakeTwoArgPullbackPrep,
@@ -72,26 +97,28 @@ function DI.value_and_pullback!(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     _, new_tx = DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
     return y, tx
 end
 
 function DI.pullback(
-    f!,
+    f!::F,
     y,
     prep::MooncakeTwoArgPullbackPrep,
     backend::AutoMooncake,
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     return DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)[2]
 end
 
 function DI.pullback!(
-    f!,
+    f!::F,
     y,
     tx::NTuple,
     prep::MooncakeTwoArgPullbackPrep,
@@ -99,6 +126,7 @@ function DI.pullback!(
     x,
     ty::NTuple,
     contexts::Vararg{DI.Context,C},
-) where {C}
+) where {F,C}
+    DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     return DI.value_and_pullback!(f!, y, tx, prep, backend, x, ty, contexts...)[2]
 end

@@ -141,6 +141,18 @@ Traits identifying second-order backends that compute HVPs in forward over forwa
 """
 struct ForwardOverForward <: HVPMode end
 
+const ForwardOverAnything = Union{ForwardOverForward,ForwardOverReverse}
+
+"""
+    hvp_mode(backend)
+
+Return the best combination of modes for [`hvp`](@ref) and its variants, among the following options:
+
+  - [`ForwardOverForward`](@ref)
+  - [`ForwardOverReverse`](@ref)
+  - [`ReverseOverForward`](@ref)
+  - [`ReverseOverReverse`](@ref)
+"""
 hvp_mode(backend::AbstractADType) = hvp_mode(SecondOrder(backend, backend))
 
 function hvp_mode(ba::SecondOrder)
@@ -158,6 +170,38 @@ end
 function hvp_mode(backend::AutoSparse)
     throw(ArgumentError("HVP mode not defined for $backend`."))
 end
+
+## Inner prep
+
+abstract type InnerPreparationBehavior end
+
+"""
+    PrepareInnerSimple
+
+Trait identifying outer backends for which the inner backend in second-order autodiff should be prepared with the same input type.
+"""
+struct PrepareInnerSimple <: InnerPreparationBehavior end
+
+"""
+    PrepareInnerOverload
+
+Trait identifying outer backends for which the inner backend in second-order autodiff should be prepared with an overloaded input type.
+"""
+struct PrepareInnerOverload <: InnerPreparationBehavior end
+
+"""
+    DontPrepareInner
+
+Trait identifying outer backends for which the inner backend in second-order autodiff should not be prepared at all.
+"""
+struct DontPrepareInner <: InnerPreparationBehavior end
+
+"""
+    inner_preparation_behavior(backend::AbstractADType)
+
+Return [`PrepareInnerSimple`](@ref), [`PrepareInnerOverload`](@ref) or [`DontPrepareInner`](@ref) in a statically predictable way.
+"""
+inner_preparation_behavior(::AbstractADType) = DontPrepareInner()
 
 ## Conversions
 

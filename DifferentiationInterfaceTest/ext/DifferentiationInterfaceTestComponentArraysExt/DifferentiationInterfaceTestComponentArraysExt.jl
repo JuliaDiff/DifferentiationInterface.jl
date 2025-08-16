@@ -10,7 +10,7 @@ function comp_to_num(x::ComponentVector)::Number
     return sum(sin.(x.a)) + sum(cos.(x.b))
 end
 
-comp_to_num_gradient(x) = ComponentVector(; a=cos.(x.a), b=-sin.(x.b))
+comp_to_num_gradient(x) = ComponentVector(; a=cos.(x.a), b=(-sin.(x.b)))
 
 function comp_to_num_pushforward(x, dx)
     g = comp_to_num_gradient(x)
@@ -33,15 +33,13 @@ function comp_to_num_scenarios_onearg(x::ComponentVector; dx::AbstractVector, dy
         append!(
             scens,
             [
-                DIT.Scenario{:pullback,pl_op}(f, x; tang=(dy,), res1=(dx_from_dy,)),
+                DIT.Scenario{:pullback,pl_op}(f, x, (dy,); res1=(dx_from_dy,)),
                 DIT.Scenario{:gradient,pl_op}(f, x; res1=grad),
             ],
         )
     end
     for pl_op in (:out,)
-        append!(
-            scens, [DIT.Scenario{:pushforward,pl_op}(f, x; tang=(dx,), res1=(dy_from_dx,))]
-        )
+        append!(scens, [DIT.Scenario{:pushforward,pl_op}(f, x, (dx,); res1=(dy_from_dx,))])
     end
     return scens
 end

@@ -27,7 +27,9 @@ end
 @testset "Dense" begin
     test_differentiation(
         backends,
-        default_scenarios(; include_constantified=true, include_cachified=true);
+        default_scenarios(;
+            include_constantified=true, include_cachified=true, use_tuples=true
+        );
         excluded=[:second_derivative],
         logging=LOGGING,
     )
@@ -55,11 +57,4 @@ test_differentiation(
         sparsity=true,
         logging=LOGGING,
     )
-end
-
-## Errors
-
-@testset "Errors" begin
-    safe_log(x) = x > zero(x) ? log(x) : convert(typeof(x), NaN)
-    @test_throws "Zygote failed to differentiate" derivative(safe_log, AutoZygote(), 0.0)
 end

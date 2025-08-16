@@ -7,6 +7,7 @@ using FiniteDiff:
     GradientCache,
     HessianCache,
     JacobianCache,
+    JVPCache,
     finite_difference_derivative,
     finite_difference_gradient,
     finite_difference_gradient!,
@@ -14,10 +15,13 @@ using FiniteDiff:
     finite_difference_hessian!,
     finite_difference_jacobian,
     finite_difference_jacobian!,
+    finite_difference_jvp,
+    finite_difference_jvp!,
     default_relstep
 using LinearAlgebra: dot, mul!
 
 DI.check_available(::AutoFiniteDiff) = true
+DI.inner_preparation_behavior(::AutoFiniteDiff) = DI.PrepareInnerSimple()
 
 # see https://github.com/SciML/ADTypes.jl/issues/33
 

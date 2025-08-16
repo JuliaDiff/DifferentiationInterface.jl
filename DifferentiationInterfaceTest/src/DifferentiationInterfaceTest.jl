@@ -89,7 +89,8 @@ using DifferentiationInterface:
     inplace_support,
     pushforward_performance,
     pullback_performance
-using DifferentiationInterface: Rewrap, Context, Constant, Cache, unwrap
+using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCache, unwrap
+using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using JET: @test_opt
 using LinearAlgebra: Adjoint, Diagonal, Transpose, dot, parent
@@ -97,7 +98,7 @@ using ProgressMeter: ProgressUnknown, next!
 using Random: AbstractRNG, default_rng, rand!
 using SparseArrays:
     SparseArrays, AbstractSparseMatrix, SparseMatrixCSC, nnz, sparse, spdiagm
-using Test: @testset, @test
+using Test: @testset, @test, @test_throws
 
 """
     FIRST_ORDER = [:pushforward, :pullback, :derivative, :gradient, :jacobian]
@@ -135,13 +136,7 @@ include("test_differentiation.jl")
 
 export FIRST_ORDER, SECOND_ORDER
 export Scenario
-export default_scenarios, sparse_scenarios
-export complex_scenarios, complex_sparse_scenarios
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
-# extensions
-export static_scenarios
-export component_scenarios
-export gpu_scenarios
 
 end

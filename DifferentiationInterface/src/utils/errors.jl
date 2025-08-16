@@ -27,11 +27,3 @@ end
 function required_packages(::Type{<:AutoSparse{D}}) where {D}
     return unique(vcat(required_packages(D), "SparseMatrixColorings"))
 end
-
-function document_preparation(operator_name::AbstractString; same_point=false)
-    if same_point
-        return "To improve performance via operator preparation, refer to [`prepare_$(operator_name)`](@ref) and [`prepare_$(operator_name)_same_point`](@ref)."
-    else
-        return "To improve performance via operator preparation, refer to [`prepare_$(operator_name)`](@ref)."
-    end
-end

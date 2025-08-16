@@ -8,13 +8,16 @@ module DifferentiationInterface
 using ADTypes:
     ADTypes,
     AbstractADType,
+    AbstractSparsityDetector,
     AutoSparse,
     ForwardMode,
     ForwardOrReverseMode,
     ReverseMode,
     SymbolicMode,
     dense_ad,
-    mode
+    mode,
+    jacobian_sparsity,
+    hessian_sparsity
 using ADTypes:
     AutoChainRules,
     AutoDiffractor,
@@ -25,6 +28,7 @@ using ADTypes:
     AutoForwardDiff,
     AutoGTPSA,
     AutoMooncake,
+    AutoMooncakeForward,
     AutoPolyesterForwardDiff,
     AutoReverseDiff,
     AutoSymbolics,
@@ -33,18 +37,20 @@ using ADTypes:
 using LinearAlgebra: dot
 
 include("compat.jl")
+include("docstrings.jl")
 
 include("first_order/mixed_mode.jl")
 include("second_order/second_order.jl")
 
+include("utils/context.jl")
 include("utils/prep.jl")
 include("utils/traits.jl")
 include("utils/basis.jl")
 include("utils/batchsize.jl")
 include("utils/check.jl")
-include("utils/printing.jl")
-include("utils/context.jl")
+include("utils/errors.jl")
 include("utils/linalg.jl")
+include("utils/sparse.jl")
 
 include("first_order/pushforward.jl")
 include("first_order/pullback.jl")
@@ -56,9 +62,6 @@ include("second_order/second_derivative.jl")
 include("second_order/hvp.jl")
 include("second_order/hessian.jl")
 
-include("fallbacks/no_prep.jl")
-include("fallbacks/change_prep.jl")
-
 include("misc/differentiate_with.jl")
 include("misc/from_primitive.jl")
 include("misc/sparsity_detector.jl")
@@ -68,7 +71,7 @@ include("misc/overloading.jl")
 
 ## Exported
 
-export Context, Constant, Cache
+export Context, Constant, Cache, ConstantOrCache
 export MixedMode, SecondOrder
 
 export value_and_pushforward!, value_and_pushforward
@@ -113,6 +116,7 @@ export AutoFiniteDifferences
 export AutoForwardDiff
 export AutoGTPSA
 export AutoMooncake
+export AutoMooncakeForward
 export AutoPolyesterForwardDiff
 export AutoReverseDiff
 export AutoSymbolics
@@ -124,6 +128,7 @@ export AutoSparse
 ## Public but not exported
 
 @public inner, outer
+@public AutoForwardFromPrimitive, AutoReverseFromPrimitive
 
 include("init.jl")
 

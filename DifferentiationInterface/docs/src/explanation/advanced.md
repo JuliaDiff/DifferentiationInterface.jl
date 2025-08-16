@@ -16,10 +16,8 @@ Every context argument must be wrapped in a subtype of [`Context`](@ref) and com
 Right now, there are two kinds of context: [`Constant`](@ref) and [`Cache`](@ref).
 
 !!! warning
-    This feature is still experimental and will not be supported by all backends.
-    At the moment:
-    - `Constant` is supported by all backends except symbolic ones
-    - `Cache` is only supported by finite difference backends and [`AutoForwardDiff`](@ref), but it is not yet optimized
+    
+    Not every backend supports every type of context. See the documentation on [Backends](@ref) for more details.
 
 Semantically, both of these calls compute the partial gradient of `f(x, c)` with respect to `x`, but they consider `c` differently:
 
@@ -40,6 +38,7 @@ When faced with sparse Jacobian or Hessian matrices, one can take advantage of t
 DifferentiationInterface does this automatically if you pass a backend of type [`AutoSparse`](@extref ADTypes.AutoSparse).
 
 !!! tip
+    
     To know more about sparse AD, read the survey [_What Color Is Your Jacobian? Graph Coloring for Computing Derivatives_](https://epubs.siam.org/doi/10.1137/S0036144504444711) (Gebremedhin et al., 2005).
 
 ### `AutoSparse` object
@@ -47,17 +46,21 @@ DifferentiationInterface does this automatically if you pass a backend of type [
 `AutoSparse` backends only support [`jacobian`](@ref) and [`hessian`](@ref) (as well as their variants), because other operators do not output matrices.
 An `AutoSparse` backend must be constructed from three ingredients:
 
-1. An underlying (dense) backend, which can be [`SecondOrder`](@ref) or anything from [ADTypes.jl](https://github.com/SciML/ADTypes.jl)
-2. A sparsity pattern detector like:
-   - [`TracerSparsityDetector`](@extref SparseConnectivityTracer.TracerSparsityDetector) from [SparseConnectivityTracer.jl](https://github.com/adrhill/SparseConnectivityTracer.jl)
-   - [`SymbolicsSparsityDetector`](@extref Symbolics.SymbolicsSparsityDetector) from [Symbolics.jl](https://github.com/JuliaSymbolics/Symbolics.jl)
-   - [`DenseSparsityDetector`](@ref) from DifferentiationInterface.jl (beware that this detector only gives a locally valid pattern)
-   - [`KnownJacobianSparsityDetector`](@extref ADTypes.KnownJacobianSparsityDetector) or [`KnownHessianSparsityDetector`](@extref ADTypes.KnownHessianSparsityDetector) from [ADTypes.jl](https://github.com/SciML/ADTypes.jl) (if you already know the pattern)
-3. A coloring algorithm from [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl), such as:
-   - [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) (our generic recommendation)
-   - [`ConstantColoringAlgorithm`](@extref SparseMatrixColorings.ConstantColoringAlgorithm) (if you have already computed the optimal coloring and always want to return it)
+ 1. An underlying (dense) backend, which can be [`SecondOrder`](@ref) or anything from [ADTypes.jl](https://github.com/SciML/ADTypes.jl)
+
+ 2. A sparsity pattern detector like:
+    
+      + [`TracerSparsityDetector`](@extref SparseConnectivityTracer.TracerSparsityDetector) from [SparseConnectivityTracer.jl](https://github.com/adrhill/SparseConnectivityTracer.jl)
+      + [`SymbolicsSparsityDetector`](@extref Symbolics.SymbolicsSparsityDetector) from [Symbolics.jl](https://github.com/JuliaSymbolics/Symbolics.jl)
+      + [`DenseSparsityDetector`](@ref) from DifferentiationInterface.jl (beware that this detector only gives a locally valid pattern)
+      + [`KnownJacobianSparsityDetector`](@extref ADTypes.KnownJacobianSparsityDetector) or [`KnownHessianSparsityDetector`](@extref ADTypes.KnownHessianSparsityDetector) from [ADTypes.jl](https://github.com/SciML/ADTypes.jl) (if you already know the pattern)
+ 3. A coloring algorithm from [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl), such as:
+    
+      + [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) (our generic recommendation)
+      + [`ConstantColoringAlgorithm`](@extref SparseMatrixColorings.ConstantColoringAlgorithm) (if you have already computed the optimal coloring and always want to return it)
 
 !!! note
+    
     Symbolic backends have built-in sparsity handling, so `AutoSparse(AutoSymbolics())` and `AutoSparse(AutoFastDifferentiation())` do not need additional configuration for pattern detection or coloring.
 
 ### Cost of sparse preparation
@@ -66,6 +69,7 @@ The preparation step of `jacobian` or `hessian` with an `AutoSparse` backend can
 But after preparation, the more zeros are present in the matrix, the greater the speedup will be compared to dense differentiation.
 
 !!! danger
+    
     The result of preparation for an `AutoSparse` backend cannot be reused if the sparsity pattern changes.
 
 ### Tuning the coloring algorithm
@@ -83,13 +87,22 @@ This behavior is triggered as soon as you put a [`MixedMode`](@ref) object insid
 
 ```julia
 AutoSparse(
-    MixedMode(forward_backend, reverse_backend);
-    sparsity_detector,
-    coloring_algorithm
+    MixedMode(forward_backend, reverse_backend); sparsity_detector, coloring_algorithm
 )
 ```
 
-At the moment, mixed mode tends to work best when the [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) is provided with a [`RandomOrder`](@extref SparseMatrixColorings.RandomOrder) instead of the usual [`NaturalOrder`](@extref SparseMatrixColorings.NaturalOrder).
+At the moment, mixed mode tends to work best (output fewer colors) when the [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) is provided with a [`RandomOrder`](@extref SparseMatrixColorings.RandomOrder) instead of the usual [`NaturalOrder`](@extref SparseMatrixColorings.NaturalOrder), and when "post-processing" is activated after coloring.
+For full reproducibility, you should use a random number generator from [StableRNGs.jl](https://github.com/JuliaRandom/StableRNGs.jl).
+Thus, the right setup looks like:
+
+```julia
+using StableRNGs
+
+seed = 3
+coloring_algorithm = GreedyColoringAlgorithm(
+    RandomOrder(StableRNG(seed), seed); postprocessing=true
+)
+```
 
 ## Batch mode
 

@@ -6,15 +6,28 @@ abstract type FunctionModifier end
 Return a new `Scenario` identical to `scen` except for the first- and second-order results which are set to zero.
 """
 function Base.zero(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
-    return Scenario{op,pl_op,pl_fun}(
-        scen.f;
+    zero_res1 = if op in (:pushforward, :pullback)
+        map(zero, scen.res1)
+    else
+        zero(scen.res1)
+    end
+    zero_res2 = if isnothing(scen.res2)
+        nothing
+    elseif op == :hvp
+        map(zero, scen.res2)
+    else
+        zero(scen.res2)
+    end
+    return Scenario{op,pl_op,pl_fun}(;
+        f=scen.f,
         x=scen.x,
         y=scen.y,
-        tang=scen.tang,
+        t=scen.t,
         contexts=scen.contexts,
-        res1=myzero(scen.res1),
-        res2=myzero(scen.res2),
-        smaller=isnothing(scen.smaller) ? nothing : zero(scen.smaller),
+        res1=zero_res1,
+        res2=zero_res2,
+        prep_args=scen.prep_args,
+        name=isnothing(scen.name) ? nothing : scen.name * " [zero]",
     )
 end
 
@@ -23,24 +36,21 @@ end
 
 Return a new `Scenario` identical to `scen` except for the function `f` which is changed to `new_f`.
 """
-function change_function(
-    scen::Scenario{op,pl_op,pl_fun}, new_f; keep_smaller
-) where {op,pl_op,pl_fun}
-    return Scenario{op,pl_op,pl_fun}(
-        new_f;
+function change_function(scen::Scenario{op,pl_op,pl_fun}, new_f) where {op,pl_op,pl_fun}
+    return Scenario{op,pl_op,pl_fun}(;
+        f=new_f,
         x=scen.x,
         y=scen.y,
-        tang=scen.tang,
+        t=scen.t,
         contexts=scen.contexts,
         res1=scen.res1,
         res2=scen.res2,
-        smaller=if isnothing(scen.smaller) || !keep_smaller
-            nothing
-        else
-            change_function(scen.smaller, new_f; keep_smaller=false)
-        end,
+        prep_args=scen.prep_args,
+        name=isnothing(scen.name) ? nothing : scen.name * " [new function]",
     )
 end
+
+same_function(scen) = change_function(scen, scen.f)
 
 """
     batchify(scen::Scenario)
@@ -50,32 +60,47 @@ Return a new `Scenario` identical to `scen` except for the tangents `tang` and a
 Only works if `scen` is a `pushforward`, `pullback` or `hvp` scenario.
 """
 function batchify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
-    (; f, x, y, tang, contexts, res1, res2, smaller) = scen
+    (; f, x, y, t, contexts, res1, res2, prep_args) = scen
+    new_t = (only(t), -only(t))
+    new_prep_args = if pl_fun == :out
+        (;
+            x=prep_args.x,
+            contexts=prep_args.contexts,
+            t=(only(prep_args.t), -only(prep_args.t)),
+        )
+    else
+        (;
+            y=prep_args.y,
+            x=prep_args.x,
+            contexts=prep_args.contexts,
+            t=(only(prep_args.t), -only(prep_args.t)),
+        )
+    end
     if op == :pushforward || op == :pullback
-        new_tang = (only(tang), -only(tang))
         new_res1 = (only(res1), -only(res1))
-        return Scenario{op,pl_op,pl_fun}(
-            f;
+        return Scenario{op,pl_op,pl_fun}(;
+            f,
             x,
             y,
-            tang=new_tang,
+            t=new_t,
             contexts,
             res1=new_res1,
             res2,
-            smaller=isnothing(smaller) ? nothing : batchify(smaller),
+            prep_args=new_prep_args,
+            name=isnothing(scen.name) ? nothing : scen.name * " [batchified]",
         )
     elseif op == :hvp
-        new_tang = (only(tang), -only(tang))
         new_res2 = (only(res2), -only(res2))
-        return Scenario{op,pl_op,pl_fun}(
-            f;
+        return Scenario{op,pl_op,pl_fun}(;
+            f,
             x,
             y,
-            tang=new_tang,
+            t=new_t,
             contexts,
             res1,
             res2=new_res2,
-            smaller=isnothing(smaller) ? nothing : batchify(smaller),
+            prep_args=new_prep_args,
+            name=isnothing(scen.name) ? nothing : scen.name * " [batchified]",
         )
     end
 end
@@ -84,26 +109,31 @@ struct WritableClosure{pl_fun,F,X,Y} <: FunctionModifier
     f::F
     x_buffer::Vector{X}
     y_buffer::Vector{Y}
+    a::Float64
+    b::Vector{Float64}
 end
 
 function WritableClosure{pl_fun}(
-    f::F, x_buffer::Vector{X}, y_buffer::Vector{Y}
+    f::F, x_buffer::Vector{X}, y_buffer::Vector{Y}, a, b
 ) where {pl_fun,F,X,Y}
-    return WritableClosure{pl_fun,F,X,Y}(f, x_buffer, y_buffer)
+    return WritableClosure{pl_fun,F,X,Y}(f, x_buffer, y_buffer, a, b)
 end
 
 Base.show(io::IO, f::WritableClosure) = print(io, "WritableClosure($(f.f))")
 
 function (mc::WritableClosure{:out})(x)
-    mc.x_buffer[1] = x
-    mc.y_buffer[1] = mc.f(x)
-    return copy(mc.y_buffer[1])
+    (; f, x_buffer, y_buffer, a, b) = mc
+    x_buffer[1] = copy(x)
+    y_buffer[1] = (a + only(b)) * f(x)
+    return copy(y_buffer[1])
 end
 
 function (mc::WritableClosure{:in})(y, x)
-    mc.x_buffer[1] = x
-    mc.f(mc.y_buffer[1], mc.x_buffer[1])
-    copyto!(y, mc.y_buffer[1])
+    (; f, x_buffer, y_buffer, a, b) = mc
+    x_buffer[1] = copy(x)
+    f(y_buffer[1], x_buffer[1])
+    y_buffer[1] .*= (a + only(b))
+    copyto!(y, y_buffer[1])
     return nothing
 end
 
@@ -112,13 +142,25 @@ end
 
 Return a new `Scenario` identical to `scen` except for the function `f` which is made to close over differentiable data.
 """
-function closurify(scen::Scenario)
+function closurify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
     (; f, x, y) = scen
     @assert isempty(scen.contexts)
     x_buffer = [zero(x)]
     y_buffer = [zero(y)]
-    closure_f = WritableClosure{function_place(scen)}(f, x_buffer, y_buffer)
-    return change_function(scen, closure_f; keep_smaller=false)
+    a = 3.0
+    b = [4.0]
+    closure_f = WritableClosure{pl_fun}(f, x_buffer, y_buffer, a, b)
+    return Scenario{op,pl_op,pl_fun}(;
+        f=closure_f,
+        x=scen.x,
+        y=mymultiply(scen.y, a + only(b)),
+        t=scen.t,
+        contexts=scen.contexts,
+        res1=mymultiply(scen.res1, a + only(b)),
+        res2=mymultiply(scen.res2, a + only(b)),
+        prep_args=scen.prep_args,
+        name=isnothing(scen.name) ? nothing : scen.name * " [closurified]",
+    )
 end
 
 struct MultiplyByConstant{pl_fun,F} <: FunctionModifier
@@ -143,7 +185,7 @@ end
 """
     constantify(scen::Scenario)
 
-Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional constant argument `a` by which the output is multiplied.
+Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional constant argument by which the output is multiplied.
 The output and result fields are updated accordingly.
 """
 function constantify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
@@ -151,15 +193,16 @@ function constantify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
     @assert isempty(scen.contexts)
     multiply_f = MultiplyByConstant{pl_fun}(f)
     a = 3.0
-    return Scenario{op,pl_op,pl_fun}(
-        multiply_f;
+    return Scenario{op,pl_op,pl_fun}(;
+        f=multiply_f,
         x=scen.x,
         y=mymultiply(scen.y, a),
-        tang=scen.tang,
+        t=scen.t,
         contexts=(Constant(a),),
         res1=mymultiply(scen.res1, a),
         res2=mymultiply(scen.res2, a),
-        smaller=isnothing(scen.smaller) ? nothing : constantify(scen.smaller),
+        prep_args=(; scen.prep_args..., contexts=(Constant(-a),)),
+        name=isnothing(scen.name) ? nothing : scen.name * " [constantified]",
     )
 end
 
@@ -173,7 +216,12 @@ end
 
 Base.show(io::IO, f::StoreInCache) = print(io, "StoreInCache($(f.f))")
 
-function (sc::StoreInCache{:out})(x, y_cache)
+(sc::StoreInCache{:out})(x, y_cache::NamedTuple) = sc(x, y_cache.useful_cache)
+(sc::StoreInCache{:in})(y, x, y_cache::NamedTuple) = sc(y, x, y_cache.useful_cache)
+(sc::StoreInCache{:out})(x, y_cache::Tuple) = sc(x, first(y_cache))
+(sc::StoreInCache{:in})(y, x, y_cache::Tuple) = sc(y, x, first(y_cache))
+
+function (sc::StoreInCache{:out})(x, y_cache)  # no annotation otherwise Zygote.Buffer cries
     y = sc.f(x)
     if y isa Number
         y_cache[1] = y
@@ -193,28 +241,121 @@ end
 """
     cachify(scen::Scenario)
 
-Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional cache argument `a` to store the result before it is returned.
+Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional cache argument to store the result before it is returned.
+
+If `tup=true` the cache is a tuple of arrays, otherwise just an array.
 """
-function cachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+function cachify(scen::Scenario{op,pl_op,pl_fun}; use_tuples) where {op,pl_op,pl_fun}
     (; f,) = scen
     @assert isempty(scen.contexts)
     cache_f = StoreInCache{pl_fun}(f)
-    y_cache = if scen.y isa Number
-        [myzero(scen.y)]
+    if use_tuples
+        y_cache = if scen.y isa Number
+            (; useful_cache=([zero(scen.y)],), useless_cache=[zero(scen.y)])
+        else
+            (; useful_cache=(similar(scen.y),), useless_cache=similar(scen.y))
+        end
     else
-        mysimilar(scen.y)
+        y_cache = if scen.y isa Number
+            [zero(scen.y)]
+        else
+            similar(scen.y)
+        end
     end
-    return Scenario{op,pl_op,pl_fun}(
-        cache_f;
+    return Scenario{op,pl_op,pl_fun}(;
+        f=cache_f,
         x=scen.x,
         y=scen.y,
-        tang=scen.tang,
+        t=scen.t,
         contexts=(Cache(y_cache),),
         res1=scen.res1,
         res2=scen.res2,
-        smaller=isnothing(scen.smaller) ? nothing : cachify(scen.smaller),
+        prep_args=(; scen.prep_args..., contexts=(Cache(y_cache),)),
+        name=isnothing(scen.name) ? nothing : scen.name * " [cachified]",
     )
 end
+
+struct MultiplyByConstantAndStoreInCache{pl_fun,F} <: FunctionModifier
+    f::F
+end
+
+function MultiplyByConstantAndStoreInCache{pl_fun}(f::F) where {pl_fun,F}
+    return MultiplyByConstantAndStoreInCache{pl_fun,F}(f)
+end
+
+function Base.show(io::IO, f::MultiplyByConstantAndStoreInCache)
+    return print(io, "MultiplyByConstantAndStoreInCache($(f.f))")
+end
+
+function (sc::MultiplyByConstantAndStoreInCache{:out})(x, constantorcache)
+    (; constant, cache) = constantorcache
+    (; a, b) = constant
+    y = (a + only(b)) * sc.f(x)
+    if eltype(y) == eltype(cache)
+        newcache = cache
+    else
+        # poor man's PreallocationTools
+        newcache = similar(cache, eltype(y))
+    end
+    if y isa Number
+        newcache[1] = y
+        return newcache[1]
+    else
+        copyto!(newcache, y)
+        return copy(newcache)
+    end
+end
+
+function (sc::MultiplyByConstantAndStoreInCache{:in})(y, x, constantorcache)
+    (; constant, cache) = constantorcache
+    (; a, b) = constant
+    if eltype(y) == eltype(cache)
+        newcache = cache
+    else
+        # poor man's PreallocationTools
+        newcache = similar(cache, eltype(y))
+    end
+    sc.f(newcache, x)
+    newcache .*= (a + only(b))
+    copyto!(y, newcache)
+    return nothing
+end
+
+"""
+    constantorcachify(scen::Scenario)
+
+Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional "constant or cache" argument.
+"""
+function constantorcachify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+    (; f,) = scen
+    @assert isempty(scen.contexts)
+    constantorcache_f = MultiplyByConstantAndStoreInCache{pl_fun}(f)
+    a = 3.0
+    b = [4.0]
+    constantorcache = if scen.y isa Number
+        (; cache=[zero(scen.y)], constant=(; a, b))
+    else
+        (; cache=similar(scen.y), constant=(; a, b))
+    end
+    prep_constantorcache = if scen.y isa Number
+        (; cache=[zero(scen.y)], constant=(; a=2a, b=3b))
+    else
+        (; cache=similar(scen.y), constant=(; a=2a, b=3b))
+    end
+    return Scenario{op,pl_op,pl_fun}(;
+        f=constantorcache_f,
+        x=scen.x,
+        y=mymultiply(scen.y, a + only(b)),
+        t=scen.t,
+        contexts=(ConstantOrCache(constantorcache),),
+        res1=mymultiply(scen.res1, a + only(b)),
+        res2=mymultiply(scen.res2, a + only(b)),
+        prep_args=(; scen.prep_args..., contexts=(ConstantOrCache(prep_constantorcache),)),
+        name=isnothing(scen.name) ? nothing : scen.name * " [constantorcachified]",
+    )
+end
+
+## Group functions
 
 function batchify(scens::AbstractVector{<:Scenario})
     batchifiable_scens = filter(s -> operator(s) in (:pushforward, :pullback, :hvp), scens)
@@ -223,20 +364,5 @@ end
 
 closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
-cachify(scens::AbstractVector{<:Scenario}) = cachify.(scens)
-
-function set_smaller(
-    scen::Scenario{op,pl_op,pl_fun}, smaller::Scenario
-) where {op,pl_op,pl_fun}
-    @assert scen.f == smaller.f
-    return Scenario{op,pl_op,pl_fun}(
-        scen.f;
-        x=scen.x,
-        y=scen.y,
-        tang=scen.tang,
-        contexts=scen.contexts,
-        res1=scen.res1,
-        res2=scen.res2,
-        smaller=smaller,
-    )
-end
+cachify(scens::AbstractVector{<:Scenario}; use_tuples) = cachify.(scens; use_tuples)
+constantorcachify(scens::AbstractVector{<:Scenario}) = constantorcachify.(scens)

@@ -1,27 +1,47 @@
 module DifferentiationInterfaceMooncakeExt
 
-using ADTypes: ADTypes, AutoMooncake
+using ADTypes: ADTypes, AutoMooncake, AutoMooncakeForward
 import DifferentiationInterface as DI
 using Mooncake:
+    Mooncake,
     CoDual,
     Config,
+    Dual,
+    prepare_derivative_cache,
+    prepare_gradient_cache,
+    prepare_pullback_cache,
     primal,
     tangent,
     tangent_type,
+    value_and_derivative!!,
+    value_and_gradient!!,
     value_and_pullback!!,
+    zero_dual,
     zero_tangent,
-    prepare_pullback_cache,
-    Mooncake
+    rdata_type,
+    fdata,
+    rdata,
+    tangent_type,
+    NoTangent,
+    @is_primitive,
+    zero_fcodual,
+    MinimalCtx,
+    NoRData,
+    primal,
+    _copy_output,
+    _copy_to_output!!
 
-DI.check_available(::AutoMooncake) = true
+const AnyAutoMooncake{C} = Union{AutoMooncake{C},AutoMooncakeForward{C}}
 
-copyto!!(dst::Number, src::Number) = convert(typeof(dst), src)
-copyto!!(dst, src) = DI.ismutable_array(dst) ? copyto!(dst, src) : convert(typeof(dst), src)
+DI.check_available(::AnyAutoMooncake{C}) where {C} = true
 
-get_config(::AutoMooncake{Nothing}) = Config()
-get_config(backend::AutoMooncake{<:Config}) = backend.config
+get_config(::AnyAutoMooncake{Nothing}) = Config()
+get_config(backend::AnyAutoMooncake{<:Config}) = backend.config
 
 include("onearg.jl")
 include("twoarg.jl")
+include("forward_onearg.jl")
+include("forward_twoarg.jl")
+include("differentiate_with.jl")
 
 end

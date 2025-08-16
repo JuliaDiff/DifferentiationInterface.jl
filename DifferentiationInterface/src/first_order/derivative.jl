@@ -1,29 +1,47 @@
 ## Docstrings
 
 """
-    prepare_derivative(f,     backend, x, [contexts...]) -> prep
-    prepare_derivative(f!, y, backend, x, [contexts...]) -> prep
+    prepare_derivative(f,     backend, x, [contexts...]; strict=Val(true)) -> prep
+    prepare_derivative(f!, y, backend, x, [contexts...]; strict=Val(true)) -> prep
 
-Create a `prep` object that can be given to [`derivative`](@ref) and its variants.
-
-!!! warning
-    If the function changes in any way, the result of preparation will be invalidated, and you will need to run it again.
-    For in-place functions, `y` is mutated by `f!` during preparation.
+$(docstring_prepare("derivative"; inplace=true))
 """
-function prepare_derivative end
+function prepare_derivative(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
+) where {F,C}
+    return prepare_derivative_nokwarg(strict, f, backend, x, contexts...)
+end
+
+function prepare_derivative(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val=Val(true)
+) where {F,C}
+    return prepare_derivative_nokwarg(strict, f!, y, backend, x, contexts...)
+end
 
 """
     prepare!_derivative(f,     prep, backend, x, [contexts...]) -> new_prep
     prepare!_derivative(f!, y, prep, backend, x, [contexts...]) -> new_prep
 
-Same behavior as [`prepare_derivative`](@ref) but can modify an existing `prep` object to avoid some allocations.
-
-There is no guarantee that `prep` will be mutated, or that performance will be improved compared to preparation from scratch.
-
-!!! danger
-    For efficiency, this function needs to rely on backend package internals, therefore it not protected by semantic versioning.
+$(docstring_prepare!("derivative"))
 """
-function prepare!_derivative end
+function prepare!_derivative(
+    f::F, old_prep::DerivativePrep, backend::AbstractADType, x, contexts::Vararg{Context,C};
+) where {F,C}
+    check_prep(f, old_prep, backend, x, contexts...)
+    return prepare_derivative_nokwarg(is_strict(old_prep), f, backend, x, contexts...)
+end
+
+function prepare!_derivative(
+    f!::F,
+    y,
+    old_prep::DerivativePrep,
+    backend::AbstractADType,
+    x,
+    contexts::Vararg{Context,C},
+) where {F,C}
+    check_prep(f!, y, old_prep, backend, x, contexts...)
+    return prepare_derivative_nokwarg(is_strict(old_prep), f!, y, backend, x, contexts...)
+end
 
 """
     value_and_derivative(f,     [prep,] backend, x, [contexts...]) -> (y, der)
@@ -31,9 +49,21 @@ function prepare!_derivative end
 
 Compute the value and the derivative of the function `f` at point `x`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
-function value_and_derivative end
+function value_and_derivative(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_derivative(f, prep, backend, x, contexts...)
+end
+
+function value_and_derivative(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return value_and_derivative(f!, y, prep, backend, x, contexts...)
+end
 
 """
     value_and_derivative!(f,     der, [prep,] backend, x, [contexts...]) -> (y, der)
@@ -41,9 +71,21 @@ function value_and_derivative end
 
 Compute the value and the derivative of the function `f` at point `x`, overwriting `der`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
-function value_and_derivative! end
+function value_and_derivative!(
+    f::F, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return value_and_derivative!(f, der, prep, backend, x, contexts...)
+end
+
+function value_and_derivative!(
+    f!::F, y, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return value_and_derivative!(f!, y, der, prep, backend, x, contexts...)
+end
 
 """
     derivative(f,     [prep,] backend, x, [contexts...]) -> der
@@ -51,9 +93,21 @@ function value_and_derivative! end
 
 Compute the derivative of the function `f` at point `x`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
-function derivative end
+function derivative(
+    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return derivative(f, prep, backend, x, contexts...)
+end
+
+function derivative(
+    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return derivative(f!, y, prep, backend, x, contexts...)
+end
 
 """
     derivative!(f,     der, [prep,] backend, x, [contexts...]) -> der
@@ -61,28 +115,47 @@ function derivative end
 
 Compute the derivative of the function `f` at point `x`, overwriting `der`.
 
-$(document_preparation("derivative"))
+$(docstring_preparation_hint("derivative"))
 """
-function derivative! end
+function derivative!(
+    f::F, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f, backend, x, contexts...)
+    return derivative!(f, der, prep, backend, x, contexts...)
+end
+
+function derivative!(
+    f!::F, y, der, backend::AbstractADType, x, contexts::Vararg{Context,C}
+) where {F,C}
+    prep = prepare_derivative_nokwarg(Val(true), f!, y, backend, x, contexts...)
+    return derivative!(f!, y, der, prep, backend, x, contexts...)
+end
 
 ## Preparation
 
-struct PushforwardDerivativePrep{E<:PushforwardPrep} <: DerivativePrep
+struct PushforwardDerivativePrep{SIG,E<:PushforwardPrep} <: DerivativePrep{SIG}
+    _sig::Val{SIG}
     pushforward_prep::E
 end
 
-function prepare_derivative(
-    f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
+function prepare_derivative_nokwarg(
+    strict::Val, f::F, backend::AbstractADType, x, contexts::Vararg{Context,C}
 ) where {F,C}
-    pushforward_prep = prepare_pushforward(f, backend, x, (one(x),), contexts...)
-    return PushforwardDerivativePrep(pushforward_prep)
+    _sig = signature(f, backend, x, contexts...; strict)
+    pushforward_prep = prepare_pushforward_nokwarg(
+        strict, f, backend, x, (oneunit(x),), contexts...
+    )
+    return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
 
-function prepare_derivative(
-    f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C}
+function prepare_derivative_nokwarg(
+    strict::Val, f!::F, y, backend::AbstractADType, x, contexts::Vararg{Context,C};
 ) where {F,C}
-    pushforward_prep = prepare_pushforward(f!, y, backend, x, (one(x),), contexts...)
-    return PushforwardDerivativePrep(pushforward_prep)
+    _sig = signature(f!, y, backend, x, contexts...; strict)
+    pushforward_prep = prepare_pushforward_nokwarg(
+        strict, f!, y, backend, x, (oneunit(x),), contexts...
+    )
+    return PushforwardDerivativePrep(_sig, pushforward_prep)
 end
 
 ## One argument
@@ -94,8 +167,9 @@ function value_and_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, ty = value_and_pushforward(
-        f, prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, only(ty)
 end
@@ -108,8 +182,9 @@ function value_and_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f, prep, backend, x, contexts...)
     y, _ = value_and_pushforward!(
-        f, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, der
 end
@@ -121,7 +196,8 @@ function derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    ty = pushforward(f, prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    check_prep(f, prep, backend, x, contexts...)
+    ty = pushforward(f, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...)
     return only(ty)
 end
 
@@ -133,7 +209,8 @@ function derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    pushforward!(f, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    check_prep(f, prep, backend, x, contexts...)
+    pushforward!(f, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...)
     return der
 end
 
@@ -147,8 +224,9 @@ function value_and_derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     y, ty = value_and_pushforward(
-        f!, y, prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f!, y, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, only(ty)
 end
@@ -162,8 +240,9 @@ function value_and_derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
+    check_prep(f!, y, prep, backend, x, contexts...)
     y, _ = value_and_pushforward!(
-        f!, y, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...
+        f!, y, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
     )
     return y, der
 end
@@ -176,7 +255,8 @@ function derivative(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    ty = pushforward(f!, y, prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    check_prep(f!, y, prep, backend, x, contexts...)
+    ty = pushforward(f!, y, prep.pushforward_prep, backend, x, (oneunit(x),), contexts...)
     return only(ty)
 end
 
@@ -189,7 +269,10 @@ function derivative!(
     x,
     contexts::Vararg{Context,C},
 ) where {F,C}
-    pushforward!(f!, y, (der,), prep.pushforward_prep, backend, x, (one(x),), contexts...)
+    check_prep(f!, y, prep, backend, x, contexts...)
+    pushforward!(
+        f!, y, (der,), prep.pushforward_prep, backend, x, (oneunit(x),), contexts...
+    )
     return der
 end
 

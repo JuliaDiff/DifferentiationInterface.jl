@@ -13,11 +13,11 @@ end
 # ╔═╡ d1b44dac-8487-4581-82fd-ece0ce89f8e2
 begin
     const purple = Luxor.julia_purple
-    const red    = Luxor.julia_red
-    const green  = Luxor.julia_green
-    const blue   = Luxor.julia_blue
-    const white  = RGB(1, 1, 1)
-    const black  = RGB(0, 0, 0)
+    const red = Luxor.julia_red
+    const green = Luxor.julia_green
+    const blue = Luxor.julia_blue
+    const white = RGB(1, 1, 1)
+    const black = RGB(0, 0, 0)
     const colors = (purple, red, green)
 end;
 
@@ -47,7 +47,7 @@ end
 
 # ╔═╡ 69d0fa4d-2585-42a0-981f-99d43f7e2c1f
 md"## Creating Favicons
-Using Imagemagick, run 
+Using Imagemagick, run
 ```bash
 convert -background transparent logo.svg -define icon:auto-resize=256,128,48,32,16 favicon.ico
 ```

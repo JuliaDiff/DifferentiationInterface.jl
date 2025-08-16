@@ -7,10 +7,11 @@ To make your functions compatible with several backends, you need to mind the re
 The list of backends available at [juliadiff.org](https://juliadiff.org/) is split into 2 main families: operator overloading and source transformation.
 Writing differentiable code requires a specific approach in each paradigm:
 
-- For operator overloading, ensure type-genericity.
-- For source transformation, rely on existing rules or write your own.
+  - For operator overloading, ensure type-genericity.
+  - For source transformation, rely on existing rules or write your own.
 
 !!! tip
+    
     Depending on your intended use case, you may not need to ensure compatibility with every single backend.
     In particular, some applications strongly suggest a specific "mode" of AD (forward or reverse), in which case backends limited to the other mode are mostly irrelevant.
 
@@ -25,20 +26,20 @@ It performs AD at a scalar level by replacing plain numbers with [`Dual` numbers
 As explained in the [limitations of ForwardDiff](https://juliadiff.org/ForwardDiff.jl/stable/user/limitations/), this will only work if the differentiated code does not restrict number types too much.
 Otherwise, you may encounter errors like this one:
 
-```julia
+```
 MethodError: no method matching Float64(::ForwardDiff.Dual{...})
 ```
 
 To prevent them, here are a few things to look out for:
 
-- Avoid functions with overly specific type annotations.
+  - Avoid functions with overly specific type annotations.
 
 ```julia
-f(x::Vector{Float64}) = ... # bad
-f(x::AbstractVector{<:Real}) = ... # good
+f(x::Vector{Float64}) = x # bad
+f(x::AbstractVector{<:Real}) = x # good
 ```
 
-- When creating new containers or buffers, adapt to the input number type if necessary.
+  - When creating new containers or buffers, adapt to the input number type if necessary.
 
 ```julia
 tmp = zeros(length(x))  # bad
@@ -51,7 +52,7 @@ In some situations, manually writing overloads for `x::Dual` or `x::AbstractArra
 ### ReverseDiff
 
 [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl) relies on operator overloading for scalars, but also for arrays.
-The relevant types are called `TrackedReal` and `TrackedArray`, they have a set of [limitations](https://juliadiff.org/ReverseDiff.jl/stable/limits/) very similar to that of ForwardDiff.jl's `Dual` and will cause similar errors. 
+The relevant types are called `TrackedReal` and `TrackedArray`, they have a set of [limitations](https://juliadiff.org/ReverseDiff.jl/stable/limits/) very similar to that of ForwardDiff.jl's `Dual` and will cause similar errors.
 
 ### Symbolic backends
 
@@ -66,7 +67,7 @@ The operator overloading aims at reconstructing a symbolic representation of the
 [Zygote.jl](https://github.com/FluxML/Zygote.jl) can differentiate a lot of Julia code, but it does have some major [limitations](https://fluxml.ai/Zygote.jl/stable/limitations/).
 The most frequently encountered is the lack of support for mutation: if you try to modify the contents of an array during differentiation, you will get an error like
 
-```julia
+```
 ERROR: Mutating arrays is not supported
 ```
 
@@ -84,18 +85,18 @@ Note that its rule writing is very different from ChainRulesCore.jl due to the p
 
 ### Mooncake
 
-[Mooncake.jl](https://github.com/compintell/Mooncake.jl) is a recent package which also handles a large subset of all Julia programs out-of-the-box.
+[Mooncake.jl](https://github.com/chalk-lab/Mooncake.jl) is a recent package which also handles a large subset of all Julia programs out-of-the-box.
 
-Its [rule system](https://compintell.github.io/Mooncake.jl/dev/understanding_mooncake/rule_system/) is less expressive than that of Enzyme.jl, which might make it easier to start with.
+Its [rule system](https://chalk-lab.github.io/Mooncake.jl/stable/understanding_mooncake/rule_system/) is less expressive than that of Enzyme.jl, which might make it easier to start with.
 
 ## A rule mayhem?
 
 To summarize, here are the main rule systems which coexist at the moment:
 
-- `Dual` numbers in ForwardDiff.jl
-- ChainRulesCore.jl
-- Enzyme.jl
-- Mooncake.jl
+  - `Dual` numbers in ForwardDiff.jl
+  - ChainRulesCore.jl
+  - Enzyme.jl
+  - Mooncake.jl
 
 ### Rule translation
 
@@ -104,11 +105,12 @@ ChainRulesCore.jl is the closest thing we have to a standard, but it does not ha
 As a result, Enzyme.jl and Mooncake.jl both rolled out their own designs, which are not mutually compatible.
 There are, however, translation utilities:
 
-- from ChainRulesCore.jl to ForwardDiff.jl with [ForwardDiffChainRules.jl](https://github.com/ThummeTo/ForwardDiffChainRules.jl)
-- from ChainRulesCore.jl to Enzyme.jl with [`Enzyme.@import_rrule`](https://enzymead.github.io/Enzyme.jl/stable/api/#Enzyme.@import_rrule-Tuple)
-- from ChainRulesCore.jl to Mooncake.jl with [`Mooncake.@from_rrule`](https://compintell.github.io/Mooncake.jl/dev/utilities/tools_for_rules/#Using-ChainRules.jl)
+  - from ChainRulesCore.jl to ForwardDiff.jl with [ForwardDiffChainRules.jl](https://github.com/ThummeTo/ForwardDiffChainRules.jl)
+  - from ChainRulesCore.jl to Enzyme.jl with [`Enzyme.@import_rrule`](https://enzymead.github.io/Enzyme.jl/stable/api/#Enzyme.@import_rrule-Tuple)
+  - from ChainRulesCore.jl to Mooncake.jl with [`Mooncake.@from_rrule`](https://chalk-lab.github.io/Mooncake.jl/stable/utilities/defining_rules/#Using-ChainRules.jl)
 
 ### Backend switch
 
 Also note the existence of [`DifferentiationInterface.DifferentiateWith`](@ref), which allows the user to wrap a function that should be differentiated with a specific backend.
-Right now it only targets ForwardDiff.jl and ChainRulesCore.jl, but PRs are welcome to define Enzyme.jl and Mooncake.jl rules for this object.
+
+Right now, it only targets [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl), [Mooncake.jl](), [ChainRules.jl](https://juliadiff.org/ChainRulesCore.jl/stable/)-compatible backends (e.g., [Zygote.jl](https://github.com/FluxML/Zygote.jl)), but PRs are welcome to define Enzyme.jl rules for this object.

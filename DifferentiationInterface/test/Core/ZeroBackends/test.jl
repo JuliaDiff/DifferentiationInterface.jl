@@ -18,23 +18,9 @@ end
 
 @testset "Type stability" begin
     test_differentiation(
-        AutoZeroForward(),
-        default_scenarios(; include_batchified=false, include_constantified=true);
-        correctness=false,
-        type_stability=:full,
-        logging=LOGGING,
-    )
-
-    test_differentiation(
-        AutoZeroReverse(),
-        default_scenarios(; include_batchified=false, include_constantified=true);
-        correctness=false,
-        type_stability=:full,
-        logging=LOGGING,
-    )
-
-    test_differentiation(
         [
+            AutoZeroForward(),
+            AutoZeroReverse(),
             SecondOrder(AutoZeroForward(), AutoZeroReverse()),
             SecondOrder(AutoZeroReverse(), AutoZeroForward()),
         ],

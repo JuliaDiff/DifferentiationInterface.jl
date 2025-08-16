@@ -3,19 +3,11 @@ using DifferentiationInterfaceTest
 using Aqua: Aqua
 using ExplicitImports
 using JET: JET
-using JuliaFormatter: JuliaFormatter
 using SparseMatrixColorings: SparseMatrixColorings
 using Test
 
 @testset "Aqua" begin
-    Aqua.test_all(
-        DifferentiationInterfaceTest; ambiguities=false, deps_compat=(check_extras = false)
-    )
-end
-@testset "JuliaFormatter" begin
-    @test JuliaFormatter.format(
-        DifferentiationInterfaceTest; verbose=false, overwrite=false
-    )
+    Aqua.test_all(DifferentiationInterfaceTest; ambiguities=false, undocumented_names=true)
 end
 @testset verbose = true "JET" begin
     JET.test_package(DifferentiationInterfaceTest; target_defined_modules=true)
