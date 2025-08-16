@@ -25,11 +25,12 @@ jobs:
       actions: write
       contents: read
     strategy:
-      fail-fast: true  # TODO: toggle
+      fail-fast: false  # TODO: toggle
       matrix:
         version:
-          - "1.10"
+          - "lts"
           - "1"
+          - "pre"
         group:
           - Core/Internals
           - Back/DifferentiateWith
@@ -53,9 +54,13 @@ jobs:
           - Down/Lux
         skip_lts:
           - ${{ github.event.pull_request.draft }}
+        skip_pre:
+          - ${{ github.event.pull_request.draft }}
         exclude:
           - skip_lts: true
-            version: "1.10"
+            version: "lts"
+          - skip_pre: true
+            version: "pre"
           - version: "1"
             group: Back/ChainRules
     env:
@@ -97,11 +102,12 @@ jobs:
       actions: write
       contents: read
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         version:
-          - "1.10"
+          - "lts"
           - "1"
+          - "pre"
         group:
           - Formalities
           - Zero
@@ -109,9 +115,13 @@ jobs:
           - Weird
         skip_lts:
           - ${{ github.event.pull_request.draft }}
+        skip_pre:
+          - ${{ github.event.pull_request.draft }}
         exclude:
           - skip_lts: true
-            version: "1.10"
+            version: "lts"
+          - skip_pre: true
+            version: "pre"
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
