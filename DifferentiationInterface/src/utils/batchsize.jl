@@ -22,22 +22,26 @@ struct BatchSizeSettings{B,singlebatch,aligned}
 end
 
 function BatchSizeSettings{B,singlebatch,aligned}(N::Integer) where {B,singlebatch,aligned}
-    B > N && throw(ArgumentError("Batch size $B larger than input size $N"))
-    A = div(N, B, RoundUp)
-    B_last = N % B
+    B > N > 0 && throw(ArgumentError("Batch size $B larger than input size $N"))
+    if B == N == 0
+        A = B_last = 0
+    else
+        A = div(N, B, RoundUp)
+        B_last = N % B
+    end
     return BatchSizeSettings{B,singlebatch,aligned}(N, A, B_last)
 end
 
 function BatchSizeSettings{B}(::Val{N}) where {B,N}
     singlebatch = B == N
-    aligned = N % B == 0
+    aligned = (B == N == 0) || (N % B == 0)
     return BatchSizeSettings{B,singlebatch,aligned}(N)
 end
 
 function BatchSizeSettings{B}(N::Integer) where {B}
     # type-unstable
     singlebatch = B == N
-    aligned = N % B == 0
+    aligned = (B == N == 0) || (N % B == 0)
     return BatchSizeSettings{B,singlebatch,aligned}(N)
 end
 

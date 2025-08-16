@@ -1,6 +1,7 @@
 using DifferentiationInterface
 using DifferentiationInterface: AutoZeroForward, AutoZeroReverse
 using DifferentiationInterfaceTest
+using LinearAlgebra
 using ComponentArrays: ComponentArrays
 using JLArrays: JLArrays
 using SparseMatrixColorings
@@ -49,4 +50,16 @@ end
         correctness=true,
         logging=LOGGING,
     )
+end
+
+@testset "Empty arrays" begin
+    make_empty(t) = typeof(t)[]
+    make_empty!(y, t) = nothing
+    @test gradient(sum, AutoZeroForward(), Float64[]) == Float64[]
+    @test derivative(make_empty, AutoZeroReverse(), 1.0) == Float64[]
+    @test derivative(make_empty!, Float64[], AutoZeroReverse(), 1.0) == Float64[]
+    @test_broken jacobian(copy, AutoZeroForward(), Float64[]) == I(0)
+    @test_broken jacobian(copy, AutoZeroReverse(), Float64[]) == I(0)
+    @test_broken jacobian(copyto!, Float64[], AutoZeroForward(), Float64[]) == I(0)
+    @test_broken jacobian(copyto!, Float64[], AutoZeroReverse(), Float64[]) == I(0)
 end
