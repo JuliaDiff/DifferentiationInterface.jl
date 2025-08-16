@@ -23,21 +23,25 @@ end
 
 function BatchSizeSettings{B,singlebatch,aligned}(N::Integer) where {B,singlebatch,aligned}
     B > N > 0 && throw(ArgumentError("Batch size $B larger than input size $N"))
-    A = div(N, B, RoundUp)
-    B_last = N % B
+    if B == N == 0
+        A = B_last = 0
+    else
+        A = div(N, B, RoundUp)
+        B_last = N % B
+    end
     return BatchSizeSettings{B,singlebatch,aligned}(N, A, B_last)
 end
 
 function BatchSizeSettings{B}(::Val{N}) where {B,N}
     singlebatch = B == N
-    aligned = N % B == 0
+    aligned = (B == N == 0) || (N % B == 0)
     return BatchSizeSettings{B,singlebatch,aligned}(N)
 end
 
 function BatchSizeSettings{B}(N::Integer) where {B}
     # type-unstable
     singlebatch = B == N
-    aligned = N % B == 0
+    aligned = (B == N == 0) || (N % B == 0)
     return BatchSizeSettings{B,singlebatch,aligned}(N)
 end
 
@@ -123,9 +127,7 @@ Reproduces the heuristic from ForwardDiff to minimize
 Source: https://github.com/JuliaDiff/ForwardDiff.jl/blob/ec74fbc32b10bbf60b3c527d8961666310733728/src/prelude.jl#L19-L29
 """
 function reasonable_batchsize(N::Integer, Bmax::Integer)
-    if N == 0
-        return 1
-    elseif N <= Bmax
+    if N <= Bmax
         return N
     else
         A = div(N, Bmax, RoundUp)
