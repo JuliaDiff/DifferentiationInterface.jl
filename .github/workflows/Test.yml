@@ -86,7 +86,7 @@ jobs:
           files: lcov.info
           flags: DI
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   test-DIT:
     name: ${{ matrix.version }} - DIT (${{ matrix.group }})
@@ -140,4 +140,4 @@ jobs:
           files: lcov.info
           flags: DIT
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          fail_ci_if_error: false
