@@ -8,11 +8,11 @@ using StaticArrays: StaticArray, MArray, MMatrix, MVector, SArray, SMatrix, SVec
 static_num_to_vec(x::Number) = sin.(SVector(1, 2) .* x)
 static_num_to_mat(x::Number) = hcat(static_num_to_vec(x), static_num_to_vec(3x))
 
-const NTV                         = typeof(DIT.num_to_vec)
-const NTM                         = typeof(DIT.num_to_mat)
-mystatic(f::Function)             = f
-mystatic(::NTV)                   = static_num_to_vec
-mystatic(::NTM)                   = static_num_to_mat
+const NTV = typeof(DIT.num_to_vec)
+const NTM = typeof(DIT.num_to_mat)
+mystatic(f::Function) = f
+mystatic(::NTV) = static_num_to_vec
+mystatic(::NTM) = static_num_to_mat
 mystatic(f::DIT.FunctionModifier) = f
 
 mystatic(x::Number) = x

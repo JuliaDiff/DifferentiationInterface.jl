@@ -7,14 +7,14 @@ It is not part of the public API and the content below may become outdated, in w
 
 The package is structured around 8 [operators](@ref Operators):
 
-- [`derivative`](@ref)
-- [`second_derivative`](@ref)
-- [`gradient`](@ref)
-- [`jacobian`](@ref)
-- [`hessian`](@ref)
-- [`pushforward`](@ref)
-- [`pullback`](@ref)
-- [`hvp`](@ref)
+  - [`derivative`](@ref)
+  - [`second_derivative`](@ref)
+  - [`gradient`](@ref)
+  - [`jacobian`](@ref)
+  - [`hessian`](@ref)
+  - [`pushforward`](@ref)
+  - [`pullback`](@ref)
+  - [`hvp`](@ref)
 
 Most operators have 4 variants, which look like this in the first order: `operator`, `operator!`, `value_and_operator`, `value_and_operator!`.
 
@@ -39,6 +39,7 @@ In the main package, you should define a new struct `SuperDiffBackend` which sub
 You also have to define [`ADTypes.mode`](@extref) and [`DifferentiationInterface.inplace_support`](@ref) on `SuperDiffBackend`.
 
 !!! info
+    
     In the end, this backend struct will need to be contributed to [ADTypes.jl](https://github.com/SciML/ADTypes.jl).
     However, putting it in the DifferentiationInterface.jl PR is a good first step for debugging.
 
@@ -46,7 +47,7 @@ In a [package extension](https://pkgdocs.julialang.org/v1/creating-packages/#Con
 The exact requirements depend on the differentiation mode you chose:
 
 | backend mode                                      | pushforward necessary | pullback necessary |
-| :------------------------------------------------ | :-------------------- | :----------------- |
+|:------------------------------------------------- |:--------------------- |:------------------ |
 | [`ADTypes.ForwardMode`](@extref ADTypes)          | yes                   | no                 |
 | [`ADTypes.ReverseMode`](@extref ADTypes)          | no                    | yes                |
 | [`ADTypes.ForwardOrReverseMode`](@extref ADTypes) | yes                   | yes                |

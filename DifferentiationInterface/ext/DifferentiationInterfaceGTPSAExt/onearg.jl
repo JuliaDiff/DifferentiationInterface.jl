@@ -114,7 +114,7 @@ struct GTPSAOneArgGradientPrep{SIG,X} <: DI.GradientPrep{SIG}
     xt::X
 end
 
-# Unlike JVP, this requires us to use all variables 
+# Unlike JVP, this requires us to use all variables
 function DI.prepare_gradient_nokwarg(
     strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
@@ -197,7 +197,7 @@ struct GTPSAOneArgJacobianPrep{SIG,X} <: DI.JacobianPrep{SIG}
     xt::X
 end
 
-# To materialize the entire Jacobian we use all variables 
+# To materialize the entire Jacobian we use all variables
 function DI.prepare_jacobian_nokwarg(
     strict::Val, f, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant,C}
 ) where {D,C}
@@ -406,7 +406,7 @@ function DI.value_derivative_and_second_derivative!(
 end
 
 ## Hessian
-# Stores allocated array of TPS and an array for the monomial coefficient 
+# Stores allocated array of TPS and an array for the monomial coefficient
 # indexing in GTPSA.cycle! (which is used if a Descriptor is specified)
 struct GTPSAOneArgHessianPrep{SIG,X,M} <: DI.HessianPrep{SIG}
     _sig::Val{SIG}
@@ -424,14 +424,14 @@ function DI.prepare_hessian_nokwarg(
     else
         nn = length(x)
         d = Descriptor(nn, 2)
-        # If all variables/variable+parameters have truncation order > 2, then 
+        # If all variables/variable+parameters have truncation order > 2, then
         # the indexing is known beforehand and we can do it (very slightly) faster
         m = nothing
     end
     xt = similar(x, TPS{promote_type(eltype(x), Float64)})
 
     # xt and x have same indexing because of similar
-    # Setting the first derivatives must be 1-based 
+    # Setting the first derivatives must be 1-based
     # linear with the variables.
     j = 1
     for i in eachindex(xt)

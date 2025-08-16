@@ -4,6 +4,7 @@
 Combination of two backends for second-order differentiation.
 
 !!! danger
+
     `SecondOrder` backends do not support first-order operators.
 
 # Constructor
@@ -12,8 +13,8 @@ Combination of two backends for second-order differentiation.
 
 # Fields
 
-- `outer::AbstractADType`: backend for the outer differentiation
-- `inner::AbstractADType`: backend for the inner differentiation
+  - `outer::AbstractADType`: backend for the outer differentiation
+  - `inner::AbstractADType`: backend for the inner differentiation
 """
 struct SecondOrder{ADO<:AbstractADType,ADI<:AbstractADType} <: AbstractADType
     outer::ADO

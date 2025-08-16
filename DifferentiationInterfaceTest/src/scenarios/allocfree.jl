@@ -46,6 +46,7 @@ end
 Create a vector of [`Scenario`](@ref)s with functions that do not allocate.
 
 !!! warning
+
     At the moment, second-order scenarios are excluded.
 """
 function allocfree_scenarios()
