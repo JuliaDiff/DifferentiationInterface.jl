@@ -366,3 +366,91 @@ closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
 cachify(scens::AbstractVector{<:Scenario}; use_tuples) = cachify.(scens; use_tuples)
 constantorcachify(scens::AbstractVector{<:Scenario}) = constantorcachify.(scens)
+
+## Compute results with backend
+
+get_res1(::Val, args...) = nothing
+get_res2(::Val, args...) = nothing
+
+function get_res1(::Val{:derivative}, f, backend::AbstractADType, x, contexts...)
+    return derivative(f, backend, x, contexts...)
+end
+function get_res1(::Val{:derivative}, f!, y, backend::AbstractADType, x, contexts...)
+    return derivative(f!, y, backend, x, contexts...)
+end
+function get_res1(::Val{:gradient}, f, backend::AbstractADType, x, contexts...)
+    return gradient(f, backend, x, contexts...)
+end
+function get_res1(::Val{:jacobian}, f, backend::AbstractADType, x, contexts...)
+    return jacobian(f, backend, x, contexts...)
+end
+function get_res1(::Val{:jacobian}, f!, y, backend::AbstractADType, x, contexts...)
+    return jacobian(f!, y, backend, x, contexts...)
+end
+function get_res1(::Val{:second_derivative}, f, backend::AbstractADType, x, contexts...)
+    return derivative(f, backend, x, contexts...)
+end
+function get_res1(::Val{:hessian}, f, backend::AbstractADType, x, contexts...)
+    return gradient(f, backend, x, contexts...)
+end
+
+function get_res2(::Val{:second_derivative}, f, backend::AbstractADType, x, contexts...)
+    return second_derivative(f, backend, x, contexts...)
+end
+function get_res2(::Val{:hessian}, f, backend::AbstractADType, x, contexts...)
+    return hessian(f, backend, x, contexts...)
+end
+
+function get_res1(::Val{:pushforward}, f, backend::AbstractADType, x, t, contexts...)
+    return pushforward(f, backend, x, t, contexts...)
+end
+function get_res1(::Val{:pushforward}, f!, y, backend::AbstractADType, x, t, contexts...)
+    return pushforward(f!, y, backend, x, t, contexts...)
+end
+function get_res1(::Val{:pullback}, f, backend::AbstractADType, x, t, contexts...)
+    return pullback(f, backend, x, t, contexts...)
+end
+function get_res1(::Val{:pullback}, f!, y, backend::AbstractADType, x, t, contexts...)
+    return pullback(f!, y, backend, x, t, contexts...)
+end
+function get_res1(::Val{:hvp}, f, backend::AbstractADType, x, t, contexts...)
+    return gradient(f, backend, x, contexts...)
+end
+
+function get_res2(::Val{:hvp}, f, backend::AbstractADType, x, t, contexts...)
+    return hvp(f, backend, x, t, contexts...)
+end
+
+"""
+    compute_results(scen::Scenario, backend::AbstractADType)
+
+Return a scenario identical to `scen` but where the first- and second-order results `res1` and `res2` have been computed with the given differentiation `backend`.
+
+Useful for comparison of outputs between backends.
+"""
+function compute_results(
+    scen::Scenario{op,pl_op,pl_fun}, backend::AbstractADType
+) where {op,pl_op,pl_fun}
+    (; f, y, x, t, contexts, prep_args, name) = deepcopy(scen)
+    if pl_fun == :in
+        if isnothing(t)
+            new_res1 = get_res1(Val(op), f, y, backend, x, contexts...)
+            new_res2 = get_res2(Val(op), f, y, backend, x, contexts...)
+        else
+            new_res1 = get_res1(Val(op), f, y, backend, x, t, contexts...)
+            new_res2 = get_res2(Val(op), f, y, backend, x, t, contexts...)
+        end
+    else
+        if isnothing(t)
+            new_res1 = get_res1(Val(op), f, backend, x, contexts...)
+            new_res2 = get_res2(Val(op), f, backend, x, contexts...)
+        else
+            new_res1 = get_res1(Val(op), f, backend, x, t, contexts...)
+            new_res2 = get_res2(Val(op), f, backend, x, t, contexts...)
+        end
+    end
+    new_scen = Scenario{op,pl_op,pl_fun}(;
+        f, x, y, t, contexts, res1=new_res1, res2=new_res2, prep_args, name
+    )
+    return new_scen
+end

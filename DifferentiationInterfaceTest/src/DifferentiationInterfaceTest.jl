@@ -136,7 +136,7 @@ include("tests/allocs_eval.jl")
 include("test_differentiation.jl")
 
 export FIRST_ORDER, SECOND_ORDER
-export Scenario
+export Scenario, compute_results
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
 
