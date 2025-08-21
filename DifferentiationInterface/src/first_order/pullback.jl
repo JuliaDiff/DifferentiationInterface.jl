@@ -285,13 +285,7 @@ function _prepare_pullback_aux(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f, backend, x, ty, contexts...; strict)
-    dx = if x isa Number
-        oneunit(x)
-    elseif isempty(x)
-        zero(x)
-    else
-        basis(x, first(CartesianIndices(x)))
-    end
+    dx = zero(x)
     pushforward_prep = prepare_pushforward_nokwarg(
         strict, f, backend, x, (dx,), contexts...
     )
@@ -309,13 +303,7 @@ function _prepare_pullback_aux(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f!, y, backend, x, ty, contexts...; strict)
-    dx = if x isa Number
-        oneunit(x)
-    elseif isempty(x)
-        zero(x)
-    else
-        basis(x, first(CartesianIndices(x)))
-    end
+    dx = zero(x)
     pushforward_prep = prepare_pushforward_nokwarg(
         strict, f!, y, backend, x, (dx,), contexts...
     )
