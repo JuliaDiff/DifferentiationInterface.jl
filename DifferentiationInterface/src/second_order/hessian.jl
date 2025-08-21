@@ -84,6 +84,7 @@ struct HVPGradientHessianPrep{
     BS<:BatchSizeSettings,
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
+    SE<:NTuple,
     E2<:HVPPrep,
     E1<:GradientPrep,
 } <: HessianPrep{SIG}
@@ -91,6 +92,7 @@ struct HVPGradientHessianPrep{
     batch_size_settings::BS
     batched_seeds::S
     batched_results::R
+    seed_example::SE
     hvp_prep::E2
     gradient_prep::E1
 end
@@ -119,10 +121,17 @@ function _prepare_hessian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    hvp_prep = prepare_hvp_nokwarg(strict, f, backend, x, batched_seeds[1], contexts...)
+    seed_example = ntuple(b -> basis(x), Val(B))
+    hvp_prep = prepare_hvp_nokwarg(strict, f, backend, x, seed_example, contexts...)
     gradient_prep = prepare_gradient_nokwarg(strict, f, inner(backend), x, contexts...)
     return HVPGradientHessianPrep(
-        _sig, batch_size_settings, batched_seeds, batched_results, hvp_prep, gradient_prep
+        _sig,
+        batch_size_settings,
+        batched_seeds,
+        batched_results,
+        seed_example,
+        hvp_prep,
+        gradient_prep,
     )
 end
 
@@ -154,7 +163,7 @@ function hessian(
     (; A, B_last) = batch_size_settings
 
     hvp_prep_same = prepare_hvp_same_point(
-        f, hvp_prep, backend, x, batched_seeds[1], contexts...
+        f, hvp_prep, backend, x, seed_example, contexts...
     )
 
     hess = mapreduce(hcat, eachindex(batched_seeds)) do a
@@ -182,7 +191,7 @@ function hessian!(
     (; N) = batch_size_settings
 
     hvp_prep_same = prepare_hvp_same_point(
-        f, hvp_prep, backend, x, batched_seeds[1], contexts...
+        f, hvp_prep, backend, x, seed_example, contexts...
     )
 
     for a in eachindex(batched_seeds, batched_results)
