@@ -138,12 +138,14 @@ struct PushforwardJacobianPrep{
     BS<:BatchSizeSettings,
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
+    SE<:NTuple,
     E<:PushforwardPrep,
 } <: StandardJacobianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings::BS
     batched_seeds::S
     batched_results::R
+    seed_example::SE
     pushforward_prep::E
 end
 
@@ -152,12 +154,14 @@ struct PullbackJacobianPrep{
     BS<:BatchSizeSettings,
     S<:AbstractVector{<:NTuple},
     R<:AbstractVector{<:NTuple},
+    SE<:NTuple,
     E<:PullbackPrep,
 } <: StandardJacobianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings::BS
     batched_seeds::S
     batched_results::R
+    seed_example::SE
     pullback_prep::E
 end
 
@@ -211,11 +215,17 @@ function _prepare_jacobian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
+    seed_example = ntuple(b -> zero(x), Val(B))
     pushforward_prep = prepare_pushforward_nokwarg(
-        strict, f_or_f!y..., backend, x, batched_seeds[1], contexts...
+        strict, f_or_f!y..., backend, x, seed_example, contexts...
     )
     return PushforwardJacobianPrep(
-        _sig, batch_size_settings, batched_seeds, batched_results, pushforward_prep
+        _sig,
+        batch_size_settings,
+        batched_seeds,
+        batched_results,
+        seed_example,
+        pushforward_prep,
     )
 end
 
@@ -236,11 +246,17 @@ function _prepare_jacobian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
+    seed_example = ntuple(b -> zero(y), Val(B))
     pullback_prep = prepare_pullback_nokwarg(
-        strict, f_or_f!y..., backend, x, batched_seeds[1], contexts...
+        strict, f_or_f!y..., backend, x, seed_example, contexts...
     )
     return PullbackJacobianPrep(
-        _sig, batch_size_settings, batched_seeds, batched_results, pullback_prep
+        _sig,
+        batch_size_settings,
+        batched_seeds,
+        batched_results,
+        seed_example,
+        pullback_prep,
     )
 end
 
@@ -363,11 +379,11 @@ function _jacobian_aux(
     x,
     contexts::Vararg{Context,C},
 ) where {FY,SIG,B,aligned,C}
-    (; batch_size_settings, batched_seeds, pushforward_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, pushforward_prep) = prep
     (; A, B_last) = batch_size_settings
 
     pushforward_prep_same = prepare_pushforward_same_point(
-        f_or_f!y..., pushforward_prep, backend, x, batched_seeds[1], contexts...
+        f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
     )
 
     jac = mapreduce(hcat, eachindex(batched_seeds)) do a
@@ -419,11 +435,11 @@ function _jacobian_aux(
     x,
     contexts::Vararg{Context,C},
 ) where {FY,SIG,B,aligned,C}
-    (; batch_size_settings, batched_seeds, pullback_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, pullback_prep) = prep
     (; A, B_last) = batch_size_settings
 
     pullback_prep_same = prepare_pullback_same_point(
-        f_or_f!y..., prep.pullback_prep, backend, x, batched_seeds[1], contexts...
+        f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
     )
 
     jac = mapreduce(vcat, eachindex(batched_seeds)) do a
@@ -451,11 +467,13 @@ function _jacobian_aux!(
     x,
     contexts::Vararg{Context,C},
 ) where {FY,SIG,B,C}
-    (; batch_size_settings, batched_seeds, batched_results, pushforward_prep) = prep
+    (;
+        batch_size_settings, batched_seeds, batched_results, seed_example, pushforward_prep
+    ) = prep
     (; N) = batch_size_settings
 
     pushforward_prep_same = prepare_pushforward_same_point(
-        f_or_f!y..., pushforward_prep, backend, x, batched_seeds[1], contexts...
+        f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
     )
 
     for a in eachindex(batched_seeds, batched_results)
@@ -487,11 +505,12 @@ function _jacobian_aux!(
     x,
     contexts::Vararg{Context,C},
 ) where {FY,SIG,B,C}
-    (; batch_size_settings, batched_seeds, batched_results, pullback_prep) = prep
+    (; batch_size_settings, batched_seeds, batched_results, seed_example, pullback_prep) =
+        prep
     (; N) = batch_size_settings
 
     pullback_prep_same = prepare_pullback_same_point(
-        f_or_f!y..., pullback_prep, backend, x, batched_seeds[1], contexts...
+        f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
     )
 
     for a in eachindex(batched_seeds, batched_results)

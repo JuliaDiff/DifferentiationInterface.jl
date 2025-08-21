@@ -28,6 +28,13 @@ test_differentiation(
     logging=LOGGING,
 )
 
+test_differentiation(
+    [AutoForwardDiff()], empty_scenarios(); excluded=[:gradient], logging=LOGGING
+)
+test_differentiation(
+    [AutoFiniteDiff()], empty_scenarios(); excluded=[:jacobian], logging=LOGGING
+)
+
 ## Sparse
 
 sparse_backend = AutoSparse(

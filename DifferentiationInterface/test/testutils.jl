@@ -10,7 +10,8 @@ using DifferentiationInterfaceTest:
     complex_sparse_scenarios,
     static_scenarios,
     component_scenarios,
-    gpu_scenarios
+    gpu_scenarios,
+    empty_scenarios
 
 function MyAutoSparse(backend::AbstractADType)
     return AutoSparse(

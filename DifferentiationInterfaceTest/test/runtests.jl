@@ -12,7 +12,8 @@ using DifferentiationInterfaceTest:
     complex_sparse_scenarios,
     static_scenarios,
     component_scenarios,
-    gpu_scenarios
+    gpu_scenarios,
+    empty_scenarios
 
 GROUP = get(ENV, "JULIA_DIT_TEST_GROUP", "All")
 

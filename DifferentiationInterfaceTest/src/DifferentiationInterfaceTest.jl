@@ -93,7 +93,7 @@ using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCach
 using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using JET: @test_opt
-using LinearAlgebra: Adjoint, Diagonal, Transpose, dot, parent
+using LinearAlgebra: Adjoint, Diagonal, Transpose, I, dot, parent
 using ProgressMeter: ProgressUnknown, next!
 using Random: AbstractRNG, default_rng, rand!
 using SparseArrays:
@@ -124,6 +124,7 @@ include("scenarios/default.jl")
 include("scenarios/sparse.jl")
 include("scenarios/complex.jl")
 include("scenarios/allocfree.jl")
+include("scenarios/empty.jl")
 include("scenarios/extensions.jl")
 
 include("tests/correctness_eval.jl")
