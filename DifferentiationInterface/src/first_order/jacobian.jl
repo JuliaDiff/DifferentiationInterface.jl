@@ -215,7 +215,7 @@ function _prepare_jacobian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(y), Val(B)) for _ in batched_seeds]
-    seed_example = ntuple(b -> zero(x), Val(B))
+    seed_example = ntuple(b -> basis(x), Val(B))
     pushforward_prep = prepare_pushforward_nokwarg(
         strict, f_or_f!y..., backend, x, seed_example, contexts...
     )
@@ -246,7 +246,7 @@ function _prepare_jacobian_aux(
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
     batched_results = [ntuple(b -> similar(x), Val(B)) for _ in batched_seeds]
-    seed_example = ntuple(b -> zero(y), Val(B))
+    seed_example = ntuple(b -> basis(y), Val(B))
     pullback_prep = prepare_pullback_nokwarg(
         strict, f_or_f!y..., backend, x, seed_example, contexts...
     )

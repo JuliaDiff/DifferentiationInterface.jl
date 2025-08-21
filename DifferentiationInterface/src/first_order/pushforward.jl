@@ -290,7 +290,11 @@ function _prepare_pushforward_aux(
 ) where {F,C}
     _sig = signature(f, backend, x, tx, contexts...; strict)
     y = f(x, map(unwrap, contexts)...)
-    dy = zero(y)
+    dy = if y isa Number
+        oneunit(y)
+    else
+        basis(y)
+    end
     pullback_prep = prepare_pullback_nokwarg(strict, f, backend, x, (dy,), contexts...)
     return PullbackPushforwardPrep(_sig, pullback_prep)
 end
@@ -306,7 +310,7 @@ function _prepare_pushforward_aux(
     contexts::Vararg{Context,C};
 ) where {F,C}
     _sig = signature(f!, y, backend, x, tx, contexts...; strict)
-    dy = zero(y)
+    dy = basis(y)
     pullback_prep = prepare_pullback_nokwarg(strict, f!, y, backend, x, (dy,), contexts...)
     return PullbackPushforwardPrep(_sig, pullback_prep)
 end
