@@ -159,7 +159,7 @@ function hessian(
     contexts::Vararg{Context,C},
 ) where {F,SIG,B,aligned,C}
     check_prep(f, prep, backend, x, contexts...)
-    (; batch_size_settings, batched_seeds, hvp_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, hvp_prep) = prep
     (; A, B_last) = batch_size_settings
 
     hvp_prep_same = prepare_hvp_same_point(
@@ -187,7 +187,7 @@ function hessian!(
     contexts::Vararg{Context,C},
 ) where {F,SIG,B,C}
     check_prep(f, prep, backend, x, contexts...)
-    (; batch_size_settings, batched_seeds, batched_results, hvp_prep) = prep
+    (; batch_size_settings, batched_seeds, batched_results, seed_example, hvp_prep) = prep
     (; N) = batch_size_settings
 
     hvp_prep_same = prepare_hvp_same_point(
