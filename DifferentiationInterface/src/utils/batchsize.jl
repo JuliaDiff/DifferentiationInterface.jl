@@ -6,7 +6,7 @@ Configuration for the batch size deduced from a backend and a sample array of le
 # Type parameters
 
   - `B::Int`: batch size
-  - `singlebatch::Bool`: whether `B == N` (`B > N` is not allowed)
+  - `singlebatch::Bool`: whether `B == N` (`B > N` is only allowed when `N == 0`)
   - `aligned::Bool`: whether `N % B == 0`
 
 # Fields
@@ -127,7 +127,9 @@ Reproduces the heuristic from ForwardDiff to minimize
 Source: https://github.com/JuliaDiff/ForwardDiff.jl/blob/ec74fbc32b10bbf60b3c527d8961666310733728/src/prelude.jl#L19-L29
 """
 function reasonable_batchsize(N::Integer, Bmax::Integer)
-    if N <= Bmax
+    if N == 0
+        return 1
+    elseif N <= Bmax
         return N
     else
         A = div(N, Bmax, RoundUp)

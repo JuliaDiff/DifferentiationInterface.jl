@@ -13,6 +13,7 @@ using Test
 BSS = BatchSizeSettings
 
 @testset "Default" begin
+    @test (@inferred pick_batchsize(AutoZygote(), zeros(0))) isa BSS{1,false,true}
     @test (@inferred pick_batchsize(AutoZygote(), zeros(2))) isa BSS{1,false,true}
     @test (@inferred pick_batchsize(AutoZygote(), zeros(100))) isa BSS{1,false,true}
     @test_throws ArgumentError pick_batchsize(AutoSparse(AutoZygote()), zeros(2))
@@ -25,7 +26,7 @@ BSS = BatchSizeSettings
 end
 
 @testset "SimpleFiniteDiff (adaptive)" begin
-    @test (pick_batchsize(AutoSimpleFiniteDiff(), zeros(0))) isa BSS{0,true,true}
+    @test (pick_batchsize(AutoSimpleFiniteDiff(), zeros(0))) isa BSS{1,false,true}
     @test (pick_batchsize(AutoSimpleFiniteDiff(), zeros(2))) isa BSS{2,true,true}
     @test (pick_batchsize(AutoSimpleFiniteDiff(), zeros(6))) isa BSS{6,true,true}
     @test (pick_batchsize(AutoSimpleFiniteDiff(), zeros(12))) isa BSS{12,true,true}
