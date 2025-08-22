@@ -34,12 +34,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 DifferentiationInterfaceTestComponentArraysExt = "ComponentArrays"
 DifferentiationInterfaceTestFluxExt = ["FiniteDifferences", "Flux", "Functors"]
 DifferentiationInterfaceTestJLArraysExt = "JLArrays"
-DifferentiationInterfaceTestLuxExt = [
-    "ComponentArrays",
-    "ForwardDiff",
-    "Lux",
-    "LuxTestUtils",
-]
+DifferentiationInterfaceTestLuxExt = ["ComponentArrays", "ForwardDiff", "Lux", "LuxTestUtils"]
 DifferentiationInterfaceTestStaticArraysExt = "StaticArrays"
 
 [compat]
@@ -48,7 +43,7 @@ AllocCheck = "0.2"
 Chairmarks = "1.2.1"
 ComponentArrays = "0.15"
 DataFrames = "1.6.1"
-DifferentiationInterface = "0.7.7"
+DifferentiationInterface = "0.7.7, 0.7"
 DocStringExtensions = "0.8,0.9"
 FiniteDifferences = "0.12"
 Flux = "0.16"
