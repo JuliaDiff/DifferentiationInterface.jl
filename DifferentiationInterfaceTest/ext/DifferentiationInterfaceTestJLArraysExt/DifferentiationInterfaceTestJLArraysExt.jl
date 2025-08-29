@@ -3,6 +3,7 @@ module DifferentiationInterfaceTestJLArraysExt
 import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using JLArrays: JLArray, JLVector, JLMatrix, jl
+using PrecompileTools: @compile_workload
 
 jl_num_to_vec(x::Number) = sin.(jl([1, 2]) .* x)
 jl_num_to_mat(x::Number) = hcat(jl_num_to_vec(x), jl_num_to_vec(3x))
@@ -40,6 +41,10 @@ end
 function DIT.gpu_scenarios(args...; kwargs...)
     scens = DIT.default_scenarios(args...; kwargs...)
     return myjl.(scens)
+end
+
+@compile_workload begin
+    DIT.gpu_scenarios(; include_constantified=true, include_cachified=true)
 end
 
 end
