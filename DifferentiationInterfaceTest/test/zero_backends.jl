@@ -14,6 +14,7 @@ test_differentiation(
     map(zero, default_scenarios(; include_batchified=false));
     type_stability=:full,
     logging=LOGGING,
+    reprepare=false,
 )
 
 test_differentiation(
