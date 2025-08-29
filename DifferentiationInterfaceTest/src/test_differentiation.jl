@@ -164,6 +164,7 @@ function test_differentiation(
                             sparsity,
                             reprepare,
                         )
+                        test_prep(adapted_backend, scen)
                     end
                     yield()
                     (type_stability != :none) && @testset "Type stability" begin
