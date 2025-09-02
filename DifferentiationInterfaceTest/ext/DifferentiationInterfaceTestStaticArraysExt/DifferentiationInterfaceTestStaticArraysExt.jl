@@ -4,6 +4,7 @@ import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using SparseArrays: SparseArrays, SparseMatrixCSC, nnz, spdiagm
 using StaticArrays: StaticArray, MArray, MMatrix, MVector, SArray, SMatrix, SVector
+using PrecompileTools: @compile_workload
 
 static_num_to_vec(x::Number) = sin.(SVector(1, 2) .* x)
 static_num_to_mat(x::Number) = hcat(static_num_to_vec(x), static_num_to_vec(3x))
@@ -59,6 +60,10 @@ end
 function DIT.static_scenarios(args...; kwargs...)
     scens = DIT.default_scenarios(args...; kwargs...)
     return mystatic.(scens)
+end
+
+@compile_workload begin
+    DIT.static_scenarios(; include_constantified=true, include_cachified=true)
 end
 
 end
