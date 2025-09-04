@@ -201,3 +201,11 @@ end
         @test occursin("DifferentiationInterface", msg)
     end
 end
+
+@testset "Empty arrays" begin
+    test_differentiation(
+        [AutoEnzyme(; mode=Enzyme.Forward), AutoEnzyme(; mode=Enzyme.Reverse)],
+        empty_scenarios();
+        excluded=[:jacobian],
+    )
+end;

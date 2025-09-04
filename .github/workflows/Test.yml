@@ -67,7 +67,7 @@ jobs:
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
@@ -126,7 +126,7 @@ jobs:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}

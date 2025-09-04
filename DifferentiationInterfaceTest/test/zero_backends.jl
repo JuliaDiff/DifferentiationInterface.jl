@@ -14,6 +14,7 @@ test_differentiation(
     map(zero, default_scenarios(; include_batchified=false));
     type_stability=:full,
     logging=LOGGING,
+    reprepare=false,
 )
 
 test_differentiation(
@@ -86,7 +87,9 @@ end
             logging=LOGGING,
         ),
     )
-    @test all(iszero, data_allocfree[!, :allocs])
+    @testset "$(collect(row[1:4]))" for row in collect(eachrow(data_allocfree))
+        @test row[:allocs] == 0
+    end
 end
 
 test_differentiation(

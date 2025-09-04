@@ -26,4 +26,7 @@ using Dates
 
     t = [Time(1) - Time(0)]
     @test basis(t, 1) isa Vector{Nanosecond}
+
+    @test basis([1, 2]) == [0, 0]
+    @test basis(Int[]) == Int[]
 end

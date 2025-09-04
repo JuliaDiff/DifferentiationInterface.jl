@@ -306,7 +306,7 @@ function arr_to_num_hessian(x0)
     return convert(typeof(similar(x0, length(x0), length(x0))), H)
 end
 
-arr_to_num_pushforward(x, dx) = sum(arr_to_num_gradient(x) .* dx)
+arr_to_num_pushforward(x, dx) = sum(conj.(arr_to_num_gradient(x)) .* dx)
 arr_to_num_pullback(x, dy) = arr_to_num_gradient(x) .* dy
 arr_to_num_hvp(x, dx) = reshape(arr_to_num_hessian(x) * vec(dx), size(x))
 

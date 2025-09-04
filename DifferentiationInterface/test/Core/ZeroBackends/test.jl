@@ -1,6 +1,7 @@
 using DifferentiationInterface
 using DifferentiationInterface: AutoZeroForward, AutoZeroReverse
 using DifferentiationInterfaceTest
+using LinearAlgebra
 using ComponentArrays: ComponentArrays
 using JLArrays: JLArrays
 using SparseMatrixColorings
@@ -50,3 +51,9 @@ end
         logging=LOGGING,
     )
 end
+
+@testset "Empty arrays" begin
+    test_differentiation(
+        [AutoZeroForward(), AutoZeroReverse()], empty_scenarios(); excluded=[:jacobian]
+    )
+end;

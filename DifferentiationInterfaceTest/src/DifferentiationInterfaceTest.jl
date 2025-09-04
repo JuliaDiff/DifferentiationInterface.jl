@@ -93,7 +93,8 @@ using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCach
 using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using JET: @test_opt
-using LinearAlgebra: Adjoint, Diagonal, Transpose, dot, parent
+using LinearAlgebra: Adjoint, Diagonal, Transpose, I, dot, parent
+using PrecompileTools: @compile_workload
 using ProgressMeter: ProgressUnknown, next!
 using Random: AbstractRNG, default_rng, rand!
 using SparseArrays:
@@ -114,7 +115,16 @@ List of all second-order operators, to facilitate exclusion during tests.
 """
 const SECOND_ORDER = [:hvp, :second_derivative, :hessian]
 
-const ALL_OPS = vcat(FIRST_ORDER, SECOND_ORDER)
+const ALL_OPS = (
+    :pushforward,
+    :pullback,
+    :derivative,
+    :gradient,
+    :jacobian,
+    :hvp,
+    :second_derivative,
+    :hessian,
+)
 
 include("utils.jl")
 
@@ -124,9 +134,11 @@ include("scenarios/default.jl")
 include("scenarios/sparse.jl")
 include("scenarios/complex.jl")
 include("scenarios/allocfree.jl")
+include("scenarios/empty.jl")
 include("scenarios/extensions.jl")
 
 include("tests/correctness_eval.jl")
+include("tests/prep_eval.jl")
 include("tests/type_stability_eval.jl")
 include("tests/benchmark.jl")
 include("tests/benchmark_eval.jl")
@@ -135,8 +147,12 @@ include("tests/allocs_eval.jl")
 include("test_differentiation.jl")
 
 export FIRST_ORDER, SECOND_ORDER
-export Scenario
+export Scenario, compute_results
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
+
+@compile_workload begin
+    default_scenarios(; include_constantified=true, include_cachified=true)
+end
 
 end

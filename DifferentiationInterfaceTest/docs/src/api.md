@@ -13,6 +13,7 @@ DifferentiationInterfaceTest
 
 ```@docs
 Scenario
+compute_results
 test_differentiation
 benchmark_differentiation
 ```
