@@ -17,6 +17,8 @@ using DifferentiationInterfaceTest:
 
 GROUP = get(ENV, "JULIA_DIT_TEST_GROUP", "All")
 
+safetypestab(symb) = VERSION < v"1.12-" ? :none : symb  # TODO: remove
+
 ## Main tests
 
 @time @testset verbose = true "DifferentiationInterfaceTest.jl" begin

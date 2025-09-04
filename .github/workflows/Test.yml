@@ -63,6 +63,12 @@ jobs:
             version: "pre"
           - version: "1"
             group: Back/ChainRules
+          - version: "pre"
+            group: Back/Enzyme
+          - version: "pre"
+            group: Back/Mooncake
+          - version: "pre"
+            group: Back/DifferentiateWith
     env:
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}

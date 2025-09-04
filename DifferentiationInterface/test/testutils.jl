@@ -20,3 +20,5 @@ function MyAutoSparse(backend::AbstractADType)
         coloring_algorithm=GreedyColoringAlgorithm(),
     )
 end
+
+safetypestab(symb) = VERSION < v"1.12-" ? :none : symb  # TODO: remove

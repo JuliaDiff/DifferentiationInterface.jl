@@ -48,13 +48,16 @@ end
     )
 
     test_differentiation(
-        AutoForwardDiff(); correctness=false, type_stability=:prepared, logging=LOGGING
+        AutoForwardDiff();
+        correctness=false,
+        type_stability=safetypestab(:prepared),
+        logging=LOGGING,
     )
 
     test_differentiation(
         AutoForwardDiff(; chunksize=5);
         correctness=false,
-        type_stability=:full,
+        type_stability=safetypestab(:full),
         excluded=[:hessian],
         logging=LOGGING,
     )
