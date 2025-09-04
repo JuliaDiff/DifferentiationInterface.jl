@@ -21,4 +21,4 @@ function MyAutoSparse(backend::AbstractADType)
     )
 end
 
-safetypestab(symb) = VERSION < v"1.12-" ? :none : symb  # TODO: remove
+safetypestab(symb) = VERSION < v"1.12-" ? symb : :none  # TODO: remove
