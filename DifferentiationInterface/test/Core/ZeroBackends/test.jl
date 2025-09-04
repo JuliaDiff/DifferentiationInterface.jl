@@ -27,7 +27,7 @@ end
         ],
         default_scenarios(; include_batchified=false, include_constantified=true);
         correctness=false,
-        type_stability=:full,
+        type_stability=safetypestab(:full),
         logging=LOGGING,
     )
 
@@ -35,7 +35,7 @@ end
         AutoSparse.(zero_backends, coloring_algorithm=GreedyColoringAlgorithm()),
         default_scenarios(; include_constantified=true);
         correctness=false,
-        type_stability=:full,
+        type_stability=safetypestab(:full),
         excluded=[
             :pushforward, :pullback, :gradient, :derivative, :hvp, :second_derivative
         ],

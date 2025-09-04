@@ -74,19 +74,6 @@ end;
     )
 end
 
-#=
-# TODO: reactivate type stability tests
-
-test_differentiation(
-    AutoEnzyme(; mode=Enzyme.Forward),  # TODO: add more
-    default_scenarios(; include_batchified=false);
-    correctness=false,
-    type_stability=:prepared,
-    excluded=SECOND_ORDER,
-    logging=LOGGING,
-);
-=#
-
 @testset "Second order" begin
     test_differentiation(
         [
