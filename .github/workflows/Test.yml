@@ -25,7 +25,7 @@ jobs:
       actions: write
       contents: read
     strategy:
-      fail-fast: false  # TODO: toggle
+      fail-fast: true  # TODO: toggle
       matrix:
         version:
           - "lts"
@@ -108,7 +108,7 @@ jobs:
       actions: write
       contents: read
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         version:
           - "lts"
