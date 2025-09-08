@@ -10,7 +10,10 @@ using Test
     Aqua.test_all(DifferentiationInterfaceTest; ambiguities=false, undocumented_names=true)
 end
 @testset verbose = true "JET" begin
-    JET.test_package(DifferentiationInterfaceTest; target_defined_modules=true)
+    # until https://github.com/JuliaLang/julia/pull/59321 is released
+    if VERSION <= v"1.12-"
+        JET.test_package(DifferentiationInterfaceTest; target_defined_modules=true)
+    end
 end
 
 @testset "Documentation" begin

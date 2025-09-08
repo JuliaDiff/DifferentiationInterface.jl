@@ -12,7 +12,7 @@ LOGGING = get(ENV, "CI", "false") == "false"
 test_differentiation(
     AutoZeroForward(),
     map(zero, default_scenarios(; include_batchified=false));
-    type_stability=:full,
+    type_stability=safetypestab(:full),
     logging=LOGGING,
     reprepare=false,
 )
@@ -24,7 +24,7 @@ test_differentiation(
         default_scenarios(; include_batchified=false),
     );
     correctness=false,
-    type_stability=:prepared,
+    type_stability=safetypestab(:prepared),
     logging=LOGGING,
 )
 
