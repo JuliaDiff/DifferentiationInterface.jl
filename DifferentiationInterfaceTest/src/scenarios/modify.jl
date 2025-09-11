@@ -163,6 +163,54 @@ function closurify(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
     )
 end
 
+struct UnknownActivityReturn{pl_fun,F}
+    f::F
+end
+
+function Base.show(io::IO, f::UnknownActivityReturn)
+    return print(io, "UnknownActivityReturn($(f.f))")
+end
+
+function (f::UnknownActivityReturn{:out})(x, yc, return_constant::Bool)
+    if return_constant
+        return copy(yc)
+    else
+        return f.f(x)
+    end
+end
+
+function (f::UnknownActivityReturn{:in})(y, x, yc, return_constant::Bool)
+    if return_constant
+        copyto!(y, copy(yc))
+    else
+        f.f(y, x)
+    end
+    return nothing
+end
+
+"""
+    unknown_activity(scen::Scenario)
+
+Return a new scenario identical to `scen` except that the function now takes an additional constant argument which is the theoretical output, and a constant boolean condition stating whether or not that output should be recomputed.
+"""
+function unknown_activity(scen::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+    (; f) = deepcopy(scen)
+    zero_scen = deepcopy(zero(scen))
+    @assert isempty(scen.contexts)
+    unknown_f = UnknownActivityReturn{pl_fun,typeof(f)}(f)
+    return Scenario{op,pl_op,pl_fun}(;
+        f=unknown_f,
+        x=scen.x,
+        y=scen.y,
+        t=scen.t,
+        contexts=(Constant(scen.y), Constant(true)),
+        res1=zero_scen.res1,
+        res2=zero_scen.res2,
+        prep_args=(; scen.prep_args..., contexts=(Constant(scen.y), Constant(true))),
+        name=isnothing(scen.name) ? nothing : scen.name * " [unknown activity]",
+    )
+end
+
 struct MultiplyByConstant{pl_fun,F} <: FunctionModifier
     f::F
 end
@@ -366,6 +414,7 @@ closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
 cachify(scens::AbstractVector{<:Scenario}; use_tuples) = cachify.(scens; use_tuples)
 constantorcachify(scens::AbstractVector{<:Scenario}) = constantorcachify.(scens)
+unknown_activity(scens::AbstractVector{<:Scenario}) = unknown_activity.(scens)
 
 ## Compute results with backend
 
