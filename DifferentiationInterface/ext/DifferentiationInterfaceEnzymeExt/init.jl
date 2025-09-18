@@ -5,6 +5,9 @@ function HINT_START(option)
 end
 
 function __init__()
+    if !isdefined(Base.Experimental, :register_error_hint)
+        return nothing
+    end
     # robust against internal changes
     condition = (
         isdefined(Enzyme, :Compiler) &&
@@ -28,16 +31,8 @@ function __init__()
                         bold=true,
                     )
                     printstyled(io, HINT_END; italic=true)
-                elseif occursin("EnzymeRuntimeActivityError", string(nameof(T)))
-                    printstyled(io, HINT_START("mode"); bold=true)
-                    printstyled(
-                        io,
-                        "\n\n\tAutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Forward))\n\tAutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse))";
-                        color=:cyan,
-                        bold=true,
-                    )
-                    printstyled(io, HINT_END; italic=true)
                 end
+                # EnzymeRuntimeActivityError is no longer a concrete type since https://github.com/EnzymeAD/Enzyme.jl/pull/2555 (now a UnionAll) so we cannot define a hint
             end
         end
     end

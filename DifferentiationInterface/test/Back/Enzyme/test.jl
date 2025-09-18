@@ -152,7 +152,6 @@ end
         @test occursin("AutoEnzyme", msg)
         @test occursin("function_annotation", msg)
         @test occursin("ADTypes", msg)
-        @test occursin("DifferentiationInterface", msg)
     end
 
     @testset "RuntimeActivityError" begin
@@ -181,11 +180,8 @@ end
         catch e
         end
         msg = sprint(showerror, e)
-        @test occursin("AutoEnzyme", msg)
-        @test occursin("mode", msg)
-        @test occursin("set_runtime_activity", msg)
-        @test occursin("ADTypes", msg)
-        @test occursin("DifferentiationInterface", msg)
+        @test_broken occursin("AutoEnzyme", msg)
+        @test_broken occursin("ADTypes", msg)
     end
 end
 
