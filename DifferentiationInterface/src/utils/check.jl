@@ -16,9 +16,7 @@ function check_available(backend::MixedMode)
            check_available(reverse_backend(backend))
 end
 
-@static if isdefined(ADTypes, :NoAutoDiff)
-    check_available(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
-end
+check_available(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
 
 """
     check_inplace(backend)
@@ -27,6 +25,4 @@ Check whether `backend` supports differentiation of in-place functions and retur
 """
 check_inplace(backend::AbstractADType) = Bool(inplace_support(backend))
 
-@static if isdefined(ADTypes, :NoAutoDiff)
-    check_inplace(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
-end
+check_inplace(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())

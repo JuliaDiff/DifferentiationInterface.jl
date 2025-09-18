@@ -10,10 +10,8 @@ using Test
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
-if isdefined(ADTypes, :NoAutoDiff)
-    @test_throws NoAutoDiffSelectedError check_available(NoAutoDiff())
-    @test_throws NoAutoDiffSelectedError check_inplace(NoAutoDiff())
-end
+@test_throws NoAutoDiffSelectedError check_available(NoAutoDiff())
+@test_throws NoAutoDiffSelectedError check_inplace(NoAutoDiff())
 
 zero_backends = [AutoZeroForward(), AutoZeroReverse()]
 
