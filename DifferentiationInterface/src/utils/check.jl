@@ -16,6 +16,8 @@ function check_available(backend::MixedMode)
            check_available(reverse_backend(backend))
 end
 
+check_available(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
+
 """
     check_inplace(backend)
 

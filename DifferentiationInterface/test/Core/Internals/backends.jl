@@ -18,6 +18,11 @@ using Test
 fb = AutoSimpleFiniteDiff()
 rb = AutoReverseFromPrimitive(AutoSimpleFiniteDiff())
 
+@testset "NoAutoDiff" begin
+    @test_throws NoAutoDiffSelectedError check_available(NoAutoDiff())
+    @test_throws NoAutoDiffSelectedError inplace_support(NoAutoDiff())
+end
+
 @testset "SecondOrder" begin
     backend = SecondOrder(fb, rb)
     @test check_available(backend)
