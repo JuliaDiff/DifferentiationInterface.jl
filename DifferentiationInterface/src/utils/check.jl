@@ -24,5 +24,3 @@ check_available(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
 Check whether `backend` supports differentiation of in-place functions and return a `Bool`.
 """
 check_inplace(backend::AbstractADType) = Bool(inplace_support(backend))
-
-check_inplace(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())

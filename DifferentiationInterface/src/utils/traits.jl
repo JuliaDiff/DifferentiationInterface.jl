@@ -23,6 +23,8 @@ Return [`InPlaceSupported`](@ref) or [`InPlaceNotSupported`](@ref) in a statical
 """
 inplace_support(::AbstractADType) = InPlaceSupported()
 
+inplace_support(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
+
 function inplace_support(backend::SecondOrder)
     if inplace_support(inner(backend)) isa InPlaceSupported &&
         inplace_support(outer(backend)) isa InPlaceSupported
