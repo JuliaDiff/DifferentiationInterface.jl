@@ -55,7 +55,7 @@ function DI.value_and_pullback(
         y, _copy_output(new_dx)
     end
     y = first(ys_and_tx[1])
-    tx = last.(ys_and_tx)
+    tx = map(last, ys_and_tx)
     return y, tx
 end
 

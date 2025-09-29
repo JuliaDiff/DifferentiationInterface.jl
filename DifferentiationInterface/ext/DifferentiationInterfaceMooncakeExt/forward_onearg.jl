@@ -47,7 +47,7 @@ function DI.value_and_pushforward(
         return y, dy
     end
     y = first(ys_and_ty[1])
-    ty = last.(ys_and_ty)
+    ty = map(last, ys_and_ty)
     return y, ty
 end
 
