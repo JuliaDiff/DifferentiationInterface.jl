@@ -1,3 +1,5 @@
+# see https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/855
+
 using Pkg
 Pkg.add("Enzyme")
 
@@ -55,7 +57,7 @@ end;
     )
 
     test_differentiation(
-        backends[2],
+        backends[2:3],
         default_scenarios(;
             include_normal=false,
             include_cachified=true,
@@ -75,21 +77,17 @@ end;
 end
 
 @testset "Second order" begin
+    forward_enzyme = AutoEnzyme(; mode=Enzyme.Reverse)
+    reverse_enzyme = AutoEnzyme(; mode=Enzyme.Reverse)
     test_differentiation(
         [
             AutoEnzyme(),
-            SecondOrder(
-                AutoEnzyme(; mode=Enzyme.Reverse), AutoEnzyme(; mode=Enzyme.Forward)
-            ),
+            # SecondOrder(forward_enzyme, reverse_enzyme),  # TODO: toggle
+            SecondOrder(reverse_enzyme, forward_enzyme),
+            # SecondOrder(forward_enzyme, forward_enzyme),  # TODO: toggle
         ],
-        remove_matrix_inputs(default_scenarios(; include_constantified=true));
+        default_scenarios(; include_constantified=true, include_cachified=true);
         excluded=FIRST_ORDER,
-        logging=LOGGING,
-    )
-
-    test_differentiation(
-        AutoEnzyme(; mode=Enzyme.Forward);
-        excluded=vcat(FIRST_ORDER, [:hessian, :hvp]),
         logging=LOGGING,
     )
 end
@@ -100,12 +98,7 @@ end
         if VERSION < v"1.11"
             sparse_scenarios()
         else
-            filter(sparse_scenarios()) do s
-                # for https://github.com/EnzymeAD/Enzyme.jl/issues/2168
-                (s.x isa AbstractVector) &&
-                    (s.f != DIT.sumdiffcube) &&
-                    (s.f != DIT.sumdiffcube_mat)
-            end
+            filter(s -> s.x isa AbstractVector, sparse_scenarios())
         end;
         sparsity=true,
         logging=LOGGING,
