@@ -16,15 +16,6 @@ check_no_implicit_imports(DifferentiationInterface)
 
 LOGGING = get(ENV, "CI", "false") == "false"
 
-function remove_matrix_inputs(scens::Vector{<:Scenario})  # TODO: remove
-    if VERSION < v"1.11"
-        return scens
-    else
-        # for https://github.com/EnzymeAD/Enzyme.jl/issues/2071
-        return filter(s -> s.x isa Union{Number,AbstractVector}, scens)
-    end
-end
-
 backends = [
     AutoEnzyme(; mode=nothing),
     AutoEnzyme(; mode=Enzyme.Forward),
@@ -77,14 +68,12 @@ end;
 end
 
 @testset "Second order" begin
-    forward_enzyme = AutoEnzyme(; mode=Enzyme.Reverse)
-    reverse_enzyme = AutoEnzyme(; mode=Enzyme.Reverse)
     test_differentiation(
         [
             AutoEnzyme(),
-            # SecondOrder(forward_enzyme, reverse_enzyme),  # TODO: toggle
-            SecondOrder(reverse_enzyme, forward_enzyme),
-            # SecondOrder(forward_enzyme, forward_enzyme),  # TODO: toggle
+            SecondOrder(
+                AutoEnzyme(; mode=Enzyme.Reverse), AutoEnzyme(; mode=Enzyme.Forward)
+            ),
         ],
         default_scenarios(; include_constantified=true, include_cachified=true);
         excluded=FIRST_ORDER,
