@@ -8,18 +8,20 @@ function mixedmode_empty_coloring_scenario()
     backend = AutoSparse(
         MixedMode(AutoForwardDiff(), AutoMooncake());
         sparsity_detector,
-        coloring_algorithm=GreedyColoringAlgorithm(; postprocessing=true)
+        coloring_algorithm=GreedyColoringAlgorithm(; postprocessing=true),
     )
     N = 50
     x = zeros(N)
     y = zeros(N)
     # No nontrivial Jacobian, but should not error
     return Scenario{:jacobian,:in}(
-        f!, y, x;
+        f!,
+        y,
+        x;
         prep_args=(; y=zero(y), x=zeros(N), contexts=()),
         res1=zeros(N, N),
         backend=backend,
-        name="mixedmode_empty_coloring"
+        name="mixedmode_empty_coloring",
     )
 end
 ## Vector to vector
