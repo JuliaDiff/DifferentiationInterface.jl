@@ -1,3 +1,27 @@
+## Mixed-mode empty coloring scenario
+
+function mixedmode_empty_coloring_scenario()
+    sparsity_detector = TracerSparsityDetector()
+    function f!(y, x)
+        y .= x
+    end
+    backend = AutoSparse(
+        MixedMode(AutoForwardDiff(), AutoMooncake());
+        sparsity_detector,
+        coloring_algorithm=GreedyColoringAlgorithm(; postprocessing=true)
+    )
+    N = 50
+    x = zeros(N)
+    y = zeros(N)
+    # No nontrivial Jacobian, but should not error
+    return Scenario{:jacobian,:in}(
+        f!, y, x;
+        prep_args=(; y=zero(y), x=zeros(N), contexts=()),
+        res1=zeros(N, N),
+        backend=backend,
+        name="mixedmode_empty_coloring"
+    )
+end
 ## Vector to vector
 
 diffsquare(x::AbstractVector)::AbstractVector = diff(x) .^ 2
@@ -397,6 +421,8 @@ function sparse_scenarios(;
 
     final_scens = Scenario[]
     append!(final_scens, scens)
+    # Add the mixedmode empty coloring scenario
+    push!(final_scens, mixedmode_empty_coloring_scenario())
     include_constantified && append!(final_scens, constantify(scens))
     include_cachified && append!(final_scens, cachify(scens; use_tuples))
     include_constantorcachified && append!(final_scens, constantorcachify(scens))
