@@ -1,9 +1,7 @@
-## Mixed-mode empty coloring scenario
-
 function mixedmode_empty_coloring_scenario()
     sparsity_detector = TracerSparsityDetector()
     function f!(y, x)
-        y .= x
+        return y .= x
     end
     backend = AutoSparse(
         MixedMode(AutoForwardDiff(), AutoMooncake());
@@ -13,7 +11,6 @@ function mixedmode_empty_coloring_scenario()
     N = 50
     x = zeros(N)
     y = zeros(N)
-    # No nontrivial Jacobian, but should not error
     return Scenario{:jacobian,:in}(
         f!,
         y,
@@ -423,7 +420,6 @@ function sparse_scenarios(;
 
     final_scens = Scenario[]
     append!(final_scens, scens)
-    # Add the mixedmode empty coloring scenario
     push!(final_scens, mixedmode_empty_coloring_scenario())
     include_constantified && append!(final_scens, constantify(scens))
     include_cachified && append!(final_scens, cachify(scens; use_tuples))
