@@ -114,8 +114,9 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
     seeds_forward = [DI.multibasis(x, eachindex(x)[group]) for group in groups_forward]
     seeds_reverse = [DI.multibasis(y, eachindex(y)[group]) for group in groups_reverse]
 
-    compressed_matrix_forward = stack(_ -> vec(similar(y)), groups_forward; dims=2)
-    compressed_matrix_reverse = stack(_ -> vec(similar(x)), groups_reverse; dims=1)
+    # If no groups, create a trivial compressed matrix of correct shape
+    compressed_matrix_forward = isempty(groups_forward) ? zeros(eltype(y), length(y), 0) : stack(_ -> vec(similar(y)), groups_forward; dims=2)
+    compressed_matrix_reverse = isempty(groups_reverse) ? zeros(eltype(x), 0, length(x)) : stack(_ -> vec(similar(x)), groups_reverse; dims=1)
 
     batched_seeds_forward = [
         ntuple(b -> seeds_forward[1 + ((a - 1) * Bf + (b - 1)) % Nf], Val(Bf)) for a in 1:Af
