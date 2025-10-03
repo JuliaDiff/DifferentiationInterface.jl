@@ -213,6 +213,13 @@ function _sparse_jacobian_aux!(
     end
 
     dummy_seeds_reverse = if isempty(batched_seeds_reverse)
+        # Only evaluate y when needed for reverse mode dummy seeds
+        y = if length(f_or_f!y) == 1
+            f_or_f!y[1](x, map(DI.unwrap, contexts)...)
+        else
+            f_or_f!y[1](f_or_f!y[2], x, map(DI.unwrap, contexts)...)
+            f_or_f!y[2]
+        end
         ntuple(_ -> DI.multibasis(y, Int[]), Val(Br))
     else
         batched_seeds_reverse[1]
