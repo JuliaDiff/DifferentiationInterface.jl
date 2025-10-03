@@ -111,41 +111,42 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
     groups_forward = column_groups(coloring_result)
     groups_reverse = row_groups(coloring_result)
 
-    seeds_forward = [DI.multibasis(x, eachindex(x)[group]) for group in groups_forward]
-    seeds_reverse = [DI.multibasis(y, eachindex(y)[group]) for group in groups_reverse]
-
-    # If no groups, create a trivial compressed matrix of correct shape
-    compressed_matrix_forward = if isempty(groups_forward)
-        zeros(eltype(y), length(y), 0)
+    # Handle forward direction
+    if isempty(groups_forward)
+        seeds_forward = typeof(DI.multibasis(x, Int[]))[]
+        compressed_matrix_forward = zeros(eltype(y), length(y), 0)
+        batched_seeds_forward = NTuple{Bf,typeof(DI.multibasis(x, Int[]))}[]
+        batched_results_forward = NTuple{Bf,typeof(similar(y))}[]
+        dummy_seeds_forward = ntuple(_ -> DI.multibasis(x, Int[]), Val(Bf))
     else
-        stack(_ -> vec(similar(y)), groups_forward; dims=2)
+        seeds_forward = [DI.multibasis(x, eachindex(x)[group]) for group in groups_forward]
+        compressed_matrix_forward = stack(_ -> vec(similar(y)), groups_forward; dims=2)
+        batched_seeds_forward = [ntuple(b -> seeds_forward[1+((a-1)*Bf+(b-1))%Nf], Val(Bf)) for a in 1:Af]
+        batched_results_forward = [ntuple(b -> similar(y), Val(Bf)) for _ in batched_seeds_forward]
+        dummy_seeds_forward = batched_seeds_forward[1]
     end
-    compressed_matrix_reverse = if isempty(groups_reverse)
-        zeros(eltype(x), 0, length(x))
+
+    # Handle reverse direction
+    if isempty(groups_reverse)
+        seeds_reverse = typeof(DI.multibasis(y, Int[]))[]
+        compressed_matrix_reverse = zeros(eltype(x), 0, length(x))
+        batched_seeds_reverse = NTuple{Br,typeof(DI.multibasis(y, Int[]))}[]
+        batched_results_reverse = NTuple{Br,typeof(similar(x))}[]
+        dummy_seeds_reverse = ntuple(_ -> DI.multibasis(y, Int[]), Val(Br))
     else
-        stack(_ -> vec(similar(x)), groups_reverse; dims=1)
+        seeds_reverse = [DI.multibasis(y, eachindex(y)[group]) for group in groups_reverse]
+        compressed_matrix_reverse = stack(_ -> vec(similar(x)), groups_reverse; dims=1)
+        batched_seeds_reverse = [ntuple(b -> seeds_reverse[1+((a-1)*Br+(b-1))%Nr], Val(Br)) for a in 1:Ar]
+        batched_results_reverse = [ntuple(b -> similar(x), Val(Br)) for _ in batched_seeds_reverse]
+        dummy_seeds_reverse = batched_seeds_reverse[1]
     end
-
-    batched_seeds_forward = [
-        ntuple(b -> seeds_forward[1 + ((a - 1) * Bf + (b - 1)) % Nf], Val(Bf)) for a in 1:Af
-    ]
-    batched_seeds_reverse = [
-        ntuple(b -> seeds_reverse[1 + ((a - 1) * Br + (b - 1)) % Nr], Val(Br)) for a in 1:Ar
-    ]
-
-    batched_results_forward = [
-        ntuple(b -> similar(y), Val(Bf)) for _ in batched_seeds_forward
-    ]
-    batched_results_reverse = [
-        ntuple(b -> similar(x), Val(Br)) for _ in batched_seeds_reverse
-    ]
 
     pushforward_prep = DI.prepare_pushforward_nokwarg(
         strict,
         f_or_f!y...,
         DI.forward_backend(dense_backend),
         x,
-        batched_seeds_forward[1],
+        dummy_seeds_forward,
         contexts...;
     )
     pullback_prep = DI.prepare_pullback_nokwarg(
@@ -153,7 +154,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         f_or_f!y...,
         DI.reverse_backend(dense_backend),
         x,
-        batched_seeds_reverse[1],
+        dummy_seeds_reverse,
         contexts...;
     )
 
@@ -204,12 +205,25 @@ function _sparse_jacobian_aux!(
     Nf = batch_size_settings_forward.N
     Nr = batch_size_settings_reverse.N
 
+    # Get dummy seeds based on whether batched seeds are empty
+    dummy_seeds_forward = if isempty(batched_seeds_forward)
+        ntuple(_ -> DI.multibasis(x, Int[]), Val(Bf))
+    else
+        batched_seeds_forward[1]
+    end
+
+    dummy_seeds_reverse = if isempty(batched_seeds_reverse)
+        ntuple(_ -> DI.multibasis(y, Int[]), Val(Br))
+    else
+        batched_seeds_reverse[1]
+    end
+
     pushforward_prep_same = DI.prepare_pushforward_same_point(
         f_or_f!y...,
         pushforward_prep,
         DI.forward_backend(dense_backend),
         x,
-        batched_seeds_forward[1],
+        dummy_seeds_forward,
         contexts...,
     )
     pullback_prep_same = DI.prepare_pullback_same_point(
@@ -217,7 +231,7 @@ function _sparse_jacobian_aux!(
         pullback_prep,
         DI.reverse_backend(dense_backend),
         x,
-        batched_seeds_reverse[1],
+        dummy_seeds_reverse,
         contexts...,
     )
 
