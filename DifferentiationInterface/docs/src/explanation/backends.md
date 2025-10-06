@@ -63,7 +63,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoChainRules`           | ✅                  | ❌               |
 | `AutoDiffractor`           | ❌                  | ❌               |
 | `AutoEnzyme` (forward)     | ✅                  | ✅               |
-| `AutoEnzyme` (reverse)     | ✅                  | ❌ (soon)        |
+| `AutoEnzyme` (reverse)     | ✅                  | ✅               |
 | `AutoFastDifferentiation`  | ✅                  | ✅               |
 | `AutoFiniteDiff`           | ✅                  | ✅               |
 | `AutoFiniteDifferences`    | ✅                  | ✅               |

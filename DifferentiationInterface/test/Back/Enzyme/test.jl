@@ -1,3 +1,5 @@
+# see https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/855
+
 using Pkg
 Pkg.add("Enzyme")
 
@@ -13,15 +15,6 @@ using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
 
 LOGGING = get(ENV, "CI", "false") == "false"
-
-function remove_matrix_inputs(scens::Vector{<:Scenario})  # TODO: remove
-    if VERSION < v"1.11"
-        return scens
-    else
-        # for https://github.com/EnzymeAD/Enzyme.jl/issues/2071
-        return filter(s -> s.x isa Union{Number,AbstractVector}, scens)
-    end
-end
 
 backends = [
     AutoEnzyme(; mode=nothing),
@@ -55,7 +48,7 @@ end;
     )
 
     test_differentiation(
-        backends[2],
+        backends[2:3],
         default_scenarios(;
             include_normal=false,
             include_cachified=true,
@@ -82,14 +75,8 @@ end
                 AutoEnzyme(; mode=Enzyme.Reverse), AutoEnzyme(; mode=Enzyme.Forward)
             ),
         ],
-        remove_matrix_inputs(default_scenarios(; include_constantified=true));
+        default_scenarios(; include_constantified=true, include_cachified=true);
         excluded=FIRST_ORDER,
-        logging=LOGGING,
-    )
-
-    test_differentiation(
-        AutoEnzyme(; mode=Enzyme.Forward);
-        excluded=vcat(FIRST_ORDER, [:hessian, :hvp]),
         logging=LOGGING,
     )
 end
@@ -100,12 +87,7 @@ end
         if VERSION < v"1.11"
             sparse_scenarios()
         else
-            filter(sparse_scenarios()) do s
-                # for https://github.com/EnzymeAD/Enzyme.jl/issues/2168
-                (s.x isa AbstractVector) &&
-                    (s.f != DIT.sumdiffcube) &&
-                    (s.f != DIT.sumdiffcube_mat)
-            end
+            filter(s -> s.x isa AbstractVector, sparse_scenarios())
         end;
         sparsity=true,
         logging=LOGGING,
