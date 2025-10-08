@@ -6,7 +6,8 @@ struct SMCMixedModeSparseJacobianPrep{
     BSr<:DI.BatchSizeSettings,
     P<:AbstractMatrix,
     C<:AbstractColoringResult{:nonsymmetric,:bidirectional},
-    M<:AbstractMatrix{<:Number},
+    Mf<:AbstractMatrix{<:Number},
+    Mr<:AbstractMatrix{<:Number},
     Sfp<:NTuple,
     Srp<:NTuple,
     Sf<:Vector{<:NTuple},
@@ -21,8 +22,8 @@ struct SMCMixedModeSparseJacobianPrep{
     batch_size_settings_reverse::BSr
     sparsity::P
     coloring_result::C
-    compressed_matrix_forward::M
-    compressed_matrix_reverse::M
+    compressed_matrix_forward::Mf
+    compressed_matrix_reverse::Mr
     batched_seed_forward_prep::Sfp
     batched_seed_reverse_prep::Srp
     batched_seeds_forward::Sf
