@@ -193,3 +193,39 @@ end
 
 batchify_activity(::Type{Active{T}}, ::Val{B}) where {T,B} = Active{T}
 batchify_activity(::Type{Duplicated{T}}, ::Val{B}) where {T,B} = BatchDuplicated{T,B}
+
+has_runtime_activity(mode::Mode) = runtime_activity(mode)
+has_runtime_activity(::AutoEnzyme{Nothing}) = false
+has_runtime_activity(backend::AutoEnzyme{<:Mode}) = has_runtime_activity(backend.mode)
+
+function runtime_activity_safeguard(
+    backend_or_mode::Union{<:AutoEnzyme,<:Mode}, primal::T, shadow::T
+) where {T}
+    # TODO: improve datatype_pointerfree to take Ptr into account
+    if has_runtime_activity(backend_or_mode) &&
+        !datatype_pointerfree(T) &&
+        pointer(primal) === pointer(shadow)  # TODO: doesn't work beyond arrays
+        return make_zero(shadow)
+    else
+        return shadow
+    end
+end
+
+function runtime_activity_safeguard(
+    backend_or_mode::Union{<:AutoEnzyme,<:Mode},
+    primal::T,
+    shadow::Union{NTuple{N,T},NamedTuple},
+) where {T,N}
+    # TODO: improve datatype_pointerfree to take Ptr into account
+    if has_runtime_activity(backend_or_mode) &&
+        !datatype_pointerfree(T) &&
+        pointer(primal) === pointer(shadow[1])  # TODO: doesn't work beyond arrays
+        return make_zero(shadow)
+    else
+        return shadow
+    end
+end
+
+function runtime_activity_safeguard(::Union{<:AutoEnzyme,<:Mode}, primal, shadow::Nothing)
+    return nothing
+end

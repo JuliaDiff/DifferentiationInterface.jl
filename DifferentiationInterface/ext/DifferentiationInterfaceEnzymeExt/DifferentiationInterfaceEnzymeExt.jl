@@ -1,7 +1,7 @@
 module DifferentiationInterfaceEnzymeExt
 
 using ADTypes: ADTypes, AutoEnzyme
-using Base: Fix1
+using Base: Fix1, datatype_pointerfree
 import DifferentiationInterface as DI
 using EnzymeCore:
     Active,
@@ -42,7 +42,8 @@ using Enzyme:
     jacobian,
     make_zero,
     make_zero!,
-    onehot
+    onehot,
+    runtime_activity
 
 DI.check_available(::AutoEnzyme) = true
 
