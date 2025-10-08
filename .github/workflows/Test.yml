@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-    tags: ["*"]
+    tags: ['*']
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
   workflow_dispatch:
@@ -25,12 +25,12 @@ jobs:
       actions: write
       contents: read
     strategy:
-      fail-fast: true  # TODO: toggle
+      fail-fast: true # TODO: toggle
       matrix:
         version:
-          - "lts"
-          - "1"
-          - "pre"
+          - '1.10'
+          - '1.11'
+          - '1.12'
         group:
           - Core/Internals
           - Back/DifferentiateWith
@@ -58,16 +58,16 @@ jobs:
           - ${{ github.event.pull_request.draft }}
         exclude:
           - skip_lts: true
-            version: "lts"
+            version: '1.10'
           - skip_pre: true
-            version: "pre"
-          - version: "1"
+            version: '1.12'
+          - version: '1.11'
             group: Back/ChainRules
-          - version: "pre"
+          - version: '1.12'
             group: Back/Enzyme
-          - version: "pre"
+          - version: '1.12'
             group: Back/Mooncake
-          - version: "pre"
+          - version: '1.12'
             group: Back/DifferentiateWith
     env:
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
@@ -85,9 +85,9 @@ jobs:
           using Pkg;
           Pkg.Registry.update();
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
-              Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);
+          Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);
           else;
-              Pkg.test("DifferentiationInterface"; coverage=true);
+          Pkg.test("DifferentiationInterface"; coverage=true);
           end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
@@ -111,9 +111,9 @@ jobs:
       fail-fast: true
       matrix:
         version:
-          - "lts"
-          - "1"
-          - "pre"
+          - '1.10'
+          - '1.11'
+          - '1.12'
         group:
           - Formalities
           - Zero
@@ -125,9 +125,9 @@ jobs:
           - ${{ github.event.pull_request.draft }}
         exclude:
           - skip_lts: true
-            version: "lts"
+            version: '1.10'
           - skip_pre: true
-            version: "pre"
+            version: '1.12'
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
@@ -144,9 +144,9 @@ jobs:
           Pkg.Registry.update();
           Pkg.develop(path="./DifferentiationInterface");
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
-              Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true, julia_args=["-O1"]);
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true, julia_args=["-O1"]);
           else;
-              Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true);
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true);
           end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
