@@ -128,6 +128,11 @@ end
         @test only(row_groups(jac_rev_prep)) == 1:10
         @test only(column_groups(hess_prep)) == 1:10
     end
+
+    @testset "Empty colors for mixed mode" begin # issue 857
+        backend = MyAutoSparse(MixedMode(adaptive_backends[1], adaptive_backends[2]))
+        @test jacobian(copyto!, zeros(10), backend, ones(10)) isa AbstractMatrix
+    end
 end
 
 @testset "Misc" begin

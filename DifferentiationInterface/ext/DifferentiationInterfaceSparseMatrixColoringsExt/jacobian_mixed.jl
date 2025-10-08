@@ -7,6 +7,8 @@ struct SMCMixedModeSparseJacobianPrep{
     P<:AbstractMatrix,
     C<:AbstractColoringResult{:nonsymmetric,:bidirectional},
     M<:AbstractMatrix{<:Number},
+    Sfp<:NTuple,
+    Srp<:NTuple,
     Sf<:Vector{<:NTuple},
     Sr<:Vector{<:NTuple},
     Rf<:Vector{<:NTuple},
@@ -21,6 +23,8 @@ struct SMCMixedModeSparseJacobianPrep{
     coloring_result::C
     compressed_matrix_forward::M
     compressed_matrix_reverse::M
+    batched_seed_forward_prep::Sfp
+    batched_seed_reverse_prep::Srp
     batched_seeds_forward::Sf
     batched_seeds_reverse::Sr
     batched_results_forward::Rf
@@ -111,12 +115,24 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
     groups_forward = column_groups(coloring_result)
     groups_reverse = row_groups(coloring_result)
 
+    seed_forward_prep = DI.multibasis(x, eachindex(x))
+    seed_reverse_prep = DI.multibasis(y, eachindex(y))
     seeds_forward = [DI.multibasis(x, eachindex(x)[group]) for group in groups_forward]
     seeds_reverse = [DI.multibasis(y, eachindex(y)[group]) for group in groups_reverse]
 
-    compressed_matrix_forward = stack(_ -> vec(similar(y)), groups_forward; dims=2)
-    compressed_matrix_reverse = stack(_ -> vec(similar(x)), groups_reverse; dims=1)
+    compressed_matrix_forward = if isempty(groups_forward)
+        similar(vec(y), length(y), 0)
+    else
+        stack(_ -> vec(similar(y)), groups_forward; dims=2)
+    end
+    compressed_matrix_reverse = if isempty(groups_reverse)
+        similar(vec(x), 0, length(x))
+    else
+        stack(_ -> vec(similar(x)), groups_reverse; dims=1)
+    end
 
+    batched_seed_forward_prep = ntuple(b -> copy(seed_forward_prep), Val(Bf))
+    batched_seed_reverse_prep = ntuple(b -> copy(seed_reverse_prep), Val(Br))
     batched_seeds_forward = [
         ntuple(b -> seeds_forward[1 + ((a - 1) * Bf + (b - 1)) % Nf], Val(Bf)) for a in 1:Af
     ]
@@ -136,7 +152,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         f_or_f!y...,
         DI.forward_backend(dense_backend),
         x,
-        batched_seeds_forward[1],
+        batched_seed_forward_prep,
         contexts...;
     )
     pullback_prep = DI.prepare_pullback_nokwarg(
@@ -144,7 +160,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         f_or_f!y...,
         DI.reverse_backend(dense_backend),
         x,
-        batched_seeds_reverse[1],
+        batched_seed_reverse_prep,
         contexts...;
     )
 
@@ -156,6 +172,8 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         coloring_result,
         compressed_matrix_forward,
         compressed_matrix_reverse,
+        batched_seed_forward_prep,
+        batched_seed_reverse_prep,
         batched_seeds_forward,
         batched_seeds_reverse,
         batched_results_forward,
@@ -183,6 +201,8 @@ function _sparse_jacobian_aux!(
         coloring_result,
         compressed_matrix_forward,
         compressed_matrix_reverse,
+        batched_seed_forward_prep,
+        batched_seed_reverse_prep,
         batched_seeds_forward,
         batched_seeds_reverse,
         batched_results_forward,
@@ -200,7 +220,7 @@ function _sparse_jacobian_aux!(
         pushforward_prep,
         DI.forward_backend(dense_backend),
         x,
-        batched_seeds_forward[1],
+        batched_seed_forward_prep,
         contexts...,
     )
     pullback_prep_same = DI.prepare_pullback_same_point(
@@ -208,7 +228,7 @@ function _sparse_jacobian_aux!(
         pullback_prep,
         DI.reverse_backend(dense_backend),
         x,
-        batched_seeds_reverse[1],
+        batched_seed_reverse_prep,
         contexts...,
     )
 
