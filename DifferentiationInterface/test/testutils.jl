@@ -17,7 +17,7 @@ function MyAutoSparse(backend::AbstractADType)
     return AutoSparse(
         backend;
         sparsity_detector=TracerSparsityDetector(),
-        coloring_algorithm=GreedyColoringAlgorithm(),
+        coloring_algorithm=GreedyColoringAlgorithm(; postprocessing=true),
     )
 end
 
