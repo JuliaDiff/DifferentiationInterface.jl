@@ -37,6 +37,7 @@ function DI.value_and_pushforward(
     x_and_dx = Duplicated(x, dx)
     annotated_contexts = translate_prepared!(context_shadows, contexts, Val(1))
     dy, y = autodiff(mode, f_and_df, x_and_dx, annotated_contexts...)
+    dy = runtime_activity_safeguard(backend, y, dy)
     return y, (dy,)
 end
 
@@ -54,8 +55,10 @@ function DI.value_and_pushforward(
     f_and_df = get_f_and_df_prepared!(df, f, backend, Val(B))
     x_and_tx = BatchDuplicated(x, tx)
     annotated_contexts = translate_prepared!(context_shadows, contexts, Val(B))
-    ty, y = autodiff(mode, f_and_df, x_and_tx, annotated_contexts...)
-    return y, values(ty)
+    ty_nt, y = autodiff(mode, f_and_df, x_and_tx, annotated_contexts...)
+    ty = values(ty_nt)
+    ty = runtime_activity_safeguard(backend, y, ty)
+    return y, ty
 end
 
 function DI.pushforward(
@@ -66,6 +69,9 @@ function DI.pushforward(
     tx::NTuple{1},
     contexts::Vararg{DI.Context,C},
 ) where {F,C}
+    if has_runtime_activity(backend)
+        return DI.value_and_pushforward(f, prep, backend, x, tx, contexts...)[2]
+    end
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; df, context_shadows) = prep
     mode = forward_noprimal(backend)
@@ -85,14 +91,18 @@ function DI.pushforward(
     tx::NTuple{B},
     contexts::Vararg{DI.Context,C},
 ) where {F,B,C}
+    if has_runtime_activity(backend)
+        return DI.value_and_pushforward(f, prep, backend, x, tx, contexts...)[2]
+    end
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; df, context_shadows) = prep
     mode = forward_noprimal(backend)
     f_and_df = get_f_and_df_prepared!(df, f, backend, Val(B))
     x_and_tx = BatchDuplicated(x, tx)
     annotated_contexts = translate_prepared!(context_shadows, contexts, Val(B))
-    ty = only(autodiff(mode, f_and_df, x_and_tx, annotated_contexts...))
-    return values(ty)
+    ty_nt = only(autodiff(mode, f_and_df, x_and_tx, annotated_contexts...))
+    ty = values(ty_nt)
+    return ty
 end
 
 function DI.value_and_pushforward!(
@@ -168,7 +178,9 @@ function DI.gradient(
     derivs = gradient(
         mode, f_and_df, x, annotated_contexts...; chunk=Val(B), shadows=basis_shadows
     )
-    return first(derivs)
+    deriv = first(derivs)
+    deriv = runtime_activity_safeguard(backend, x, deriv)
+    return deriv
 end
 
 function DI.value_and_gradient(
@@ -186,7 +198,9 @@ function DI.value_and_gradient(
     (; derivs, val) = gradient(
         mode, f_and_df, x, annotated_contexts...; chunk=Val(B), shadows=basis_shadows
     )
-    return val, first(derivs)
+    deriv = first(derivs)
+    deriv = runtime_activity_safeguard(backend, x, deriv)
+    return val, deriv
 end
 
 function DI.gradient!(

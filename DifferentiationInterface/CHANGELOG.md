@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - Speed up Mooncake by avoiding tuple broadcasting ([#853](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/853))
 
+### Fixed
+
+  - Handle constant derivatives with runtime activity for Enzyme
+
 ## [0.7.7](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.6...DifferentiationInterface-v0.7.7)
 
 ### Fixed

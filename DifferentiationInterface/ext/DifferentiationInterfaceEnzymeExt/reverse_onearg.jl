@@ -7,6 +7,7 @@ function seeded_autodiff_thunk(
 ) where {ReturnPrimal,FA<:Annotation,RA<:Annotation,N}
     forward, reverse = autodiff_thunk(rmode, FA, RA, typeof.(args)...)
     tape, result, shadow_result = forward(f, args...)
+    shadow_result = runtime_activity_safeguard(rmode, result, shadow_result)
     if RA <: Active
         dinputs = only(reverse(f, args..., dresult, tape))
     else
@@ -30,6 +31,7 @@ function batch_seeded_autodiff_thunk(
     rmode_rightwidth = ReverseSplitWidth(rmode, Val(B))
     forward, reverse = autodiff_thunk(rmode_rightwidth, FA, RA, typeof.(args)...)
     tape, result, shadow_results = forward(f, args...)
+    shadow_results = runtime_activity_safeguard(rmode_rightwidth, result, shadow_results)
     if RA <: Active
         dinputs = only(reverse(f, args..., dresults, tape))
     else

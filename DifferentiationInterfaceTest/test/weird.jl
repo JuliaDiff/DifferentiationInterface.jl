@@ -65,6 +65,13 @@ test_differentiation(
     logging=LOGGING,
 );
 
+test_differentiation(
+    AutoFiniteDiff(),
+    unknown_activity(default_scenarios);
+    excluded=SECOND_ORDER,
+    logging=LOGGING,
+);
+
 ## Neural nets
 
 test_differentiation(

@@ -174,3 +174,19 @@ end
         excluded=[:jacobian],
     )
 end;
+
+@testset "Runtime activity" begin
+    # TODO: higher-level operators not tested
+    test_differentiation(
+        AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Forward)),
+        DIT.unknown_activity(default_scenarios());
+        excluded=vcat(SECOND_ORDER, :jacobian, :gradient, :derivative, :pullback),
+        logging=LOGGING,
+    )
+    test_differentiation(
+        AutoEnzyme(; mode=Enzyme.set_runtime_activity(Enzyme.Reverse)),
+        DIT.unknown_activity(default_scenarios());
+        excluded=vcat(SECOND_ORDER, :jacobian, :gradient, :derivative, :pushforward),
+        logging=LOGGING,
+    )
+end
