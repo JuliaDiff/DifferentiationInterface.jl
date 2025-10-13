@@ -64,7 +64,7 @@ Base.@kwdef struct DifferentiationBenchmarkDataRow{T}
     "differentiation operator used for benchmarking, e.g. `:gradient` or `:hessian`"
     operator::Symbol
     "whether the operator had been prepared"
-    prepared::Union{Nothing,Bool}
+    prepared::Union{Nothing, Bool}
     "number of calls to the differentiated function for one call to the operator"
     calls::Int
     "number of benchmarking samples taken"
@@ -84,28 +84,28 @@ Base.@kwdef struct DifferentiationBenchmarkDataRow{T}
 end
 
 function record!(
-    data::Vector{DifferentiationBenchmarkDataRow};
-    backend::AbstractADType,
-    scenario::Scenario,
-    operator::String,
-    prepared::Union{Nothing,Bool},
-    bench::Benchmark,
-    calls::Integer,
-    aggregation,
-)
+        data::Vector{DifferentiationBenchmarkDataRow};
+        backend::AbstractADType,
+        scenario::Scenario,
+        operator::String,
+        prepared::Union{Nothing, Bool},
+        bench::Benchmark,
+        calls::Integer,
+        aggregation,
+    )
     row = DifferentiationBenchmarkDataRow(;
-        backend=backend,
-        scenario=scenario,
-        operator=Symbol(operator),
-        prepared=prepared,
-        calls=calls,
-        samples=length(bench.samples),
-        evals=Int(bench.samples[1].evals),
-        time=aggregation(getfield.(bench.samples, :time)),
-        allocs=aggregation(getfield.(bench.samples, :allocs)),
-        bytes=aggregation(getfield.(bench.samples, :bytes)),
-        gc_fraction=aggregation(getfield.(bench.samples, :gc_fraction)),
-        compile_fraction=aggregation(getfield.(bench.samples, :compile_fraction)),
+        backend = backend,
+        scenario = scenario,
+        operator = Symbol(operator),
+        prepared = prepared,
+        calls = calls,
+        samples = length(bench.samples),
+        evals = Int(bench.samples[1].evals),
+        time = aggregation(getfield.(bench.samples, :time)),
+        allocs = aggregation(getfield.(bench.samples, :allocs)),
+        bytes = aggregation(getfield.(bench.samples, :bytes)),
+        gc_fraction = aggregation(getfield.(bench.samples, :gc_fraction)),
+        compile_fraction = aggregation(getfield.(bench.samples, :compile_fraction)),
     )
     return push!(data, row)
 end

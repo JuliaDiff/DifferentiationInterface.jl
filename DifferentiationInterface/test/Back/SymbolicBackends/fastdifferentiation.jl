@@ -20,16 +20,16 @@ end
 test_differentiation(
     AutoFastDifferentiation(),
     default_scenarios(;
-        include_constantified=true, include_cachified=true, use_tuples=false
+        include_constantified = true, include_cachified = true, use_tuples = false
     );
-    logging=LOGGING,
+    logging = LOGGING,
 );
 
 test_differentiation(
     AutoSparse(AutoFastDifferentiation()),
-    sparse_scenarios(; band_sizes=0:-1);
-    sparsity=true,
-    logging=LOGGING,
+    sparse_scenarios(; band_sizes = 0:-1);
+    sparsity = true,
+    logging = LOGGING,
 );
 
 @testset "SparseMatrixColorings access" begin

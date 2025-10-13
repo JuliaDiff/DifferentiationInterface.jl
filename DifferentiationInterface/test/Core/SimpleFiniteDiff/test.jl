@@ -11,38 +11,38 @@ using Test
 LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [ #
-    AutoSimpleFiniteDiff(; chunksize=5),
-    AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
-    AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
+    AutoSimpleFiniteDiff(; chunksize = 5),
+    AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 4)),
+    AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 4)),
 ]
 
 second_order_backends = [ #
     SecondOrder(
-        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=5)),
-        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 5)),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 4)),
     ),
     SecondOrder(
-        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize=5)),
-        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize=4)),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 5)),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 4)),
     ),
 ]
 
 second_order_hvp_backends = [ #
     SecondOrder(
-        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace = false),
         AutoForwardFromPrimitive(AutoSimpleFiniteDiff()),
     ),
     SecondOrder(
-        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
-        AutoReverseFromPrimitive(AutoSimpleFiniteDiff();),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace = false),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff()),
     ),
     SecondOrder(
-        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
-        AutoForwardFromPrimitive(AutoSimpleFiniteDiff();),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff(); inplace = false),
+        AutoForwardFromPrimitive(AutoSimpleFiniteDiff()),
     ),
     SecondOrder(
-        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace=false),
-        AutoReverseFromPrimitive(AutoSimpleFiniteDiff();),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff(); inplace = false),
+        AutoReverseFromPrimitive(AutoSimpleFiniteDiff()),
     ),
 ]
 
@@ -63,25 +63,25 @@ end
 @testset "Dense" begin
     test_differentiation(
         vcat(backends, second_order_backends),
-        default_scenarios(; include_constantified=true, include_smaller=true);
-        logging=LOGGING,
+        default_scenarios(; include_constantified = true, include_smaller = true);
+        logging = LOGGING,
     )
 
     test_differentiation(
         second_order_hvp_backends,
-        default_scenarios(; include_constantorcachified=true);
-        excluded=vcat(FIRST_ORDER, :hessian, :second_derivative),
-        logging=LOGGING,
+        default_scenarios(; include_constantorcachified = true);
+        excluded = vcat(FIRST_ORDER, :hessian, :second_derivative),
+        logging = LOGGING,
     )
 
-    test_differentiation(backends, complex_scenarios(); logging=LOGGING)
+    test_differentiation(backends, complex_scenarios(); logging = LOGGING)
 end
 
 @testset "Sparse" begin
     test_differentiation(
         MyAutoSparse.(adaptive_backends),
-        default_scenarios(; include_constantified=true);
-        logging=LOGGING,
+        default_scenarios(; include_constantified = true);
+        logging = LOGGING,
     )
 
     test_differentiation(
@@ -89,13 +89,13 @@ end
             vcat(adaptive_backends, MixedMode(adaptive_backends[1], adaptive_backends[2]))
         ),
         sparse_scenarios(;
-            include_constantified=true,
-            include_cachified=true,
-            include_constantorcachified=true,
-            use_tuples=true,
+            include_constantified = true,
+            include_cachified = true,
+            include_constantorcachified = true,
+            use_tuples = true,
         );
-        sparsity=true,
-        logging=LOGGING,
+        sparsity = true,
+        logging = LOGGING,
     )
 
     @testset "Complex numbers" begin
@@ -104,11 +104,11 @@ end
                 vcat(
                     adaptive_backends, MixedMode(adaptive_backends[1], adaptive_backends[2])
                 );
-                sparsity_detector=DenseSparsityDetector(AutoSimpleFiniteDiff(); atol=1e-5),
-                coloring_algorithm=GreedyColoringAlgorithm(),
+                sparsity_detector = DenseSparsityDetector(AutoSimpleFiniteDiff(); atol = 1.0e-5),
+                coloring_algorithm = GreedyColoringAlgorithm(),
             ),
             complex_sparse_scenarios();
-            logging=LOGGING,
+            logging = LOGGING,
         )
     end
 
@@ -152,6 +152,6 @@ end
             AutoReverseFromPrimitive(AutoSimpleFiniteDiff()),
         ],
         vcat(static_scenarios(), gpu_scenarios());
-        logging=LOGGING,
+        logging = LOGGING,
     )
 end;

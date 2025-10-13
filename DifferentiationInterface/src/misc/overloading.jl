@@ -14,7 +14,7 @@ function overloaded_input(::typeof(pushforward), f, backend::AbstractADType, x, 
 end
 
 function overloaded_input(
-    ::typeof(pushforward), f!, y, backend::AbstractADType, x, tx::NTuple
-)
+        ::typeof(pushforward), f!, y, backend::AbstractADType, x, tx::NTuple
+    )
     throw(ArgumentError("Overloaded input not defined"))
 end

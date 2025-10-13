@@ -21,11 +21,11 @@ readme_str = replace(readme_str, "> [!CAUTION]\n> " => "!!! warning\n    ")
 write(joinpath(@__DIR__, "src", "index.md"), readme_str)
 
 makedocs(;
-    modules=[DifferentiationInterface],
-    authors="Guillaume Dalle, Adrian Hill",
-    sitename="DifferentiationInterface.jl",
-    format=Documenter.HTML(; assets=["assets/favicon.ico"]),
-    pages=[
+    modules = [DifferentiationInterface],
+    authors = "Guillaume Dalle, Adrian Hill",
+    sitename = "DifferentiationInterface.jl",
+    format = Documenter.HTML(; assets = ["assets/favicon.ico"]),
+    pages = [
         "Home" => "index.md",
         "Tutorials" => ["tutorials/basic.md", "tutorials/advanced.md"],
         "Explanation" => [
@@ -37,13 +37,13 @@ makedocs(;
         "api.md",
         "dev_guide.md",
     ],
-    plugins=[links],
+    plugins = [links],
 )
 
 deploydocs(;
-    repo="github.com/JuliaDiff/DifferentiationInterface.jl",
-    devbranch="main",
-    dirname="DifferentiationInterface",
-    tag_prefix="DifferentiationInterface-",
-    push_preview=false,
+    repo = "github.com/JuliaDiff/DifferentiationInterface.jl",
+    devbranch = "main",
+    dirname = "DifferentiationInterface",
+    tag_prefix = "DifferentiationInterface-",
+    push_preview = false,
 )

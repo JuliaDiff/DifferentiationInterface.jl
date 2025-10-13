@@ -1,10 +1,10 @@
 function seeded_autodiff_thunk(
-    rmode::ReverseModeSplit{ReturnPrimal},
-    dresult,
-    f::FA,
-    ::Type{RA},
-    args::Vararg{Annotation,N},
-) where {ReturnPrimal,FA<:Annotation,RA<:Annotation,N}
+        rmode::ReverseModeSplit{ReturnPrimal},
+        dresult,
+        f::FA,
+        ::Type{RA},
+        args::Vararg{Annotation, N},
+    ) where {ReturnPrimal, FA <: Annotation, RA <: Annotation, N}
     forward, reverse = autodiff_thunk(rmode, FA, RA, typeof.(args)...)
     tape, result, shadow_result = forward(f, args...)
     if RA <: Active
@@ -21,12 +21,12 @@ function seeded_autodiff_thunk(
 end
 
 function batch_seeded_autodiff_thunk(
-    rmode::ReverseModeSplit{ReturnPrimal},
-    dresults::NTuple{B},
-    f::FA,
-    ::Type{RA},
-    args::Vararg{Annotation,N},
-) where {ReturnPrimal,B,FA<:Annotation,RA<:Annotation,N}
+        rmode::ReverseModeSplit{ReturnPrimal},
+        dresults::NTuple{B},
+        f::FA,
+        ::Type{RA},
+        args::Vararg{Annotation, N},
+    ) where {ReturnPrimal, B, FA <: Annotation, RA <: Annotation, N}
     rmode_rightwidth = ReverseSplitWidth(rmode, Val(B))
     forward, reverse = autodiff_thunk(rmode_rightwidth, FA, RA, typeof.(args)...)
     tape, result, shadow_results = forward(f, args...)
@@ -47,7 +47,7 @@ end
 
 ## Pullback
 
-struct EnzymeReverseOneArgPullbackPrep{SIG,DF,DC,Y} <: DI.PullbackPrep{SIG}
+struct EnzymeReverseOneArgPullbackPrep{SIG, DF, DC, Y} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     df::DF
     context_shadows::DC
@@ -55,13 +55,13 @@ struct EnzymeReverseOneArgPullbackPrep{SIG,DF,DC,Y} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback_nokwarg(
-    strict::Val,
-    f::F,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{B},
-    contexts::Vararg{DI.Context,C};
-) where {F,B,C}
+        strict::Val,
+        f::F,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{B},
+        contexts::Vararg{DI.Context, C}
+    ) where {F, B, C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     df = function_shadow(f, backend, Val(B))
     mode = reverse_split_withprimal(backend)
@@ -73,13 +73,13 @@ end
 ### Out-of-place
 
 function DI.value_and_pullback(
-    f::F,
-    prep::EnzymeReverseOneArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        prep::EnzymeReverseOneArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; df, context_shadows, y_example) = prep
     mode = reverse_split_withprimal(backend)
@@ -100,13 +100,13 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback(
-    f::F,
-    prep::EnzymeReverseOneArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{B},
-    contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+        f::F,
+        prep::EnzymeReverseOneArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{B},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, B, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; df, context_shadows, y_example) = prep
     mode = reverse_split_withprimal(backend)
@@ -127,13 +127,13 @@ function DI.value_and_pullback(
 end
 
 function DI.pullback(
-    f::F,
-    prep::EnzymeReverseOneArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        prep::EnzymeReverseOneArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     return last(DI.value_and_pullback(f, prep, backend, x, ty, contexts...))
 end
@@ -141,14 +141,14 @@ end
 ### In-place
 
 function DI.value_and_pullback!(
-    f::F,
-    tx::NTuple{1},
-    prep::EnzymeReverseOneArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        tx::NTuple{1},
+        prep::EnzymeReverseOneArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; df, context_shadows, y_example) = prep
     mode = reverse_split_withprimal(backend)
@@ -164,14 +164,14 @@ function DI.value_and_pullback!(
 end
 
 function DI.value_and_pullback!(
-    f::F,
-    tx::NTuple{B},
-    prep::EnzymeReverseOneArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{B},
-    contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+        f::F,
+        tx::NTuple{B},
+        prep::EnzymeReverseOneArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{B},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, B, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     (; df, context_shadows, y_example) = prep
     mode = reverse_split_withprimal(backend)
@@ -186,33 +186,33 @@ function DI.value_and_pullback!(
 end
 
 function DI.pullback!(
-    f::F,
-    tx::NTuple,
-    prep::EnzymeReverseOneArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        tx::NTuple,
+        prep::EnzymeReverseOneArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     return last(DI.value_and_pullback!(f, tx, prep, backend, x, ty, contexts...))
 end
 
 ## Gradient
 
-struct EnzymeGradientPrep{SIG,DF,DC} <: DI.GradientPrep{SIG}
+struct EnzymeGradientPrep{SIG, DF, DC} <: DI.GradientPrep{SIG}
     _sig::Val{SIG}
     df::DF
     context_shadows::DC
 end
 
 function DI.prepare_gradient_nokwarg(
-    strict::Val,
-    f::F,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        strict::Val,
+        f::F,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     df = function_shadow(f, backend, Val(1))
     mode = reverse_withprimal(backend)
@@ -223,12 +223,12 @@ end
 ### Enzyme gradient API (only constants)
 
 function DI.gradient(
-    f::F,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
-    x,
-    contexts::Vararg{DI.Constant,C},
-) where {F,C}
+        f::F,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}, <:Union{Nothing, Const}},
+        x,
+        contexts::Vararg{DI.Constant, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep
     mode = reverse_noprimal(backend)
@@ -239,12 +239,12 @@ function DI.gradient(
 end
 
 function DI.value_and_gradient(
-    f::F,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
-    x,
-    contexts::Vararg{DI.Constant,C},
-) where {F,C}
+        f::F,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}, <:Union{Nothing, Const}},
+        x,
+        contexts::Vararg{DI.Constant, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep
     mode = reverse_withprimal(backend)
@@ -255,12 +255,12 @@ function DI.value_and_gradient(
 end
 
 function DI.gradient!(
-    f::F,
-    grad,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
-    x,
-) where {F}
+        f::F,
+        grad,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}, <:Union{Nothing, Const}},
+        x,
+    ) where {F}
     DI.check_prep(f, prep, backend, x)
     (; df) = prep
     mode = reverse_noprimal(backend)
@@ -270,12 +270,12 @@ function DI.gradient!(
 end
 
 function DI.value_and_gradient!(
-    f::F,
-    grad,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing},<:Union{Nothing,Const}},
-    x,
-) where {F}
+        f::F,
+        grad,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}, <:Union{Nothing, Const}},
+        x,
+    ) where {F}
     DI.check_prep(f, prep, backend, x)
     (; df) = prep
     mode = reverse_withprimal(backend)
@@ -287,12 +287,12 @@ end
 ### Generic
 
 function DI.gradient(
-    f::F,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep
     mode = reverse_noprimal(backend)
@@ -312,12 +312,12 @@ function DI.gradient(
 end
 
 function DI.value_and_gradient(
-    f::F,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep
     mode = reverse_withprimal(backend)
@@ -337,13 +337,13 @@ function DI.value_and_gradient(
 end
 
 function DI.gradient!(
-    f::F,
-    grad,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        grad,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep
     mode = reverse_noprimal(backend)
@@ -355,13 +355,13 @@ function DI.gradient!(
 end
 
 function DI.value_and_gradient!(
-    f::F,
-    grad,
-    prep::EnzymeGradientPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        grad,
+        prep::EnzymeGradientPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep
     mode = reverse_withprimal(backend)

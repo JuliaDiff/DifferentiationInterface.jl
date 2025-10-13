@@ -1,14 +1,14 @@
 struct SMCSparseHessianPrep{
-    SIG,
-    BS<:DI.BatchSizeSettings,
-    P<:AbstractMatrix,
-    C<:AbstractColoringResult{:symmetric,:column},
-    M<:AbstractMatrix{<:Number},
-    S<:AbstractVector{<:NTuple},
-    R<:AbstractVector{<:NTuple},
-    E2<:DI.HVPPrep,
-    E1<:DI.GradientPrep,
-} <: DI.SparseHessianPrep{SIG}
+        SIG,
+        BS <: DI.BatchSizeSettings,
+        P <: AbstractMatrix,
+        C <: AbstractColoringResult{:symmetric, :column},
+        M <: AbstractMatrix{<:Number},
+        S <: AbstractVector{<:NTuple},
+        R <: AbstractVector{<:NTuple},
+        E2 <: DI.HVPPrep,
+        E1 <: DI.GradientPrep,
+    } <: DI.SparseHessianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings::BS
     sparsity::P
@@ -23,15 +23,15 @@ end
 ## Hessian, one argument
 
 function DI.prepare_hessian_nokwarg(
-    strict::Val, f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
-) where {F,C}
+        strict::Val, f::F, backend::AutoSparse, x, contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     dense_backend = dense_ad(backend)
     sparsity = DI.hessian_sparsity_with_contexts(
         f, sparsity_detector(backend), x, contexts...
     )
-    problem = ColoringProblem{:symmetric,:column}()
+    problem = ColoringProblem{:symmetric, :column}()
     coloring_result = coloring(
-        sparsity, problem, coloring_algorithm(backend); decompression_eltype=eltype(x)
+        sparsity, problem, coloring_algorithm(backend); decompression_eltype = eltype(x)
     )
     N = length(column_groups(coloring_result))
     batch_size_settings = DI.pick_batchsize(DI.outer(dense_backend), N)
@@ -41,21 +41,21 @@ function DI.prepare_hessian_nokwarg(
 end
 
 function _prepare_sparse_hessian_aux(
-    strict::Val,
-    batch_size_settings::DI.BatchSizeSettings{B},
-    sparsity::AbstractMatrix,
-    coloring_result::AbstractColoringResult{:symmetric,:column},
-    f::F,
-    backend::AutoSparse,
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {B,F,C}
+        strict::Val,
+        batch_size_settings::DI.BatchSizeSettings{B},
+        sparsity::AbstractMatrix,
+        coloring_result::AbstractColoringResult{:symmetric, :column},
+        f::F,
+        backend::AutoSparse,
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {B, F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     (; N, A) = batch_size_settings
     dense_backend = dense_ad(backend)
     groups = column_groups(coloring_result)
     seeds = [DI.multibasis(x, eachindex(x)[group]) for group in groups]
-    compressed_matrix = stack(_ -> vec(similar(x)), groups; dims=2)
+    compressed_matrix = stack(_ -> vec(similar(x)), groups; dims = 2)
     batched_seeds = [
         ntuple(b -> seeds[1 + ((a - 1) * B + (b - 1)) % N], Val(B)) for a in 1:A
     ]
@@ -80,13 +80,13 @@ function _prepare_sparse_hessian_aux(
 end
 
 function DI.hessian!(
-    f::F,
-    hess,
-    prep::SMCSparseHessianPrep{SIG,<:DI.BatchSizeSettings{B}},
-    backend::AutoSparse,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,SIG,B,C}
+        f::F,
+        hess,
+        prep::SMCSparseHessianPrep{SIG, <:DI.BatchSizeSettings{B}},
+        backend::AutoSparse,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, SIG, B, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (;
         batch_size_settings,
@@ -127,22 +127,22 @@ function DI.hessian!(
 end
 
 function DI.hessian(
-    f::F, prep::SMCSparseHessianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
-) where {F,C}
+        f::F, prep::SMCSparseHessianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     hess = similar(sparsity_pattern(prep), eltype(x))
     return DI.hessian!(f, hess, prep, backend, x, contexts...)
 end
 
 function DI.value_gradient_and_hessian!(
-    f::F,
-    grad,
-    hess,
-    prep::SMCSparseHessianPrep,
-    backend::AutoSparse,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        grad,
+        hess,
+        prep::SMCSparseHessianPrep,
+        backend::AutoSparse,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, _ = DI.value_and_gradient!(
         f, grad, prep.gradient_prep, DI.inner(dense_ad(backend)), x, contexts...
@@ -152,8 +152,8 @@ function DI.value_gradient_and_hessian!(
 end
 
 function DI.value_gradient_and_hessian(
-    f::F, prep::SMCSparseHessianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context,C}
-) where {F,C}
+        f::F, prep::SMCSparseHessianPrep, backend::AutoSparse, x, contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, grad = DI.value_and_gradient(
         f, prep.gradient_prep, DI.inner(dense_ad(backend)), x, contexts...

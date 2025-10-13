@@ -16,8 +16,8 @@ using DifferentiationInterfaceTest:
 function MyAutoSparse(backend::AbstractADType)
     return AutoSparse(
         backend;
-        sparsity_detector=TracerSparsityDetector(),
-        coloring_algorithm=GreedyColoringAlgorithm(; postprocessing=true),
+        sparsity_detector = TracerSparsityDetector(),
+        coloring_algorithm = GreedyColoringAlgorithm(; postprocessing = true),
     )
 end
 

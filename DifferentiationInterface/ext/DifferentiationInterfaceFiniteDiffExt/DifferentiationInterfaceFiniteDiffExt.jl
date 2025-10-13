@@ -26,8 +26,8 @@ DI.inner_preparation_behavior(::AutoFiniteDiff) = DI.PrepareInnerSimple()
 # see https://github.com/SciML/ADTypes.jl/issues/33
 
 fdtype(::AutoFiniteDiff{fdt}) where {fdt} = fdt
-fdjtype(::AutoFiniteDiff{fdt,fdjt}) where {fdt,fdjt} = fdjt
-fdhtype(::AutoFiniteDiff{fdt,fdjt,fdht}) where {fdt,fdjt,fdht} = fdht
+fdjtype(::AutoFiniteDiff{fdt, fdjt}) where {fdt, fdjt} = fdjt
+fdhtype(::AutoFiniteDiff{fdt, fdjt, fdht}) where {fdt, fdjt, fdht} = fdht
 
 # see https://docs.sciml.ai/FiniteDiff/stable/#f-Definitions
 const FUNCTION_INPLACE = Val{true}

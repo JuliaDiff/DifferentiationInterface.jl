@@ -25,21 +25,21 @@ end
             SecondOrder(AutoZeroForward(), AutoZeroReverse()),
             SecondOrder(AutoZeroReverse(), AutoZeroForward()),
         ],
-        default_scenarios(; include_batchified=false, include_constantified=true);
-        correctness=false,
-        type_stability=safetypestab(:full),
-        logging=LOGGING,
+        default_scenarios(; include_batchified = false, include_constantified = true);
+        correctness = false,
+        type_stability = safetypestab(:full),
+        logging = LOGGING,
     )
 
     test_differentiation(
-        AutoSparse.(zero_backends, coloring_algorithm=GreedyColoringAlgorithm()),
-        default_scenarios(; include_constantified=true);
-        correctness=false,
-        type_stability=safetypestab(:full),
-        excluded=[
-            :pushforward, :pullback, :gradient, :derivative, :hvp, :second_derivative
+        AutoSparse.(zero_backends, coloring_algorithm = GreedyColoringAlgorithm()),
+        default_scenarios(; include_constantified = true);
+        correctness = false,
+        type_stability = safetypestab(:full),
+        excluded = [
+            :pushforward, :pullback, :gradient, :derivative, :hvp, :second_derivative,
         ],
-        logging=LOGGING,
+        logging = LOGGING,
     )
 end
 
@@ -47,13 +47,13 @@ end
     test_differentiation(
         [AutoZeroForward(), AutoZeroReverse()],
         zero.(vcat(component_scenarios(), static_scenarios(), gpu_scenarios()));
-        correctness=true,
-        logging=LOGGING,
+        correctness = true,
+        logging = LOGGING,
     )
 end
 
 @testset "Empty arrays" begin
     test_differentiation(
-        [AutoZeroForward(), AutoZeroReverse()], empty_scenarios(); excluded=[:jacobian]
+        [AutoZeroForward(), AutoZeroReverse()], empty_scenarios(); excluded = [:jacobian]
     )
 end;

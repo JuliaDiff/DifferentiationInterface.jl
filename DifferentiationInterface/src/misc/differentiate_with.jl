@@ -69,7 +69,7 @@ julia> Zygote.gradient(alg, [3.0, 5.0])[1]
  70.0
 ```
 """
-struct DifferentiateWith{F,B<:AbstractADType}
+struct DifferentiateWith{F, B <: AbstractADType}
     f::F
     backend::B
 end
@@ -82,9 +82,9 @@ function Base.show(io::IO, dw::DifferentiateWith)
         io,
         DifferentiateWith,
         "(",
-        repr(f; context=io),
+        repr(f; context = io),
         ", ",
-        repr(backend; context=io),
+        repr(backend; context = io),
         ")",
     )
 end

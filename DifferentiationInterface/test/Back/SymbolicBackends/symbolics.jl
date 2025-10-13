@@ -18,20 +18,20 @@ for backend in [AutoSymbolics(), AutoSparse(AutoSymbolics())]
 end
 
 test_differentiation(
-    AutoSymbolics(), default_scenarios(; include_constantified=true); logging=LOGGING
+    AutoSymbolics(), default_scenarios(; include_constantified = true); logging = LOGGING
 );
 
 test_differentiation(
     AutoSymbolics(),
-    default_scenarios(; include_normal=false, include_cachified=true, use_tuples=false);
-    logging=LOGGING,
+    default_scenarios(; include_normal = false, include_cachified = true, use_tuples = false);
+    logging = LOGGING,
 );
 
 test_differentiation(
     AutoSparse(AutoSymbolics()),
-    sparse_scenarios(; band_sizes=0:-1);
-    sparsity=true,
-    logging=LOGGING,
+    sparse_scenarios(; band_sizes = 0:-1);
+    sparsity = true,
+    logging = LOGGING,
 );
 
 @testset "SparseMatrixColorings access" begin

@@ -1,22 +1,22 @@
 ## Preparation
 
 struct SMCMixedModeSparseJacobianPrep{
-    SIG,
-    BSf<:DI.BatchSizeSettings,
-    BSr<:DI.BatchSizeSettings,
-    P<:AbstractMatrix,
-    C<:AbstractColoringResult{:nonsymmetric,:bidirectional},
-    Mf<:AbstractMatrix{<:Number},
-    Mr<:AbstractMatrix{<:Number},
-    Sfp<:NTuple,
-    Srp<:NTuple,
-    Sf<:Vector{<:NTuple},
-    Sr<:Vector{<:NTuple},
-    Rf<:Vector{<:NTuple},
-    Rr<:Vector{<:NTuple},
-    Ef<:DI.PushforwardPrep,
-    Er<:DI.PullbackPrep,
-} <: SMCSparseJacobianPrep{SIG}
+        SIG,
+        BSf <: DI.BatchSizeSettings,
+        BSr <: DI.BatchSizeSettings,
+        P <: AbstractMatrix,
+        C <: AbstractColoringResult{:nonsymmetric, :bidirectional},
+        Mf <: AbstractMatrix{<:Number},
+        Mr <: AbstractMatrix{<:Number},
+        Sfp <: NTuple,
+        Srp <: NTuple,
+        Sf <: Vector{<:NTuple},
+        Sr <: Vector{<:NTuple},
+        Rf <: Vector{<:NTuple},
+        Rr <: Vector{<:NTuple},
+        Ef <: DI.PushforwardPrep,
+        Er <: DI.PullbackPrep,
+    } <: SMCSparseJacobianPrep{SIG}
     _sig::Val{SIG}
     batch_size_settings_forward::BSf
     batch_size_settings_reverse::BSr
@@ -35,45 +35,45 @@ struct SMCMixedModeSparseJacobianPrep{
 end
 
 function DI.prepare_jacobian_nokwarg(
-    strict::Val,
-    f::F,
-    backend::AutoSparse{<:DI.MixedMode},
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        strict::Val,
+        f::F,
+        backend::AutoSparse{<:DI.MixedMode},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     y = f(x, map(DI.unwrap, contexts)...)
     return _prepare_mixed_sparse_jacobian_aux(strict, y, (f,), backend, x, contexts...)
 end
 
 function DI.prepare_jacobian_nokwarg(
-    strict::Val,
-    f!::F,
-    y,
-    backend::AutoSparse{<:DI.MixedMode},
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        strict::Val,
+        f!::F,
+        y,
+        backend::AutoSparse{<:DI.MixedMode},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     return _prepare_mixed_sparse_jacobian_aux(strict, y, (f!, y), backend, x, contexts...)
 end
 
 function _prepare_mixed_sparse_jacobian_aux(
-    strict::Val,
-    y,
-    f_or_f!y::FY,
-    backend::AutoSparse{<:DI.MixedMode},
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {FY,C}
+        strict::Val,
+        y,
+        f_or_f!y::FY,
+        backend::AutoSparse{<:DI.MixedMode},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {FY, C}
     dense_backend = dense_ad(backend)
     sparsity = DI.jacobian_sparsity_with_contexts(
         f_or_f!y..., sparsity_detector(backend), x, contexts...
     )
-    problem = ColoringProblem{:nonsymmetric,:bidirectional}()
+    problem = ColoringProblem{:nonsymmetric, :bidirectional}()
     coloring_result = coloring(
         sparsity,
         problem,
         coloring_algorithm(backend);
-        decompression_eltype=promote_type(eltype(x), eltype(y)),
+        decompression_eltype = promote_type(eltype(x), eltype(y)),
     )
 
     Nf = length(column_groups(coloring_result))
@@ -91,22 +91,22 @@ function _prepare_mixed_sparse_jacobian_aux(
         f_or_f!y,
         backend,
         x,
-        contexts...;
+        contexts...
     )
 end
 
 function _prepare_mixed_sparse_jacobian_aux_aux(
-    strict::Val,
-    batch_size_settings_forward::DI.BatchSizeSettings{Bf},
-    batch_size_settings_reverse::DI.BatchSizeSettings{Br},
-    sparsity::AbstractMatrix,
-    coloring_result::AbstractColoringResult{:nonsymmetric,:bidirectional},
-    y,
-    f_or_f!y::FY,
-    backend::AutoSparse{<:DI.MixedMode},
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {Bf,Br,FY,C}
+        strict::Val,
+        batch_size_settings_forward::DI.BatchSizeSettings{Bf},
+        batch_size_settings_reverse::DI.BatchSizeSettings{Br},
+        sparsity::AbstractMatrix,
+        coloring_result::AbstractColoringResult{:nonsymmetric, :bidirectional},
+        y,
+        f_or_f!y::FY,
+        backend::AutoSparse{<:DI.MixedMode},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {Bf, Br, FY, C}
     _sig = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
     Nf, Af = batch_size_settings_forward.N, batch_size_settings_forward.A
     Nr, Ar = batch_size_settings_reverse.N, batch_size_settings_reverse.A
@@ -124,12 +124,12 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
     compressed_matrix_forward = if isempty(groups_forward)
         similar(vec(y), length(y), 0)
     else
-        stack(_ -> vec(similar(y)), groups_forward; dims=2)
+        stack(_ -> vec(similar(y)), groups_forward; dims = 2)
     end
     compressed_matrix_reverse = if isempty(groups_reverse)
         similar(vec(x), 0, length(x))
     else
-        stack(_ -> vec(similar(x)), groups_reverse; dims=1)
+        stack(_ -> vec(similar(x)), groups_reverse; dims = 1)
     end
 
     batched_seed_forward_prep = ntuple(b -> copy(seed_forward_prep), Val(Bf))
@@ -154,7 +154,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         DI.forward_backend(dense_backend),
         x,
         batched_seed_forward_prep,
-        contexts...;
+        contexts...
     )
     pullback_prep = DI.prepare_pullback_nokwarg(
         strict,
@@ -162,7 +162,7 @@ function _prepare_mixed_sparse_jacobian_aux_aux(
         DI.reverse_backend(dense_backend),
         x,
         batched_seed_reverse_prep,
-        contexts...;
+        contexts...
     )
 
     return SMCMixedModeSparseJacobianPrep(
@@ -187,15 +187,15 @@ end
 ## Common auxiliaries
 
 function _sparse_jacobian_aux!(
-    f_or_f!y::FY,
-    jac,
-    prep::SMCMixedModeSparseJacobianPrep{
-        SIG,<:DI.BatchSizeSettings{Bf},<:DI.BatchSizeSettings{Br}
-    },
-    backend::AutoSparse,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {FY,SIG,Bf,Br,C}
+        f_or_f!y::FY,
+        jac,
+        prep::SMCMixedModeSparseJacobianPrep{
+            SIG, <:DI.BatchSizeSettings{Bf}, <:DI.BatchSizeSettings{Br},
+        },
+        backend::AutoSparse,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {FY, SIG, Bf, Br, C}
     (;
         batch_size_settings_forward,
         batch_size_settings_reverse,

@@ -32,13 +32,13 @@ logo = begin
 
     # Define center points and corners of triangle
     center = Point(0, 4)
-    corners = ngon(center, 16, 3, -0.75π / 2; vertices=true)
+    corners = ngon(center, 16, 3, -0.75π / 2; vertices = true)
 
     # Draw three blended partials
     for (i, c) in enumerate(corners)
         b = blend(c, 0, center, 50, colors[i], black)
         setblend(b)
-        text("∂", c; valign=:middle, halign=:center, angle=0.68π + 2π / 3 * i)
+        text("∂", c; valign = :middle, halign = :center, angle = 0.68π + 2π / 3 * i)
     end
 
     finish()

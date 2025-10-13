@@ -5,9 +5,9 @@ function identity_scenarios(x::Number; dx::Number, dy::Number)
     der = oneunit(x)
 
     return [
-        Scenario{:pushforward,:out}(f, x, (dx,); res1=(dy_from_dx,)),
-        Scenario{:pullback,:out}(f, x, (dy,); res1=(dx_from_dy,)),
-        Scenario{:derivative,:out}(f, x; res1=der),
+        Scenario{:pushforward, :out}(f, x, (dx,); res1 = (dy_from_dx,)),
+        Scenario{:pullback, :out}(f, x, (dy,); res1 = (dx_from_dy,)),
+        Scenario{:derivative, :out}(f, x; res1 = der),
     ]
 end
 
@@ -19,9 +19,9 @@ function sum_scenarios(x::AbstractArray; dx::AbstractArray, dy::Number)
     grad .= oneunit(eltype(x))
 
     return [
-        Scenario{:pushforward,:out}(f, x, (dx,); res1=(dy_from_dx,)),
-        Scenario{:pullback,:in}(f, x, (dy,); res1=(dx_from_dy,)),
-        Scenario{:gradient,:in}(f, x; res1=grad),
+        Scenario{:pushforward, :out}(f, x, (dx,); res1 = (dy_from_dx,)),
+        Scenario{:pullback, :in}(f, x, (dy,); res1 = (dx_from_dy,)),
+        Scenario{:gradient, :in}(f, x; res1 = grad),
     ]
 end
 
@@ -34,9 +34,9 @@ function copyto!_scenarios(x::AbstractArray; dx::AbstractArray, dy::AbstractArra
     jac = Matrix(Diagonal(ones(eltype(x), length(x))))
 
     return [
-        Scenario{:pushforward,:in}(f!, y, x, (dx,); res1=(dy_from_dx,)),
-        Scenario{:pullback,:in}(f!, y, x, (dy,); res1=(dx_from_dy,)),
-        Scenario{:jacobian,:in}(f!, y, x; res1=jac),
+        Scenario{:pushforward, :in}(f!, y, x, (dx,); res1 = (dy_from_dx,)),
+        Scenario{:pullback, :in}(f!, y, x, (dy,); res1 = (dx_from_dy,)),
+        Scenario{:jacobian, :in}(f!, y, x; res1 = jac),
     ]
 end
 
@@ -59,9 +59,9 @@ function allocfree_scenarios()
     dy_6 = float.(-5:2:5)
 
     scens = vcat(
-        identity_scenarios(x_; dx=dx_, dy=dy_), #
-        sum_scenarios(x_6; dx=dx_6, dy=dy_),
-        copyto!_scenarios(x_6; dx=dx_6, dy=dy_6),
+        identity_scenarios(x_; dx = dx_, dy = dy_), #
+        sum_scenarios(x_6; dx = dx_6, dy = dy_),
+        copyto!_scenarios(x_6; dx = dx_6, dy = dy_6),
     )
     return scens
 end

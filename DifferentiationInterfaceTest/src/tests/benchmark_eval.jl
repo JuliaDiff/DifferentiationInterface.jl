@@ -29,27 +29,27 @@ for op in ALL_OPS
     val_and_op! = Symbol(val_prefix, op!)
     prep_op = Symbol("prepare_", op)
 
-    S1out = Scenario{op,:out,:out}
-    S1in = Scenario{op,:in,:out}
-    S2out = Scenario{op,:out,:in}
-    S2in = Scenario{op,:in,:in}
+    S1out = Scenario{op, :out, :out}
+    S1in = Scenario{op, :in, :out}
+    S2out = Scenario{op, :out, :in}
+    S2in = Scenario{op, :in, :in}
 
     @eval function run_benchmark!(
-        data::Vector{DifferentiationBenchmarkDataRow},
-        backend::AbstractADType,
-        scenario::Union{$S1out,$S1in,$S2out,$S2in};
-        logging::Bool,
-        subset::Symbol,
-        count_calls::Bool,
-        benchmark_test::Bool,
-        benchmark_seconds::Real,
-        benchmark_aggregation,
-    )
+            data::Vector{DifferentiationBenchmarkDataRow},
+            backend::AbstractADType,
+            scenario::Union{$S1out, $S1in, $S2out, $S2in};
+            logging::Bool,
+            subset::Symbol,
+            count_calls::Bool,
+            benchmark_test::Bool,
+            benchmark_seconds::Real,
+            benchmark_aggregation,
+        )
         @assert subset in (:full, :prepared)
 
         bench_success = true
         bench_result = try
-            benchmark_aux(backend, scenario; subset, s=benchmark_seconds)
+            benchmark_aux(backend, scenario; subset, s = benchmark_seconds)
         catch exception
             bench_success = false
             logging && @warn "Error during benchmarking" backend scenario exception
@@ -60,7 +60,7 @@ for op in ALL_OPS
         if count_calls
             count_success = true
             calls_result = try
-                calls_aux(backend, scenario; subset, s=nothing)
+                calls_aux(backend, scenario; subset, s = nothing)
             catch exception
                 count_success = false
                 logging && @warn "Error during call counting" backend scenario exception
@@ -72,7 +72,7 @@ for op in ALL_OPS
         end
 
         prep_string = $(string(prep_op))
-        if scenario isa Union{$S1out,$S2out}
+        if scenario isa Union{$S1out, $S2out}
             valop_string = $(string(val_and_op))
             op_string = $(string(op))
         else
@@ -84,52 +84,52 @@ for op in ALL_OPS
             data;
             backend,
             scenario,
-            operator=valop_string,
-            prepared=true,
-            bench=bench_result.prepared_valop,
-            calls=calls_result.prepared_valop,
-            aggregation=benchmark_aggregation,
+            operator = valop_string,
+            prepared = true,
+            bench = bench_result.prepared_valop,
+            calls = calls_result.prepared_valop,
+            aggregation = benchmark_aggregation,
         )
         record!(
             data;
             backend,
             scenario,
-            operator=op_string,
-            prepared=true,
-            bench=bench_result.prepared_op,
-            calls=calls_result.prepared_op,
-            aggregation=benchmark_aggregation,
+            operator = op_string,
+            prepared = true,
+            bench = bench_result.prepared_op,
+            calls = calls_result.prepared_op,
+            aggregation = benchmark_aggregation,
         )
         if subset == :full
             record!(
                 data;
                 backend,
                 scenario,
-                operator=prep_string,
-                prepared=nothing,
-                bench=bench_result.preparation,
-                calls=calls_result.preparation,
-                aggregation=benchmark_aggregation,
+                operator = prep_string,
+                prepared = nothing,
+                bench = bench_result.preparation,
+                calls = calls_result.preparation,
+                aggregation = benchmark_aggregation,
             )
             record!(
                 data;
                 backend,
                 scenario,
-                operator=valop_string,
-                prepared=false,
-                bench=bench_result.unprepared_valop,
-                calls=calls_result.unprepared_valop,
-                aggregation=benchmark_aggregation,
+                operator = valop_string,
+                prepared = false,
+                bench = bench_result.unprepared_valop,
+                calls = calls_result.unprepared_valop,
+                aggregation = benchmark_aggregation,
             )
             record!(
                 data;
                 backend,
                 scenario,
-                operator=op_string,
-                prepared=false,
-                bench=bench_result.unprepared_op,
-                calls=calls_result.unprepared_op,
-                aggregation=benchmark_aggregation,
+                operator = op_string,
+                prepared = false,
+                bench = bench_result.unprepared_op,
+                calls = calls_result.unprepared_op,
+                aggregation = benchmark_aggregation,
             )
         end
         return nothing

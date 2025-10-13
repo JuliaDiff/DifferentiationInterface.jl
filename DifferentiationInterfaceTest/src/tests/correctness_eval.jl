@@ -1,4 +1,4 @@
-has_size(::Union{Number,AbstractArray}) = true
+has_size(::Union{Number, AbstractArray}) = true
 has_size(_x) = false
 
 function should_reprepare(scen)
@@ -40,28 +40,28 @@ for op in ALL_OPS
         SecondDerivativePrep
     end
 
-    S1out = Scenario{op,:out,:out}
-    S1in = Scenario{op,:in,:out}
-    S2out = Scenario{op,:out,:in}
-    S2in = Scenario{op,:in,:in}
+    S1out = Scenario{op, :out, :out}
+    S1in = Scenario{op, :in, :out}
+    S2out = Scenario{op, :out, :in}
+    S2in = Scenario{op, :in, :in}
 
     if op in [:derivative, :gradient, :jacobian]
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1out;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1out;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep0 = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
                 prep_nostrict0 = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
+                    f, ba, prep_args.x, prep_args.contexts...; strict = Val(false)
                 )
                 if reprepare && should_reprepare(scen)
                     prep = $prep_op!(f, prep0, ba, x, contexts...)
@@ -103,21 +103,21 @@ for op in ALL_OPS
         end
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1in;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1in;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep0 = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
                 prep_nostrict0 = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
+                    f, ba, prep_args.x, prep_args.contexts...; strict = Val(false)
                 )
                 if reprepare && should_reprepare(scen)
                     prep = $prep_op!(f, prep0, ba, x, contexts...)
@@ -173,15 +173,15 @@ for op in ALL_OPS
         op == :gradient && continue
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S2out;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S2out;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -192,12 +192,12 @@ for op in ALL_OPS
                     ba,
                     prep_args.x,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 if reprepare &&
-                    has_size(x) &&
-                    has_size(y) &&
-                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                        has_size(x) &&
+                        has_size(y) &&
+                        (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep0, ba, x, contexts...)
                     prep_nostrict = $prep_op!(f, y, prep_nostrict0, ba, x, contexts...)
                 else
@@ -243,15 +243,15 @@ for op in ALL_OPS
         end
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S2in;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S2in;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -262,12 +262,12 @@ for op in ALL_OPS
                     ba,
                     prep_args.x,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 if reprepare &&
-                    has_size(x) &&
-                    has_size(y) &&
-                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                        has_size(x) &&
+                        has_size(y) &&
+                        (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep0, ba, x, contexts...)
                     prep_nostrict = $prep_op!(f, y, prep_nostrict0, ba, x, contexts...)
                 else
@@ -322,21 +322,21 @@ for op in ALL_OPS
 
     elseif op in [:second_derivative, :hessian]
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1out;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1out;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep0 = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
                 prep_nostrict0 = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
+                    f, ba, prep_args.x, prep_args.contexts...; strict = Val(false)
                 )
                 if reprepare && should_reprepare(scen)
                     prep = $prep_op!(f, prep0, ba, x, contexts...)
@@ -380,21 +380,21 @@ for op in ALL_OPS
         end
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1in;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1in;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
                 prep0 = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
                 prep_nostrict0 = $prep_op(
-                    f, ba, prep_args.x, prep_args.contexts...; strict=Val(false)
+                    f, ba, prep_args.x, prep_args.contexts...; strict = Val(false)
                 )
                 if reprepare && should_reprepare(scen)
                     prep = $prep_op!(f, prep0, ba, x, contexts...)
@@ -453,15 +453,15 @@ for op in ALL_OPS
 
     elseif op in [:pushforward, :pullback]
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1out;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1out;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -472,7 +472,7 @@ for op in ALL_OPS
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && should_reprepare(scen)
@@ -511,15 +511,15 @@ for op in ALL_OPS
         end
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1in;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1in;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -530,7 +530,7 @@ for op in ALL_OPS
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && should_reprepare(scen)
@@ -581,15 +581,15 @@ for op in ALL_OPS
         end
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S2out;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S2out;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -603,13 +603,13 @@ for op in ALL_OPS
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
                 if reprepare &&
-                    has_size(x) &&
-                    has_size(y) &&
-                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                        has_size(x) &&
+                        has_size(y) &&
+                        (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep0, ba, x, t, contexts...)
                     prep_nostrict = $prep_op!(f, y, prep_nostrict0, ba, x, t, contexts...)
                 else
@@ -655,15 +655,15 @@ for op in ALL_OPS
         end
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S2in;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S2in;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -677,13 +677,13 @@ for op in ALL_OPS
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 prep_same = $prep_op_same(f, y, ba, x, map(zero, t), contexts...)
                 if reprepare &&
-                    has_size(x) &&
-                    has_size(y) &&
-                    (size(x) != size(prep_args.x) || size(y) != prep_args.y)
+                        has_size(x) &&
+                        has_size(y) &&
+                        (size(x) != size(prep_args.x) || size(y) != prep_args.y)
                     prep = $prep_op!(f, y, prep0, ba, x, t, contexts...)
                     prep_nostrict = $prep_op!(f, y, prep_nostrict0, ba, x, t, contexts...)
                 else
@@ -734,15 +734,15 @@ for op in ALL_OPS
 
     elseif op in [:hvp]
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1out;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1out;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -753,7 +753,7 @@ for op in ALL_OPS
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && should_reprepare(scen)
@@ -792,15 +792,15 @@ for op in ALL_OPS
         end
 
         @eval function test_correctness(
-            ba::AbstractADType,
-            scen::$S1in;
-            isapprox::Function,
-            atol::Real,
-            rtol::Real,
-            scenario_intact::Bool,
-            sparsity::Bool,
-            reprepare::Bool,
-        )
+                ba::AbstractADType,
+                scen::$S1in;
+                isapprox::Function,
+                atol::Real,
+                rtol::Real,
+                scenario_intact::Bool,
+                sparsity::Bool,
+                reprepare::Bool,
+            )
             ≈(x, y) = isapprox(x, y; atol, rtol)
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             preptup_cands_val, preptup_cands_noval = map(1:2) do _
@@ -811,7 +811,7 @@ for op in ALL_OPS
                     prep_args.x,
                     prep_args.t,
                     prep_args.contexts...;
-                    strict=Val(false),
+                    strict = Val(false),
                 )
                 prep_same = $prep_op_same(f, ba, x, map(zero, t), contexts...)
                 if reprepare && should_reprepare(scen)

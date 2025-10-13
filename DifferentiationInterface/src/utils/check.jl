@@ -13,7 +13,7 @@ check_available(backend::AutoSparse) = check_available(dense_ad(backend))
 
 function check_available(backend::MixedMode)
     return check_available(forward_backend(backend)) &&
-           check_available(reverse_backend(backend))
+        check_available(reverse_backend(backend))
 end
 
 check_available(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())

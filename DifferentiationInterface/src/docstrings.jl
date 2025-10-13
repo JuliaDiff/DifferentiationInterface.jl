@@ -7,14 +7,14 @@ function docstring_preptype(preptype::AbstractString, operator::AbstractString)
 end
 
 function samepoint_warning(samepoint::Bool)
-    if samepoint
+    return if samepoint
         ", _if they are applied at the same point `x` and with the same `contexts`_"
     else
         ""
     end
 end
 
-function docstring_prepare(operator; samepoint=false, inplace=false)
+function docstring_prepare(operator; samepoint = false, inplace = false)
     return """
     Create a `prep` object that can be given to [`$(operator)`](@ref) and its variants to speed them up$(samepoint_warning(samepoint)).
 
@@ -49,7 +49,7 @@ function docstring_prepare!(operator)
     """
 end
 
-function docstring_preparation_hint(operator::AbstractString; same_point=false)
+function docstring_preparation_hint(operator::AbstractString; same_point = false)
     if same_point
         return "To improve performance via operator preparation, refer to [`prepare_$(operator)`](@ref) and [`prepare_$(operator)_same_point`](@ref)."
     else

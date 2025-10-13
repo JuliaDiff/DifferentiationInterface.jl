@@ -7,10 +7,10 @@ function complex_holomorphic_gradient_scenarios()
     x = [1.0 + im]
     grad = 2 * conj(x)
     scens = Scenario[
-        Scenario{:gradient,:out}(square_only, x; res1=grad),
-        Scenario{:gradient,:in}(square_only, x; res1=grad),
-        Scenario{:pullback,:out}(square_only, x, (dy,); res1=(grad,)),
-        Scenario{:pullback,:in}(square_only, x, (dy,); res1=(grad,)),
+        Scenario{:gradient, :out}(square_only, x; res1 = grad),
+        Scenario{:gradient, :in}(square_only, x; res1 = grad),
+        Scenario{:pullback, :out}(square_only, x, (dy,); res1 = (grad,)),
+        Scenario{:pullback, :in}(square_only, x, (dy,); res1 = (grad,)),
     ]
     return scens
 end
@@ -20,10 +20,10 @@ function complex_gradient_scenarios()
     x = [1.0 + im]
     grad = 2 * x
     scens = Scenario[
-        Scenario{:gradient,:out}(abs2_only, x; res1=grad),
-        Scenario{:gradient,:in}(abs2_only, x; res1=grad),
-        Scenario{:pullback,:out}(abs2_only, x, (dy,); res1=(grad,)),
-        Scenario{:pullback,:in}(abs2_only, x, (dy,); res1=(grad,)),
+        Scenario{:gradient, :out}(abs2_only, x; res1 = grad),
+        Scenario{:gradient, :in}(abs2_only, x; res1 = grad),
+        Scenario{:pullback, :out}(abs2_only, x, (dy,); res1 = (grad,)),
+        Scenario{:pullback, :in}(abs2_only, x, (dy,); res1 = (grad,)),
     ]
     return scens
 end
@@ -47,13 +47,13 @@ function complex_scenarios()
 
     scens = vcat(
         # one argument
-        num_to_num_scenarios(x_; dx=dx_, dy=dy_),
-        num_to_vec_scenarios_onearg(x_; dx=dx_, dy=dy_2),
-        arr_to_num_scenarios_onearg(x_6; dx=dx_6, dy=dy_),
-        vec_to_vec_scenarios_onearg(x_6; dx=dx_6, dy=dy_12),
+        num_to_num_scenarios(x_; dx = dx_, dy = dy_),
+        num_to_vec_scenarios_onearg(x_; dx = dx_, dy = dy_2),
+        arr_to_num_scenarios_onearg(x_6; dx = dx_6, dy = dy_),
+        vec_to_vec_scenarios_onearg(x_6; dx = dx_6, dy = dy_12),
         # two arguments
-        num_to_vec_scenarios_twoarg(x_; dx=dx_, dy=dy_6),
-        vec_to_vec_scenarios_twoarg(x_6; dx=dx_6, dy=dy_12),
+        num_to_vec_scenarios_twoarg(x_; dx = dx_, dy = dy_6),
+        vec_to_vec_scenarios_twoarg(x_6; dx = dx_6, dy = dy_12),
         # complex gradients
         complex_gradient_scenarios(),
         complex_holomorphic_gradient_scenarios(),

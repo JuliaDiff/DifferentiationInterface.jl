@@ -44,7 +44,7 @@ function square_loss(ps, model, x, st)
     return sum(abs2, first(model(x, ps, st)))
 end
 
-function DIT.lux_scenarios(rng::AbstractRNG=default_rng())
+function DIT.lux_scenarios(rng::AbstractRNG = default_rng())
     models_and_xs = [
         #! format: off
         (
@@ -197,17 +197,17 @@ function DIT.lux_scenarios(rng::AbstractRNG=default_rng())
         g = DI.gradient(
             ps -> square_loss(ps, model, x, st), DI.AutoForwardDiff(), ComponentArray(ps)
         )
-        scen = DIT.Scenario{:gradient,:out}(
+        scen = DIT.Scenario{:gradient, :out}(
             square_loss,
             ComponentArray(ps),
             DI.Constant(model),
             DI.Constant(x),
             DI.Constant(st);
-            prep_args=(
-                x=ComponentArray(ps),
-                contexts=(DI.Constant(model), DI.Constant(x), DI.Constant(st)),
+            prep_args = (
+                x = ComponentArray(ps),
+                contexts = (DI.Constant(model), DI.Constant(x), DI.Constant(st)),
             ),
-            res1=g,
+            res1 = g,
         )
         push!(scens, scen)
     end

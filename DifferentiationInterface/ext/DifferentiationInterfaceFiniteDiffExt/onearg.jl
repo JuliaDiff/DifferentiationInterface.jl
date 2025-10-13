@@ -1,6 +1,6 @@
 ## Pushforward
 
-struct FiniteDiffOneArgPushforwardPrep{SIG,C,R,A,D} <: DI.PushforwardPrep{SIG}
+struct FiniteDiffOneArgPushforwardPrep{SIG, C, R, A, D} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::C
     relstep::R
@@ -9,8 +9,8 @@ struct FiniteDiffOneArgPushforwardPrep{SIG,C,R,A,D} <: DI.PushforwardPrep{SIG}
 end
 
 function DI.prepare_pushforward_nokwarg(
-    strict::Val, f, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context,C};
-) where {C}
+        strict::Val, f, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -34,13 +34,13 @@ function DI.prepare_pushforward_nokwarg(
 end
 
 function DI.pushforward(
-    f,
-    prep::FiniteDiffOneArgPushforwardPrep{SIG,Nothing},
-    backend::AutoFiniteDiff,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgPushforwardPrep{SIG, Nothing},
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
@@ -53,13 +53,13 @@ function DI.pushforward(
 end
 
 function DI.value_and_pushforward(
-    f,
-    prep::FiniteDiffOneArgPushforwardPrep{SIG,Nothing},
-    backend::AutoFiniteDiff,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgPushforwardPrep{SIG, Nothing},
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     step(t::Number, dx) = f(x .+ t .* dx, map(DI.unwrap, contexts)...)
@@ -80,13 +80,13 @@ function DI.value_and_pushforward(
 end
 
 function DI.pushforward(
-    f,
-    prep::FiniteDiffOneArgPushforwardPrep{SIG,<:JVPCache},
-    backend::AutoFiniteDiff,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgPushforwardPrep{SIG, <:JVPCache},
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -97,13 +97,13 @@ function DI.pushforward(
 end
 
 function DI.value_and_pushforward(
-    f,
-    prep::FiniteDiffOneArgPushforwardPrep{SIG,<:JVPCache},
-    backend::AutoFiniteDiff,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgPushforwardPrep{SIG, <:JVPCache},
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -116,7 +116,7 @@ end
 
 ## Derivative
 
-struct FiniteDiffOneArgDerivativePrep{SIG,C,R,A,D} <: DI.DerivativePrep{SIG}
+struct FiniteDiffOneArgDerivativePrep{SIG, C, R, A, D} <: DI.DerivativePrep{SIG}
     _sig::Val{SIG}
     cache::C
     relstep::R
@@ -125,8 +125,8 @@ struct FiniteDiffOneArgDerivativePrep{SIG,C,R,A,D} <: DI.DerivativePrep{SIG}
 end
 
 function DI.prepare_derivative_nokwarg(
-    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -153,12 +153,12 @@ end
 ### Scalar to scalar
 
 function DI.derivative(
-    f,
-    prep::FiniteDiffOneArgDerivativePrep{SIG,Nothing},
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgDerivativePrep{SIG, Nothing},
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -166,12 +166,12 @@ function DI.derivative(
 end
 
 function DI.value_and_derivative(
-    f,
-    prep::FiniteDiffOneArgDerivativePrep{SIG,Nothing},
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgDerivativePrep{SIG, Nothing},
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -187,12 +187,12 @@ end
 ### Scalar to array
 
 function DI.derivative(
-    f,
-    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgDerivativePrep{SIG, <:GradientCache},
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -200,13 +200,13 @@ function DI.derivative(
 end
 
 function DI.derivative!(
-    f,
-    der,
-    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        der,
+        prep::FiniteDiffOneArgDerivativePrep{SIG, <:GradientCache},
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -214,12 +214,12 @@ function DI.derivative!(
 end
 
 function DI.value_and_derivative(
-    f,
-    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        prep::FiniteDiffOneArgDerivativePrep{SIG, <:GradientCache},
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     (; relstep, absstep, dir) = prep
@@ -228,24 +228,24 @@ function DI.value_and_derivative(
 end
 
 function DI.value_and_derivative!(
-    f,
-    der,
-    prep::FiniteDiffOneArgDerivativePrep{SIG,<:GradientCache},
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {SIG,C}
+        f,
+        der,
+        prep::FiniteDiffOneArgDerivativePrep{SIG, <:GradientCache},
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return (
-        fc(x), finite_difference_gradient!(der, fc, x, prep.cache; relstep, absstep, dir)
+        fc(x), finite_difference_gradient!(der, fc, x, prep.cache; relstep, absstep, dir),
     )
 end
 
 ## Gradient
 
-struct FiniteDiffGradientPrep{SIG,C,R,A,D} <: DI.GradientPrep{SIG}
+struct FiniteDiffGradientPrep{SIG, C, R, A, D} <: DI.GradientPrep{SIG}
     _sig::Val{SIG}
     cache::C
     relstep::R
@@ -254,8 +254,8 @@ struct FiniteDiffGradientPrep{SIG,C,R,A,D} <: DI.GradientPrep{SIG}
 end
 
 function DI.prepare_gradient_nokwarg(
-    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -276,12 +276,12 @@ function DI.prepare_gradient_nokwarg(
 end
 
 function DI.gradient(
-    f,
-    prep::FiniteDiffGradientPrep,
-    backend::AutoFiniteDiff,
-    x::AbstractArray,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::FiniteDiffGradientPrep,
+        backend::AutoFiniteDiff,
+        x::AbstractArray,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -289,12 +289,12 @@ function DI.gradient(
 end
 
 function DI.value_and_gradient(
-    f,
-    prep::FiniteDiffGradientPrep,
-    backend::AutoFiniteDiff,
-    x::AbstractArray,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::FiniteDiffGradientPrep,
+        backend::AutoFiniteDiff,
+        x::AbstractArray,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -302,13 +302,13 @@ function DI.value_and_gradient(
 end
 
 function DI.gradient!(
-    f,
-    grad,
-    prep::FiniteDiffGradientPrep,
-    backend::AutoFiniteDiff,
-    x::AbstractArray,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        prep::FiniteDiffGradientPrep,
+        backend::AutoFiniteDiff,
+        x::AbstractArray,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -316,24 +316,24 @@ function DI.gradient!(
 end
 
 function DI.value_and_gradient!(
-    f,
-    grad,
-    prep::FiniteDiffGradientPrep,
-    backend::AutoFiniteDiff,
-    x::AbstractArray,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        prep::FiniteDiffGradientPrep,
+        backend::AutoFiniteDiff,
+        x::AbstractArray,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return (
-        fc(x), finite_difference_gradient!(grad, fc, x, prep.cache; relstep, absstep, dir)
+        fc(x), finite_difference_gradient!(grad, fc, x, prep.cache; relstep, absstep, dir),
     )
 end
 
 ## Jacobian
 
-struct FiniteDiffOneArgJacobianPrep{SIG,C,R,A,D} <: DI.JacobianPrep{SIG}
+struct FiniteDiffOneArgJacobianPrep{SIG, C, R, A, D} <: DI.JacobianPrep{SIG}
     _sig::Val{SIG}
     cache::C
     relstep::R
@@ -342,8 +342,8 @@ struct FiniteDiffOneArgJacobianPrep{SIG,C,R,A,D} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian_nokwarg(
-    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -366,12 +366,12 @@ function DI.prepare_jacobian_nokwarg(
 end
 
 function DI.jacobian(
-    f,
-    prep::FiniteDiffOneArgJacobianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::FiniteDiffOneArgJacobianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -379,12 +379,12 @@ function DI.jacobian(
 end
 
 function DI.value_and_jacobian(
-    f,
-    prep::FiniteDiffOneArgJacobianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::FiniteDiffOneArgJacobianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     (; relstep, absstep, dir) = prep
@@ -393,32 +393,32 @@ function DI.value_and_jacobian(
 end
 
 function DI.jacobian!(
-    f,
-    jac,
-    prep::FiniteDiffOneArgJacobianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        jac,
+        prep::FiniteDiffOneArgJacobianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return copyto!(
         jac,
         finite_difference_jacobian(
-            fc, x, prep.cache; jac_prototype=jac, relstep, absstep, dir
+            fc, x, prep.cache; jac_prototype = jac, relstep, absstep, dir
         ),
     )
 end
 
 function DI.value_and_jacobian!(
-    f,
-    jac,
-    prep::FiniteDiffOneArgJacobianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        jac,
+        prep::FiniteDiffOneArgJacobianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
@@ -428,7 +428,7 @@ function DI.value_and_jacobian!(
         copyto!(
             jac,
             finite_difference_jacobian(
-                fc, x, prep.cache, y; jac_prototype=jac, relstep, absstep, dir
+                fc, x, prep.cache, y; jac_prototype = jac, relstep, absstep, dir
             ),
         ),
     )
@@ -436,7 +436,7 @@ end
 
 ## Hessian
 
-struct FiniteDiffHessianPrep{SIG,C1,C2,RG,AG,RH,AH} <: DI.HessianPrep{SIG}
+struct FiniteDiffHessianPrep{SIG, C1, C2, RG, AG, RH, AH} <: DI.HessianPrep{SIG}
     _sig::Val{SIG}
     gradient_cache::C1
     hessian_cache::C2
@@ -447,8 +447,8 @@ struct FiniteDiffHessianPrep{SIG,C1,C2,RG,AG,RH,AH} <: DI.HessianPrep{SIG}
 end
 
 function DI.prepare_hessian_nokwarg(
-    strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoFiniteDiff, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -481,72 +481,72 @@ function DI.prepare_hessian_nokwarg(
 end
 
 function DI.hessian(
-    f,
-    prep::FiniteDiffHessianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::FiniteDiffHessianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_h, absstep_h) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_hessian(
-        fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+        fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
 end
 
 function DI.hessian!(
-    f,
-    hess,
-    prep::FiniteDiffHessianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        hess,
+        prep::FiniteDiffHessianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_h, absstep_h) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return finite_difference_hessian!(
-        hess, fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+        hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
 end
 
 function DI.value_gradient_and_hessian(
-    f,
-    prep::FiniteDiffHessianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::FiniteDiffHessianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_g, absstep_g, relstep_h, absstep_h) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     grad = finite_difference_gradient(
-        fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g
+        fc, x, prep.gradient_cache; relstep = relstep_g, absstep = absstep_g
     )
     hess = finite_difference_hessian(
-        fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+        fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
     return fc(x), grad, hess
 end
 
 function DI.value_gradient_and_hessian!(
-    f,
-    grad,
-    hess,
-    prep::FiniteDiffHessianPrep,
-    backend::AutoFiniteDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        hess,
+        prep::FiniteDiffHessianPrep,
+        backend::AutoFiniteDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep_g, absstep_g, relstep_h, absstep_h) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     finite_difference_gradient!(
-        grad, fc, x, prep.gradient_cache; relstep=relstep_g, absstep=absstep_g
+        grad, fc, x, prep.gradient_cache; relstep = relstep_g, absstep = absstep_g
     )
     finite_difference_hessian!(
-        hess, fc, x, prep.hessian_cache; relstep=relstep_h, absstep=absstep_h
+        hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
     return fc(x), grad, hess
 end

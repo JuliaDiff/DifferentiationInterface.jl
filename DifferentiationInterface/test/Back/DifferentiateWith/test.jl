@@ -43,27 +43,27 @@ function differentiatewith_scenarios()
 end
 
 test_differentiation(
-    [AutoForwardDiff(), AutoZygote(), AutoMooncake(; config=nothing)],
+    [AutoForwardDiff(), AutoZygote(), AutoMooncake(; config = nothing)],
     differentiatewith_scenarios();
-    excluded=SECOND_ORDER,
-    logging=LOGGING,
-    testset_name="DI tests",
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+    testset_name = "DI tests",
 )
 
 @testset "ChainRules tests" begin
     @testset for scen in filter(differentiatewith_scenarios()) do scen
-        DIT.operator(scen) == :pullback
-    end
-        ChainRulesTestUtils.test_rrule(scen.f, scen.x; rtol=1e-4)
+            DIT.operator(scen) == :pullback
+        end
+        ChainRulesTestUtils.test_rrule(scen.f, scen.x; rtol = 1.0e-4)
     end
 end;
 
 @testset "Mooncake tests" begin
     @testset for scen in filter(differentiatewith_scenarios()) do scen
-        DIT.operator(scen) == :pullback
-    end
+            DIT.operator(scen) == :pullback
+        end
         Mooncake.TestUtils.test_rule(
-            StableRNG(0), scen.f, scen.x; is_primitive=true, mode=Mooncake.ReverseMode
+            StableRNG(0), scen.f, scen.x; is_primitive = true, mode = Mooncake.ReverseMode
         )
     end
 end;
@@ -83,25 +83,25 @@ end;
 
     @test_throws MooncakeDifferentiateWithError pullback(
         DifferentiateWith(f_num2tup, AutoFiniteDiff()),
-        AutoMooncake(; config=nothing),
+        AutoMooncake(; config = nothing),
         1.0,
         ((2.0,),),
     )
     @test_throws MooncakeDifferentiateWithError pullback(
         DifferentiateWith(f_vec2tup, AutoFiniteDiff()),
-        AutoMooncake(; config=nothing),
+        AutoMooncake(; config = nothing),
         [1.0],
         ((2.0,),),
     )
     @test_throws MethodError pullback(
         DifferentiateWith(f_tup2num, AutoFiniteDiff()),
-        AutoMooncake(; config=nothing),
+        AutoMooncake(; config = nothing),
         (1.0,),
         (2.0,),
     )
     @test_throws MethodError pullback(
         DifferentiateWith(f_tup2vec, AutoFiniteDiff()),
-        AutoMooncake(; config=nothing),
+        AutoMooncake(; config = nothing),
         (1.0,),
         ([2.0],),
     )

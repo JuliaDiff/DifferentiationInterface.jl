@@ -5,14 +5,14 @@
 Wrapper around [`ADTypes.jacobian_sparsity`](@extref ADTypes.jacobian_sparsity) enabling the allocation of caches with proper element types.
 """
 function jacobian_sparsity_with_contexts(
-    f::F, detector::AbstractSparsityDetector, x, contexts::Vararg{Context,C}
-) where {F,C}
+        f::F, detector::AbstractSparsityDetector, x, contexts::Vararg{Context, C}
+    ) where {F, C}
     return jacobian_sparsity(fix_tail(f, map(unwrap, contexts)...), x, detector)
 end
 
 function jacobian_sparsity_with_contexts(
-    f!::F, y, detector::AbstractSparsityDetector, x, contexts::Vararg{Context,C}
-) where {F,C}
+        f!::F, y, detector::AbstractSparsityDetector, x, contexts::Vararg{Context, C}
+    ) where {F, C}
     return jacobian_sparsity(fix_tail(f!, map(unwrap, contexts)...), y, x, detector)
 end
 
@@ -22,7 +22,7 @@ end
 Wrapper around [`ADTypes.hessian_sparsity`](@extref ADTypes.hessian_sparsity) enabling the allocation of caches with proper element types.
 """
 function hessian_sparsity_with_contexts(
-    f::F, detector::AbstractSparsityDetector, x, contexts::Vararg{Context,C}
-) where {F,C}
+        f::F, detector::AbstractSparsityDetector, x, contexts::Vararg{Context, C}
+    ) where {F, C}
     return hessian_sparsity(fix_tail(f, map(unwrap, contexts)...), x, detector)
 end

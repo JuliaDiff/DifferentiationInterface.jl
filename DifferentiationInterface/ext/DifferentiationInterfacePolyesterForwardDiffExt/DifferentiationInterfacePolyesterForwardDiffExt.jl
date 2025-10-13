@@ -10,8 +10,8 @@ using DiffResults: DiffResults
 const FDExt = Base.get_extension(DI, :DifferentiationInterfaceForwardDiffExt)
 @assert !isnothing(FDExt)
 
-function single_threaded(backend::AutoPolyesterForwardDiff{chunksize,T}) where {chunksize,T}
-    return AutoForwardDiff(; chunksize, tag=backend.tag)
+function single_threaded(backend::AutoPolyesterForwardDiff{chunksize, T}) where {chunksize, T}
+    return AutoForwardDiff(; chunksize, tag = backend.tag)
 end
 
 DI.check_available(::AutoPolyesterForwardDiff) = true

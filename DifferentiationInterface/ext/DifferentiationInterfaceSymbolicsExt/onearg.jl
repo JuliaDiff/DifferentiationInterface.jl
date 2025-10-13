@@ -1,14 +1,14 @@
 ## Pushforward
 
-struct SymbolicsOneArgPushforwardPrep{SIG,E1,E1!} <: DI.PushforwardPrep{SIG}
+struct SymbolicsOneArgPushforwardPrep{SIG, E1, E1!} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     pf_exe::E1
     pf_exe!::E1!
 end
 
 function DI.prepare_pushforward_nokwarg(
-    strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C};
-) where {C}
+        strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     dx = first(tx)
     x_var = variablize(x, :x)
@@ -20,7 +20,7 @@ function DI.prepare_pushforward_nokwarg(
 
     erase_cache_vars!(context_vars, contexts)
     res = build_function(
-        pf_var, x_var, dx_var, context_vars...; expression=Val(false), cse=true
+        pf_var, x_var, dx_var, context_vars...; expression = Val(false), cse = true
     )
     (pf_exe, pf_exe!) = if res isa Tuple
         res
@@ -31,13 +31,13 @@ function DI.prepare_pushforward_nokwarg(
 end
 
 function DI.pushforward(
-    f,
-    prep::SymbolicsOneArgPushforwardPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgPushforwardPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ty = map(tx) do dx
         dy = prep.pf_exe(x, dx, map(DI.unwrap, contexts)...)
@@ -46,14 +46,14 @@ function DI.pushforward(
 end
 
 function DI.pushforward!(
-    f,
-    ty::NTuple,
-    prep::SymbolicsOneArgPushforwardPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        ty::NTuple,
+        prep::SymbolicsOneArgPushforwardPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
@@ -63,50 +63,50 @@ function DI.pushforward!(
 end
 
 function DI.value_and_pushforward(
-    f,
-    prep::SymbolicsOneArgPushforwardPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgPushforwardPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
-    DI.pushforward(f, prep, backend, x, tx, contexts...)
+        DI.pushforward(f, prep, backend, x, tx, contexts...)
 end
 
 function DI.value_and_pushforward!(
-    f,
-    ty::NTuple,
-    prep::SymbolicsOneArgPushforwardPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        ty::NTuple,
+        prep::SymbolicsOneArgPushforwardPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
-    DI.pushforward!(f, ty, prep, backend, x, tx, contexts...)
+        DI.pushforward!(f, ty, prep, backend, x, tx, contexts...)
 end
 
 ## Derivative
 
-struct SymbolicsOneArgDerivativePrep{SIG,E1,E1!} <: DI.DerivativePrep{SIG}
+struct SymbolicsOneArgDerivativePrep{SIG, E1, E1!} <: DI.DerivativePrep{SIG}
     _sig::Val{SIG}
     der_exe::E1
     der_exe!::E1!
 end
 
 function DI.prepare_derivative_nokwarg(
-    strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
     der_var = derivative(f(x_var, context_vars...), x_var)
 
     erase_cache_vars!(context_vars, contexts)
-    res = build_function(der_var, x_var, context_vars...; expression=Val(false), cse=true)
+    res = build_function(der_var, x_var, context_vars...; expression = Val(false), cse = true)
     (der_exe, der_exe!) = if res isa Tuple
         res
     elseif res isa RuntimeGeneratedFunction
@@ -116,65 +116,65 @@ function DI.prepare_derivative_nokwarg(
 end
 
 function DI.derivative(
-    f,
-    prep::SymbolicsOneArgDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return prep.der_exe(x, map(DI.unwrap, contexts)...)
 end
 
 function DI.derivative!(
-    f,
-    der,
-    prep::SymbolicsOneArgDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        der,
+        prep::SymbolicsOneArgDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.der_exe!(der, x, map(DI.unwrap, contexts)...)
     return der
 end
 
 function DI.value_and_derivative(
-    f,
-    prep::SymbolicsOneArgDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
-    DI.derivative(f, prep, backend, x, contexts...)
+        DI.derivative(f, prep, backend, x, contexts...)
 end
 
 function DI.value_and_derivative!(
-    f,
-    der,
-    prep::SymbolicsOneArgDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        der,
+        prep::SymbolicsOneArgDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
-    DI.derivative!(f, der, prep, backend, x, contexts...)
+        DI.derivative!(f, der, prep, backend, x, contexts...)
 end
 
 ## Gradient
 
-struct SymbolicsOneArgGradientPrep{SIG,E1,E1!} <: DI.GradientPrep{SIG}
+struct SymbolicsOneArgGradientPrep{SIG, E1, E1!} <: DI.GradientPrep{SIG}
     _sig::Val{SIG}
     grad_exe::E1
     grad_exe!::E1!
 end
 
 function DI.prepare_gradient_nokwarg(
-    strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C};
-) where {C}
+        strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
@@ -183,63 +183,63 @@ function DI.prepare_gradient_nokwarg(
 
     erase_cache_vars!(context_vars, contexts)
     res = build_function(
-        grad_var, vec(x_var), context_vars...; expression=Val(false), cse=true
+        grad_var, vec(x_var), context_vars...; expression = Val(false), cse = true
     )
     (grad_exe, grad_exe!) = res
     return SymbolicsOneArgGradientPrep(_sig, grad_exe, grad_exe!)
 end
 
 function DI.gradient(
-    f,
-    prep::SymbolicsOneArgGradientPrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgGradientPrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return reshape(prep.grad_exe(vec(x), map(DI.unwrap, contexts)...), size(x))
 end
 
 function DI.gradient!(
-    f,
-    grad,
-    prep::SymbolicsOneArgGradientPrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        prep::SymbolicsOneArgGradientPrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.grad_exe!(vec(grad), vec(x), map(DI.unwrap, contexts)...)
     return grad
 end
 
 function DI.value_and_gradient(
-    f,
-    prep::SymbolicsOneArgGradientPrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgGradientPrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...), DI.gradient(f, prep, backend, x, contexts...)
 end
 
 function DI.value_and_gradient!(
-    f,
-    grad,
-    prep::SymbolicsOneArgGradientPrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        prep::SymbolicsOneArgGradientPrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
-    DI.gradient!(f, grad, prep, backend, x, contexts...)
+        DI.gradient!(f, grad, prep, backend, x, contexts...)
 end
 
 ## Jacobian
 
-struct SymbolicsOneArgJacobianPrep{SIG,P,E1,E1!} <: DI.SparseJacobianPrep{SIG}
+struct SymbolicsOneArgJacobianPrep{SIG, P, E1, E1!} <: DI.SparseJacobianPrep{SIG}
     _sig::Val{SIG}
     sparsity::P
     jac_exe::E1
@@ -247,12 +247,12 @@ struct SymbolicsOneArgJacobianPrep{SIG,P,E1,E1!} <: DI.SparseJacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian_nokwarg(
-    strict::Val,
-    f,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {C}
+        strict::Val,
+        f,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
@@ -265,62 +265,62 @@ function DI.prepare_jacobian_nokwarg(
     end
 
     erase_cache_vars!(context_vars, contexts)
-    res = build_function(jac_var, x_var, context_vars...; expression=Val(false), cse=true)
+    res = build_function(jac_var, x_var, context_vars...; expression = Val(false), cse = true)
     (jac_exe, jac_exe!) = res
     return SymbolicsOneArgJacobianPrep(_sig, sparsity, jac_exe, jac_exe!)
 end
 
 function DI.jacobian(
-    f,
-    prep::SymbolicsOneArgJacobianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgJacobianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return prep.jac_exe(x, map(DI.unwrap, contexts)...)
 end
 
 function DI.jacobian!(
-    f,
-    jac,
-    prep::SymbolicsOneArgJacobianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        jac,
+        prep::SymbolicsOneArgJacobianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.jac_exe!(jac, x, map(DI.unwrap, contexts)...)
     return jac
 end
 
 function DI.value_and_jacobian(
-    f,
-    prep::SymbolicsOneArgJacobianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgJacobianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...), DI.jacobian(f, prep, backend, x, contexts...)
 end
 
 function DI.value_and_jacobian!(
-    f,
-    jac,
-    prep::SymbolicsOneArgJacobianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        jac,
+        prep::SymbolicsOneArgJacobianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return f(x, map(DI.unwrap, contexts)...),
-    DI.jacobian!(f, jac, prep, backend, x, contexts...)
+        DI.jacobian!(f, jac, prep, backend, x, contexts...)
 end
 
 ## Hessian
 
-struct SymbolicsOneArgHessianPrep{SIG,G,P,E2,E2!} <: DI.SparseHessianPrep{SIG}
+struct SymbolicsOneArgHessianPrep{SIG, G, P, E2, E2!} <: DI.SparseHessianPrep{SIG}
     _sig::Val{SIG}
     gradient_prep::G
     sparsity::P
@@ -329,12 +329,12 @@ struct SymbolicsOneArgHessianPrep{SIG,G,P,E2,E2!} <: DI.SparseHessianPrep{SIG}
 end
 
 function DI.prepare_hessian_nokwarg(
-    strict::Val,
-    f,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C};
-) where {C}
+        strict::Val,
+        f,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
@@ -349,7 +349,7 @@ function DI.prepare_hessian_nokwarg(
 
     erase_cache_vars!(context_vars, contexts)
     res = build_function(
-        hess_var, vec(x_var), context_vars...; expression=Val(false), cse=true
+        hess_var, vec(x_var), context_vars...; expression = Val(false), cse = true
     )
     (hess_exe, hess_exe!) = res
 
@@ -360,36 +360,36 @@ function DI.prepare_hessian_nokwarg(
 end
 
 function DI.hessian(
-    f,
-    prep::SymbolicsOneArgHessianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgHessianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return prep.hess_exe(vec(x), map(DI.unwrap, contexts)...)
 end
 
 function DI.hessian!(
-    f,
-    hess,
-    prep::SymbolicsOneArgHessianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        hess,
+        prep::SymbolicsOneArgHessianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.hess_exe!(hess, vec(x), map(DI.unwrap, contexts)...)
     return hess
 end
 
 function DI.value_gradient_and_hessian(
-    f,
-    prep::SymbolicsOneArgHessianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgHessianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, grad = DI.value_and_gradient(
         f, prep.gradient_prep, dense_ad(backend), x, contexts...
@@ -399,14 +399,14 @@ function DI.value_gradient_and_hessian(
 end
 
 function DI.value_gradient_and_hessian!(
-    f,
-    grad,
-    hess,
-    prep::SymbolicsOneArgHessianPrep,
-    backend::Union{AutoSymbolics,AutoSparse{<:AutoSymbolics}},
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        hess,
+        prep::SymbolicsOneArgHessianPrep,
+        backend::Union{AutoSymbolics, AutoSparse{<:AutoSymbolics}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, _ = DI.value_and_gradient!(
         f, grad, prep.gradient_prep, dense_ad(backend), x, contexts...
@@ -417,7 +417,7 @@ end
 
 ## HVP
 
-struct SymbolicsOneArgHVPPrep{SIG,G,E2,E2!} <: DI.HVPPrep{SIG}
+struct SymbolicsOneArgHVPPrep{SIG, G, E2, E2!} <: DI.HVPPrep{SIG}
     _sig::Val{SIG}
     gradient_prep::G
     hvp_exe::E2
@@ -425,8 +425,8 @@ struct SymbolicsOneArgHVPPrep{SIG,G,E2,E2!} <: DI.HVPPrep{SIG}
 end
 
 function DI.prepare_hvp_nokwarg(
-    strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context,C};
-) where {C}
+        strict::Val, f, backend::AutoSymbolics, x, tx::NTuple, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     dx = first(tx)
     x_var = variablize(x, :x)
@@ -442,8 +442,8 @@ function DI.prepare_hvp_nokwarg(
         vec(x_var),
         vec(dx_var),
         context_vars...;
-        expression=Val(false),
-        cse=true,
+        expression = Val(false),
+        cse = true,
     )
     (hvp_exe, hvp_exe!) = res
 
@@ -452,13 +452,13 @@ function DI.prepare_hvp_nokwarg(
 end
 
 function DI.hvp(
-    f,
-    prep::SymbolicsOneArgHVPPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgHVPPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     return map(tx) do dx
         dg_vec = prep.hvp_exe(vec(x), vec(dx), map(DI.unwrap, contexts)...)
@@ -467,14 +467,14 @@ function DI.hvp(
 end
 
 function DI.hvp!(
-    f,
-    tg::NTuple,
-    prep::SymbolicsOneArgHVPPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        tg::NTuple,
+        prep::SymbolicsOneArgHVPPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     for b in eachindex(tx, tg)
         dx, dg = tx[b], tg[b]
@@ -484,13 +484,13 @@ function DI.hvp!(
 end
 
 function DI.gradient_and_hvp(
-    f,
-    prep::SymbolicsOneArgHVPPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgHVPPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     tg = DI.hvp(f, prep, backend, x, tx, contexts...)
     grad = DI.gradient(f, prep.gradient_prep, backend, x, contexts...)
@@ -498,15 +498,15 @@ function DI.gradient_and_hvp(
 end
 
 function DI.gradient_and_hvp!(
-    f,
-    grad,
-    tg::NTuple,
-    prep::SymbolicsOneArgHVPPrep,
-    backend::AutoSymbolics,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        tg::NTuple,
+        prep::SymbolicsOneArgHVPPrep,
+        backend::AutoSymbolics,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     DI.hvp!(f, tg, prep, backend, x, tx, contexts...)
     DI.gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
@@ -515,7 +515,7 @@ end
 
 ## Second derivative
 
-struct SymbolicsOneArgSecondDerivativePrep{SIG,D,E1,E1!} <: DI.SecondDerivativePrep{SIG}
+struct SymbolicsOneArgSecondDerivativePrep{SIG, D, E1, E1!} <: DI.SecondDerivativePrep{SIG}
     _sig::Val{SIG}
     derivative_prep::D
     der2_exe::E1
@@ -523,8 +523,8 @@ struct SymbolicsOneArgSecondDerivativePrep{SIG,D,E1,E1!} <: DI.SecondDerivativeP
 end
 
 function DI.prepare_second_derivative_nokwarg(
-    strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoSymbolics, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     x_var = variablize(x, :x)
     context_vars = variablize(contexts)
@@ -532,7 +532,7 @@ function DI.prepare_second_derivative_nokwarg(
     der2_var = derivative(der_var, x_var)
 
     erase_cache_vars!(context_vars, contexts)
-    res = build_function(der2_var, x_var, context_vars...; expression=Val(false), cse=true)
+    res = build_function(der2_var, x_var, context_vars...; expression = Val(false), cse = true)
     (der2_exe, der2_exe!) = if res isa Tuple
         res
     elseif res isa RuntimeGeneratedFunction
@@ -543,36 +543,36 @@ function DI.prepare_second_derivative_nokwarg(
 end
 
 function DI.second_derivative(
-    f,
-    prep::SymbolicsOneArgSecondDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgSecondDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return prep.der2_exe(x, map(DI.unwrap, contexts)...)
 end
 
 function DI.second_derivative!(
-    f,
-    der2,
-    prep::SymbolicsOneArgSecondDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        der2,
+        prep::SymbolicsOneArgSecondDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     prep.der2_exe!(der2, x, map(DI.unwrap, contexts)...)
     return der2
 end
 
 function DI.value_derivative_and_second_derivative(
-    f,
-    prep::SymbolicsOneArgSecondDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::SymbolicsOneArgSecondDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, der = DI.value_and_derivative(f, prep.derivative_prep, backend, x, contexts...)
     der2 = DI.second_derivative(f, prep, backend, x, contexts...)
@@ -580,14 +580,14 @@ function DI.value_derivative_and_second_derivative(
 end
 
 function DI.value_derivative_and_second_derivative!(
-    f,
-    der,
-    der2,
-    prep::SymbolicsOneArgSecondDerivativePrep,
-    backend::AutoSymbolics,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        der,
+        der2,
+        prep::SymbolicsOneArgSecondDerivativePrep,
+        backend::AutoSymbolics,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, _ = DI.value_and_derivative!(f, der, prep.derivative_prep, backend, x, contexts...)
     DI.second_derivative!(f, der2, prep, backend, x, contexts...)

@@ -15,13 +15,13 @@ Configuration for the batch size deduced from a backend and a sample array of le
   - `A::Int`: number of batches `A = div(N, B, RoundUp)`
   - `B_last::Int`: size of the last batch (if `aligned` is `false`)
 """
-struct BatchSizeSettings{B,singlebatch,aligned}
+struct BatchSizeSettings{B, singlebatch, aligned}
     N::Int
     A::Int
     B_last::Int
 end
 
-function BatchSizeSettings{B,singlebatch,aligned}(N::Integer) where {B,singlebatch,aligned}
+function BatchSizeSettings{B, singlebatch, aligned}(N::Integer) where {B, singlebatch, aligned}
     B > N > 0 && throw(ArgumentError("Batch size $B larger than input size $N"))
     if B == N == 0
         A = B_last = 0
@@ -29,20 +29,20 @@ function BatchSizeSettings{B,singlebatch,aligned}(N::Integer) where {B,singlebat
         A = div(N, B, RoundUp)
         B_last = N % B
     end
-    return BatchSizeSettings{B,singlebatch,aligned}(N, A, B_last)
+    return BatchSizeSettings{B, singlebatch, aligned}(N, A, B_last)
 end
 
-function BatchSizeSettings{B}(::Val{N}) where {B,N}
+function BatchSizeSettings{B}(::Val{N}) where {B, N}
     singlebatch = B == N
     aligned = (B == N == 0) || (N % B == 0)
-    return BatchSizeSettings{B,singlebatch,aligned}(N)
+    return BatchSizeSettings{B, singlebatch, aligned}(N)
 end
 
 function BatchSizeSettings{B}(N::Integer) where {B}
     # type-unstable
     singlebatch = B == N
     aligned = (B == N == 0) || (N % B == 0)
-    return BatchSizeSettings{B,singlebatch,aligned}(N)
+    return BatchSizeSettings{B, singlebatch, aligned}(N)
 end
 
 """
@@ -55,7 +55,7 @@ function pick_batchsize(backend::AbstractADType, N::Integer)
     B = 1
     singlebatch = false
     aligned = true
-    return BatchSizeSettings{B,singlebatch,aligned}(N)
+    return BatchSizeSettings{B, singlebatch, aligned}(N)
 end
 
 """
@@ -71,7 +71,7 @@ function pick_batchsize(backend::AbstractADType, x::AbstractArray)
 end
 
 function check_batchsize_pickable(backend::AbstractADType)
-    if backend isa SecondOrder
+    return if backend isa SecondOrder
         throw(
             ArgumentError(
                 "You should select the batch size for the inner or outer backend of $backend",
@@ -105,8 +105,8 @@ threshold_batchsize(backend::AbstractADType, ::Integer) = backend
 function threshold_batchsize(backend::AutoSparse, B::Integer)
     return AutoSparse(
         threshold_batchsize(dense_ad(backend), B);
-        sparsity_detector=backend.sparsity_detector,
-        coloring_algorithm=backend.coloring_algorithm,
+        sparsity_detector = backend.sparsity_detector,
+        coloring_algorithm = backend.coloring_algorithm,
     )
 end
 

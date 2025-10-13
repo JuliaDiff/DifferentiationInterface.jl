@@ -1,20 +1,20 @@
 ## Pushforward
 
-struct EnzymeTwoArgPushforwardPrep{SIG,DF,DC} <: DI.PushforwardPrep{SIG}
+struct EnzymeTwoArgPushforwardPrep{SIG, DF, DC} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     df!::DF
     context_shadows::DC
 end
 
 function DI.prepare_pushforward_nokwarg(
-    strict::Val,
-    f!::F,
-    y,
-    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
-    x,
-    tx::NTuple{B},
-    contexts::Vararg{DI.Context,C};
-) where {F,B,C}
+        strict::Val,
+        f!::F,
+        y,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        tx::NTuple{B},
+        contexts::Vararg{DI.Context, C}
+    ) where {F, B, C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     df! = function_shadow(f!, backend, Val(B))
     mode = forward_noprimal(backend)
@@ -23,14 +23,14 @@ function DI.prepare_pushforward_nokwarg(
 end
 
 function DI.value_and_pushforward(
-    f!::F,
-    y,
-    prep::EnzymeTwoArgPushforwardPrep,
-    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
-    x,
-    tx::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        prep::EnzymeTwoArgPushforwardPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        tx::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; df!, context_shadows) = prep
     mode = forward_noprimal(backend)
@@ -45,14 +45,14 @@ function DI.value_and_pushforward(
 end
 
 function DI.value_and_pushforward(
-    f!::F,
-    y,
-    prep::EnzymeTwoArgPushforwardPrep,
-    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
-    x,
-    tx::NTuple{B},
-    contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+        f!::F,
+        y,
+        prep::EnzymeTwoArgPushforwardPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        tx::NTuple{B},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; df!, context_shadows) = prep
     mode = forward_noprimal(backend)
@@ -66,29 +66,29 @@ function DI.value_and_pushforward(
 end
 
 function DI.pushforward(
-    f!::F,
-    y,
-    prep::EnzymeTwoArgPushforwardPrep,
-    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        prep::EnzymeTwoArgPushforwardPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     _, ty = DI.value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
     return ty
 end
 
 function DI.value_and_pushforward!(
-    f!::F,
-    y,
-    ty::NTuple{B},
-    prep::EnzymeTwoArgPushforwardPrep,
-    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
-    x,
-    tx::NTuple{B},
-    contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+        f!::F,
+        y,
+        ty::NTuple{B},
+        prep::EnzymeTwoArgPushforwardPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        tx::NTuple{B},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; df!, context_shadows) = prep
     mode = forward_noprimal(backend)
@@ -101,15 +101,15 @@ function DI.value_and_pushforward!(
 end
 
 function DI.pushforward!(
-    f!::F,
-    y,
-    ty::NTuple,
-    prep::EnzymeTwoArgPushforwardPrep,
-    backend::AutoEnzyme{<:Union{ForwardMode,Nothing}},
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        ty::NTuple,
+        prep::EnzymeTwoArgPushforwardPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     DI.value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
     return ty
