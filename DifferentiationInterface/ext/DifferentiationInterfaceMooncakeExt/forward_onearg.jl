@@ -1,19 +1,19 @@
 ## Pushforward
 
-struct MooncakeOneArgPushforwardPrep{SIG,Tcache,DX} <: DI.PushforwardPrep{SIG}
+struct MooncakeOneArgPushforwardPrep{SIG, Tcache, DX} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
     dx_righttype::DX
 end
 
 function DI.prepare_pushforward_nokwarg(
-    strict::Val,
-    f::F,
-    backend::AutoMooncakeForward,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        strict::Val,
+        f::F,
+        backend::AutoMooncakeForward,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     config = get_config(backend)
     cache = prepare_derivative_cache(
@@ -25,13 +25,13 @@ function DI.prepare_pushforward_nokwarg(
 end
 
 function DI.value_and_pushforward(
-    f::F,
-    prep::MooncakeOneArgPushforwardPrep,
-    backend::AutoMooncakeForward,
-    x::X,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-) where {F,C,X}
+        f::F,
+        prep::MooncakeOneArgPushforwardPrep,
+        backend::AutoMooncakeForward,
+        x::X,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C, X}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ys_and_ty = map(tx) do dx
         dx_righttype =
@@ -52,26 +52,26 @@ function DI.value_and_pushforward(
 end
 
 function DI.pushforward(
-    f::F,
-    prep::MooncakeOneArgPushforwardPrep,
-    backend::AutoMooncakeForward,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        f::F,
+        prep::MooncakeOneArgPushforwardPrep,
+        backend::AutoMooncakeForward,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     return DI.value_and_pushforward(f, prep, backend, x, tx, contexts...)[2]
 end
 
 function DI.value_and_pushforward!(
-    f::F,
-    ty::NTuple,
-    prep::MooncakeOneArgPushforwardPrep,
-    backend::AutoMooncakeForward,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        f::F,
+        ty::NTuple,
+        prep::MooncakeOneArgPushforwardPrep,
+        backend::AutoMooncakeForward,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     y, new_ty = DI.value_and_pushforward(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, ty, new_ty)
@@ -79,14 +79,14 @@ function DI.value_and_pushforward!(
 end
 
 function DI.pushforward!(
-    f::F,
-    ty::NTuple,
-    prep::MooncakeOneArgPushforwardPrep,
-    backend::AutoMooncakeForward,
-    x,
-    tx::NTuple,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        f::F,
+        ty::NTuple,
+        prep::MooncakeOneArgPushforwardPrep,
+        backend::AutoMooncakeForward,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     DI.value_and_pushforward!(f, ty, prep, backend, x, tx, contexts...)
     return ty

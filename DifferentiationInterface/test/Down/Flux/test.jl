@@ -18,9 +18,9 @@ test_differentiation(
         # AutoEnzyme(), # TODO a few scenarios fail
     ],
     DIT.flux_scenarios(Random.MersenneTwister(0));
-    isapprox=DIT.flux_isapprox,
-    rtol=1e-2,
-    atol=1e-4,
-    scenario_intact=false,  # TODO: why?
-    logging=LOGGING,
+    isapprox = DIT.flux_isapprox,
+    rtol = 1.0e-2,
+    atol = 1.0e-4,
+    scenario_intact = false,  # TODO: why?
+    logging = LOGGING,
 )

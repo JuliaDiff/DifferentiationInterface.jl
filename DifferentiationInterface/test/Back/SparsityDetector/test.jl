@@ -27,10 +27,10 @@ g(x::AbstractVector) = dot(x, Hc, x)
 g(x::AbstractMatrix) = g(vec(x))
 
 @testset verbose = true "$(typeof(backend))" for backend in
-                                                 [AutoForwardDiff(), AutoReverseDiff()]
-    @test_throws ArgumentError DenseSparsityDetector(backend; atol=1e-5, method=:random)
+    [AutoForwardDiff(), AutoReverseDiff()]
+    @test_throws ArgumentError DenseSparsityDetector(backend; atol = 1.0e-5, method = :random)
     @testset "$method" for method in (:iterative, :direct)
-        detector = DenseSparsityDetector(backend; atol=1e-5, method)
+        detector = DenseSparsityDetector(backend; atol = 1.0e-5, method)
         string(detector)
         for (x, y) in ((rand(20), zeros(10)), (rand(2, 10), zeros(5, 2)))
             @test Jc == jacobian_sparsity(f, x, detector)

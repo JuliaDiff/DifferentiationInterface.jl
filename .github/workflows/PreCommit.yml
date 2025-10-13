@@ -9,7 +9,7 @@ on:
   push:
     branches:
       - main
-    tags: ["*"]
+    tags: ['*']
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
       - uses: julia-actions/cache@v2
-      - run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
-      - uses: astral-sh/setup-uv@v6
+      - run: julia -e 'using Pkg; Pkg.add("Runic")'
+      - uses: astral-sh/setup-uv@v7
       - run: uv tool install pre-commit
       - run: pre-commit run --all-files --show-diff-on-failure --color always

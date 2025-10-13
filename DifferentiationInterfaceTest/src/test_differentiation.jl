@@ -67,48 +67,48 @@ Each setting tests/benchmarks a different subset of calls:
   - `adaptive_batchsize=true`: whether to cap the backend's preset batch size (when it exists) to prevent errors on small inputs
 """
 function test_differentiation(
-    backends::Vector{<:AbstractADType},
-    scenarios::Vector{<:Scenario}=default_scenarios();
-    testset_name::Union{String,Nothing}=nothing,
-    # test categories
-    correctness::Bool=true,
-    type_stability::Symbol=:none,
-    allocations::Symbol=:none,
-    benchmark::Symbol=:none,
-    # misc options
-    excluded::Vector{Symbol}=Symbol[],
-    detailed::Bool=false,
-    logging::Bool=false,
-    # correctness options
-    isapprox=isapprox,
-    atol::Real=0,
-    rtol::Real=1e-3,
-    scenario_intact::Bool=true,
-    sparsity::Bool=false,
-    reprepare::Bool=true,
-    # type stability options
-    ignored_modules=nothing,
-    function_filter=if VERSION >= v"1.11"
-        @nospecialize(f) -> true
-    else
-        @nospecialize(f) -> f != Base.mapreduce_empty  # fix for `mapreduce` in jacobian and hessian
-    end,
-    # allocs options
-    skip_allocations::Bool=false,  # private, only for code coverage
-    # benchmark options
-    count_calls::Bool=true,
-    benchmark_test::Bool=true,
-    benchmark_seconds::Real=1,
-    benchmark_aggregation=minimum,
-    # batch size
-    adaptive_batchsize::Bool=true,
-)
+        backends::Vector{<:AbstractADType},
+        scenarios::Vector{<:Scenario} = default_scenarios();
+        testset_name::Union{String, Nothing} = nothing,
+        # test categories
+        correctness::Bool = true,
+        type_stability::Symbol = :none,
+        allocations::Symbol = :none,
+        benchmark::Symbol = :none,
+        # misc options
+        excluded::Vector{Symbol} = Symbol[],
+        detailed::Bool = false,
+        logging::Bool = false,
+        # correctness options
+        isapprox = isapprox,
+        atol::Real = 0,
+        rtol::Real = 1.0e-3,
+        scenario_intact::Bool = true,
+        sparsity::Bool = false,
+        reprepare::Bool = true,
+        # type stability options
+        ignored_modules = nothing,
+        function_filter = if VERSION >= v"1.11"
+            @nospecialize(f) -> true
+        else
+            @nospecialize(f) -> f != Base.mapreduce_empty  # fix for `mapreduce` in jacobian and hessian
+        end,
+        # allocs options
+        skip_allocations::Bool = false,  # private, only for code coverage
+        # benchmark options
+        count_calls::Bool = true,
+        benchmark_test::Bool = true,
+        benchmark_seconds::Real = 1,
+        benchmark_aggregation = minimum,
+        # batch size
+        adaptive_batchsize::Bool = true,
+    )
     @assert type_stability in (:none, :prepared, :full)
     @assert allocations in (:none, :prepared, :full)
     @assert benchmark in (:none, :prepared, :full)
 
     scenarios = filter(s -> !(operator(s) in excluded), scenarios)
-    scenarios = sort(scenarios; by=s -> (operator(s), string(s.f)))
+    scenarios = sort(scenarios; by = s -> (operator(s), string(s.f)))
 
     if isnothing(testset_name)
         title_additions =
@@ -122,18 +122,18 @@ function test_differentiation(
 
     benchmark_data = DifferentiationBenchmarkDataRow[]
 
-    prog = ProgressUnknown(; desc="$title", spinner=true, enabled=logging)
+    prog = ProgressUnknown(; desc = "$title", spinner = true, enabled = logging)
 
     @testset verbose = true "$title" begin
         @testset verbose = detailed "$backend" for (i, backend) in enumerate(backends)
             filtered_scenarios = filter(s -> compatible(backend, s), scenarios)
             grouped_scenarios = group_by_operator(filtered_scenarios)
             @testset verbose = detailed "$op" for (j, (op, op_group)) in
-                                                  enumerate(pairs(grouped_scenarios))
+                enumerate(pairs(grouped_scenarios))
                 @testset "$scen" for (k, scen) in enumerate(op_group)
                     next!(
                         prog;
-                        showvalues=[
+                        showvalues = [
                             (:backend, "$backend - $i/$(length(backends))"),
                             (:scenario_type, "$op - $j/$(length(grouped_scenarios))"),
                             (:scenario, "$k/$(length(op_group))"),
@@ -171,7 +171,7 @@ function test_differentiation(
                         test_jet(
                             adapted_backend,
                             scen;
-                            subset=type_stability,
+                            subset = type_stability,
                             ignored_modules,
                             function_filter,
                         )
@@ -181,8 +181,8 @@ function test_differentiation(
                         test_alloccheck(
                             adapted_backend,
                             scen;
-                            subset=allocations,
-                            skip=skip_allocations,
+                            subset = allocations,
+                            skip = skip_allocations,
                         )
                     end
                     yield()
@@ -192,7 +192,7 @@ function test_differentiation(
                             adapted_backend,
                             scen;
                             logging,
-                            subset=benchmark,
+                            subset = benchmark,
                             count_calls,
                             benchmark_test,
                             benchmark_seconds,
@@ -228,26 +228,26 @@ Shortcut for [`test_differentiation`](@ref) with only benchmarks and no correctn
 Specifying the set of scenarios is mandatory for this function.
 """
 function benchmark_differentiation(
-    backends,
-    scenarios::Vector{<:Scenario};
-    testset_name::Union{String,Nothing}=nothing,
-    benchmark::Symbol=:prepared,
-    excluded::Vector{Symbol}=Symbol[],
-    logging::Bool=false,
-    count_calls::Bool=true,
-    benchmark_test::Bool=true,
-    benchmark_seconds::Real=1,
-    benchmark_aggregation=minimum,
-    # batch size
-    adaptive_batchsize::Bool=true,
-)
+        backends,
+        scenarios::Vector{<:Scenario};
+        testset_name::Union{String, Nothing} = nothing,
+        benchmark::Symbol = :prepared,
+        excluded::Vector{Symbol} = Symbol[],
+        logging::Bool = false,
+        count_calls::Bool = true,
+        benchmark_test::Bool = true,
+        benchmark_seconds::Real = 1,
+        benchmark_aggregation = minimum,
+        # batch size
+        adaptive_batchsize::Bool = true,
+    )
     return test_differentiation(
         backends,
         scenarios;
         testset_name,
-        correctness=false,
-        type_stability=:none,
-        allocations=:none,
+        correctness = false,
+        type_stability = :none,
+        allocations = :none,
         benchmark,
         logging,
         excluded,

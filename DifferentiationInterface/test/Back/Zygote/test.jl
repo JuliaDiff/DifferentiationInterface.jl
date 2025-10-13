@@ -28,24 +28,24 @@ end
     test_differentiation(
         backends,
         default_scenarios(;
-            include_constantified=true, include_cachified=true, use_tuples=true
+            include_constantified = true, include_cachified = true, use_tuples = true
         );
-        excluded=[:second_derivative],
-        logging=LOGGING,
+        excluded = [:second_derivative],
+        logging = LOGGING,
     )
 
-    test_differentiation(second_order_backends; logging=LOGGING)
+    test_differentiation(second_order_backends; logging = LOGGING)
 
     test_differentiation(
         backends[1],
         vcat(component_scenarios(), gpu_scenarios());
-        excluded=SECOND_ORDER,
-        logging=LOGGING,
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
     )
 end
 
 test_differentiation(
-    AutoZygote(), complex_scenarios(); excluded=[:gradient, :jacobian], logging=LOGGING
+    AutoZygote(), complex_scenarios(); excluded = [:gradient, :jacobian], logging = LOGGING
 );
 
 ## Sparse
@@ -53,8 +53,8 @@ test_differentiation(
 @testset "Sparse" begin
     test_differentiation(
         MyAutoSparse.(vcat(backends, second_order_backends)),
-        sparse_scenarios(; band_sizes=0:-1);
-        sparsity=true,
-        logging=LOGGING,
+        sparse_scenarios(; band_sizes = 0:-1);
+        sparsity = true,
+        logging = LOGGING,
     )
 end

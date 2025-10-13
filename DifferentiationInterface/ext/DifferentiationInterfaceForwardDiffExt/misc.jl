@@ -3,16 +3,16 @@ DI.overloaded_input_type(prep::ForwardDiffOneArgPushforwardPrep) = typeof(prep.x
 DI.overloaded_input_type(prep::ForwardDiffTwoArgPushforwardPrep) = typeof(prep.xdual_tmp)
 
 function DI.overloaded_input(
-    ::typeof(DI.pushforward), f::F, backend::AutoForwardDiff, x, tx::NTuple{B}
-) where {F,B}
+        ::typeof(DI.pushforward), f::F, backend::AutoForwardDiff, x, tx::NTuple{B}
+    ) where {F, B}
     T = tag_type(f, backend, x)
     xdual = make_dual(T, x, tx)
     return xdual
 end
 
 function DI.overloaded_input(
-    ::typeof(DI.pushforward), f!::F, y, backend::AutoForwardDiff, x, tx::NTuple{B}
-) where {F,B}
+        ::typeof(DI.pushforward), f!::F, y, backend::AutoForwardDiff, x, tx::NTuple{B}
+    ) where {F, B}
     T = tag_type(f!, backend, x)
     xdual = make_dual(T, x, tx)
     return xdual

@@ -23,31 +23,31 @@ end
     test_differentiation(
         AutoFiniteDiff(),
         default_scenarios(;
-            include_constantified=true,
-            include_cachified=true,
-            include_constantorcachified=true,
-            use_tuples=true,
-            include_smaller=true,
+            include_constantified = true,
+            include_cachified = true,
+            include_constantorcachified = true,
+            use_tuples = true,
+            include_smaller = true,
         );
-        excluded=[:second_derivative, :hvp],
-        logging=LOGGING,
+        excluded = [:second_derivative, :hvp],
+        logging = LOGGING,
     )
 
     test_differentiation(
-        SecondOrder(AutoFiniteDiff(; relstep=1e-5, absstep=1e-5), AutoFiniteDiff()),
+        SecondOrder(AutoFiniteDiff(; relstep = 1.0e-5, absstep = 1.0e-5), AutoFiniteDiff()),
         default_scenarios();
-        logging=LOGGING,
-        rtol=1e-2,
+        logging = LOGGING,
+        rtol = 1.0e-2,
     )
 
     test_differentiation(
         [
-            AutoFiniteDiff(; relstep=cbrt(eps(Float64))),
-            AutoFiniteDiff(; relstep=cbrt(eps(Float64)), absstep=cbrt(eps(Float64))),
-            AutoFiniteDiff(; dir=0.5),
+            AutoFiniteDiff(; relstep = cbrt(eps(Float64))),
+            AutoFiniteDiff(; relstep = cbrt(eps(Float64)), absstep = cbrt(eps(Float64))),
+            AutoFiniteDiff(; dir = 0.5),
         ];
-        excluded=[:second_derivative, :hvp],
-        logging=LOGGING,
+        excluded = [:second_derivative, :hvp],
+        logging = LOGGING,
     )
 end
 
@@ -55,26 +55,26 @@ end
     test_differentiation(
         MyAutoSparse(AutoFiniteDiff()),
         sparse_scenarios();
-        excluded=SECOND_ORDER,
-        logging=LOGGING,
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
     )
 end
 
 @testset "Complex" begin
-    test_differentiation(AutoFiniteDiff(), complex_scenarios(); logging=LOGGING)
+    test_differentiation(AutoFiniteDiff(), complex_scenarios(); logging = LOGGING)
     test_differentiation(
         AutoSparse(
             AutoFiniteDiff();
-            sparsity_detector=DenseSparsityDetector(AutoFiniteDiff(); atol=1e-5),
-            coloring_algorithm=GreedyColoringAlgorithm(),
+            sparsity_detector = DenseSparsityDetector(AutoFiniteDiff(); atol = 1.0e-5),
+            coloring_algorithm = GreedyColoringAlgorithm(),
         ),
         complex_sparse_scenarios();
-        logging=LOGGING,
+        logging = LOGGING,
     )
 end;
 
 @testset "Step size" begin  # fix 811
-    backend = AutoFiniteDiff(; absstep=1000, relstep=0.1)
+    backend = AutoFiniteDiff(; absstep = 1000, relstep = 0.1)
     preps = [
         prepare_pushforward(identity, backend, 1.0, (1.0,)),
         prepare_pushforward(copyto!, [0.0], backend, [1.0], ([1.0],)),
@@ -94,7 +94,7 @@ end;
     @test prep.relstep_g == 0.1
     @test prep.relstep_h == 0.1
 
-    backend = AutoFiniteDiff(; relstep=0.1)
+    backend = AutoFiniteDiff(; relstep = 0.1)
     preps = [
         prepare_pushforward(identity, backend, 1.0, (1.0,)),
         prepare_pushforward(copyto!, [0.0], backend, [1.0], ([1.0],)),

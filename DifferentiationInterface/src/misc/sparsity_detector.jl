@@ -69,7 +69,7 @@ ADTypes.jacobian_sparsity(x -> [prod(x)], [0, 1], detector)
  1  ⋅
 ```
 """
-struct DenseSparsityDetector{method,B} <: ADTypes.AbstractSparsityDetector
+struct DenseSparsityDetector{method, B} <: ADTypes.AbstractSparsityDetector
     backend::B
     atol::Float64
 end
@@ -80,20 +80,20 @@ function Base.show(io::IO, detector::DenseSparsityDetector{method}) where {metho
         io,
         DenseSparsityDetector,
         "(",
-        repr(backend; context=io),
+        repr(backend; context = io),
         "; atol=$atol, method=",
-        repr(method; context=io),
+        repr(method; context = io),
         ")",
     )
 end
 
 function DenseSparsityDetector(
-    backend::AbstractADType; atol::Float64, method::Symbol=:iterative
-)
+        backend::AbstractADType; atol::Float64, method::Symbol = :iterative
+    )
     if !(method in (:iterative, :direct))
         throw(
             ArgumentError("The keyword `method` must be either `:iterative` or `:direct`.")
         )
     end
-    return DenseSparsityDetector{method,typeof(backend)}(backend, atol)
+    return DenseSparsityDetector{method, typeof(backend)}(backend, atol)
 end

@@ -1,5 +1,5 @@
-stack_vec_col(t::NTuple) = stack(vec, t; dims=2)
-stack_vec_row(t::NTuple) = stack(vec, t; dims=1)
+stack_vec_col(t::NTuple) = stack(vec, t; dims = 2)
+stack_vec_row(t::NTuple) = stack(vec, t; dims = 1)
 
 """
     ismutable_array(x)
@@ -19,7 +19,7 @@ Apply `similar(_, T)` recursively to `x` or its components.
 Works if `x` is an `AbstractArray` or a (nested) `NTuple` / `NamedTuple` of `AbstractArray`s.
 """
 recursive_similar(x::AbstractArray, ::Type{T}) where {T} = similar(x, T)
-function recursive_similar(x::Union{Tuple,NamedTuple}, ::Type{T}) where {T}
+function recursive_similar(x::Union{Tuple, NamedTuple}, ::Type{T}) where {T}
     return map(xi -> recursive_similar(xi, T), x)
 end
 

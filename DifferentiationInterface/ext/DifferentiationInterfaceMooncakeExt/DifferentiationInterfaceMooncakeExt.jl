@@ -31,7 +31,7 @@ using Mooncake:
     _copy_output,
     _copy_to_output!!
 
-const AnyAutoMooncake{C} = Union{AutoMooncake{C},AutoMooncakeForward{C}}
+const AnyAutoMooncake{C} = Union{AutoMooncake{C}, AutoMooncakeForward{C}}
 
 DI.check_available(::AnyAutoMooncake{C}) where {C} = true
 

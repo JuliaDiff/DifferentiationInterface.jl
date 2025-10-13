@@ -1,4 +1,4 @@
-function (dw::DI.DifferentiateWith)(x::Dual{T,V,N}) where {T,V,N}
+function (dw::DI.DifferentiateWith)(x::Dual{T, V, N}) where {T, V, N}
     (; f, backend) = dw
     xval = myvalue(T, x)
     tx = mypartials(T, Val(N), x)
@@ -6,7 +6,7 @@ function (dw::DI.DifferentiateWith)(x::Dual{T,V,N}) where {T,V,N}
     return make_dual(T, y, ty)
 end
 
-function (dw::DI.DifferentiateWith)(x::AbstractArray{Dual{T,V,N}}) where {T,V,N}
+function (dw::DI.DifferentiateWith)(x::AbstractArray{Dual{T, V, N}}) where {T, V, N}
     (; f, backend) = dw
     xval = myvalue(T, x)
     tx = mypartials(T, Val(N), x)

@@ -11,15 +11,15 @@ DI.pullback_performance(::AutoDiffractor) = DI.PullbackSlow()
 ## Pushforward
 
 function DI.prepare_pushforward_nokwarg(
-    strict::Val, f, backend::AutoDiffractor, x, tx::NTuple
-)
+        strict::Val, f, backend::AutoDiffractor, x, tx::NTuple
+    )
     _sig = DI.signature(f, backend, x, tx; strict)
     return DI.NoPushforwardPrep(_sig)
 end
 
 function DI.pushforward(
-    f, prep::DI.NoPushforwardPrep, backend::AutoDiffractor, x, tx::NTuple
-)
+        f, prep::DI.NoPushforwardPrep, backend::AutoDiffractor, x, tx::NTuple
+    )
     DI.check_prep(f, prep, backend, x, tx)
     ty = map(tx) do dx
         # code copied from Diffractor.jl
@@ -31,8 +31,8 @@ function DI.pushforward(
 end
 
 function DI.value_and_pushforward(
-    f, prep::DI.NoPushforwardPrep, backend::AutoDiffractor, x, tx::NTuple
-)
+        f, prep::DI.NoPushforwardPrep, backend::AutoDiffractor, x, tx::NTuple
+    )
     DI.check_prep(f, prep, backend, x, tx)
     return f(x), DI.pushforward(f, prep, backend, x, tx)
 end

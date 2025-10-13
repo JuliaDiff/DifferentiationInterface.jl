@@ -1,6 +1,6 @@
 ## Pullback
 
-struct EnzymeReverseTwoArgPullbackPrep{SIG,DF,DC,TY} <: DI.PullbackPrep{SIG}
+struct EnzymeReverseTwoArgPullbackPrep{SIG, DF, DC, TY} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     df!::DF
     context_shadows::DC
@@ -8,14 +8,14 @@ struct EnzymeReverseTwoArgPullbackPrep{SIG,DF,DC,TY} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback_nokwarg(
-    strict::Val,
-    f!::F,
-    y,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{B},
-    contexts::Vararg{DI.Context,C};
-) where {F,B,C}
+        strict::Val,
+        f!::F,
+        y,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{B},
+        contexts::Vararg{DI.Context, C}
+    ) where {F, B, C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     df! = function_shadow(f!, backend, Val(B))
     mode = reverse_noprimal(backend)
@@ -25,14 +25,14 @@ function DI.prepare_pullback_nokwarg(
 end
 
 function DI.value_and_pullback(
-    f!::F,
-    y,
-    prep::EnzymeReverseTwoArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x::Number,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        prep::EnzymeReverseTwoArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x::Number,
+        ty::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
     copyto!(only(ty_copy), only(ty))
@@ -49,14 +49,14 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback(
-    f!::F,
-    y,
-    prep::EnzymeReverseTwoArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x::Number,
-    ty::NTuple{B},
-    contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+        f!::F,
+        y,
+        prep::EnzymeReverseTwoArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x::Number,
+        ty::NTuple{B},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
     foreach(copyto!, ty_copy, ty)
@@ -73,14 +73,14 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback(
-    f!::F,
-    y,
-    prep::EnzymeReverseTwoArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        prep::EnzymeReverseTwoArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
     copyto!(only(ty_copy), only(ty))
@@ -96,14 +96,14 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback(
-    f!::F,
-    y,
-    prep::EnzymeReverseTwoArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{B},
-    contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+        f!::F,
+        y,
+        prep::EnzymeReverseTwoArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{B},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
     foreach(copyto!, ty_copy, ty)
@@ -119,15 +119,15 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback!(
-    f!::F,
-    y,
-    tx::NTuple{1},
-    prep::EnzymeReverseTwoArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        tx::NTuple{1},
+        prep::EnzymeReverseTwoArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
     copyto!(only(ty_copy), only(ty))
@@ -144,15 +144,15 @@ function DI.value_and_pullback!(
 end
 
 function DI.value_and_pullback!(
-    f!::F,
-    y,
-    tx::NTuple{B},
-    prep::EnzymeReverseTwoArgPullbackPrep,
-    backend::AutoEnzyme{<:Union{ReverseMode,Nothing}},
-    x,
-    ty::NTuple{B},
-    contexts::Vararg{DI.Context,C},
-) where {F,B,C}
+        f!::F,
+        y,
+        tx::NTuple{B},
+        prep::EnzymeReverseTwoArgPullbackPrep,
+        backend::AutoEnzyme{<:Union{ReverseMode, Nothing}},
+        x,
+        ty::NTuple{B},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
     foreach(copyto!, ty_copy, ty)

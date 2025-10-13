@@ -20,20 +20,20 @@ myjl(x::AbstractArray) = jl(x)
 myjl(x::Tuple) = map(myjl, x)
 myjl(x::DI.Constant) = DI.Constant(myjl(DI.unwrap(x)))
 myjl(x::DI.Cache{<:AbstractArray}) = DI.Cache(myjl(DI.unwrap(x)))
-myjl(x::DI.Cache{<:Union{Tuple,NamedTuple}}) = map(myjl, map(DI.Cache, DI.unwrap(x)))
+myjl(x::DI.Cache{<:Union{Tuple, NamedTuple}}) = map(myjl, map(DI.Cache, DI.unwrap(x)))
 myjl(::Nothing) = nothing
 
-function myjl(scen::DIT.Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun}
+function myjl(scen::DIT.Scenario{op, pl_op, pl_fun}) where {op, pl_op, pl_fun}
     (; f, x, y, t, contexts, prep_args, res1, res2, name) = scen
-    return DIT.Scenario{op,pl_op,pl_fun}(;
-        f=myjl(f),
-        x=myjl(x),
-        y=myjl(y),
-        t=myjl(t),
-        contexts=myjl(contexts),
-        prep_args=map(myjl, prep_args),
-        res1=myjl(res1),
-        res2=myjl(res2),
+    return DIT.Scenario{op, pl_op, pl_fun}(;
+        f = myjl(f),
+        x = myjl(x),
+        y = myjl(y),
+        t = myjl(t),
+        contexts = myjl(contexts),
+        prep_args = map(myjl, prep_args),
+        res1 = myjl(res1),
+        res2 = myjl(res2),
         name,
     )
 end
@@ -44,7 +44,7 @@ function DIT.gpu_scenarios(args...; kwargs...)
 end
 
 @compile_workload begin
-    DIT.gpu_scenarios(; include_constantified=true, include_cachified=true)
+    DIT.gpu_scenarios(; include_constantified = true, include_cachified = true)
 end
 
 end

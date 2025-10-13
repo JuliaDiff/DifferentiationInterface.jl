@@ -1,14 +1,14 @@
 ## Pullback
 
-struct MooncakeOneArgPullbackPrep{SIG,Tcache,DY} <: DI.PullbackPrep{SIG}
+struct MooncakeOneArgPullbackPrep{SIG, Tcache, DY} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
     dy_righttype::DY
 end
 
 function DI.prepare_pullback_nokwarg(
-    strict::Val, f::F, backend::AutoMooncake, x, ty::NTuple, contexts::Vararg{DI.Context,C};
-) where {F,C}
+        strict::Val, f::F, backend::AutoMooncake, x, ty::NTuple, contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     config = get_config(backend)
     cache = prepare_pullback_cache(
@@ -21,13 +21,13 @@ function DI.prepare_pullback_nokwarg(
 end
 
 function DI.value_and_pullback(
-    f::F,
-    prep::MooncakeOneArgPullbackPrep{Y},
-    backend::AutoMooncake,
-    x,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,Y,C}
+        f::F,
+        prep::MooncakeOneArgPullbackPrep{Y},
+        backend::AutoMooncake,
+        x,
+        ty::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, Y, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     dy = only(ty)
     dy_righttype = dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
@@ -38,13 +38,13 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback(
-    f::F,
-    prep::MooncakeOneArgPullbackPrep{Y},
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,Y,C}
+        f::F,
+        prep::MooncakeOneArgPullbackPrep{Y},
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, Y, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     ys_and_tx = map(ty) do dy
         dy_righttype =
@@ -60,14 +60,14 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback!(
-    f::F,
-    tx::NTuple,
-    prep::MooncakeOneArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        tx::NTuple,
+        prep::MooncakeOneArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     y, new_tx = DI.value_and_pullback(f, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
@@ -75,40 +75,40 @@ function DI.value_and_pullback!(
 end
 
 function DI.pullback(
-    f::F,
-    prep::MooncakeOneArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        prep::MooncakeOneArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     return DI.value_and_pullback(f, prep, backend, x, ty, contexts...)[2]
 end
 
 function DI.pullback!(
-    f::F,
-    tx::NTuple,
-    prep::MooncakeOneArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        tx::NTuple,
+        prep::MooncakeOneArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     return DI.value_and_pullback!(f, tx, prep, backend, x, ty, contexts...)[2]
 end
 
 ## Gradient
 
-struct MooncakeGradientPrep{SIG,Tcache} <: DI.GradientPrep{SIG}
+struct MooncakeGradientPrep{SIG, Tcache} <: DI.GradientPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
 end
 
 function DI.prepare_gradient_nokwarg(
-    strict::Val, f::F, backend::AutoMooncake, x, contexts::Vararg{DI.Context,C}
-) where {F,C}
+        strict::Val, f::F, backend::AutoMooncake, x, contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = get_config(backend)
     cache = prepare_gradient_cache(
@@ -119,25 +119,25 @@ function DI.prepare_gradient_nokwarg(
 end
 
 function DI.value_and_gradient(
-    f::F,
-    prep::MooncakeGradientPrep,
-    backend::AutoMooncake,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        prep::MooncakeGradientPrep,
+        backend::AutoMooncake,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, (_, new_grad) = value_and_gradient!!(prep.cache, f, x, map(DI.unwrap, contexts)...)
     return y, _copy_output(new_grad)
 end
 
 function DI.value_and_gradient!(
-    f::F,
-    grad,
-    prep::MooncakeGradientPrep,
-    backend::AutoMooncake,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        grad,
+        prep::MooncakeGradientPrep,
+        backend::AutoMooncake,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, (_, new_grad) = value_and_gradient!!(prep.cache, f, x, map(DI.unwrap, contexts)...)
     copyto!(grad, new_grad)
@@ -145,25 +145,25 @@ function DI.value_and_gradient!(
 end
 
 function DI.gradient(
-    f::F,
-    prep::MooncakeGradientPrep,
-    backend::AutoMooncake,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        prep::MooncakeGradientPrep,
+        backend::AutoMooncake,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     _, grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
     return grad
 end
 
 function DI.gradient!(
-    f::F,
-    grad,
-    prep::MooncakeGradientPrep,
-    backend::AutoMooncake,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f::F,
+        grad,
+        prep::MooncakeGradientPrep,
+        backend::AutoMooncake,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     DI.value_and_gradient!(f, grad, prep, backend, x, contexts...)
     return grad

@@ -41,11 +41,11 @@ function sparse_vec_to_vec_scenarios(x::AbstractVector)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(
-                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f, x; prep_args = (; x = x_prep, contexts = ()), res1 = jac
                 ),
-                Scenario{:jacobian,pl_op}(
-                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f!, y, x; prep_args = (; y = zero(y), x = x_prep, contexts = ()), res1 = jac
                 ),
             ],
         )
@@ -82,11 +82,11 @@ function sparse_mat_to_vec_scenarios(x::AbstractMatrix)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(
-                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f, x; prep_args = (; x = x_prep, contexts = ()), res1 = jac
                 ),
-                Scenario{:jacobian,pl_op}(
-                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f!, y, x; prep_args = (; y = zero(y), x = x_prep, contexts = ()), res1 = jac
                 ),
             ],
         )
@@ -120,11 +120,11 @@ function sparse_vec_to_mat_scenarios(x::AbstractVector)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(
-                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f, x; prep_args = (; x = x_prep, contexts = ()), res1 = jac
                 ),
-                Scenario{:jacobian,pl_op}(
-                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f!, y, x; prep_args = (; y = zero(y), x = x_prep, contexts = ()), res1 = jac
                 ),
             ],
         )
@@ -160,11 +160,11 @@ function sparse_mat_to_mat_scenarios(x::AbstractMatrix)
         append!(
             scens,
             [
-                Scenario{:jacobian,pl_op}(
-                    f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f, x; prep_args = (; x = x_prep, contexts = ()), res1 = jac
                 ),
-                Scenario{:jacobian,pl_op}(
-                    f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                Scenario{:jacobian, pl_op}(
+                    f!, y, x; prep_args = (; y = zero(y), x = x_prep, contexts = ()), res1 = jac
                 ),
             ],
         )
@@ -207,8 +207,8 @@ function sparse_vec_to_num_scenarios(x::AbstractVector)
         append!(
             scens,
             [
-                Scenario{:hessian,pl_op}(
-                    f, x; prep_args=(; x=x_prep, contexts=()), res1=grad, res2=hess
+                Scenario{:hessian, pl_op}(
+                    f, x; prep_args = (; x = x_prep, contexts = ()), res1 = grad, res2 = hess
                 ),
             ],
         )
@@ -239,8 +239,8 @@ function sparse_mat_to_num_scenarios(x::AbstractMatrix)
         append!(
             scens,
             [
-                Scenario{:hessian,pl_op}(
-                    f, x; prep_args=(; x=x_prep, contexts=()), res1=grad, res2=hess
+                Scenario{:hessian, pl_op}(
+                    f, x; prep_args = (; x = x_prep, contexts = ()), res1 = grad, res2 = hess
                 ),
             ],
         )
@@ -258,7 +258,7 @@ end
 
 ### Linear map
 
-struct SquareLinearMap{M<:AbstractMatrix}
+struct SquareLinearMap{M <: AbstractMatrix}
     A::M
 end
 
@@ -292,11 +292,11 @@ function squarelinearmap_scenarios(x::AbstractVector, band_sizes)
             append!(
                 scens,
                 [
-                    Scenario{:jacobian,pl_op}(
-                        f, x; prep_args=(; x=x_prep, contexts=()), res1=jac
+                    Scenario{:jacobian, pl_op}(
+                        f, x; prep_args = (; x = x_prep, contexts = ()), res1 = jac
                     ),
-                    Scenario{:jacobian,pl_op}(
-                        f!, y, x; prep_args=(; y=zero(y), x=x_prep, contexts=()), res1=jac
+                    Scenario{:jacobian, pl_op}(
+                        f!, y, x; prep_args = (; y = zero(y), x = x_prep, contexts = ()), res1 = jac
                     ),
                 ],
             )
@@ -307,7 +307,7 @@ end
 
 ### Quadratic form
 
-struct SquareQuadraticForm{M<:AbstractMatrix}
+struct SquareQuadraticForm{M <: AbstractMatrix}
     A::M
 end
 
@@ -355,8 +355,8 @@ function squarequadraticform_scenarios(x::AbstractVector, band_sizes)
         for pl_op in (:out, :in)
             push!(
                 scens,
-                Scenario{:hessian,pl_op}(
-                    f, x; prep_args=(; x=x_prep, contexts=()), res1=grad, res2=hess
+                Scenario{:hessian, pl_op}(
+                    f, x; prep_args = (; x = x_prep, contexts = ()), res1 = grad, res2 = hess
                 ),
             )
         end
@@ -372,12 +372,12 @@ end
 Create a vector of [`Scenario`](@ref)s with sparse array types, focused on sparse Jacobians and Hessians.
 """
 function sparse_scenarios(;
-    band_sizes=[5, 10, 20],
-    include_constantified=false,
-    include_cachified=false,
-    include_constantorcachified=false,
-    use_tuples=false,
-)
+        band_sizes = [5, 10, 20],
+        include_constantified = false,
+        include_cachified = false,
+        include_constantorcachified = false,
+        use_tuples = false,
+    )
     x_6 = float.(1:6)
     x_2_3 = float.(reshape(1:6, 2, 3))
     x_50 = float.(range(1, 2, 50))

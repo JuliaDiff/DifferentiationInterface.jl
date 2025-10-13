@@ -27,7 +27,7 @@ inplace_support(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
 
 function inplace_support(backend::SecondOrder)
     if inplace_support(inner(backend)) isa InPlaceSupported &&
-        inplace_support(outer(backend)) isa InPlaceSupported
+            inplace_support(outer(backend)) isa InPlaceSupported
         return InPlaceSupported()
     else
         return InPlaceNotSupported()
@@ -38,7 +38,7 @@ inplace_support(backend::AutoSparse) = inplace_support(dense_ad(backend))
 
 function inplace_support(backend::MixedMode)
     if Bool(inplace_support(forward_backend(backend))) &&
-        Bool(inplace_support(reverse_backend(backend)))
+            Bool(inplace_support(reverse_backend(backend)))
         return InPlaceSupported()
     else
         return InPlaceNotSupported()
@@ -74,7 +74,7 @@ pushforward_performance(::ForwardOrReverseMode) = PushforwardFast()
 pushforward_performance(::ReverseMode) = PushforwardSlow()
 pushforward_performance(::SymbolicMode) = PushforwardFast()
 
-function pushforward_performance(backend::Union{AutoSparse,SecondOrder})
+function pushforward_performance(backend::Union{AutoSparse, SecondOrder})
     throw(ArgumentError("Pushforward performance not defined for $backend`."))
 end
 
@@ -107,7 +107,7 @@ pullback_performance(::ForwardOrReverseMode) = PullbackFast()
 pullback_performance(::ReverseMode) = PullbackFast()
 pullback_performance(::SymbolicMode) = PullbackFast()
 
-function pullback_performance(backend::Union{AutoSparse,SecondOrder})
+function pullback_performance(backend::Union{AutoSparse, SecondOrder})
     throw(ArgumentError("Pullback performance not defined for $backend`."))
 end
 
@@ -143,7 +143,7 @@ Traits identifying second-order backends that compute HVPs in forward over forwa
 """
 struct ForwardOverForward <: HVPMode end
 
-const ForwardOverAnything = Union{ForwardOverForward,ForwardOverReverse}
+const ForwardOverAnything = Union{ForwardOverForward, ForwardOverReverse}
 
 """
     hvp_mode(backend)

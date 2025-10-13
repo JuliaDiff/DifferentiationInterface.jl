@@ -11,38 +11,38 @@ LOGGING = get(ENV, "CI", "false") == "false"
 
 test_differentiation(
     AutoZeroForward(),
-    map(zero, default_scenarios(; include_batchified=false));
-    type_stability=safetypestab(:full),
-    logging=LOGGING,
-    reprepare=false,
+    map(zero, default_scenarios(; include_batchified = false));
+    type_stability = safetypestab(:full),
+    logging = LOGGING,
+    reprepare = false,
 )
 
 test_differentiation(
     AutoZeroReverse(),
     map(
         DifferentiationInterfaceTest.same_function,
-        default_scenarios(; include_batchified=false),
+        default_scenarios(; include_batchified = false),
     );
-    correctness=false,
-    type_stability=safetypestab(:prepared),
-    logging=LOGGING,
+    correctness = false,
+    type_stability = safetypestab(:prepared),
+    logging = LOGGING,
 )
 
 ## Benchmark
 
 data0 = benchmark_differentiation(
     AutoZeroForward(),
-    no_matrices(default_scenarios(; include_batchified=false, include_constantified=true));
-    logging=LOGGING,
+    no_matrices(default_scenarios(; include_batchified = false, include_constantified = true));
+    logging = LOGGING,
 );
 
 data1 = benchmark_differentiation(
     AutoZeroForward(),
-    no_matrices(default_scenarios(; include_batchified=false));
-    benchmark=:full,
-    logging=LOGGING,
-    benchmark_seconds=0.05,
-    benchmark_aggregation=maximum,
+    no_matrices(default_scenarios(; include_batchified = false));
+    benchmark = :full,
+    logging = LOGGING,
+    benchmark_seconds = 0.05,
+    benchmark_aggregation = maximum,
 );
 
 struct FakeBackend <: ADTypes.AbstractADType end
@@ -50,9 +50,9 @@ ADTypes.mode(::FakeBackend) = ADTypes.ForwardMode()
 
 data2 = benchmark_differentiation(
     FakeBackend(),
-    no_matrices(default_scenarios(; include_batchified=false));
-    logging=false,
-    benchmark_test=false,
+    no_matrices(default_scenarios(; include_batchified = false));
+    logging = false,
+    benchmark_test = false,
 );
 
 @testset "Benchmarking DataFrame" begin
@@ -75,16 +75,16 @@ end
         benchmark_differentiation(
             AutoZeroForward(),
             allocfree_scenarios();
-            excluded=[:pullback, :gradient],
-            benchmark=:prepared,
-            logging=LOGGING,
+            excluded = [:pullback, :gradient],
+            benchmark = :prepared,
+            logging = LOGGING,
         ),
         benchmark_differentiation(
             AutoZeroReverse(),
             allocfree_scenarios();
-            excluded=[:pushforward, :derivative],
-            benchmark=:prepared,
-            logging=LOGGING,
+            excluded = [:pushforward, :derivative],
+            benchmark = :prepared,
+            logging = LOGGING,
         ),
     )
     @testset "$(collect(row[1:4]))" for row in collect(eachrow(data_allocfree))
@@ -95,25 +95,25 @@ end
 test_differentiation(
     AutoZeroForward(),
     allocfree_scenarios();
-    correctness=false,
-    allocations=:prepared,
-    excluded=[:pullback, :gradient, :jacobian],
-    logging=LOGGING,
+    correctness = false,
+    allocations = :prepared,
+    excluded = [:pullback, :gradient, :jacobian],
+    logging = LOGGING,
 )
 
 test_differentiation(
     AutoZeroReverse(),
     allocfree_scenarios();
-    correctness=false,
-    allocations=:prepared,
-    excluded=[:pushforward, :derivative, :jacobian],
-    logging=LOGGING,
+    correctness = false,
+    allocations = :prepared,
+    excluded = [:pushforward, :derivative, :jacobian],
+    logging = LOGGING,
 )
 
 test_differentiation(
     AutoZeroForward();
-    correctness=false,
-    allocations=:full,
-    skip_allocations=true,
-    logging=LOGGING,
+    correctness = false,
+    allocations = :full,
+    skip_allocations = true,
+    logging = LOGGING,
 )

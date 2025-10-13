@@ -28,7 +28,7 @@ function ADTypes.jacobian_sparsity(f, x, detector::DI.DenseSparsityDetector{:ite
     if DI.pushforward_performance(backend) isa DI.PushforwardFast
         p = similar(y)
         prep = DI.prepare_pushforward_same_point(
-            f, backend, x, (DI.basis(x, first(eachindex(x))),); strict=Val(true)
+            f, backend, x, (DI.basis(x, first(eachindex(x))),); strict = Val(true)
         )
         for (kj, j) in enumerate(eachindex(x))
             pushforward!(f, (p,), prep, backend, x, (DI.basis(x, j),))
@@ -42,7 +42,7 @@ function ADTypes.jacobian_sparsity(f, x, detector::DI.DenseSparsityDetector{:ite
     else
         p = similar(x)
         prep = DI.prepare_pullback_same_point(
-            f, backend, x, (DI.basis(y, first(eachindex(y))),); strict=Val(true)
+            f, backend, x, (DI.basis(y, first(eachindex(y))),); strict = Val(true)
         )
         for (ki, i) in enumerate(eachindex(y))
             pullback!(f, (p,), prep, backend, x, (DI.basis(y, i),))
@@ -64,7 +64,7 @@ function ADTypes.jacobian_sparsity(f!, y, x, detector::DI.DenseSparsityDetector{
     if DI.pushforward_performance(backend) isa DI.PushforwardFast
         p = similar(y)
         prep = DI.prepare_pushforward_same_point(
-            f!, y, backend, x, (DI.basis(x, first(eachindex(x))),); strict=Val(true)
+            f!, y, backend, x, (DI.basis(x, first(eachindex(x))),); strict = Val(true)
         )
         for (kj, j) in enumerate(eachindex(x))
             pushforward!(f!, y, (p,), prep, backend, x, (DI.basis(x, j),))
@@ -78,7 +78,7 @@ function ADTypes.jacobian_sparsity(f!, y, x, detector::DI.DenseSparsityDetector{
     else
         p = similar(x)
         prep = DI.prepare_pullback_same_point(
-            f!, y, backend, x, (DI.basis(y, first(eachindex(y))),); strict=Val(true)
+            f!, y, backend, x, (DI.basis(y, first(eachindex(y))),); strict = Val(true)
         )
         for (ki, i) in enumerate(eachindex(y))
             pullback!(f!, y, (p,), prep, backend, x, (DI.basis(y, i),))
@@ -99,7 +99,7 @@ function ADTypes.hessian_sparsity(f, x, detector::DI.DenseSparsityDetector{:iter
     I, J = Int[], Int[]
     p = similar(x)
     prep = DI.prepare_hvp_same_point(
-        f, backend, x, (DI.basis(x, first(eachindex(x))),); strict=Val(true)
+        f, backend, x, (DI.basis(x, first(eachindex(x))),); strict = Val(true)
     )
     for (kj, j) in enumerate(eachindex(x))
         hvp!(f, (p,), prep, backend, x, (DI.basis(x, j),))

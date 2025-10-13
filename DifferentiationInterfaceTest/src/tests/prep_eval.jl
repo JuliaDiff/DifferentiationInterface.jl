@@ -35,13 +35,13 @@ for op in ALL_OPS
         SecondDerivativePrep
     end
 
-    S1out = Scenario{op,:out,:out}
-    S1in = Scenario{op,:in,:out}
-    S2out = Scenario{op,:out,:in}
-    S2in = Scenario{op,:in,:in}
+    S1out = Scenario{op, :out, :out}
+    S1in = Scenario{op, :in, :out}
+    S2out = Scenario{op, :out, :in}
+    S2in = Scenario{op, :in, :in}
 
     if op in [:derivative, :gradient, :jacobian]
-        @eval function test_prep(ba::AbstractADType, scen::$S1out;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1out)
             (; f, x, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             @test prep isa $P
@@ -50,7 +50,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_prep(ba::AbstractADType, scen::$S1in;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1in)
             (; f, x, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             @test prep isa $P
@@ -63,7 +63,7 @@ for op in ALL_OPS
 
         op == :gradient && continue
 
-        @eval function test_prep(ba::AbstractADType, scen::$S2out;)
+        @eval function test_prep(ba::AbstractADType, scen::$S2out)
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
             @test prep isa $P
@@ -72,7 +72,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_prep(ba::AbstractADType, scen::$S2in;)
+        @eval function test_prep(ba::AbstractADType, scen::$S2in)
             (; f, x, y, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, prep_args.y, ba, prep_args.x, prep_args.contexts...)
             @test prep isa $P
@@ -86,7 +86,7 @@ for op in ALL_OPS
         end
 
     elseif op in [:second_derivative, :hessian]
-        @eval function test_prep(ba::AbstractADType, scen::$S1out;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1out)
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             @test prep isa $P
@@ -95,7 +95,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_prep(ba::AbstractADType, scen::$S1in;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1in)
             (; f, x, y, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.contexts...)
             @test prep isa $P
@@ -107,7 +107,7 @@ for op in ALL_OPS
         end
 
     elseif op in [:pushforward, :pullback]
-        @eval function test_prep(ba::AbstractADType, scen::$S1out;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1out)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             @test prep isa $P
@@ -116,7 +116,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_prep(ba::AbstractADType, scen::$S1in;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1in)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             @test prep isa $P
@@ -127,7 +127,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_prep(ba::AbstractADType, scen::$S2out;)
+        @eval function test_prep(ba::AbstractADType, scen::$S2out)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(
                 f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
@@ -138,7 +138,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_prep(ba::AbstractADType, scen::$S2in;)
+        @eval function test_prep(ba::AbstractADType, scen::$S2in)
             (; f, x, y, t, res1, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(
                 f, prep_args.y, ba, prep_args.x, prep_args.t, prep_args.contexts...
@@ -154,7 +154,7 @@ for op in ALL_OPS
         end
 
     elseif op in [:hvp]
-        @eval function test_prep(ba::AbstractADType, scen::$S1out;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1out)
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             @test prep isa $P
@@ -163,7 +163,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_prep(ba::AbstractADType, scen::$S1in;)
+        @eval function test_prep(ba::AbstractADType, scen::$S1in)
             (; f, x, y, t, res1, res2, contexts, prep_args) = new_scen = deepcopy(scen)
             prep = $prep_op(f, ba, prep_args.x, prep_args.t, prep_args.contexts...)
             @test prep isa $P

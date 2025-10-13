@@ -1,10 +1,10 @@
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith,<:Any}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith, <:Any}
 
 struct MooncakeDifferentiateWithError <: Exception
     F::Type
     X::Type
     Y::Type
-    function MooncakeDifferentiateWithError(::F, ::X, ::Y) where {F,X,Y}
+    function MooncakeDifferentiateWithError(::F, ::X, ::Y) where {F, X, Y}
         return new(F, X, Y)
     end
 end
@@ -48,8 +48,8 @@ function Mooncake.rrule!!(dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:Number
 end
 
 function Mooncake.rrule!!(
-    dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:AbstractArray{<:Number}}
-)
+        dw::CoDual{<:DI.DifferentiateWith}, x::CoDual{<:AbstractArray{<:Number}}
+    )
     primal_func = primal(dw)
     primal_x = primal(x)
     fdata_arg = x.dx

@@ -17,15 +17,15 @@ check_no_implicit_imports(DifferentiationInterface)
 LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [
-    AutoEnzyme(; mode=nothing),
-    AutoEnzyme(; mode=Enzyme.Forward),
-    AutoEnzyme(; mode=Enzyme.Reverse),
-    AutoEnzyme(; mode=nothing, function_annotation=Enzyme.Const),
+    AutoEnzyme(; mode = nothing),
+    AutoEnzyme(; mode = Enzyme.Forward),
+    AutoEnzyme(; mode = Enzyme.Reverse),
+    AutoEnzyme(; mode = nothing, function_annotation = Enzyme.Const),
 ]
 
 duplicated_backends = [
-    AutoEnzyme(; mode=Enzyme.Forward, function_annotation=Enzyme.Duplicated),
-    AutoEnzyme(; mode=Enzyme.Reverse, function_annotation=Enzyme.Duplicated),
+    AutoEnzyme(; mode = Enzyme.Forward, function_annotation = Enzyme.Duplicated),
+    AutoEnzyme(; mode = Enzyme.Reverse, function_annotation = Enzyme.Duplicated),
 ]
 
 @testset "Checks" begin
@@ -37,33 +37,33 @@ end;
 
 @testset "First order" begin
     test_differentiation(
-        backends, default_scenarios(); excluded=SECOND_ORDER, logging=LOGGING
+        backends, default_scenarios(); excluded = SECOND_ORDER, logging = LOGGING
     )
 
     test_differentiation(
         backends[1:3],
-        default_scenarios(; include_normal=false, include_constantified=true);
-        excluded=SECOND_ORDER,
-        logging=LOGGING,
+        default_scenarios(; include_normal = false, include_constantified = true);
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
     )
 
     test_differentiation(
         backends[2:3],
         default_scenarios(;
-            include_normal=false,
-            include_cachified=true,
-            include_constantorcachified=true,
-            use_tuples=true,
+            include_normal = false,
+            include_cachified = true,
+            include_constantorcachified = true,
+            use_tuples = true,
         );
-        excluded=SECOND_ORDER,
-        logging=LOGGING,
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
     )
 
     test_differentiation(
         duplicated_backends,
-        default_scenarios(; include_normal=false, include_closurified=true);
-        excluded=SECOND_ORDER,
-        logging=LOGGING,
+        default_scenarios(; include_normal = false, include_closurified = true);
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
     )
 end
 
@@ -72,25 +72,25 @@ end
         [
             AutoEnzyme(),
             SecondOrder(
-                AutoEnzyme(; mode=Enzyme.Reverse), AutoEnzyme(; mode=Enzyme.Forward)
+                AutoEnzyme(; mode = Enzyme.Reverse), AutoEnzyme(; mode = Enzyme.Forward)
             ),
         ],
-        default_scenarios(; include_constantified=true, include_cachified=true);
-        excluded=FIRST_ORDER,
-        logging=LOGGING,
+        default_scenarios(; include_constantified = true, include_cachified = true);
+        excluded = FIRST_ORDER,
+        logging = LOGGING,
     )
 end
 
 @testset "Sparse" begin
     test_differentiation(
-        MyAutoSparse.(AutoEnzyme(; function_annotation=Enzyme.Const)),
+        MyAutoSparse.(AutoEnzyme(; function_annotation = Enzyme.Const)),
         if VERSION < v"1.11"
             sparse_scenarios()
         else
             filter(s -> s.x isa AbstractVector, sparse_scenarios())
         end;
-        sparsity=true,
-        logging=LOGGING,
+        sparsity = true,
+        logging = LOGGING,
     )
 end
 
@@ -100,10 +100,10 @@ end
     end
 
     test_differentiation(
-        [AutoEnzyme(; mode=Enzyme.Forward), AutoEnzyme(; mode=Enzyme.Reverse)],
+        [AutoEnzyme(; mode = Enzyme.Forward), AutoEnzyme(; mode = Enzyme.Reverse)],
         filtered_static_scenarios;
-        excluded=SECOND_ORDER,
-        logging=LOGGING,
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
     )
 end
 
@@ -111,10 +111,10 @@ end
     # ConstantOrCache without cache
     f_nocontext(x, p) = x
     @test I == DifferentiationInterface.jacobian(
-        f_nocontext, AutoEnzyme(; mode=Enzyme.Forward), rand(10), ConstantOrCache(nothing)
+        f_nocontext, AutoEnzyme(; mode = Enzyme.Forward), rand(10), ConstantOrCache(nothing)
     )
     @test I == DifferentiationInterface.jacobian(
-        f_nocontext, AutoEnzyme(; mode=Enzyme.Reverse), rand(10), ConstantOrCache(nothing)
+        f_nocontext, AutoEnzyme(; mode = Enzyme.Reverse), rand(10), ConstantOrCache(nothing)
     )
 end
 
@@ -153,7 +153,7 @@ end
         try
             pushforward(
                 h,
-                AutoEnzyme(; mode=Enzyme.Forward),
+                AutoEnzyme(; mode = Enzyme.Forward),
                 [1.0],
                 ([1.0],),
                 Constant([1.0]),
@@ -169,8 +169,8 @@ end
 
 @testset "Empty arrays" begin
     test_differentiation(
-        [AutoEnzyme(; mode=Enzyme.Forward), AutoEnzyme(; mode=Enzyme.Reverse)],
+        [AutoEnzyme(; mode = Enzyme.Forward), AutoEnzyme(; mode = Enzyme.Reverse)],
         empty_scenarios();
-        excluded=[:jacobian],
+        excluded = [:jacobian],
     )
 end;

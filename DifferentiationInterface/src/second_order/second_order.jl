@@ -16,7 +16,7 @@ Combination of two backends for second-order differentiation.
   - `outer::AbstractADType`: backend for the outer differentiation
   - `inner::AbstractADType`: backend for the inner differentiation
 """
-struct SecondOrder{ADO<:AbstractADType,ADI<:AbstractADType} <: AbstractADType
+struct SecondOrder{ADO <: AbstractADType, ADI <: AbstractADType} <: AbstractADType
     outer::ADO
     inner::ADI
 end
@@ -26,9 +26,9 @@ function Base.show(io::IO, backend::SecondOrder)
         io,
         SecondOrder,
         "(",
-        repr(outer(backend); context=io),
+        repr(outer(backend); context = io),
         ", ",
-        repr(inner(backend); context=io),
+        repr(inner(backend); context = io),
         ")",
     )
 end

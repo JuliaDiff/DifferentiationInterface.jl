@@ -133,17 +133,17 @@ Utility for recording context types of additional arguments (e.g. `Constant` or 
 
 Useful for second-order differentiation.
 """
-struct Rewrap{C,T}
+struct Rewrap{C, T}
     context_makers::T
-    function Rewrap(contexts::Vararg{Context,C}) where {C}
+    function Rewrap(contexts::Vararg{Context, C}) where {C}
         context_makers = map(maker, contexts)
-        return new{C,typeof(context_makers)}(context_makers)
+        return new{C, typeof(context_makers)}(context_makers)
     end
 end
 
 (::Rewrap{0})() = ()
 
-function (r::Rewrap{C,T})(unannotated_contexts::Vararg{Any,C}) where {C,T}
+function (r::Rewrap{C, T})(unannotated_contexts::Vararg{Any, C}) where {C, T}
     return map(r.context_makers, unannotated_contexts) do maker, c
         maker(c)
     end
@@ -160,15 +160,15 @@ Closure around a function `f` and a set of tail argument `tail_args` such that
 (ft::FixTail)(args...) = ft.f(args..., ft.tail_args...)
 ```
 """
-struct FixTail{F,A<:Tuple}
+struct FixTail{F, A <: Tuple}
     f::F
     tail_args::A
-    function FixTail(f::F, tail_args::Vararg{Any,N}) where {F,N}
-        return new{F,typeof(tail_args)}(f, tail_args)
+    function FixTail(f::F, tail_args::Vararg{Any, N}) where {F, N}
+        return new{F, typeof(tail_args)}(f, tail_args)
     end
 end
 
-function (ft::FixTail)(args::Vararg{Any,N}) where {N}
+function (ft::FixTail)(args::Vararg{Any, N}) where {N}
     return ft.f(args..., ft.tail_args...)
 end
 
@@ -178,4 +178,4 @@ end
 Convenience for constructing a [`FixTail`](@ref), with a shortcut when there are no tail arguments.
 """
 @inline fix_tail(f::F) where {F} = f
-fix_tail(f::F, args::Vararg{Any,N}) where {F,N} = FixTail(f, args...)
+fix_tail(f::F, args::Vararg{Any, N}) where {F, N} = FixTail(f, args...)

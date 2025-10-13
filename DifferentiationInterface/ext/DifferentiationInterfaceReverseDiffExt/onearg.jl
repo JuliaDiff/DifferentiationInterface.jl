@@ -1,20 +1,20 @@
 ## Pullback
 
 function DI.prepare_pullback_nokwarg(
-    strict::Val, f, backend::AutoReverseDiff, x, ty::NTuple, contexts::Vararg{DI.Context,C};
-) where {C}
+        strict::Val, f, backend::AutoReverseDiff, x, ty::NTuple, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     return DI.NoPullbackPrep(_sig)
 end
 
 function DI.value_and_pullback(
-    f,
-    prep::DI.NoPullbackPrep,
-    backend::AutoReverseDiff,
-    x::AbstractArray,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::DI.NoPullbackPrep,
+        backend::AutoReverseDiff,
+        x::AbstractArray,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -30,14 +30,14 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback!(
-    f,
-    tx::NTuple,
-    prep::DI.NoPullbackPrep,
-    backend::AutoReverseDiff,
-    x::AbstractArray,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        tx::NTuple,
+        prep::DI.NoPullbackPrep,
+        backend::AutoReverseDiff,
+        x::AbstractArray,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -55,13 +55,13 @@ function DI.value_and_pullback!(
 end
 
 function DI.value_and_pullback(
-    f,
-    prep::DI.NoPullbackPrep,
-    backend::AutoReverseDiff,
-    x::Number,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::DI.NoPullbackPrep,
+        backend::AutoReverseDiff,
+        x::Number,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     x_array = [x]
     f_array(x_array, args...) = f(only(x_array), args...)
@@ -73,15 +73,15 @@ end
 
 ### Without contexts
 
-struct ReverseDiffGradientPrep{SIG,C,T} <: DI.GradientPrep{SIG}
+struct ReverseDiffGradientPrep{SIG, C, T} <: DI.GradientPrep{SIG}
     _sig::Val{SIG}
     config::C
     tape::T
 end
 
 function DI.prepare_gradient_nokwarg(
-    strict::Val, f, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        strict::Val, f, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     _sig = DI.signature(f, backend, x; strict)
     if compile
         tape = ReverseDiff.compile(GradientTape(f, x))
@@ -93,8 +93,8 @@ function DI.prepare_gradient_nokwarg(
 end
 
 function DI.value_and_gradient!(
-    f, grad, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, grad, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     result = MutableDiffResult(zero(eltype(x)), (grad,))  # ReverseDiff#251
     if compile
@@ -106,8 +106,8 @@ function DI.value_and_gradient!(
 end
 
 function DI.value_and_gradient(
-    f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     # GradientResult tries to mutate an SArray
     result = MutableDiffResult(zero(eltype(x)), (similar(x),))
@@ -120,8 +120,8 @@ function DI.value_and_gradient(
 end
 
 function DI.gradient!(
-    f, grad, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, grad, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     if compile
         return gradient!(grad, prep.tape, x)
@@ -131,8 +131,8 @@ function DI.gradient!(
 end
 
 function DI.gradient(
-    f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, prep::ReverseDiffGradientPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     if compile
         return gradient!(prep.tape, x)
@@ -144,21 +144,21 @@ end
 ### With contexts
 
 function DI.prepare_gradient_nokwarg(
-    strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = GradientConfig(x)
     return ReverseDiffGradientPrep(_sig, config, nothing)
 end
 
 function DI.value_and_gradient!(
-    f,
-    grad,
-    prep::ReverseDiffGradientPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        prep::ReverseDiffGradientPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     result = MutableDiffResult(zero(eltype(x)), (grad,))  # ReverseDiff#251
@@ -167,12 +167,12 @@ function DI.value_and_gradient!(
 end
 
 function DI.value_and_gradient(
-    f,
-    prep::ReverseDiffGradientPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::ReverseDiffGradientPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     # GradientResult tries to mutate an SArray
@@ -182,25 +182,25 @@ function DI.value_and_gradient(
 end
 
 function DI.gradient!(
-    f,
-    grad,
-    prep::ReverseDiffGradientPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        prep::ReverseDiffGradientPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return gradient!(grad, fc, x, prep.config)
 end
 
 function DI.gradient(
-    f,
-    prep::ReverseDiffGradientPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::ReverseDiffGradientPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return gradient(fc, x, prep.config)
@@ -210,15 +210,15 @@ end
 
 ### Without contexts
 
-struct ReverseDiffOneArgJacobianPrep{SIG,C,T} <: DI.JacobianPrep{SIG}
+struct ReverseDiffOneArgJacobianPrep{SIG, C, T} <: DI.JacobianPrep{SIG}
     _sig::Val{SIG}
     config::C
     tape::T
 end
 
 function DI.prepare_jacobian_nokwarg(
-    strict::Val, f, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        strict::Val, f, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     _sig = DI.signature(f, backend, x; strict)
     if compile
         tape = ReverseDiff.compile(JacobianTape(f, x))
@@ -230,8 +230,8 @@ function DI.prepare_jacobian_nokwarg(
 end
 
 function DI.value_and_jacobian!(
-    f, jac, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, jac, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     y = f(x)
     result = DiffResult(y, (jac,))
@@ -246,8 +246,8 @@ function DI.value_and_jacobian!(
 end
 
 function DI.value_and_jacobian(
-    f, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     if compile
         return f(x), jacobian!(prep.tape, x)
@@ -257,8 +257,8 @@ function DI.value_and_jacobian(
 end
 
 function DI.jacobian!(
-    f, jac, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, jac, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     if compile
         return jacobian!(jac, prep.tape, x)
@@ -268,8 +268,8 @@ function DI.jacobian!(
 end
 
 function DI.jacobian(
-    f, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, prep::ReverseDiffOneArgJacobianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     if compile
         return jacobian!(prep.tape, x)
@@ -281,21 +281,21 @@ end
 ### With contexts
 
 function DI.prepare_jacobian_nokwarg(
-    strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = JacobianConfig(x)
     return ReverseDiffOneArgJacobianPrep(_sig, config, nothing)
 end
 
 function DI.value_and_jacobian!(
-    f,
-    jac,
-    prep::ReverseDiffOneArgJacobianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        jac,
+        prep::ReverseDiffOneArgJacobianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
@@ -307,37 +307,37 @@ function DI.value_and_jacobian!(
 end
 
 function DI.value_and_jacobian(
-    f,
-    prep::ReverseDiffOneArgJacobianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::ReverseDiffOneArgJacobianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return fc(x), jacobian(fc, x, prep.config)
 end
 
 function DI.jacobian!(
-    f,
-    jac,
-    prep::ReverseDiffOneArgJacobianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        jac,
+        prep::ReverseDiffOneArgJacobianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return jacobian!(jac, fc, x, prep.config)
 end
 
 function DI.jacobian(
-    f,
-    prep::ReverseDiffOneArgJacobianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::ReverseDiffOneArgJacobianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return jacobian(fc, x, prep.config)
@@ -347,7 +347,7 @@ end
 
 ### Without contexts
 
-struct ReverseDiffHessianPrep{SIG,G<:ReverseDiffGradientPrep,HC,HT} <: DI.HessianPrep{SIG}
+struct ReverseDiffHessianPrep{SIG, G <: ReverseDiffGradientPrep, HC, HT} <: DI.HessianPrep{SIG}
     _sig::Val{SIG}
     gradient_prep::G
     hessian_config::HC
@@ -355,8 +355,8 @@ struct ReverseDiffHessianPrep{SIG,G<:ReverseDiffGradientPrep,HC,HT} <: DI.Hessia
 end
 
 function DI.prepare_hessian_nokwarg(
-    strict::Val, f, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        strict::Val, f, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     _sig = DI.signature(f, backend, x; strict)
     gradient_prep = DI.prepare_gradient_nokwarg(strict, f, backend, x)
     if compile
@@ -369,8 +369,8 @@ function DI.prepare_hessian_nokwarg(
 end
 
 function DI.hessian!(
-    f, hess, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, hess, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     if compile
         return hessian!(hess, prep.hessian_tape, x)
@@ -380,8 +380,8 @@ function DI.hessian!(
 end
 
 function DI.hessian(
-    f, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     if compile
         return hessian!(prep.hessian_tape, x)
@@ -391,8 +391,8 @@ function DI.hessian(
 end
 
 function DI.value_gradient_and_hessian!(
-    f, grad, hess, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, grad, hess, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     y = f(x)
     DI.gradient!(f, grad, prep.gradient_prep, backend, x)
@@ -401,8 +401,8 @@ function DI.value_gradient_and_hessian!(
 end
 
 function DI.value_gradient_and_hessian(
-    f, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
-) where {compile}
+        f, prep::ReverseDiffHessianPrep, backend::AutoReverseDiff{compile}, x
+    ) where {compile}
     DI.check_prep(f, prep, backend, x)
     y = f(x)
     grad = DI.gradient(f, prep.gradient_prep, backend, x)
@@ -413,8 +413,8 @@ end
 ### With contexts
 
 function DI.prepare_hessian_nokwarg(
-    strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context,C}
-) where {C}
+        strict::Val, f, backend::AutoReverseDiff, x, contexts::Vararg{DI.Context, C}
+    ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     gradient_prep = DI.prepare_gradient_nokwarg(strict, f, backend, x, contexts...)
     hessian_config = HessianConfig(x)
@@ -422,39 +422,39 @@ function DI.prepare_hessian_nokwarg(
 end
 
 function DI.hessian!(
-    f,
-    hess,
-    prep::ReverseDiffHessianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        hess,
+        prep::ReverseDiffHessianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return hessian!(hess, fc, x, prep.hessian_config)
 end
 
 function DI.hessian(
-    f,
-    prep::ReverseDiffHessianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::ReverseDiffHessianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     return hessian(fc, x, prep.hessian_config)
 end
 
 function DI.value_gradient_and_hessian!(
-    f,
-    grad,
-    hess,
-    prep::ReverseDiffHessianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        grad,
+        hess,
+        prep::ReverseDiffHessianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y = f(x, map(DI.unwrap, contexts)...)
     DI.gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
@@ -463,12 +463,12 @@ function DI.value_gradient_and_hessian!(
 end
 
 function DI.value_gradient_and_hessian(
-    f,
-    prep::ReverseDiffHessianPrep,
-    backend::AutoReverseDiff,
-    x,
-    contexts::Vararg{DI.Context,C},
-) where {C}
+        f,
+        prep::ReverseDiffHessianPrep,
+        backend::AutoReverseDiff,
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y = f(x, map(DI.unwrap, contexts)...)
     grad = DI.gradient(f, prep.gradient_prep, backend, x, contexts...)

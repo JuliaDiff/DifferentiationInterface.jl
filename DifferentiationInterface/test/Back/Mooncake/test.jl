@@ -11,9 +11,9 @@ check_no_implicit_imports(DifferentiationInterface)
 LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [
-    AutoMooncake(; config=nothing),
-    AutoMooncake(; config=Mooncake.Config()),
-    AutoMooncakeForward(; config=nothing),
+    AutoMooncake(; config = nothing),
+    AutoMooncake(; config = Mooncake.Config()),
+    AutoMooncakeForward(; config = nothing),
 ]
 
 for backend in backends
@@ -24,14 +24,14 @@ end
 test_differentiation(
     backends,
     default_scenarios(;
-        include_constantified=true, include_cachified=true, use_tuples=true
+        include_constantified = true, include_cachified = true, use_tuples = true
     );
-    excluded=SECOND_ORDER,
-    logging=LOGGING,
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
 );
 
 @testset "NamedTuples" begin
-    ps = (; A=rand(5), B=rand(5))
+    ps = (; A = rand(5), B = rand(5))
     myfun(ps) = sum(ps.A .* ps.B)
     grad = gradient(myfun, backends[1], ps)
     @test grad.A == ps.B

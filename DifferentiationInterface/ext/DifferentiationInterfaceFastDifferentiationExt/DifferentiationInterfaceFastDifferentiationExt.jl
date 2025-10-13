@@ -24,8 +24,8 @@ myvec(x::AbstractArray) = vec(x)
 variablize(::Number, name::Symbol) = only(make_variables(name))
 variablize(x::AbstractArray, name::Symbol) = make_variables(name, size(x)...)
 
-function variablize(contexts::NTuple{C,DI.Context}) where {C}
-    map(enumerate(contexts)) do (k, c)
+function variablize(contexts::NTuple{C, DI.Context}) where {C}
+    return map(enumerate(contexts)) do (k, c)
         variablize(DI.unwrap(c), Symbol("context$k"))
     end
 end

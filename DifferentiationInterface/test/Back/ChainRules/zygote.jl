@@ -19,13 +19,13 @@ end
 test_differentiation(
     AutoChainRules(ZygoteRuleConfig()),
     default_scenarios();
-    excluded=[:second_derivative],
-    logging=LOGGING,
+    excluded = [:second_derivative],
+    logging = LOGGING,
 );
 
 test_differentiation(
     AutoChainRules(ZygoteRuleConfig()),
-    default_scenarios(; include_normal=false, include_constantified=true);
-    excluded=SECOND_ORDER,
-    logging=LOGGING,
+    default_scenarios(; include_normal = false, include_constantified = true);
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
 );

@@ -83,19 +83,19 @@ end
 is_strict(::Prep{Nothing}) = Val(false)
 is_strict(::Prep) = Val(true)
 
-struct PreparationMismatchError{SIG,EXEC_SIG} <: Exception
+struct PreparationMismatchError{SIG, EXEC_SIG} <: Exception
     format::Vector{Symbol}
 end
 
 function PreparationMismatchError(
-    ::Type{SIG}, ::Type{EXEC_SIG}; format
-) where {SIG,EXEC_SIG}
-    return PreparationMismatchError{SIG,EXEC_SIG}(format)
+        ::Type{SIG}, ::Type{EXEC_SIG}; format
+    ) where {SIG, EXEC_SIG}
+    return PreparationMismatchError{SIG, EXEC_SIG}(format)
 end
 
 function Base.showerror(
-    io::IO, e::PreparationMismatchError{SIG,EXEC_SIG}
-) where {SIG<:Tuple,EXEC_SIG<:Tuple}
+        io::IO, e::PreparationMismatchError{SIG, EXEC_SIG}
+    ) where {SIG <: Tuple, EXEC_SIG <: Tuple}
     println(
         io,
         "PreparationMismatchError (inconsistent types between preparation and execution):",
@@ -115,8 +115,8 @@ function Base.showerror(
 end
 
 function signature(
-    f, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val{S}
-) where {C,S}
+        f, backend::AbstractADType, x, contexts::Vararg{Context, C}; strict::Val{S}
+    ) where {C, S}
     if S
         return Val(typeof((f, backend, x, contexts)))
     else
@@ -125,8 +125,8 @@ function signature(
 end
 
 function signature(
-    f!, y, backend::AbstractADType, x, contexts::Vararg{Context,C}; strict::Val{S}
-) where {C,S}
+        f!, y, backend::AbstractADType, x, contexts::Vararg{Context, C}; strict::Val{S}
+    ) where {C, S}
     if S
         return Val(typeof((f!, y, backend, x, contexts)))
     else
@@ -135,8 +135,8 @@ function signature(
 end
 
 function signature(
-    f, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}; strict::Val{S}
-) where {C,S}
+        f, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context, C}; strict::Val{S}
+    ) where {C, S}
     if S
         return Val(typeof((f, backend, x, t, contexts)))
     else
@@ -145,14 +145,14 @@ function signature(
 end
 
 function signature(
-    f!,
-    y,
-    backend::AbstractADType,
-    x,
-    t::NTuple,
-    contexts::Vararg{Context,C};
-    strict::Val{S},
-) where {C,S}
+        f!,
+        y,
+        backend::AbstractADType,
+        x,
+        t::NTuple,
+        contexts::Vararg{Context, C};
+        strict::Val{S},
+    ) where {C, S}
     if S
         return Val(typeof((f!, y, backend, x, t, contexts)))
     else
@@ -161,14 +161,14 @@ function signature(
 end
 
 function check_prep(
-    f, ::Prep{SIG}, backend::AbstractADType, x, contexts::Vararg{Context,C}
-) where {SIG,C}
-    if SIG !== Nothing
+        f, ::Prep{SIG}, backend::AbstractADType, x, contexts::Vararg{Context, C}
+    ) where {SIG, C}
+    return if SIG !== Nothing
         EXEC_SIG = typeof((f, backend, x, contexts))
         if SIG != EXEC_SIG
             throw(
                 PreparationMismatchError(
-                    SIG, EXEC_SIG; format=[:f, :backend, :x, :contexts]
+                    SIG, EXEC_SIG; format = [:f, :backend, :x, :contexts]
                 ),
             )
         end
@@ -176,14 +176,14 @@ function check_prep(
 end
 
 function check_prep(
-    f!, y, ::Prep{SIG}, backend::AbstractADType, x, contexts::Vararg{Context,C}
-) where {SIG,C}
-    if SIG !== Nothing
+        f!, y, ::Prep{SIG}, backend::AbstractADType, x, contexts::Vararg{Context, C}
+    ) where {SIG, C}
+    return if SIG !== Nothing
         EXEC_SIG = typeof((f!, y, backend, x, contexts))
         if SIG != EXEC_SIG
             throw(
                 PreparationMismatchError(
-                    SIG, EXEC_SIG; format=[:f!, :y, :backend, :x, :contexts]
+                    SIG, EXEC_SIG; format = [:f!, :y, :backend, :x, :contexts]
                 ),
             )
         end
@@ -191,14 +191,14 @@ function check_prep(
 end
 
 function check_prep(
-    f, ::Prep{SIG}, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}
-) where {SIG,C}
-    if SIG !== Nothing
+        f, ::Prep{SIG}, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context, C}
+    ) where {SIG, C}
+    return if SIG !== Nothing
         EXEC_SIG = typeof((f, backend, x, t, contexts))
         if SIG != EXEC_SIG
             throw(
                 PreparationMismatchError(
-                    SIG, EXEC_SIG; format=[:f, :backend, :x, :t, :contexts]
+                    SIG, EXEC_SIG; format = [:f, :backend, :x, :t, :contexts]
                 ),
             )
         end
@@ -206,14 +206,14 @@ function check_prep(
 end
 
 function check_prep(
-    f!, y, ::Prep{SIG}, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context,C}
-) where {SIG,C}
-    if SIG !== Nothing
+        f!, y, ::Prep{SIG}, backend::AbstractADType, x, t::NTuple, contexts::Vararg{Context, C}
+    ) where {SIG, C}
+    return if SIG !== Nothing
         EXEC_SIG = typeof((f!, y, backend, x, t, contexts))
         if SIG != EXEC_SIG
             throw(
                 PreparationMismatchError(
-                    SIG, EXEC_SIG; format=[:f!, :y, :backend, :x, :t, :contexts]
+                    SIG, EXEC_SIG; format = [:f!, :y, :backend, :x, :t, :contexts]
                 ),
             )
         end

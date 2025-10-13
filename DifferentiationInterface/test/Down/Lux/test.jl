@@ -14,9 +14,9 @@ LOGGING = get(ENV, "CI", "false") == "false"
 test_differentiation(
     AutoZygote(),
     DIT.lux_scenarios(Random.Xoshiro(63));
-    isapprox=DIT.lux_isapprox,
-    rtol=1.0f-2,
-    atol=1.0f-3,
-    scenario_intact=false,  # TODO: why?
-    logging=LOGGING,
+    isapprox = DIT.lux_isapprox,
+    rtol = 1.0f-2,
+    atol = 1.0f-3,
+    scenario_intact = false,  # TODO: why?
+    logging = LOGGING,
 )

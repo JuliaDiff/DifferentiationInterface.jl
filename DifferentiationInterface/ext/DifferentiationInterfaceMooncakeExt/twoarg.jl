@@ -1,4 +1,4 @@
-struct MooncakeTwoArgPullbackPrep{SIG,Tcache,DY,F} <: DI.PullbackPrep{SIG}
+struct MooncakeTwoArgPullbackPrep{SIG, Tcache, DY, F} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
     dy_righttype::DY
@@ -6,14 +6,14 @@ struct MooncakeTwoArgPullbackPrep{SIG,Tcache,DY,F} <: DI.PullbackPrep{SIG}
 end
 
 function DI.prepare_pullback_nokwarg(
-    strict::Val,
-    f!::F,
-    y,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C};
-) where {F,C}
+        strict::Val,
+        f!::F,
+        y,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
     target_function = function (f!, y, x, contexts...)
         f!(y, x, contexts...)
@@ -26,8 +26,8 @@ function DI.prepare_pullback_nokwarg(
         y,
         x,
         map(DI.unwrap, contexts)...;
-        debug_mode=config.debug_mode,
-        silence_debug_messages=config.silence_debug_messages,
+        debug_mode = config.debug_mode,
+        silence_debug_messages = config.silence_debug_messages,
     )
     dy_righttype_after = zero_tangent(y)
     prep = MooncakeTwoArgPullbackPrep(_sig, cache, dy_righttype_after, target_function)
@@ -35,14 +35,14 @@ function DI.prepare_pullback_nokwarg(
 end
 
 function DI.value_and_pullback(
-    f!::F,
-    y,
-    prep::MooncakeTwoArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple{1},
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        prep::MooncakeTwoArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple{1},
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     dy = only(ty)
     # Prepare cotangent to add after the forward pass.
@@ -62,14 +62,14 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback(
-    f!::F,
-    y,
-    prep::MooncakeTwoArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        prep::MooncakeTwoArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     tx = map(ty) do dy
         dy_righttype_after = copyto!(prep.dy_righttype, dy)
@@ -89,15 +89,15 @@ function DI.value_and_pullback(
 end
 
 function DI.value_and_pullback!(
-    f!::F,
-    y,
-    tx::NTuple,
-    prep::MooncakeTwoArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        tx::NTuple,
+        prep::MooncakeTwoArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     _, new_tx = DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
     foreach(copyto!, tx, new_tx)
@@ -105,28 +105,28 @@ function DI.value_and_pullback!(
 end
 
 function DI.pullback(
-    f!::F,
-    y,
-    prep::MooncakeTwoArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        prep::MooncakeTwoArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     return DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)[2]
 end
 
 function DI.pullback!(
-    f!::F,
-    y,
-    tx::NTuple,
-    prep::MooncakeTwoArgPullbackPrep,
-    backend::AutoMooncake,
-    x,
-    ty::NTuple,
-    contexts::Vararg{DI.Context,C},
-) where {F,C}
+        f!::F,
+        y,
+        tx::NTuple,
+        prep::MooncakeTwoArgPullbackPrep,
+        backend::AutoMooncake,
+        x,
+        ty::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     return DI.value_and_pullback!(f!, y, tx, prep, backend, x, ty, contexts...)[2]
 end

@@ -66,7 +66,7 @@ function square_loss_iterated(cell, x)
     return mean(abs2, y)
 end
 
-struct SimpleDense{W,B,F}
+struct SimpleDense{W, B, F}
     w::W
     b::B
     σ::F
@@ -76,7 +76,7 @@ end
 
 @functor SimpleDense
 
-function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
+function DIT.flux_scenarios(rng::AbstractRNG = default_rng())
     init = glorot_uniform(rng)
 
     scens = DIT.Scenario[]
@@ -91,12 +91,12 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
     x = randn(rng, d_in)
     g = gradient_finite_differences(square_loss, model, x)
 
-    scen = DIT.Scenario{:gradient,:out}(
+    scen = DIT.Scenario{:gradient, :out}(
         square_loss,
         model,
         DI.Constant(x);
-        prep_args=(x=model, contexts=(DI.Constant(x),)),
-        res1=g,
+        prep_args = (x = model, contexts = (DI.Constant(x),)),
+        res1 = g,
     )
     push!(scens, scen)
 
@@ -160,18 +160,18 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
             Chain(LSTM(3 => 4), RNN(4 => 5), Dense(5 => 2)),
             randn(rng, Float32, 3, 2, 1)
         ),
-    #! format: on
+        #! format: on
     ]
 
     for (model, x) in models_and_xs
         Flux.trainmode!(model)
         g = gradient_finite_differences(square_loss, model, x)
-        scen = DIT.Scenario{:gradient,:out}(
+        scen = DIT.Scenario{:gradient, :out}(
             square_loss,
             model,
             DI.Constant(x);
-            prep_args=(; x=model, contexts=(DI.Constant(x),)),
-            res1=g,
+            prep_args = (; x = model, contexts = (DI.Constant(x),)),
+            res1 = g,
         )
         push!(scens, scen)
     end
@@ -198,12 +198,12 @@ function DIT.flux_scenarios(rng::AbstractRNG=default_rng())
     for (model, x) in recurrent_models_and_xs
         Flux.trainmode!(model)
         g = gradient_finite_differences(square_loss_iterated, model, x)
-        scen = DIT.Scenario{:gradient,:out}(
+        scen = DIT.Scenario{:gradient, :out}(
             square_loss_iterated,
             model,
             DI.Constant(x);
-            prep_args=(; x=model, contexts=(DI.Constant(x),)),
-            res1=g,
+            prep_args = (; x = model, contexts = (DI.Constant(x),)),
+            res1 = g,
         )
         push!(scens, scen)
     end

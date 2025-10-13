@@ -33,7 +33,7 @@ Default values:
 
 $(TYPEDFIELDS)
 """
-struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,P<:NamedTuple}
+struct Scenario{op, pl_op, pl_fun, F, X, Y, T <: Union{Nothing, NTuple}, C <: Tuple, R1, R2, P <: NamedTuple}
     "function `f` (if `pl_fun==:out`) or `f!` (if `pl_fun==:in`) to apply"
     f::F
     "primal output"
@@ -51,23 +51,23 @@ struct Scenario{op,pl_op,pl_fun,F,X,Y,T<:Union{Nothing,NTuple},C<:Tuple,R1,R2,P<
     "named tuple of arguments passed to preparation, without the function - the required keys are a subset of `(; y, x, t, contexts)` depending on the operator"
     prep_args::P
     "name of the scenario for display in test sets and dataframes"
-    name::Union{String,Nothing}
+    name::Union{String, Nothing}
 
-    function Scenario{op,pl_op,pl_fun}(;
-        f::F,
-        y::Y,
-        x::X,
-        t::T,
-        contexts::C,
-        res1::R1,
-        res2::R2,
-        prep_args::P,
-        name::Union{String,Nothing},
-    ) where {op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,P}
+    function Scenario{op, pl_op, pl_fun}(;
+            f::F,
+            y::Y,
+            x::X,
+            t::T,
+            contexts::C,
+            res1::R1,
+            res2::R2,
+            prep_args::P,
+            name::Union{String, Nothing},
+        ) where {op, pl_op, pl_fun, F, X, Y, T, C, R1, R2, P}
         @assert op in ALL_OPS
         @assert pl_op in (:in, :out)
         @assert pl_fun in (:in, :out)
-        return new{op,pl_op,pl_fun,F,X,Y,T,C,R1,R2,P}(
+        return new{op, pl_op, pl_fun, F, X, Y, T, C, R1, R2, P}(
             f, y, x, t, contexts, res1, res2, prep_args, name
         )
     end
@@ -78,78 +78,78 @@ function zero_contexts(contexts...)
     return rewrap(map(zero ∘ unwrap, contexts)...)
 end
 
-function Scenario{op,pl_op}(
-    f,
-    x,
-    contexts::Vararg{Context};
-    res1=nothing,
-    res2=nothing,
-    prep_args=(; x=zero(x), contexts=zero_contexts(contexts...)),
-    name=nothing,
-) where {op,pl_op}
+function Scenario{op, pl_op}(
+        f,
+        x,
+        contexts::Vararg{Context};
+        res1 = nothing,
+        res2 = nothing,
+        prep_args = (; x = zero(x), contexts = zero_contexts(contexts...)),
+        name = nothing,
+    ) where {op, pl_op}
     y = f(x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:out}(;
-        f, y, x, t=nothing, contexts, res1, res2, prep_args, name
+    return Scenario{op, pl_op, :out}(;
+        f, y, x, t = nothing, contexts, res1, res2, prep_args, name
     )
 end
 
-function Scenario{op,pl_op}(
-    f,
-    y,
-    x,
-    contexts::Vararg{Context};
-    res1=nothing,
-    res2=nothing,
-    prep_args=(; y=zero(y), x=zero(x), contexts=zero_contexts(contexts...)),
-    name=nothing,
-) where {op,pl_op}
+function Scenario{op, pl_op}(
+        f,
+        y,
+        x,
+        contexts::Vararg{Context};
+        res1 = nothing,
+        res2 = nothing,
+        prep_args = (; y = zero(y), x = zero(x), contexts = zero_contexts(contexts...)),
+        name = nothing,
+    ) where {op, pl_op}
     f(y, x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:in}(;
-        f, y, x, t=nothing, contexts, res1, res2, prep_args, name
+    return Scenario{op, pl_op, :in}(;
+        f, y, x, t = nothing, contexts, res1, res2, prep_args, name
     )
 end
 
-function Scenario{op,pl_op}(
-    f,
-    x,
-    t::NTuple,
-    contexts::Vararg{Context};
-    res1=nothing,
-    res2=nothing,
-    prep_args=(; x=zero(x), t=map(zero, t), contexts=zero_contexts(contexts...)),
-    name=nothing,
-) where {op,pl_op}
+function Scenario{op, pl_op}(
+        f,
+        x,
+        t::NTuple,
+        contexts::Vararg{Context};
+        res1 = nothing,
+        res2 = nothing,
+        prep_args = (; x = zero(x), t = map(zero, t), contexts = zero_contexts(contexts...)),
+        name = nothing,
+    ) where {op, pl_op}
     y = f(x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:out}(; f, y, x, t, contexts, res1, res2, prep_args, name)
+    return Scenario{op, pl_op, :out}(; f, y, x, t, contexts, res1, res2, prep_args, name)
 end
 
-function Scenario{op,pl_op}(
-    f,
-    y,
-    x,
-    t::NTuple,
-    contexts::Vararg{Context};
-    res1=nothing,
-    res2=nothing,
-    prep_args=(; y=zero(y), x=zero(x), t=map(zero, t), contexts=zero_contexts(contexts...)),
-    name=nothing,
-) where {op,pl_op}
+function Scenario{op, pl_op}(
+        f,
+        y,
+        x,
+        t::NTuple,
+        contexts::Vararg{Context};
+        res1 = nothing,
+        res2 = nothing,
+        prep_args = (; y = zero(y), x = zero(x), t = map(zero, t), contexts = zero_contexts(contexts...)),
+        name = nothing,
+    ) where {op, pl_op}
     f(y, x, map(unwrap, contexts)...)
-    return Scenario{op,pl_op,:in}(; f, y, x, t, contexts, res1, res2, prep_args, name)
+    return Scenario{op, pl_op, :in}(; f, y, x, t, contexts, res1, res2, prep_args, name)
 end
 
 Base.:(==)(scen1::Scenario, scen2::Scenario) = false
 
 function Base.:(==)(
-    scen1::Scenario{op,pl_op,pl_fun}, scen2::Scenario{op,pl_op,pl_fun}
-) where {op,pl_op,pl_fun}
+        scen1::Scenario{op, pl_op, pl_fun}, scen2::Scenario{op, pl_op, pl_fun}
+    ) where {op, pl_op, pl_fun}
     eq_f = scen1.f == scen2.f
     eq_x = scen1.x == scen2.x
     eq_y = scen1.y == scen2.y
     eq_t = scen1.t == scen2.t
     eq_contexts = all(
         map(scen1.contexts, scen2.contexts) do c1, c2
-            if c1 isa Union{Cache,ConstantOrCache} || c2 isa Union{Cache,ConstantOrCache}
+            if c1 isa Union{Cache, ConstantOrCache} || c2 isa Union{Cache, ConstantOrCache}
                 return true
             else
                 return c1 == c2
@@ -163,8 +163,8 @@ function Base.:(==)(
 end
 
 operator(::Scenario{op}) where {op} = op
-operator_place(::Scenario{op,pl_op}) where {op,pl_op} = pl_op
-function_place(::Scenario{op,pl_op,pl_fun}) where {op,pl_op,pl_fun} = pl_fun
+operator_place(::Scenario{op, pl_op}) where {op, pl_op} = pl_op
+function_place(::Scenario{op, pl_op, pl_fun}) where {op, pl_op, pl_fun} = pl_fun
 
 function order(scen::Scenario)
     if operator(scen) in [:pushforward, :pullback, :derivative, :gradient, :jacobian]
@@ -178,25 +178,25 @@ function compatible(backend::AbstractADType, scen::Scenario)
     place_compatible = function_place(scen) == :out || Bool(inplace_support(backend))
     sparse_compatible = operator(scen) in (:jacobian, :hessian) || !isa(backend, AutoSparse)
     secondorder_compatible =
-        order(scen) == 2 || !isa(backend, Union{SecondOrder,AutoSparse{<:SecondOrder}})
+        order(scen) == 2 || !isa(backend, Union{SecondOrder, AutoSparse{<:SecondOrder}})
     mixedmode_compatible =
         operator(scen) == :jacobian || !isa(backend, AutoSparse{<:MixedMode})
     return place_compatible &&
-           secondorder_compatible &&
-           sparse_compatible &&
-           mixedmode_compatible
+        secondorder_compatible &&
+        sparse_compatible &&
+        mixedmode_compatible
 end
 
 function group_by_operator(scenarios::AbstractVector{<:Scenario})
     return Dict(
         op => filter(s -> operator(s) == op, scenarios) for
-        op in unique(operator.(scenarios))
+            op in unique(operator.(scenarios))
     )
 end
 
 function Base.show(
-    io::IO, scen::Scenario{op,pl_op,pl_fun,F,X,Y,T}
-) where {op,pl_op,pl_fun,F,X,Y,T}
+        io::IO, scen::Scenario{op, pl_op, pl_fun, F, X, Y, T}
+    ) where {op, pl_op, pl_fun, F, X, Y, T}
     if isnothing(scen.name)
         print(io, "Scenario{$(repr(op)),$(repr(pl_op))} $(string(scen.f)) : $X -> $Y")
         if op in (:pushforward, :pullback, :hvp)
