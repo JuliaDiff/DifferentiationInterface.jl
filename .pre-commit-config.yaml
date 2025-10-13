@@ -6,4 +6,8 @@ repos:
     -   id: check-added-large-files
     -   id: check-merge-conflict
     -   id: no-commit-to-branch
+-   repo: https://github.com/fredrikekre/runic-pre-commit
+    rev: v1.0.0
+    hooks:
+    -   id: runic
 fail_fast: true
