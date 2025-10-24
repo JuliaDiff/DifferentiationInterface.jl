@@ -374,6 +374,35 @@ end
 
 function _jacobian_aux(
         f_or_f!y::FY,
+        prep::PushforwardJacobianPrep{SIG, <:BatchSizeSettings{1, false, true}},
+        backend::AbstractADType,
+        x,
+        contexts::Vararg{Context, C},
+    ) where {FY, SIG, C}
+    (; batched_seeds, seed_example, pushforward_prep) = prep
+
+    pushforward_prep_same = prepare_pushforward_same_point(
+        f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
+    )
+
+    jac = stack(eachindex(batched_seeds); dims = 2) do a
+        dy = only(
+            pushforward(
+                f_or_f!y...,
+                pushforward_prep_same,
+                backend,
+                x,
+                batched_seeds[a],
+                contexts...,
+            )
+        )
+        return vec(dy)
+    end
+    return jac
+end
+
+function _jacobian_aux(
+        f_or_f!y::FY,
         prep::PushforwardJacobianPrep{SIG, <:BatchSizeSettings{B, false, aligned}},
         backend::AbstractADType,
         x,
@@ -426,6 +455,34 @@ function _jacobian_aux(
     else
         return block[1:B_last, :]
     end
+end
+
+function _jacobian_aux(
+        f_or_f!y::FY,
+        prep::PullbackJacobianPrep{SIG, <:BatchSizeSettings{1, false, true}},
+        backend::AbstractADType,
+        x,
+        contexts::Vararg{Context, C},
+    ) where {FY, SIG, C}
+    (; batched_seeds, seed_example, pullback_prep) = prep
+
+    pullback_prep_same = prepare_pullback_same_point(
+        f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
+    )
+
+    jac = stack(eachindex(batched_seeds); dims = 1) do a
+        dx = only(
+            pullback(
+                f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
+            )
+        )
+        if eltype(x) <: Complex
+            return map(conj, vec(dx))
+        else
+            return vec(dx)
+        end
+    end
+    return jac
 end
 
 function _jacobian_aux(

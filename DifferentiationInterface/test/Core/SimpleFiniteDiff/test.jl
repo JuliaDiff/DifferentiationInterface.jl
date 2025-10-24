@@ -74,7 +74,14 @@ end
         logging = LOGGING,
     )
 
-    test_differentiation(backends, complex_scenarios(); logging = LOGGING)
+    test_differentiation(
+        vcat(
+            backends[2:3],
+            AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 1))
+        ),
+        complex_scenarios();
+        logging = LOGGING
+    )
 end
 
 @testset "Sparse" begin

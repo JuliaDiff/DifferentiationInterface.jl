@@ -153,6 +153,27 @@ end
 
 function hessian(
         f::F,
+        prep::HVPGradientHessianPrep{SIG, <:BatchSizeSettings{1, false, true}},
+        backend::AbstractADType,
+        x,
+        contexts::Vararg{Context, C},
+    ) where {F, SIG, C}
+    check_prep(f, prep, backend, x, contexts...)
+    (; batched_seeds, seed_example, hvp_prep) = prep
+
+    hvp_prep_same = prepare_hvp_same_point(
+        f, hvp_prep, backend, x, seed_example, contexts...
+    )
+
+    hess = mapreduce(hcat, eachindex(batched_seeds)) do a
+        dg = only(hvp(f, hvp_prep_same, backend, x, batched_seeds[a], contexts...))
+        return vec(dg)
+    end
+    return hess
+end
+
+function hessian(
+        f::F,
         prep::HVPGradientHessianPrep{SIG, <:BatchSizeSettings{B, false, aligned}},
         backend::AbstractADType,
         x,
