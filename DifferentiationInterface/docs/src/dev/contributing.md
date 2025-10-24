@@ -1,4 +1,4 @@
-# Dev guide
+# Contributing
 
 This page is important reading if you want to contribute to DifferentiationInterface.jl.
 It is not part of the public API and the content below may become outdated, in which case you should refer to the source code as the ground truth.
@@ -7,26 +7,27 @@ It is not part of the public API and the content below may become outdated, in w
 
 The package is structured around 8 [operators](@ref Operators):
 
-  - [`derivative`](@ref)
-  - [`second_derivative`](@ref)
-  - [`gradient`](@ref)
-  - [`jacobian`](@ref)
-  - [`hessian`](@ref)
-  - [`pushforward`](@ref)
-  - [`pullback`](@ref)
-  - [`hvp`](@ref)
+- [`derivative`](@ref)
+- [`second_derivative`](@ref)
+- [`gradient`](@ref)
+- [`jacobian`](@ref)
+- [`hessian`](@ref)
+- [`pushforward`](@ref)
+- [`pullback`](@ref)
+- [`hvp`](@ref)
 
 Most operators have 4 variants, which look like this in the first order: `operator`, `operator!`, `value_and_operator`, `value_and_operator!`.
 
 ## New operator
 
 To implement a new operator for an existing backend, you need to write 5 methods: 1 for [preparation](@ref Preparation) and 4 corresponding to the variants of the operator (see above).
-For first-order operators, you may also want to support [in-place functions](@ref "Mutation and signatures"), which requires another 5 methods (defined on `f!` instead of `f`).
+For some operators, you will also need to support [in-place functions](@ref "Mutation and signatures"), which requires another 5 methods (defined on `f!` instead of `f`).
 
 The method `prepare_operator_nokwarg` must output a `prep` object of the correct type.
-For instance, `prepare_gradient(strict, f, backend, x)` must return a [`DifferentiationInterface.GradientPrep`](@ref).
-Assuming you don't need any preparation for said operator, you can use the trivial prep that are already defined, like `DifferentiationInterface.NoGradientPrep{SIG}`.
+For instance, `prepare_gradient_nokwarg(strict, f, backend, x)` must return a [`DifferentiationInterface.GradientPrep`](@ref).
+Assuming you don't need any preparation for said operator, you can use the trivial preparation types that are already defined, like `DifferentiationInterface.NoGradientPrep{SIG}`.
 Otherwise, define a custom struct like `MyGradientPrep{SIG} <: DifferentiationInterface.GradientPrep{SIG}` and put the necessary storage in there.
+Take inspiration from existing operators on how to enforce the signature `SIG`.
 
 ## New backend
 
@@ -36,10 +37,10 @@ Your AD package needs to be registered first.
 ### Core code
 
 In the main package, you should define a new struct `SuperDiffBackend` which subtypes [`ADTypes.AbstractADType`](@extref ADTypes), and endow it with the fields you need to parametrize your differentiation routines.
-You also have to define [`ADTypes.mode`](@extref) and [`DifferentiationInterface.inplace_support`](@ref) on `SuperDiffBackend`.
+You also have to define [`ADTypes.mode`](@extref), [`DifferentiationInterface.check_available`](@ref) and [`DifferentiationInterface.inplace_support`](@ref) on `SuperDiffBackend`.
 
 !!! info
-    
+
     In the end, this backend struct will need to be contributed to [ADTypes.jl](https://github.com/SciML/ADTypes.jl).
     However, putting it in the DifferentiationInterface.jl PR is a good first step for debugging.
 
@@ -47,7 +48,7 @@ In a [package extension](https://pkgdocs.julialang.org/v1/creating-packages/#Con
 The exact requirements depend on the differentiation mode you chose:
 
 | backend mode                                      | pushforward necessary | pullback necessary |
-|:------------------------------------------------- |:--------------------- |:------------------ |
+| :------------------------------------------------ | :-------------------- | :----------------- |
 | [`ADTypes.ForwardMode`](@extref ADTypes)          | yes                   | no                 |
 | [`ADTypes.ReverseMode`](@extref ADTypes)          | no                    | yes                |
 | [`ADTypes.ForwardOrReverseMode`](@extref ADTypes) | yes                   | yes                |
