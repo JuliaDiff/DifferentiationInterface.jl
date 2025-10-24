@@ -1,4 +1,5 @@
 using DifferentiationInterface: Prep
+using InteractiveUtils: subtypes
 using Test
 
 @test subtypes(Prep) == [
