@@ -36,8 +36,8 @@ makedocs(;
         "FAQ" => ["faq/limitations.md", "faq/differentiability.md"],
         "api.md",
         "Development" => [
-            "internals.md",
-            "contributing.md",
+            "dev/internals.md",
+            "dev/contributing.md",
         ],
     ],
     plugins = [links],
