@@ -129,6 +129,7 @@ export AutoSparse
 
 @public inner, outer
 @public AutoForwardFromPrimitive, AutoReverseFromPrimitive
+@public Prep
 
 include("init.jl")
 

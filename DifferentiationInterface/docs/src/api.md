@@ -139,12 +139,8 @@ DifferentiationInterface.AutoForwardFromPrimitive
 DifferentiationInterface.AutoReverseFromPrimitive
 ```
 
-## Internals
+### Preparation type
 
-The following is not part of the public API.
-
-```@autodocs
-Modules = [DifferentiationInterface]
-Public = false
-Filter = t -> !(Symbol(t) in [:outer, :inner])
+```@docs
+DifferentiationInterface.Prep
 ```

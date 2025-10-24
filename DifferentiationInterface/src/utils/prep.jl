@@ -1,3 +1,11 @@
+"""
+    Prep
+
+Abstract supertype for all preparation results (outputs of `prepare_operator` functions).
+
+!!! warning
+    The public API does not make any guarantees about the type parameters or field layout of `Prep`, the only guarantee is that this type exists.
+"""
 abstract type Prep{SIG} end
 
 """
