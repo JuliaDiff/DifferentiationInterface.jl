@@ -20,13 +20,13 @@ jobs:
           version: '1'
           arch: ${{ runner.arch }}
         if: steps.julia_in_path.outcome != 'success'
-      - name: "Add the General registry via Git"
+      - name: 'Add the General registry via Git'
         run: |
           import Pkg
           ENV["JULIA_PKG_SERVER"] = ""
           Pkg.Registry.add("General")
         shell: julia --color=yes {0}
-      - name: "Install CompatHelper"
+      - name: 'Install CompatHelper'
         run: |
           import Pkg
           name = "CompatHelper"
@@ -34,10 +34,17 @@ jobs:
           version = "3"
           Pkg.add(; name, uuid, version)
         shell: julia --color=yes {0}
-      - name: "Run CompatHelper"
+      - name: 'Run CompatHelper'
         run: |
           import CompatHelper
-          CompatHelper.main(subdirs=["DifferentiationInterface", "DifferentiationInterfaceTest"])
+          CompatHelper.main(subdirs=[
+              "DifferentiationInterface",
+              "DifferentiationInterface/test",
+              "DifferentiationInterface/docs",
+              "DifferentiationInterfaceTest",
+              "DifferentiationInterfaceTest/test",
+              "DifferentiationInterfaceTest/docs",
+          ])
         shell: julia --color=yes {0}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
