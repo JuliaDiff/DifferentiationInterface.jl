@@ -15,4 +15,5 @@ SparseMatrixColorings = "0a514795-09f3-496d-8182-132a7b665d35"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
+BenchmarkTools = "1"
 Documenter = "1"
