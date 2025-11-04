@@ -31,7 +31,7 @@ backend = AutoForwardDiff()
 ```
 
 !!! tip
-    
+
     To avoid name conflicts, load AD packages with `import` instead of `using`.
     Indeed, most AD packages also export operators like `gradient` and `jacobian`, but you only want to use the ones from DifferentiationInterface.jl.
 
@@ -81,18 +81,25 @@ These objects can be reused between gradient computations, even on different inp
 We abstract away the preparation step behind a backend-agnostic syntax:
 
 ```@example tuto_basic
-prep = prepare_gradient(f, backend, zero(x))
+using Random
+typical_x = randn!(similar(x))
+prep = prepare_gradient(f, backend, typical_x)
 ```
 
 You don't need to know what this object is, you just need to pass it to the gradient operator.
 Note that preparation does not depend on the actual components of the vector `x`, just on its type and size.
-You can thus reuse the `prep` for different values of the input.
+
+You can then reuse the `prep` for different values of the input.
 
 ```@example tuto_basic
 grad = similar(x)
 gradient!(f, grad, prep, backend, x)
 grad  # has been mutated
 ```
+
+!!! warning
+    Reusing the `prep` object on inputs of a different type will throw an error.
+    Reusing the `prep` object on inputs of a different size may either work, fail silently or fail loudly, possibly even crash your REPL. Do not try it.
 
 Preparation makes the gradient computation much faster, and (in this case) allocation-free.
 
@@ -122,7 +129,7 @@ gradient(f, backend2, x)
 And you can run the same benchmarks to see what you gained (although such a small input may not be realistic):
 
 ```@example tuto_basic
-prep2 = prepare_gradient(f, backend2, zero(x))
+prep2 = prepare_gradient(f, backend2, randn!(similar(x)))
 
 @benchmark gradient!($f, $grad, $prep2, $backend2, $x)
 ```
