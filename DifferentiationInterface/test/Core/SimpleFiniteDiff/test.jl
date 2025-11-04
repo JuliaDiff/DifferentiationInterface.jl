@@ -136,7 +136,16 @@ end
         @test only(column_groups(hess_prep)) == 1:10
     end
 
-    @testset "Empty colors for mixed mode" begin # issue 857
+    @testset "Empty color groups in sparse AD" begin # issue 857
+        # forward
+        backend = MyAutoSparse(adaptive_backends[1])
+        @test jacobian(zero, backend, ones(10)) isa AbstractMatrix
+        @test hessian(sum ∘ zero, backend, ones(10)) isa AbstractMatrix
+        # reverse
+        backend = MyAutoSparse(adaptive_backends[2])
+        @test jacobian(zero, backend, ones(10)) isa AbstractMatrix
+        @test hessian(sum ∘ zero, backend, ones(10)) isa AbstractMatrix
+        # mixed
         backend = MyAutoSparse(MixedMode(adaptive_backends[1], adaptive_backends[2]))
         @test jacobian(copyto!, zeros(10), backend, ones(10)) isa AbstractMatrix
     end
