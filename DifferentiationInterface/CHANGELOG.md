@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.10...main)
+## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.11...main)
+
+## [0.7.11](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.10...DifferentiationInterface-v0.7.11)
+
+### Fixed
+
+- Allow (empty) sparse Hessians of linear functions ([#906](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/906))
 
 ## [0.7.10](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.9...DifferentiationInterface-v0.7.10)
 
