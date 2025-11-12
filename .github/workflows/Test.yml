@@ -40,6 +40,7 @@ jobs:
           - Back/ChainRules
           # - Back/Diffractor
           - Back/Enzyme
+          - Back/FastDifferentiation
           - Back/FiniteDiff
           - Back/FiniteDifferences
           - Back/ForwardDiff
@@ -47,7 +48,7 @@ jobs:
           - Back/Mooncake
           - Back/PolyesterForwardDiff
           - Back/ReverseDiff
-          - Back/SymbolicBackends
+          - Back/Symbolics
           - Back/Tracker
           - Back/Zygote
           - Down/Flux
