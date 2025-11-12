@@ -77,13 +77,11 @@ jobs:
           arch: x64
       - uses: julia-actions/cache@v2
       - name: Install dependencies & run tests
-        # how to add the local DIT to the DI test env?
         run: julia --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
           Pkg.activate("./DifferentiationInterface/test");
-          Pkg.develop(path="./DifferentiationInterface");
-          Pkg.develop(path="./DifferentiationInterfaceTest");
+          Pkg.develop([PackageSpec(; path="./DifferentiationInterface"), PackageSpec(; path="./DifferentiationInterfaceTest")]);
           test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
           Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);
