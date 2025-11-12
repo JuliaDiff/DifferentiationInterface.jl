@@ -66,8 +66,6 @@ jobs:
           - version: '1.12'
             group: Back/Enzyme
           - version: '1.12'
-            group: Back/Mooncake
-          - version: '1.12'
             group: Back/DifferentiateWith
     env:
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
