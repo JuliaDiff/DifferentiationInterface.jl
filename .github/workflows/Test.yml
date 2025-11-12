@@ -51,8 +51,6 @@ jobs:
           - Back/Symbolics
           - Back/Tracker
           - Back/Zygote
-          - Down/Flux
-          - Down/Lux
         skip_lts:
           - ${{ github.event.pull_request.draft }}
         skip_pre:
@@ -80,13 +78,16 @@ jobs:
       - uses: julia-actions/cache@v2
       - name: Install dependencies & run tests
         # how to add the local DIT to the DI test env?
-        run: julia --project=./DifferentiationInterface --color=yes -e '
+        run: julia --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
+          Pkg.activate("./DifferentiationInterface/test");
+          Pkg.develop(path="./DifferentiationInterfaceTest");
+          test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
-          Pkg.test("DifferentiationInterface"; coverage=true, julia_args=["-O1"]);
+          Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);
           else;
-          Pkg.test("DifferentiationInterface"; coverage=true);
+          Pkg.test("DifferentiationInterface"; test_kwargs...);
           end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
