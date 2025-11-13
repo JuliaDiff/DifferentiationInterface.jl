@@ -36,6 +36,7 @@ makedocs(;
         "api.md",
         "Development" => [
             "dev/internals.md",
+            "dev/math.md",
             "dev/contributing.md",
         ],
     ],

@@ -1,10 +1,12 @@
 ## Pushforward
 
-struct MooncakeTwoArgPushforwardPrep{SIG, Tcache, DX, DY} <: DI.PushforwardPrep{SIG}
+struct MooncakeTwoArgPushforwardPrep{SIG, Tcache, DX, DY, FT, CT} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
     dx_righttype::DX
     dy_righttype::DY
+    df!::FT
+    context_tangents::CT
 end
 
 function DI.prepare_pushforward_nokwarg(
@@ -28,7 +30,9 @@ function DI.prepare_pushforward_nokwarg(
     )
     dx_righttype = zero_tangent(x)
     dy_righttype = zero_tangent(y)
-    prep = MooncakeTwoArgPushforwardPrep(_sig, cache, dx_righttype, dy_righttype)
+    df! = zero_tangent(f!)
+    context_tangents = map(zero_tangent_unwrap, contexts)
+    prep = MooncakeTwoArgPushforwardPrep(_sig, cache, dx_righttype, dy_righttype, df!, context_tangents)
     return prep
 end
 
@@ -48,10 +52,10 @@ function DI.value_and_pushforward(
         y_dual = zero_dual(y)
         value_and_derivative!!(
             prep.cache,
-            zero_dual(f!),
+            Dual(f!, prep.df!),
             y_dual,
             Dual(x, dx_righttype),
-            map(zero_dual ∘ DI.unwrap, contexts)...,
+            map(Dual_unwrap, contexts, prep.context_tangents)...,
         )
         dy = _copy_output(tangent(y_dual))
         return dy
@@ -90,10 +94,10 @@ function DI.value_and_pushforward!(
             dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
         value_and_derivative!!(
             prep.cache,
-            zero_dual(f!),
+            Dual(f!, prep.df!),
             Dual(y, dy_righttype),
             Dual(x, dx_righttype),
-            map(zero_dual ∘ DI.unwrap, contexts)...,
+            map(Dual_unwrap, contexts, prep.context_tangents)...,
         )
         dy === dy_righttype || copyto!(dy, dy_righttype)
     end
