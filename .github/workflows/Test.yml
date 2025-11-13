@@ -80,9 +80,12 @@ jobs:
         run: julia --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
-          if VERSION < v"1.11";
           Pkg.activate("./DifferentiationInterface/test");
-          Pkg.rm("DifferentiationInterfaceTest");
+          if VERSION < v"1.11";
+          Pkg.rm(["DifferentiationInterfaceTest", "DifferentiationInterface"]);
+          Pkg.instantiate();
+          else;
+          Pkg.develop(; path="./DifferentiationInterfaceTest");
           end;
           test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
