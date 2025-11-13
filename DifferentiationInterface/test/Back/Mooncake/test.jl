@@ -1,5 +1,5 @@
 using Pkg
-Pkg.add("Mooncake")
+Pkg.add(url = "https://github.com/gdalle/Mooncake.jl", rev = "selective_zeroing")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using Mooncake: Mooncake
