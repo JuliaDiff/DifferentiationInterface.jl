@@ -87,6 +87,7 @@ jobs:
           else;
           Pkg.develop(; path="./DifferentiationInterfaceTest");
           end;
+          Pkg.activate("./DifferentiationInterface");
           test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
           Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);
