@@ -2,6 +2,15 @@ using DifferentiationInterface
 using Pkg
 using Test
 
+@static if VERSION < v"1.11"
+    DIT_PATH = joinpath(@__DIR__, "..", "..", "DifferentiationInterfaceTest")
+    if isdir(DIT_PATH)
+        Pkg.develop(; path = DIT_PATH)
+    else
+        Pkg.add("DifferentiationInterfaceTest")
+    end
+end
+
 include("testutils.jl")
 
 ## Main tests

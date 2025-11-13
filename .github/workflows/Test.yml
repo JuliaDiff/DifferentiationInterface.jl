@@ -80,10 +80,10 @@ jobs:
         run: julia --color=yes -e '
           using Pkg;
           Pkg.Registry.update();
+          if VERSION < v"1.11";
           Pkg.activate("./DifferentiationInterface/test");
-          Pkg.develop([PackageSpec(; path="./DifferentiationInterface"), PackageSpec(; path="./DifferentiationInterfaceTest")]);
-          VERSION < v"1.11" && Pkg.rm("DifferentiationInterface");
-          Pkg.activate("./DifferentiationInterface/");
+          Pkg.rm("DifferentiationInterfaceTest");
+          end;
           test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
           Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);

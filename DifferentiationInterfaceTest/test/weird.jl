@@ -1,11 +1,9 @@
-using Pkg
-Pkg.add(["FiniteDiff", "Lux", "LuxTestUtils"])
-
 using ADTypes
 using ComponentArrays: ComponentArrays
 using DifferentiationInterface
 using DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
+using FiniteDiff: FiniteDiff
 using ForwardDiff: ForwardDiff
 using ForwardDiff: ForwardDiff
 using JLArrays: JLArrays
