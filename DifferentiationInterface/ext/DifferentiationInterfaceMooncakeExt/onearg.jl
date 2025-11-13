@@ -1,9 +1,10 @@
 ## Pullback
 
-struct MooncakeOneArgPullbackPrep{SIG, Tcache, DY} <: DI.PullbackPrep{SIG}
+struct MooncakeOneArgPullbackPrep{SIG, Tcache, DY, N} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
     dy_righttype::DY
+    args_to_zero::NTuple{N, Bool}
 end
 
 function DI.prepare_pullback_nokwarg(
@@ -16,7 +17,12 @@ function DI.prepare_pullback_nokwarg(
     )
     y = f(x, map(DI.unwrap, contexts)...)
     dy_righttype = zero_tangent(y)
-    prep = MooncakeOneArgPullbackPrep(_sig, cache, dy_righttype)
+    args_to_zero = (
+        false,  # f
+        true,  # x
+        map(_ -> false, contexts)...,
+    )
+    prep = MooncakeOneArgPullbackPrep(_sig, cache, dy_righttype, args_to_zero)
     return prep
 end
 
@@ -32,7 +38,8 @@ function DI.value_and_pullback(
     dy = only(ty)
     dy_righttype = dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
     new_y, (_, new_dx) = value_and_pullback!!(
-        prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...
+        prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...;
+        prep.args_to_zero
     )
     return new_y, (_copy_output(new_dx),)
 end
@@ -50,7 +57,8 @@ function DI.value_and_pullback(
         dy_righttype =
             dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
         y, (_, new_dx) = value_and_pullback!!(
-            prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...
+            prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...;
+            prep.args_to_zero
         )
         y, _copy_output(new_dx)
     end
@@ -101,9 +109,10 @@ end
 
 ## Gradient
 
-struct MooncakeGradientPrep{SIG, Tcache} <: DI.GradientPrep{SIG}
+struct MooncakeGradientPrep{SIG, Tcache, N} <: DI.GradientPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
+    args_to_zero::NTuple{N, Bool}
 end
 
 function DI.prepare_gradient_nokwarg(
@@ -114,7 +123,12 @@ function DI.prepare_gradient_nokwarg(
     cache = prepare_gradient_cache(
         f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
     )
-    prep = MooncakeGradientPrep(_sig, cache)
+    args_to_zero = (
+        false,  # f
+        true,  # x
+        map(_ -> false, contexts)...,
+    )
+    prep = MooncakeGradientPrep(_sig, cache, args_to_zero)
     return prep
 end
 
@@ -126,7 +140,10 @@ function DI.value_and_gradient(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    y, (_, new_grad) = value_and_gradient!!(prep.cache, f, x, map(DI.unwrap, contexts)...)
+    y, (_, new_grad) = value_and_gradient!!(
+        prep.cache, f, x, map(DI.unwrap, contexts)...;
+        prep.args_to_zero
+    )
     return y, _copy_output(new_grad)
 end
 
@@ -139,7 +156,10 @@ function DI.value_and_gradient!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    y, (_, new_grad) = value_and_gradient!!(prep.cache, f, x, map(DI.unwrap, contexts)...)
+    y, (_, new_grad) = value_and_gradient!!(
+        prep.cache, f, x, map(DI.unwrap, contexts)...;
+        prep.args_to_zero
+    )
     copyto!(grad, new_grad)
     return y, grad
 end

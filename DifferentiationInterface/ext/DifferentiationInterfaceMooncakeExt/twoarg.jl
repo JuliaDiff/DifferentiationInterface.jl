@@ -1,8 +1,9 @@
-struct MooncakeTwoArgPullbackPrep{SIG, Tcache, DY, F} <: DI.PullbackPrep{SIG}
+struct MooncakeTwoArgPullbackPrep{SIG, Tcache, DY, F, N} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
     dy_righttype::DY
     target_function::F
+    args_to_zero::NTuple{N, Bool}
 end
 
 function DI.prepare_pullback_nokwarg(
@@ -30,7 +31,16 @@ function DI.prepare_pullback_nokwarg(
         silence_debug_messages = config.silence_debug_messages,
     )
     dy_righttype_after = zero_tangent(y)
-    prep = MooncakeTwoArgPullbackPrep(_sig, cache, dy_righttype_after, target_function)
+    args_to_zero = (
+        false,  # target_function
+        false,  # f!
+        false,  # y
+        true,  # x
+        map(_ -> false, contexts)...,
+    )
+    prep = MooncakeTwoArgPullbackPrep(
+        _sig, cache, dy_righttype_after, target_function, args_to_zero
+    )
     return prep
 end
 
@@ -55,7 +65,8 @@ function DI.value_and_pullback(
         f!,
         y,
         x,
-        map(DI.unwrap, contexts)...,
+        map(DI.unwrap, contexts)...;
+        prep.args_to_zero
     )
     copyto!(y, y_after)
     return y, (_copy_output(dx),)
@@ -80,7 +91,8 @@ function DI.value_and_pullback(
             f!,
             y,
             x,
-            map(DI.unwrap, contexts)...,
+            map(DI.unwrap, contexts)...;
+            prep.args_to_zero
         )
         copyto!(y, y_after)
         _copy_output(dx)
