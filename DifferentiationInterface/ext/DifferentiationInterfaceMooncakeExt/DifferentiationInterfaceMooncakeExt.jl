@@ -35,9 +35,7 @@ const AnyAutoMooncake{C} = Union{AutoMooncake{C}, AutoMooncakeForward{C}}
 
 DI.check_available(::AnyAutoMooncake{C}) where {C} = true
 
-get_config(::AnyAutoMooncake{Nothing}) = Config()
-get_config(backend::AnyAutoMooncake{<:Config}) = backend.config
-
+include("utils.jl")
 include("onearg.jl")
 include("twoarg.jl")
 include("forward_onearg.jl")
