@@ -82,7 +82,8 @@ jobs:
           Pkg.Registry.update();
           Pkg.activate("./DifferentiationInterface/test");
           Pkg.develop([PackageSpec(; path="./DifferentiationInterface"), PackageSpec(; path="./DifferentiationInterfaceTest")]);
-          Pkg.rm("DifferentiationInterface");
+          VERSION < v"1.11" && Pkg.rm("DifferentiationInterface");
+          Pkg.activate("./DifferentiationInterface/");
           test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
           Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);
