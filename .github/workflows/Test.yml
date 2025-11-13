@@ -83,7 +83,7 @@ jobs:
           Pkg.activate("./DifferentiationInterface/test");
           if VERSION < v"1.11";
           Pkg.rm(["DifferentiationInterfaceTest", "DifferentiationInterface"]);
-          Pkg.instantiate();
+          Pkg.resolve();
           else;
           Pkg.develop(; path="./DifferentiationInterfaceTest");
           end;
