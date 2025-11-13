@@ -21,26 +21,14 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [weakdeps]
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
-FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
-Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-Functors = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
 JLArrays = "27aeb0d3-9eb9-45fb-866b-73c2ecf80fcb"
-Lux = "b2108857-7c20-44ae-9111-449ecde12c47"
-LuxTestUtils = "ac9de150-d08f-4546-94fb-7472b5760531"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [extensions]
 DifferentiationInterfaceTestComponentArraysExt = "ComponentArrays"
-DifferentiationInterfaceTestFluxExt = ["FiniteDifferences", "Flux", "Functors"]
 DifferentiationInterfaceTestJLArraysExt = "JLArrays"
-DifferentiationInterfaceTestLuxExt = [
-    "ComponentArrays",
-    "ForwardDiff",
-    "Lux",
-    "LuxTestUtils",
-]
 DifferentiationInterfaceTestStaticArraysExt = "StaticArrays"
 
 [compat]
@@ -51,15 +39,10 @@ ComponentArrays = "0.15"
 DataFrames = "1.6.1"
 DifferentiationInterface = "0.7.7"
 DocStringExtensions = "0.8,0.9"
-FiniteDifferences = "0.12"
-Flux = "0.16"
 ForwardDiff = "0.10.36,1"
-Functors = "0.4, 0.5"
 JET = "0.9,0.10,0.11"
 JLArrays = "0.1,0.2,0.3"
 LinearAlgebra = "1"
-Lux = "1.1.0"
-LuxTestUtils = "1.3.1, 2"
 PrecompileTools = "1.2.1"
 ProgressMeter = "1"
 Random = "1"

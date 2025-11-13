@@ -1,18 +1,12 @@
-using Pkg
-Pkg.add(["FiniteDiff", "Lux", "LuxTestUtils"])
-
 using ADTypes
 using ComponentArrays: ComponentArrays
 using DifferentiationInterface
 using DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
-using FiniteDifferences: FiniteDifferences
+using FiniteDiff: FiniteDiff
 using ForwardDiff: ForwardDiff
-using Flux: Flux
 using ForwardDiff: ForwardDiff
 using JLArrays: JLArrays
-using Lux: Lux
-using LuxTestUtils: LuxTestUtils
 using Random
 using SparseConnectivityTracer
 using SparseMatrixColorings
@@ -64,25 +58,3 @@ test_differentiation(
     excluded = SECOND_ORDER,
     logging = LOGGING,
 );
-
-## Neural nets
-
-test_differentiation(
-    AutoZygote(),
-    DIT.flux_scenarios(Random.MersenneTwister(0));
-    isapprox = DIT.flux_isapprox,
-    rtol = 1.0e-2,
-    atol = 1.0e-4,
-    scenario_intact = false,
-    logging = LOGGING,
-)
-
-test_differentiation(
-    AutoZygote(),
-    DIT.lux_scenarios(Random.Xoshiro(63));
-    isapprox = DIT.lux_isapprox,
-    rtol = 1.0f-2,
-    atol = 1.0f-3,
-    scenario_intact = false,
-    logging = LOGGING,
-)
