@@ -31,12 +31,13 @@ function DI.prepare_pullback_nokwarg(
         silence_debug_messages = config.silence_debug_messages,
     )
     dy_righttype_after = zero_tangent(y)
+    contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # target_function
         false,  # f!
         false,  # y
         true,  # x
-        map(_ -> false, contexts)...,
+        contexts_tup_false...,
     )
     prep = MooncakeTwoArgPullbackPrep(
         _sig, cache, dy_righttype_after, target_function, args_to_zero
