@@ -27,13 +27,14 @@ makedocs(;
     pages = [
         "Home" => "index.md",
         "Tutorials" => ["tutorials/basic.md", "tutorials/advanced.md"],
+        "api.md",
         "Explanation" => [
+            "explanation/arguments.md",
             "explanation/operators.md",
             "explanation/backends.md",
             "explanation/advanced.md",
         ],
         "FAQ" => ["faq/limitations.md", "faq/differentiability.md"],
-        "api.md",
         "Development" => [
             "dev/internals.md",
             "dev/math.md",

@@ -57,7 +57,7 @@ For additional arguments which act as mutated buffers, the [`Cache`](@ref) wrapp
 ## Sparsity
 
 !!! tip
-    
+
     If you use DifferentiationInterface's Sparse AD functionality in your research,
     please cite our preprint [*Sparser, Better, Faster, Stronger: Efficient Automatic Differentiation for Sparse Jacobians and Hessians*](https://arxiv.org/abs/2501.17737).
 

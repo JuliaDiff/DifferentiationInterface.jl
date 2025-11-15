@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.11...main)
+## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.12...main)
+
+## [0.7.12](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.11...DifferentiationInterface-v0.7.12)
+
+### Added
+
+- Better documentation on argument assumptions ([#917](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/917))
+
+### Fixed
+
+- Speed up Mooncake in forward mode by preallocating tangents ([#915](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/915))
+- Speed up Mooncake reverse mode with selective zeroing ([#916](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/916))  
 
 ## [0.7.11](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.10...DifferentiationInterface-v0.7.11)
 
