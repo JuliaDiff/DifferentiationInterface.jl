@@ -1,7 +1,7 @@
 name = "DifferentiationInterfaceTest"
 uuid = "a82114a7-5aa3-49a8-9643-716bb13727a3"
 authors = ["Guillaume Dalle", "Adrian Hill"]
-version = "0.10.3"
+version = "0.10.4"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
