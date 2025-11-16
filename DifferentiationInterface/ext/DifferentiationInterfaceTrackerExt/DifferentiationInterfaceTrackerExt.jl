@@ -132,7 +132,7 @@ function DI.value_and_gradient!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
-    return y, copyto!(grad, new_grad)
+    return y, copy!(grad, new_grad)
 end
 
 function DI.gradient!(
@@ -144,7 +144,7 @@ function DI.gradient!(
         contexts::Vararg{DI.GeneralizedConstant, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
+    return copy!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 
 end

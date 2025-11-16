@@ -147,7 +147,7 @@ end
         @test hessian(sum ∘ zero, backend, ones(10)) isa AbstractMatrix
         # mixed
         backend = MyAutoSparse(MixedMode(adaptive_backends[1], adaptive_backends[2]))
-        @test jacobian(copyto!, zeros(10), backend, ones(10)) isa AbstractMatrix
+        @test jacobian(copy!, zeros(10), backend, ones(10)) isa AbstractMatrix
     end
 end
 
@@ -156,7 +156,7 @@ end
         pushforward, sum, AutoSimpleFiniteDiff(), 1, (1, 2)
     )
     @test_throws ArgumentError DifferentiationInterface.overloaded_input(
-        pushforward, copyto!, [1.0], AutoSimpleFiniteDiff(), [1.0], ([1.0], [1.0])
+        pushforward, copy!, [1.0], AutoSimpleFiniteDiff(), [1.0], ([1.0], [1.0])
     )
 end
 

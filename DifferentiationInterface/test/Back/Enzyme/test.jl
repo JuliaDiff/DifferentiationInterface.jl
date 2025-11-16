@@ -122,7 +122,7 @@ end
     @testset "MutabilityError" begin
         f = let
             cache = [0.0]
-            x -> sum(copyto!(cache, x))
+            x -> sum(copy!(cache, x))
         end
 
         e = nothing

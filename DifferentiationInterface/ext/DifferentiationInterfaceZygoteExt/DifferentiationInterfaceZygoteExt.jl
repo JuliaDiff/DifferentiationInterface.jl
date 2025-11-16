@@ -129,14 +129,14 @@ function DI.value_and_gradient!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
-    return y, copyto!(grad, new_grad)
+    return y, copy!(grad, new_grad)
 end
 
 function DI.gradient!(
         f, grad, prep::DI.NoGradientPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context, C}
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
+    return copy!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 
 ## Jacobian
@@ -171,14 +171,14 @@ function DI.value_and_jacobian!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)
-    return y, copyto!(jac, new_jac)
+    return y, copy!(jac, new_jac)
 end
 
 function DI.jacobian!(
         f, jac, prep::DI.NoJacobianPrep, backend::AutoZygote, x, contexts::Vararg{DI.Context, C}
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
+    return copy!(jac, DI.jacobian(f, prep, backend, x, contexts...))
 end
 
 ## HVP
@@ -297,7 +297,7 @@ function DI.hessian!(
         contexts::Vararg{DI.GeneralizedConstant, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return copyto!(hess, DI.hessian(f, prep, backend, x, contexts...))
+    return copy!(hess, DI.hessian(f, prep, backend, x, contexts...))
 end
 
 function DI.value_gradient_and_hessian(

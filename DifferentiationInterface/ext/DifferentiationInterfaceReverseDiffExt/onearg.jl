@@ -241,7 +241,7 @@ function DI.value_and_jacobian!(
         result = jacobian!(result, f, x, prep.config)
     end
     y = DR.value(result)
-    jac === DR.jacobian(result) || copyto!(jac, DR.jacobian(result))
+    jac === DR.jacobian(result) || copy!(jac, DR.jacobian(result))
     return y, jac
 end
 
@@ -302,7 +302,7 @@ function DI.value_and_jacobian!(
     result = DiffResult(y, (jac,))
     result = jacobian!(result, fc, x, prep.config)
     y = DR.value(result)
-    jac === DR.jacobian(result) || copyto!(jac, DR.jacobian(result))
+    jac === DR.jacobian(result) || copy!(jac, DR.jacobian(result))
     return y, jac
 end
 

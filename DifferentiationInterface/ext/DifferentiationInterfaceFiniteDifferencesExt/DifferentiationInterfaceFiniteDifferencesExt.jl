@@ -136,7 +136,7 @@ function DI.gradient!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
+    return copy!(grad, DI.gradient(f, prep, backend, x, contexts...))
 end
 
 function DI.value_and_gradient!(
@@ -149,7 +149,7 @@ function DI.value_and_gradient!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
-    return y, copyto!(grad, new_grad)
+    return y, copy!(grad, new_grad)
 end
 
 ## Jacobian
@@ -193,7 +193,7 @@ function DI.jacobian!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
+    return copy!(jac, DI.jacobian(f, prep, backend, x, contexts...))
 end
 
 function DI.value_and_jacobian!(
@@ -206,7 +206,7 @@ function DI.value_and_jacobian!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)
-    return y, copyto!(jac, new_jac)
+    return y, copy!(jac, new_jac)
 end
 
 end

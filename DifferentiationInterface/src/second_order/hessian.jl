@@ -221,7 +221,7 @@ function hessian!(
         )
 
         for b in eachindex(batched_results[a])
-            copyto!(
+            copy!(
                 view(hess, :, 1 + ((a - 1) * B + (b - 1)) % N), vec(batched_results[a][b])
             )
         end

@@ -79,7 +79,7 @@ function DI.value_and_pullback!(
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     y, new_tx = DI.value_and_pullback(f, prep, backend, x, ty, contexts...)
-    foreach(copyto!, tx, new_tx)
+    foreach(copy!, tx, new_tx)
     return y, tx
 end
 
@@ -162,7 +162,7 @@ function DI.value_and_gradient!(
         prep.cache, f, x, map(DI.unwrap, contexts)...;
         prep.args_to_zero
     )
-    copyto!(grad, new_grad)
+    copy!(grad, new_grad)
     return y, grad
 end
 

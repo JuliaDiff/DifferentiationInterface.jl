@@ -36,7 +36,7 @@ test_differentiation(
     x = rand(10)
     backend = AutoSparse(AutoFastDifferentiation())
     jac_prep = prepare_jacobian(copy, backend, x)
-    jac!_prep = prepare_jacobian(copyto!, similar(x), backend, x)
+    jac!_prep = prepare_jacobian(copy!, similar(x), backend, x)
     hess_prep = prepare_hessian(x -> sum(abs2, x), backend, x)
     @test sparsity_pattern(jac_prep) == Diagonal(trues(10))
     @test sparsity_pattern(jac!_prep) == Diagonal(trues(10))

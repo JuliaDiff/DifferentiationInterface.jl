@@ -409,7 +409,7 @@ function value_and_pullback!(
     ) where {F, C}
     check_prep(f, prep, backend, x, ty, contexts...)
     y, new_tx = value_and_pullback(f, prep, backend, x, ty, contexts...)
-    foreach(copyto!, tx, new_tx)
+    foreach(copy!, tx, new_tx)
     return y, tx
 end
 
@@ -541,7 +541,7 @@ function value_and_pullback!(
     ) where {F, C}
     check_prep(f!, y, prep, backend, x, ty, contexts...)
     y, new_tx = value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
-    foreach(copyto!, tx, new_tx)
+    foreach(copy!, tx, new_tx)
     return y, tx
 end
 

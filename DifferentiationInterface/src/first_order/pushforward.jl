@@ -408,7 +408,7 @@ function value_and_pushforward!(
     ) where {F, C}
     check_prep(f, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f, prep, backend, x, tx, contexts...)
-    foreach(copyto!, ty, new_ty)
+    foreach(copy!, ty, new_ty)
     return y, ty
 end
 
@@ -506,7 +506,7 @@ function value_and_pushforward!(
     ) where {F, C}
     check_prep(f!, y, prep, backend, x, tx, contexts...)
     y, new_ty = value_and_pushforward(f!, y, prep, backend, x, tx, contexts...)
-    foreach(copyto!, ty, new_ty)
+    foreach(copy!, ty, new_ty)
     return y, ty
 end
 

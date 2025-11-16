@@ -78,7 +78,7 @@ julia> using DifferentiationInterface
 
 julia> using ForwardDiff: ForwardDiff
 
-julia> f(x, c) = sum(copyto!(c, x));
+julia> f(x, c) = sum(copy!(c, x));
 
 julia> prep = prepare_gradient(f, AutoForwardDiff(), [1.0, 2.0], Cache(zeros(2)));
 

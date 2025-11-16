@@ -186,5 +186,5 @@ function value_derivative_and_second_derivative!(
     new_der, _ = value_and_derivative!(
         shuffled_derivative, der2, outer_derivative_prep, outer(backend), x, new_contexts...
     )
-    return y, copyto!(der, new_der), der2
+    return y, copy!(der, new_der), der2
 end

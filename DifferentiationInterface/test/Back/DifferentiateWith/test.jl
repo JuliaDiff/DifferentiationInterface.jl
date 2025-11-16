@@ -18,12 +18,12 @@ struct ADBreaker{F}
 end
 
 function (adb::ADBreaker)(x::Number)
-    copyto!(Float64[0], x)  # break ForwardDiff and Zygote
+    copy!(Float64[0], x)  # break ForwardDiff and Zygote
     return adb.f(x)
 end
 
 function (adb::ADBreaker)(x::AbstractArray)
-    copyto!(similar(x, Float64), x)  # break ForwardDiff and Zygote
+    copy!(similar(x, Float64), x)  # break ForwardDiff and Zygote
     return adb.f(x)
 end
 

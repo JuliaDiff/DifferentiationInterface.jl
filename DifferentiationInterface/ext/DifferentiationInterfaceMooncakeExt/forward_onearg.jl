@@ -78,7 +78,7 @@ function DI.value_and_pushforward!(
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     y, new_ty = DI.value_and_pushforward(f, prep, backend, x, tx, contexts...)
-    foreach(copyto!, ty, new_ty)
+    foreach(copy!, ty, new_ty)
     return y, ty
 end
 

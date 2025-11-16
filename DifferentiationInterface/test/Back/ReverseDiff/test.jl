@@ -58,6 +58,6 @@ test_differentiation(
     # Jacobian
     @test DI.overloaded_input_type(prepare_jacobian(copy, backend, x)) ==
         ReverseDiff.TrackedArray{Float64, Float64, 1, Vector{Float64}, Vector{Float64}}
-    @test DI.overloaded_input_type(prepare_jacobian(copyto!, similar(x), backend, x)) ==
+    @test DI.overloaded_input_type(prepare_jacobian(copy!, similar(x), backend, x)) ==
         ReverseDiff.TrackedArray{Float64, Float64, 1, Vector{Float64}, Vector{Float64}}
 end;

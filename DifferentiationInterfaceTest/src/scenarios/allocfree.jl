@@ -25,8 +25,8 @@ function sum_scenarios(x::AbstractArray; dx::AbstractArray, dy::Number)
     ]
 end
 
-function copyto!_scenarios(x::AbstractArray; dx::AbstractArray, dy::AbstractArray)
-    f! = copyto!
+function copy!_scenarios(x::AbstractArray; dx::AbstractArray, dy::AbstractArray)
+    f! = copy!
     y = similar(x)
     f!(y, x)
     dy_from_dx = dx
@@ -61,7 +61,7 @@ function allocfree_scenarios()
     scens = vcat(
         identity_scenarios(x_; dx = dx_, dy = dy_), #
         sum_scenarios(x_6; dx = dx_6, dy = dy_),
-        copyto!_scenarios(x_6; dx = dx_6, dy = dy_6),
+        copy!_scenarios(x_6; dx = dx_6, dy = dy_6),
     )
     return scens
 end

@@ -99,7 +99,7 @@ function DI.value_and_pushforward!(
             Dual(x, dx_righttype),
             map(Dual_unwrap, contexts, prep.context_tangents)...,
         )
-        dy === dy_righttype || copyto!(dy, dy_righttype)
+        dy === dy_righttype || copy!(dy, dy_righttype)
     end
     return y, ty
 end

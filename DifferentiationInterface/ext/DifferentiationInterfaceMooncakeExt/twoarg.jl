@@ -57,7 +57,7 @@ function DI.value_and_pullback(
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     dy = only(ty)
     # Prepare cotangent to add after the forward pass.
-    dy_righttype_after = copyto!(prep.dy_righttype, dy)
+    dy_righttype_after = copy!(prep.dy_righttype, dy)
     # Run the reverse-pass and return the results.
     y_after, (_, _, _, dx) = value_and_pullback!!(
         prep.cache,
@@ -69,7 +69,7 @@ function DI.value_and_pullback(
         map(DI.unwrap, contexts)...;
         prep.args_to_zero
     )
-    copyto!(y, y_after)
+    copy!(y, y_after)
     return y, (_copy_output(dx),)
 end
 
@@ -84,7 +84,7 @@ function DI.value_and_pullback(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     tx = map(ty) do dy
-        dy_righttype_after = copyto!(prep.dy_righttype, dy)
+        dy_righttype_after = copy!(prep.dy_righttype, dy)
         y_after, (_, _, _, dx) = value_and_pullback!!(
             prep.cache,
             dy_righttype_after,
@@ -95,7 +95,7 @@ function DI.value_and_pullback(
             map(DI.unwrap, contexts)...;
             prep.args_to_zero
         )
-        copyto!(y, y_after)
+        copy!(y, y_after)
         _copy_output(dx)
     end
     return y, tx
@@ -113,7 +113,7 @@ function DI.value_and_pullback!(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     _, new_tx = DI.value_and_pullback(f!, y, prep, backend, x, ty, contexts...)
-    foreach(copyto!, tx, new_tx)
+    foreach(copy!, tx, new_tx)
     return y, tx
 end
 

@@ -510,7 +510,7 @@ function _gradient_and_hvp_aux!(
         tx,
         new_contexts...,
     )
-    return copyto!(grad, new_grad), tg
+    return copy!(grad, new_grad), tg
 end
 
 ## Reverse over forward
@@ -845,5 +845,5 @@ function _gradient_and_hvp_aux!(
     new_grad, _ = value_and_pullback!(
         shuffled_gradient, tg, outer_pullback_prep, outer(backend), x, tx, new_contexts...
     )
-    return copyto!(grad, new_grad), tg
+    return copy!(grad, new_grad), tg
 end

@@ -403,7 +403,7 @@ function DI.jacobian!(
     DI.check_prep(f, prep, backend, x, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    return copyto!(
+    return copy!(
         jac,
         finite_difference_jacobian(
             fc, x, prep.cache; jac_prototype = jac, relstep, absstep, dir
@@ -425,7 +425,7 @@ function DI.value_and_jacobian!(
     y = fc(x)
     return (
         y,
-        copyto!(
+        copy!(
             jac,
             finite_difference_jacobian(
                 fc, x, prep.cache, y; jac_prototype = jac, relstep, absstep, dir

@@ -545,7 +545,7 @@ function _jacobian_aux!(
         )
 
         for b in eachindex(batched_results[a])
-            copyto!(
+            copy!(
                 view(jac, :, 1 + ((a - 1) * B + (b - 1)) % N), vec(batched_results[a][b])
             )
         end
@@ -585,7 +585,7 @@ function _jacobian_aux!(
             if eltype(x) <: Complex
                 batched_results[a][b] .= conj.(batched_results[a][b])
             end
-            copyto!(
+            copy!(
                 view(jac, 1 + ((a - 1) * B + (b - 1)) % N, :), vec(batched_results[a][b])
             )
         end

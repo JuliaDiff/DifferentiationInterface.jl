@@ -35,7 +35,7 @@ function DI.value_and_pullback(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
-    copyto!(only(ty_copy), only(ty))
+    copy!(only(ty_copy), only(ty))
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df_prepared!(df!, f!, backend, Val(1))
     dy = only(ty_copy)
@@ -59,7 +59,7 @@ function DI.value_and_pullback(
     ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
-    foreach(copyto!, ty_copy, ty)
+    foreach(copy!, ty_copy, ty)
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df_prepared!(df!, f!, backend, Val(B))
     ty = ty_copy
@@ -83,7 +83,7 @@ function DI.value_and_pullback(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
-    copyto!(only(ty_copy), only(ty))
+    copy!(only(ty_copy), only(ty))
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df_prepared!(df!, f!, backend, Val(1))
     dx = make_zero(x)  # allocates
@@ -106,7 +106,7 @@ function DI.value_and_pullback(
     ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
-    foreach(copyto!, ty_copy, ty)
+    foreach(copy!, ty_copy, ty)
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df_prepared!(df!, f!, backend, Val(B))
     tx = ntuple(_ -> make_zero(x), Val(B))  # allocates
@@ -130,7 +130,7 @@ function DI.value_and_pullback!(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
-    copyto!(only(ty_copy), only(ty))
+    copy!(only(ty_copy), only(ty))
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df_prepared!(df!, f!, backend, Val(1))
     dx = only(tx)
@@ -155,7 +155,7 @@ function DI.value_and_pullback!(
     ) where {F, B, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     (; df!, context_shadows, ty_copy) = prep
-    foreach(copyto!, ty_copy, ty)
+    foreach(copy!, ty_copy, ty)
     mode = reverse_noprimal(backend)
     f!_and_df! = get_f_and_df_prepared!(df!, f!, backend, Val(B))
     make_zero!(tx)

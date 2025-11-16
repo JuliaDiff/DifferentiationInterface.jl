@@ -298,7 +298,7 @@ function DI.value_and_gradient!(
         result = DiffResult(zero(eltype(x)), (grad,))
         result = gradient!(result, fc, x)
         y = DR.value(result)
-        grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
+        grad === DR.gradient(result) || copy!(grad, DR.gradient(result))
         return y, grad
     else
         prep = DI.prepare_gradient_nokwarg(Val(true), f, backend, x, contexts...)
@@ -397,7 +397,7 @@ function DI.value_and_gradient!(
     end
     result = gradient!(result, fc, x, prep.config, Val(false))
     y = DR.value(result)
-    grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
+    grad === DR.gradient(result) || copy!(grad, DR.gradient(result))
     return y, grad
 end
 
@@ -472,7 +472,7 @@ function DI.value_and_jacobian!(
         result = DiffResult(y, (jac,))
         result = jacobian!(result, fc, x)
         y = DR.value(result)
-        jac === DR.jacobian(result) || copyto!(jac, DR.jacobian(result))
+        jac === DR.jacobian(result) || copy!(jac, DR.jacobian(result))
         return y, jac
     else
         prep = DI.prepare_jacobian_nokwarg(Val(true), f, backend, x, contexts...)
@@ -566,7 +566,7 @@ function DI.value_and_jacobian!(
     end
     result = jacobian!(result, fc, x, prep.config, Val(false))
     y = DR.value(result)
-    jac === DR.jacobian(result) || copyto!(jac, DR.jacobian(result))
+    jac === DR.jacobian(result) || copy!(jac, DR.jacobian(result))
     return y, jac
 end
 
@@ -761,8 +761,8 @@ function DI.value_gradient_and_hessian!(
         result = DiffResult(oneunit(eltype(x)), (grad, hess))
         result = hessian!(result, fc, x)
         y = DR.value(result)
-        grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
-        hess === DR.hessian(result) || copyto!(hess, DR.hessian(result))
+        grad === DR.gradient(result) || copy!(grad, DR.gradient(result))
+        hess === DR.hessian(result) || copy!(hess, DR.hessian(result))
         return (y, grad, hess)
     else
         prep = DI.prepare_hessian_nokwarg(Val(true), f, backend, x, contexts...)
@@ -864,8 +864,8 @@ function DI.value_gradient_and_hessian!(
     end
     result = hessian!(result, fc, x, prep.result_config, Val(false))
     y = DR.value(result)
-    grad === DR.gradient(result) || copyto!(grad, DR.gradient(result))
-    hess === DR.hessian(result) || copyto!(hess, DR.hessian(result))
+    grad === DR.gradient(result) || copy!(grad, DR.gradient(result))
+    hess === DR.hessian(result) || copy!(hess, DR.hessian(result))
     return (y, grad, hess)
 end
 

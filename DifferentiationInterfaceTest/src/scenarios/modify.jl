@@ -133,7 +133,7 @@ function (mc::WritableClosure{:in})(y, x)
     x_buffer[1] = copy(x)
     f(y_buffer[1], x_buffer[1])
     y_buffer[1] .*= (a + only(b))
-    copyto!(y, y_buffer[1])
+    copy!(y, y_buffer[1])
     return nothing
 end
 
@@ -227,14 +227,14 @@ function (sc::StoreInCache{:out})(x, y_cache)  # no annotation otherwise Zygote.
         y_cache[1] = y
         return y_cache[1]
     else
-        copyto!(y_cache, y)
+        copy!(y_cache, y)
         return copy(y_cache)
     end
 end
 
 function (sc::StoreInCache{:in})(y, x, y_cache)
     sc.f(y_cache, x)
-    copyto!(y, y_cache)
+    copy!(y, y_cache)
     return nothing
 end
 
@@ -301,7 +301,7 @@ function (sc::MultiplyByConstantAndStoreInCache{:out})(x, constantorcache)
         newcache[1] = y
         return newcache[1]
     else
-        copyto!(newcache, y)
+        copy!(newcache, y)
         return copy(newcache)
     end
 end
@@ -317,7 +317,7 @@ function (sc::MultiplyByConstantAndStoreInCache{:in})(y, x, constantorcache)
     end
     sc.f(newcache, x)
     newcache .*= (a + only(b))
-    copyto!(y, newcache)
+    copy!(y, newcache)
     return nothing
 end
 
