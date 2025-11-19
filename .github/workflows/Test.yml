@@ -143,7 +143,7 @@ jobs:
       - name: Install dependencies & run tests
         run: julia --code-coverage=user --color=yes -e '
           using Pkg;
-          group = ENV["JULIA_DI_TEST_GROUP"]
+          group = ENV["JULIA_DI_TEST_GROUP"];
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
           Pkg.add([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
           include("./DifferentiationInterface/test/Back/run_backend.jl");'
