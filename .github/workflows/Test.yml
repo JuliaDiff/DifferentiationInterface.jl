@@ -59,7 +59,12 @@ jobs:
         run: julia --color=yes -e '
           using Pkg;
           Pkg.activate("./DifferentiationInterface/test");
+          if VERSION < v"1.11";
+          Pkg.rm("DifferentiationInterfaceTest");
+          Pkg.develop([PackageSpec(path="./DifferentiationInterface")]);
+          else;
           Pkg.develop([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
+          end;
           Pkg.activate("./DifferentiationInterface");
           test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
