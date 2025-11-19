@@ -130,13 +130,14 @@ function DI.value_and_pushforward!(
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     # Extract value from first pushforward computation to avoid redundant call
-    indices = collect(eachindex(tx, ty))
-    if isempty(indices)
+    indices = eachindex(tx, ty)
+    idx_state = iterate(indices)
+    if isnothing(idx_state)
         error("At least one tangent vector required for pushforward")
     end
     
     # Process first tangent to extract value
-    b_first = first(indices)
+    b_first, state = idx_state
     dx, dy = tx[b_first], ty[b_first]
     foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
     yt = fc(prep.xt)
@@ -144,11 +145,14 @@ function DI.value_and_pushforward!(
     map!(t -> t[1], dy, yt)
     
     # Process remaining tangents
-    for b in Base.tail(indices)
+    idx_state = iterate(indices, state)
+    while !isnothing(idx_state)
+        b, state = idx_state
         dx, dy = tx[b], ty[b]
         foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
         yt = fc(prep.xt)
         map!(t -> t[1], dy, yt)
+        idx_state = iterate(indices, state)
     end
     return y, ty
 end
