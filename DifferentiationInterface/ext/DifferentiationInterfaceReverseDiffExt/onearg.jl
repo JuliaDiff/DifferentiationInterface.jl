@@ -456,8 +456,7 @@ function DI.value_gradient_and_hessian!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    y = f(x, map(DI.unwrap, contexts)...)
-    DI.gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
+    y, _ = DI.value_and_gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
     DI.hessian!(f, hess, prep, backend, x, contexts...)
     return y, grad, hess
 end
@@ -470,8 +469,7 @@ function DI.value_gradient_and_hessian(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    y = f(x, map(DI.unwrap, contexts)...)
-    grad = DI.gradient(f, prep.gradient_prep, backend, x, contexts...)
+    y, grad = DI.value_and_gradient(f, prep.gradient_prep, backend, x, contexts...)
     hess = DI.hessian(f, prep, backend, x, contexts...)
     return y, grad, hess
 end
