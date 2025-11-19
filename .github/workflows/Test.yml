@@ -145,7 +145,7 @@ jobs:
           using Pkg;
           group = ENV["JULIA_DI_TEST_GROUP"]
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
-          Pkg.add([PackageSpec(; path="./DifferentiationInterface"), PackageSpec(; path="./DifferentiationInterfaceTest")]);
+          Pkg.add([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
           include("./DifferentiationInterface/test/Back/run_backend.jl");'
       - uses: julia-actions/julia-processcoverage@v1
         with:
