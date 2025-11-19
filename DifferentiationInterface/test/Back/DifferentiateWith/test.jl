@@ -1,5 +1,6 @@
 using Pkg
 Pkg.activate(@__DIR__)
+include("../../testutils.jl")
 
 using ChainRulesTestUtils: ChainRulesTestUtils
 using DifferentiationInterface, DifferentiationInterfaceTest
