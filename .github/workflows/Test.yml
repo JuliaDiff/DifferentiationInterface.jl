@@ -58,7 +58,6 @@ jobs:
       - name: Install dependencies & run tests
         run: julia --color=yes -e '
           using Pkg;
-          Pkg.Registry.update();
           Pkg.activate("./DifferentiationInterface/test");
           if VERSION < v"1.11";
           Pkg.rm("DifferentiationInterfaceTest");
@@ -144,7 +143,6 @@ jobs:
       - name: Install dependencies & run tests
         run: julia --code-coverage=user --color=yes -e '
           using Pkg;
-          Pkg.Registry.update();
           group = ENV["JULIA_DI_TEST_GROUP"]
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
           Pkg.add([PackageSpec(; path="./DifferentiationInterface"), PackageSpec(; path="./DifferentiationInterfaceTest")]);
