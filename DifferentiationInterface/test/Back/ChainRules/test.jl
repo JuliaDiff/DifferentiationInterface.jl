@@ -1,6 +1,5 @@
 include("../../testutils.jl")
 
-using ChainRulesCore
 using DifferentiationInterface, DifferentiationInterfaceTest
 using Test
 using Zygote: ZygoteRuleConfig
