@@ -30,6 +30,7 @@ using ADTypes:
     AutoMooncake,
     AutoMooncakeForward,
     AutoPolyesterForwardDiff,
+    AutoReactant,
     AutoReverseDiff,
     AutoSymbolics,
     AutoTracker,
@@ -118,6 +119,7 @@ export AutoGTPSA
 export AutoMooncake
 export AutoMooncakeForward
 export AutoPolyesterForwardDiff
+export AutoReactant
 export AutoReverseDiff
 export AutoSymbolics
 export AutoTracker

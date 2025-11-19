@@ -21,6 +21,7 @@ GPUArraysCore = "46192b85-c4d5-4398-a991-12ede77f4527"
 GTPSA = "b27dd330-f138-47c5-815b-40db9dd9b6e8"
 Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
 PolyesterForwardDiff = "98d1487c-24ca-40b6-b7ab-df2af84e126b"
+Reactant = "3c362404-f566-11ee-1572-e11a4b42c853"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SparseConnectivityTracer = "9f842d2f-2579-4b1d-911e-f412cf18a3f5"
@@ -46,6 +47,7 @@ DifferentiationInterfacePolyesterForwardDiffExt = [
     "ForwardDiff",
     "DiffResults",
 ]
+DifferentiationInterfaceReactantExt = ["Reactant", "Enzyme"]
 DifferentiationInterfaceReverseDiffExt = ["ReverseDiff", "DiffResults"]
 DifferentiationInterfaceSparseArraysExt = "SparseArrays"
 DifferentiationInterfaceSparseConnectivityTracerExt = "SparseConnectivityTracer"
@@ -56,7 +58,7 @@ DifferentiationInterfaceTrackerExt = "Tracker"
 DifferentiationInterfaceZygoteExt = ["Zygote", "ForwardDiff"]
 
 [compat]
-ADTypes = "1.18.0"
+ADTypes = "1.19.0"
 ChainRulesCore = "1.23.0"
 DiffResults = "1.1.0"
 Diffractor = "=0.2.6"
@@ -71,6 +73,7 @@ GTPSA = "1.4.0"
 LinearAlgebra = "1"
 Mooncake = "0.4.175"
 PolyesterForwardDiff = "0.1.2"
+Reactant = "0.2.178"
 ReverseDiff = "1.15.1"
 SparseArrays = "1"
 SparseConnectivityTracer = "0.6.14, 1"

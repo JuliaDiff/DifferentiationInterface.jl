@@ -19,6 +19,8 @@ We support the following dense backend choices from [ADTypes.jl](https://github.
 - [`AutoTracker`](@extref ADTypes.AutoTracker)
 - [`AutoZygote`](@extref ADTypes.AutoZygote)
 
+In addition, we provide experimental support for [`AutoReactant`](@extref ADTypes.AutoReactant), sofar only for [`gradient`](@ref) and its variants.
+
 ## Features
 
 Given a backend object, you can use:

@@ -224,8 +224,8 @@ Base.show(io::IO, f::StoreInCache) = print(io, "StoreInCache($(f.f))")
 function (sc::StoreInCache{:out})(x, y_cache)  # no annotation otherwise Zygote.Buffer cries
     y = sc.f(x)
     if y isa Number
-        y_cache[1] = y
-        return y_cache[1]
+        @allowscalar y_cache[1] = y
+        return @allowscalar y_cache[1]
     else
         copyto!(y_cache, y)
         return copy(y_cache)
