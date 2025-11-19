@@ -8,8 +8,6 @@ using SparseMatrixColorings
 using JLArrays, StaticArrays
 using Test
 
-LOGGING = get(ENV, "CI", "false") == "false"
-
 backends = [ #
     AutoSimpleFiniteDiff(; chunksize = 5),
     AutoForwardFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 4)),

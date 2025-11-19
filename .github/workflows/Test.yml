@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
-  test-DI:
-    name: ${{ matrix.version }} - DI (${{ matrix.group }})
+  test-DI-Core:
+    name: ${{ matrix.version }} - DI Core (${{ matrix.group }})
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
     timeout-minutes: 120
@@ -32,25 +32,9 @@ jobs:
           - '1.11'
           - '1.12'
         group:
-          - Core/Internals
-          - Back/DifferentiateWith
-          - Core/SimpleFiniteDiff
-          - Back/SparsityDetector
-          - Core/ZeroBackends
-          - Back/ChainRules
-          # - Back/Diffractor
-          - Back/Enzyme
-          - Back/FastDifferentiation
-          - Back/FiniteDiff
-          - Back/FiniteDifferences
-          - Back/ForwardDiff
-          - Back/GTPSA
-          - Back/Mooncake
-          - Back/PolyesterForwardDiff
-          - Back/ReverseDiff
-          - Back/Symbolics
-          - Back/Tracker
-          - Back/Zygote
+          - Internals
+          - SimpleFiniteDiff
+          - ZeroBackends
         skip_lts:
           - ${{ github.event.pull_request.draft }}
         skip_pre:
@@ -60,13 +44,8 @@ jobs:
             version: '1.10'
           - skip_pre: true
             version: '1.12'
-          - version: '1.11'
-            group: Back/ChainRules
-          - version: '1.12'
-            group: Back/Enzyme
-          - version: '1.12'
-            group: Back/DifferentiateWith
     env:
+      JULIA_DI_TEST_TYPE: 'Core'
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
@@ -79,7 +58,6 @@ jobs:
       - name: Install dependencies & run tests
         run: julia --color=yes -e '
           using Pkg;
-          Pkg.Registry.update();
           Pkg.activate("./DifferentiationInterface/test");
           if VERSION < v"1.11";
           Pkg.rm("DifferentiationInterfaceTest");
@@ -94,6 +72,81 @@ jobs:
           else;
           Pkg.test("DifferentiationInterface"; test_kwargs...);
           end;'
+      - uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
+      - uses: codecov/codecov-action@v5
+        with:
+          files: lcov.info
+          flags: DI
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  test-DI-Backend:
+    name: ${{ matrix.version }} - DI Back (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
+    timeout-minutes: 120
+    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+      actions: write
+      contents: read
+    strategy:
+      fail-fast: false # TODO: toggle
+      matrix:
+        version:
+          - '1.10'
+          - '1.11'
+          - '1.12'
+        group:
+          - ChainRules
+          - DifferentiateWith
+          # - Diffractor
+          - Enzyme
+          - FastDifferentiation
+          - FiniteDiff
+          - FiniteDifferences
+          - ForwardDiff
+          - GTPSA
+          - Mooncake
+          - PolyesterForwardDiff
+          - ReverseDiff
+          - SparsityDetector
+          - Symbolics
+          - Tracker
+          - Zygote
+        skip_lts:
+          - ${{ github.event.pull_request.draft }}
+        skip_pre:
+          - ${{ github.event.pull_request.draft }}
+        exclude:
+          - skip_lts: true
+            version: '1.10'
+          - skip_pre: true
+            version: '1.12'
+          - version: '1.11'
+            group: ChainRules
+          - version: '1.12'
+            group: Enzyme
+          - version: '1.12'
+            group: DifferentiateWith
+    env:
+      JULIA_DI_TEST_TYPE: 'Back'
+      JULIA_DI_TEST_GROUP: ${{ matrix.group }}
+      JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: x64
+      - uses: julia-actions/cache@v2
+      - name: Install dependencies & run tests
+        run: julia --code-coverage=user --color=yes -e '
+          using Pkg;
+          group = ENV["JULIA_DI_TEST_GROUP"];
+          Pkg.activate("./DifferentiationInterface/test/Back/$group");
+          Pkg.develop([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
+          include("./DifferentiationInterface/test/Back/run_backend.jl");'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test

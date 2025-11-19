@@ -1,5 +1,4 @@
-using Pkg
-Pkg.add("FastDifferentiation")
+include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using SparseMatrixColorings
@@ -9,8 +8,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 for backend in [AutoFastDifferentiation(), AutoSparse(AutoFastDifferentiation())]
     @test check_available(backend)

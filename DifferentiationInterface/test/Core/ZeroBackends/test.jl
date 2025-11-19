@@ -8,7 +8,6 @@ using SparseMatrixColorings
 using StaticArrays: StaticArrays
 using Test
 
-LOGGING = get(ENV, "CI", "false") == "false"
 
 zero_backends = [AutoZeroForward(), AutoZeroReverse()]
 

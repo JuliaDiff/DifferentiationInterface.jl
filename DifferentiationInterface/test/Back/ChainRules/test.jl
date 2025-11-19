@@ -1,15 +1,11 @@
-using Pkg
-Pkg.add(["ChainRulesCore", "Zygote"])
+include("../../testutils.jl")
 
-using ChainRulesCore
 using DifferentiationInterface, DifferentiationInterfaceTest
 using Test
 using Zygote: ZygoteRuleConfig
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 for backend in [AutoChainRules(ZygoteRuleConfig())]
     @test check_available(backend)

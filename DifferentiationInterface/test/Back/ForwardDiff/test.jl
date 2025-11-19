@@ -1,5 +1,4 @@
-using Pkg
-Pkg.add("ForwardDiff")
+include("../../testutils.jl")
 
 using ADTypes: ADTypes
 using ComponentArrays: ComponentArrays
@@ -13,8 +12,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 struct MyTag end
 
@@ -124,3 +121,5 @@ end
         prepare_jacobian(copyto!, similar(x), sparse_backend, x)
     ) == Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!), Float64}, Float64, 1}}
 end;
+
+include("benchmark.jl")

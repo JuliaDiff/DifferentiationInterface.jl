@@ -1,5 +1,4 @@
-using Pkg
-Pkg.add(["ForwardDiff", "Zygote"])
+include("../../testutils.jl")
 
 using ComponentArrays: ComponentArrays
 using DifferentiationInterface, DifferentiationInterfaceTest
@@ -11,8 +10,6 @@ using Zygote: Zygote
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [AutoZygote()]
 second_order_backends = [SecondOrder(AutoForwardDiff(), AutoZygote())]
