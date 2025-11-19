@@ -87,8 +87,34 @@ function DI.value_and_pushforward(
         contexts::Vararg{DI.Constant, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    ty = DI.pushforward(f, prep, backend, x, tx, contexts...)
-    y = f(x, map(DI.unwrap, contexts)...)  # TODO: optimize
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    # Extract value from first pushforward computation to avoid redundant call
+    if isempty(tx)
+        error("At least one tangent vector required for pushforward")
+    end
+    # Process first tangent to get both value and derivative
+    dx_first = first(tx)
+    foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx_first)
+    yt_first = fc(prep.xt)
+    y = yt_first isa Number ? yt_first[0] : map(t -> t[0], yt_first)
+    dy_first = yt_first isa Number ? yt_first[1] : map(t -> t[1], yt_first)
+    
+    # Process remaining tangents
+    if length(tx) == 1
+        ty = (dy_first,)
+    else
+        ty_rest = map(Base.tail(tx)) do dx
+            foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
+            yt = fc(prep.xt)
+            if yt isa Number
+                return yt[1]
+            else
+                dy = map(t -> t[1], yt)
+                return dy
+            end
+        end
+        ty = (dy_first, ty_rest...)
+    end
     return y, ty
 end
 
@@ -102,8 +128,28 @@ function DI.value_and_pushforward!(
         contexts::Vararg{DI.Constant, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    DI.pushforward!(f, ty, prep, backend, x, tx, contexts...)
-    y = f(x, map(DI.unwrap, contexts)...)  # TODO: optimize
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    # Extract value from first pushforward computation to avoid redundant call
+    indices = collect(eachindex(tx, ty))
+    if isempty(indices)
+        error("At least one tangent vector required for pushforward")
+    end
+    
+    # Process first tangent to extract value
+    b_first = first(indices)
+    dx, dy = tx[b_first], ty[b_first]
+    foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
+    yt = fc(prep.xt)
+    y = yt isa Number ? yt[0] : map(t -> t[0], yt)
+    map!(t -> t[1], dy, yt)
+    
+    # Process remaining tangents
+    for b in Base.tail(indices)
+        dx, dy = tx[b], ty[b]
+        foreach((t, xi, dxi) -> (t[0] = xi; t[1] = dxi), prep.xt, x, dx)
+        yt = fc(prep.xt)
+        map!(t -> t[1], dy, yt)
+    end
     return y, ty
 end
 
