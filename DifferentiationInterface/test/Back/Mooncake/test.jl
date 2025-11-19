@@ -1,5 +1,3 @@
-using Pkg
-Pkg.activate(@__DIR__)
 include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest

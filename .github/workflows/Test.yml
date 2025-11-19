@@ -59,12 +59,7 @@ jobs:
         run: julia --color=yes -e '
           using Pkg;
           Pkg.activate("./DifferentiationInterface/test");
-          if VERSION < v"1.11";
-          Pkg.rm("DifferentiationInterfaceTest");
-          Pkg.resolve();
-          else;
-          Pkg.develop(; path="./DifferentiationInterfaceTest");
-          end;
+          Pkg.develop([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
           Pkg.activate("./DifferentiationInterface");
           test_kwargs = (; allow_reresolve=false, coverage=true);
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
@@ -145,7 +140,7 @@ jobs:
           using Pkg;
           group = ENV["JULIA_DI_TEST_GROUP"];
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
-          Pkg.add([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
+          Pkg.develop([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
           include("./DifferentiationInterface/test/Back/run_backend.jl");'
       - uses: julia-actions/julia-processcoverage@v1
         with:

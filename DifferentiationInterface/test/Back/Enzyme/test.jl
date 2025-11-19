@@ -1,7 +1,3 @@
-# see https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/855
-
-using Pkg
-Pkg.activate(@__DIR__)
 include("../../testutils.jl")
 
 using ADTypes: ADTypes

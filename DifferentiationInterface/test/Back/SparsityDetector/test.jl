@@ -1,5 +1,3 @@
-using Pkg
-Pkg.activate(@__DIR__)
 include("../../testutils.jl")
 
 using ADTypes: jacobian_sparsity, hessian_sparsity
