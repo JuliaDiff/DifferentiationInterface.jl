@@ -1,5 +1,6 @@
 using Pkg
-Pkg.add("Mooncake")
+Pkg.activate(@__DIR__)
+include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using Mooncake: Mooncake
@@ -8,7 +9,6 @@ using Test
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
 
-LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [
     AutoMooncake(; config = nothing),

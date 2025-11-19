@@ -7,8 +7,6 @@ using SparseConnectivityTracer
 using SparseMatrixColorings
 using Random
 
-LOGGING = get(ENV, "CI", "false") == "false"
-
 ## Dense
 
 test_differentiation(

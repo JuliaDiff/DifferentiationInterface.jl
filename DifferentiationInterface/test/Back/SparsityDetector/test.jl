@@ -1,5 +1,6 @@
 using Pkg
-Pkg.add(["ForwardDiff", "ReverseDiff"])
+Pkg.activate(@__DIR__)
+include("../../testutils.jl")
 
 using ADTypes: jacobian_sparsity, hessian_sparsity
 using DifferentiationInterface

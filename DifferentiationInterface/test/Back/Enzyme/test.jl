@@ -1,7 +1,8 @@
 # see https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/855
 
 using Pkg
-Pkg.add("Enzyme")
+Pkg.activate(@__DIR__)
+include("../../testutils.jl")
 
 using ADTypes: ADTypes
 using DifferentiationInterface, DifferentiationInterfaceTest
@@ -13,8 +14,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [
     AutoEnzyme(; mode = nothing),

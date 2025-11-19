@@ -13,8 +13,6 @@ using SparseMatrixColorings
 using StaticArrays: StaticArrays
 using Zygote: Zygote
 
-LOGGING = get(ENV, "CI", "false") == "false"
-
 ## Generate all scenarios
 
 gpu_scenarios(;

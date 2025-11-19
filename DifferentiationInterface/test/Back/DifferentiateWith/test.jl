@@ -1,5 +1,5 @@
 using Pkg
-Pkg.add(["ChainRulesTestUtils", "FiniteDiff", "ForwardDiff", "Zygote", "Mooncake"])
+Pkg.activate(@__DIR__)
 
 using ChainRulesTestUtils: ChainRulesTestUtils
 using DifferentiationInterface, DifferentiationInterfaceTest
@@ -10,8 +10,6 @@ using Zygote: Zygote
 using Mooncake: Mooncake
 using StableRNGs
 using Test
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 struct ADBreaker{F}
     f::F

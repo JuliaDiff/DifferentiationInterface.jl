@@ -1,5 +1,4 @@
 using Pkg
-Pkg.add("FiniteDiff")
 
 using ADTypes: ADTypes
 using DifferentiationInterface, DifferentiationInterfaceTest
@@ -7,8 +6,6 @@ import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using FiniteDiff: FiniteDiff
 using Test
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 @testset "Benchmarking sparse" begin
     filtered_sparse_scenarios = filter(sparse_scenarios(; band_sizes = [])) do scen

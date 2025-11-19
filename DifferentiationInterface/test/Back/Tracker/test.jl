@@ -1,5 +1,6 @@
 using Pkg
-Pkg.add("Tracker")
+Pkg.activate(@__DIR__)
+include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using Tracker: Tracker
@@ -7,8 +8,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 for backend in [AutoTracker()]
     @test check_available(backend)

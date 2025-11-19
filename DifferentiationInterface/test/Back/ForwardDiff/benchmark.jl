@@ -1,5 +1,4 @@
 using Pkg
-Pkg.add("ForwardDiff")
 
 using ADTypes: ADTypes
 using DifferentiationInterface, DifferentiationInterfaceTest
@@ -8,8 +7,6 @@ import DifferentiationInterfaceTest as DIT
 using ForwardDiff: ForwardDiff
 using StaticArrays: StaticArrays, @SVector
 using Test
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 @testset verbose = true "Benchmarking static" begin
     filtered_static_scenarios = filter(static_scenarios(; include_batchified = false)) do scen

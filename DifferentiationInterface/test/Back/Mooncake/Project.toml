@@ -1,0 +1,9 @@
+[deps]
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
+DifferentiationInterfaceTest = "a82114a7-5aa3-49a8-9643-716bb13727a3"
+ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
+Mooncake = "da2b9cff-9c12-43a0-ae48-6db2b0edb7d6"
+SparseConnectivityTracer = "9f842d2f-2579-4b1d-911e-f412cf18a3f5"
+SparseMatrixColorings = "0a514795-09f3-496d-8182-132a7b665d35"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

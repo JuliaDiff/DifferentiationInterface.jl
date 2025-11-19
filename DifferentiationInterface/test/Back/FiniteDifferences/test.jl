@@ -1,5 +1,6 @@
 using Pkg
-Pkg.add("FiniteDifferences")
+Pkg.activate(@__DIR__)
+include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using FiniteDifferences: FiniteDifferences
@@ -7,8 +8,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 for backend in [AutoFiniteDifferences(; fdm = FiniteDifferences.central_fdm(3, 1))]
     @test check_available(backend)

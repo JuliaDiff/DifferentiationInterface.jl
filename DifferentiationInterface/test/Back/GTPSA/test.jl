@@ -1,5 +1,6 @@
 using Pkg
-Pkg.add("GTPSA")
+Pkg.activate(@__DIR__)
+include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using GTPSA: GTPSA
@@ -7,8 +8,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 for backend in [AutoGTPSA()]
     @test check_available(backend)
