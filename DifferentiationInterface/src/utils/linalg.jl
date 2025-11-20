@@ -33,3 +33,5 @@ Only specialized on `SparseMatrixCSC` because it is used with symbolic backends,
 The trivial dense fallback is designed to protect against a change of format in these packages.
 """
 get_pattern(M::AbstractMatrix) = trues(size(M))
+
+onlysecond((a, b)) = (a, only(b))
