@@ -452,7 +452,7 @@ function _value_and_pullback_via_pushforward(
         dy,
         contexts::Vararg{Context, C},
     ) where {F, C}
-    a = last(value_and_pushforward(f!, y, pushforward_prep, backend, x, (oneunit(x),), contexts...))
+    _, a = onlysecond(value_and_pushforward(f!, y, pushforward_prep, backend, x, (oneunit(x),), contexts...))
     dx = dot(a, dy)
     return dx
 end
@@ -467,7 +467,7 @@ function _value_and_pullback_via_pushforward(
         contexts::Vararg{Context, C},
     ) where {F, C}
     a = only(pushforward(f!, y, pushforward_prep, backend, x, (oneunit(x),), contexts...))
-    b = last(
+    _, b = onlysecond(
         value_and_pushforward(f!, y, pushforward_prep, backend, x, (im * oneunit(x),), contexts...)
     )
     dx = real(dot(a, dy)) + im * real(dot(b, dy))
@@ -484,7 +484,7 @@ function _value_and_pullback_via_pushforward(
         contexts::Vararg{Context, C},
     ) where {F, C}
     dx = map(CartesianIndices(x)) do j  # preserve shape
-        a = last(value_and_pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...))
+        _, a = onlysecond(value_and_pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...))
         dot(a, dy)
     end
     return dx
@@ -501,7 +501,7 @@ function _value_and_pullback_via_pushforward(
     ) where {F, C}
     dx = map(CartesianIndices(x)) do j  # preserve shape
         a = only(pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...))
-        b = last(
+        _, b = onlysecond(
             value_and_pushforward(
                 f!, y, pushforward_prep, backend, x, (im * basis(x, j),), contexts...
             ),
