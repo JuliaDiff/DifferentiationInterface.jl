@@ -452,7 +452,7 @@ function _value_and_pullback_via_pushforward(
         dy,
         contexts::Vararg{Context, C},
     ) where {F, C}
-    a = only(value_and_pushforward(f!, y, pushforward_prep, backend, x, (oneunit(x),), contexts...))
+    a = last(value_and_pushforward(f!, y, pushforward_prep, backend, x, (oneunit(x),), contexts...))
     dx = dot(a, dy)
     return dx
 end
