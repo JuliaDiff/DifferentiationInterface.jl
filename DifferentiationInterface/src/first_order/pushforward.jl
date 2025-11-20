@@ -252,9 +252,10 @@ end
 
 ## Preparation
 
-struct PullbackPushforwardPrep{SIG, E} <: PushforwardPrep{SIG}
+struct PullbackPushforwardPrep{SIG, E, Y} <: PushforwardPrep{SIG}
     _sig::Val{SIG}
     pullback_prep::E
+    y_example::Y
 end
 
 function prepare_pushforward_nokwarg(
@@ -296,7 +297,7 @@ function _prepare_pushforward_aux(
         basis(y)
     end
     pullback_prep = prepare_pullback_nokwarg(strict, f, backend, x, (dy,), contexts...)
-    return PullbackPushforwardPrep(_sig, pullback_prep)
+    return PullbackPushforwardPrep(_sig, pullback_prep, y)
 end
 
 function _prepare_pushforward_aux(
@@ -312,13 +313,13 @@ function _prepare_pushforward_aux(
     _sig = signature(f!, y, backend, x, tx, contexts...; strict)
     dy = basis(y)
     pullback_prep = prepare_pullback_nokwarg(strict, f!, y, backend, x, (dy,), contexts...)
-    return PullbackPushforwardPrep(_sig, pullback_prep)
+    return PullbackPushforwardPrep(_sig, pullback_prep, y)
 end
 
 ## One argument
 
-function _pushforward_via_pullback(
-        y::Number,
+function _value_and_pushforward_via_pullback(
+        y_ex::Number,
         f::F,
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
@@ -326,13 +327,13 @@ function _pushforward_via_pullback(
         dx,
         contexts::Vararg{Context, C},
     ) where {F, C}
-    a = only(pullback(f, pullback_prep, backend, x, (oneunit(y),), contexts...))
+    y, a = onlysecond(value_and_pullback(f, pullback_prep, backend, x, (oneunit(y_ex),), contexts...))
     dy = dot(a, dx)
-    return dy
+    return y, dy
 end
 
-function _pushforward_via_pullback(
-        y::Complex,
+function _value_and_pushforward_via_pullback(
+        y_ex::Complex,
         f::F,
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
@@ -340,14 +341,14 @@ function _pushforward_via_pullback(
         dx,
         contexts::Vararg{Context, C},
     ) where {F, C}
-    a = only(pullback(f, pullback_prep, backend, x, (oneunit(y),), contexts...))
-    b = only(pullback(f, pullback_prep, backend, x, (im * oneunit(y),), contexts...))
+    y, a = onlysecond(value_and_pullback(f, pullback_prep, backend, x, (oneunit(y_ex),), contexts...))
+    b = only(pullback(f, pullback_prep, backend, x, (im * oneunit(y_ex),), contexts...))
     dy = real(dot(a, dx)) + im * real(dot(b, dx))
-    return dy
+    return y, dy
 end
 
-function _pushforward_via_pullback(
-        y::AbstractArray{<:Real},
+function _value_and_pushforward_via_pullback(
+        y_ex::AbstractArray{<:Real},
         f::F,
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
@@ -355,15 +356,16 @@ function _pushforward_via_pullback(
         dx,
         contexts::Vararg{Context, C},
     ) where {F, C}
-    dy = map(CartesianIndices(y)) do i
-        a = only(pullback(f, pullback_prep, backend, x, (basis(y, i),), contexts...))
+    y = f(x, map(unwrap, contexts)...)
+    dy = map(CartesianIndices(y_ex)) do i
+        a = only(pullback(f, pullback_prep, backend, x, (basis(y_ex, i),), contexts...))
         dot(a, dx)
     end
-    return dy
+    return y, dy
 end
 
-function _pushforward_via_pullback(
-        y::AbstractArray{<:Complex},
+function _value_and_pushforward_via_pullback(
+        y_ex::AbstractArray{<:Complex},
         f::F,
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
@@ -371,12 +373,13 @@ function _pushforward_via_pullback(
         dx,
         contexts::Vararg{Context, C},
     ) where {F, C}
-    dy = map(CartesianIndices(y)) do i
-        a = only(pullback(f, pullback_prep, backend, x, (basis(y, i),), contexts...))
-        b = only(pullback(f, pullback_prep, backend, x, (im * basis(y, i),), contexts...))
+    y = f(x, map(unwrap, contexts)...)
+    dy = map(CartesianIndices(y_ex)) do i
+        a = only(pullback(f, pullback_prep, backend, x, (basis(y_ex, i),), contexts...))
+        b = only(pullback(f, pullback_prep, backend, x, (im * basis(y_ex, i),), contexts...))
         real(dot(a, dx)) + im * real(dot(b, dx))
     end
-    return dy
+    return y, dy
 end
 
 function value_and_pushforward(
@@ -388,12 +391,13 @@ function value_and_pushforward(
         contexts::Vararg{Context, C},
     ) where {F, B, C}
     check_prep(f, prep, backend, x, tx, contexts...)
-    (; pullback_prep) = prep
-    y = f(x, map(unwrap, contexts)...)
-    ty = ntuple(
-        b -> _pushforward_via_pullback(y, f, pullback_prep, backend, x, tx[b], contexts...),
+    (; pullback_prep, y_example) = prep
+    ys_and_ty = ntuple(
+        b -> _value_and_pushforward_via_pullback(y_example, f, pullback_prep, backend, x, tx[b], contexts...),
         Val(B),
     )
+    y = first(first(ys_and_ty))
+    ty = map(last, ys_and_ty)
     return y, ty
 end
 
@@ -439,7 +443,7 @@ end
 
 ## Two arguments
 
-function _pushforward_via_pullback(
+function _value_and_pushforward_via_pullback(
         f!::F,
         y::AbstractArray{<:Real},
         pullback_prep::PullbackPrep,
@@ -449,13 +453,13 @@ function _pushforward_via_pullback(
         contexts::Vararg{Context, C},
     ) where {F, C}
     dy = map(CartesianIndices(y)) do i  # preserve shape
-        a = only(pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...))
+        _, a = onlysecond(value_and_pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...))
         dot(a, dx)
     end
     return dy
 end
 
-function _pushforward_via_pullback(
+function _value_and_pushforward_via_pullback(
         f!::F,
         y::AbstractArray{<:Complex},
         pullback_prep::PullbackPrep,
@@ -466,8 +470,8 @@ function _pushforward_via_pullback(
     ) where {F, C}
     dy = map(CartesianIndices(y)) do i  # preserve shape
         a = only(pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...))
-        b = only(
-            pullback(f!, y, pullback_prep, backend, x, (im * basis(y, i),), contexts...)
+        _, b = onlysecond(
+            value_and_pullback(f!, y, pullback_prep, backend, x, (im * basis(y, i),), contexts...)
         )
         real(dot(a, dx)) + im * real(dot(b, dx))
     end
@@ -487,10 +491,9 @@ function value_and_pushforward(
     (; pullback_prep) = prep
     ty = ntuple(
         b ->
-        _pushforward_via_pullback(f!, y, pullback_prep, backend, x, tx[b], contexts...),
+        _value_and_pushforward_via_pullback(f!, y, pullback_prep, backend, x, tx[b], contexts...),
         Val(B),
     )
-    f!(y, x, map(unwrap, contexts)...)
     return y, ty
 end
 
