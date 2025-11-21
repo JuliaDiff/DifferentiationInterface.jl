@@ -504,9 +504,9 @@ function _value_and_pullback_via_pushforward(
         pushforward_prep::PushforwardPrep,
         backend::AbstractADType,
         x::AbstractArray{<:Complex},
-        dy,
+        ty::NTuple{B},
         contexts::Vararg{Context, C},
-    ) where {F, C}
+    ) where {F, B, C}
     tx = map(CartesianIndices(x)) do j  # preserve shape
         a = only(pushforward(f!, y, pushforward_prep, backend, x, (basis(x, j),), contexts...))
         _, b = onlysecond(
