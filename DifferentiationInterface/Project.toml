@@ -59,7 +59,7 @@ DifferentiationInterfaceZygoteExt = ["Zygote", "ForwardDiff"]
 ADTypes = "1.18.0"
 ChainRulesCore = "1.23.0"
 DiffResults = "1.1.0"
-Diffractor = "=0.2.6"
+Diffractor = "=0.2.6, 0.2"
 Enzyme = "0.13.39"
 EnzymeCore = "0.8.8"
 FastDifferentiation = "0.4.3"
