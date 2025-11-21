@@ -324,12 +324,14 @@ function _value_and_pushforward_via_pullback(
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
         x,
-        dx,
+        tx::NTuple{B},
         contexts::Vararg{Context, C},
-    ) where {F, C}
+    ) where {F, B, C}
     y, a = onlysecond(value_and_pullback(f, pullback_prep, backend, x, (oneunit(y_ex),), contexts...))
-    dy = dot(a, dx)
-    return y, dy
+    ty = map(tx) do dx
+        dot(a, dx)
+    end
+    return y, arroftup_to_tupofarr(ty)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -338,13 +340,15 @@ function _value_and_pushforward_via_pullback(
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
         x,
-        dx,
+        tx::NTuple{B},
         contexts::Vararg{Context, C},
-    ) where {F, C}
+    ) where {F, B, C}
     y, a = onlysecond(value_and_pullback(f, pullback_prep, backend, x, (oneunit(y_ex),), contexts...))
     b = only(pullback(f, pullback_prep, backend, x, (im * oneunit(y_ex),), contexts...))
-    dy = real(dot(a, dx)) + im * real(dot(b, dx))
-    return y, dy
+    ty = map(tx) do dx
+        real(dot(a, dx)) + im * real(dot(b, dx))
+    end
+    return y, arroftup_to_tupofarr(ty)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -353,15 +357,17 @@ function _value_and_pushforward_via_pullback(
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
         x,
-        dx,
+        tx::NTuple{B},
         contexts::Vararg{Context, C},
-    ) where {F, C}
+    ) where {F, B, C}
     y = f(x, map(unwrap, contexts)...)
-    dy = map(CartesianIndices(y_ex)) do i
+    ty = map(CartesianIndices(y_ex)) do i
         a = only(pullback(f, pullback_prep, backend, x, (basis(y_ex, i),), contexts...))
-        dot(a, dx)
+        map(tx) do dx
+            dot(a, dx)
+        end
     end
-    return y, dy
+    return y, arroftup_to_tupofarr(ty)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -370,16 +376,18 @@ function _value_and_pushforward_via_pullback(
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
         x,
-        dx,
+        tx::NTuple{B},
         contexts::Vararg{Context, C},
-    ) where {F, C}
+    ) where {F, B, C}
     y = f(x, map(unwrap, contexts)...)
-    dy = map(CartesianIndices(y_ex)) do i
+    ty = map(CartesianIndices(y_ex)) do i
         a = only(pullback(f, pullback_prep, backend, x, (basis(y_ex, i),), contexts...))
         b = only(pullback(f, pullback_prep, backend, x, (im * basis(y_ex, i),), contexts...))
-        real(dot(a, dx)) + im * real(dot(b, dx))
+        map(tx) do dx
+            real(dot(a, dx)) + im * real(dot(b, dx))
+        end
     end
-    return y, dy
+    return y, arroftup_to_tupofarr(ty)
 end
 
 function value_and_pushforward(
@@ -392,13 +400,7 @@ function value_and_pushforward(
     ) where {F, B, C}
     check_prep(f, prep, backend, x, tx, contexts...)
     (; pullback_prep, y_example) = prep
-    ys_and_ty = ntuple(
-        b -> _value_and_pushforward_via_pullback(y_example, f, pullback_prep, backend, x, tx[b], contexts...),
-        Val(B),
-    )
-    y = first(first(ys_and_ty))
-    ty = map(last, ys_and_ty)
-    return y, ty
+    return _value_and_pushforward_via_pullback(y_example, f, pullback_prep, backend, x, tx, contexts...)
 end
 
 function value_and_pushforward!(
@@ -449,14 +451,16 @@ function _value_and_pushforward_via_pullback(
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
         x,
-        dx,
+        tx::NTuple{B},
         contexts::Vararg{Context, C},
-    ) where {F, C}
-    dy = map(CartesianIndices(y)) do i  # preserve shape
+    ) where {F, B, C}
+    ty = map(CartesianIndices(y)) do i  # preserve shape
         _, a = onlysecond(value_and_pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...))
-        dot(a, dx)
+        map(tx) do dx
+            dot(a, dx)
+        end
     end
-    return dy
+    return y, arroftup_to_tupofarr(ty)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -465,17 +469,19 @@ function _value_and_pushforward_via_pullback(
         pullback_prep::PullbackPrep,
         backend::AbstractADType,
         x,
-        dx,
+        tx::NTuple{B},
         contexts::Vararg{Context, C},
-    ) where {F, C}
-    dy = map(CartesianIndices(y)) do i  # preserve shape
+    ) where {F, B, C}
+    ty = map(CartesianIndices(y)) do i  # preserve shape
         a = only(pullback(f!, y, pullback_prep, backend, x, (basis(y, i),), contexts...))
         _, b = onlysecond(
             value_and_pullback(f!, y, pullback_prep, backend, x, (im * basis(y, i),), contexts...)
         )
-        real(dot(a, dx)) + im * real(dot(b, dx))
+        map(tx) do dx
+            real(dot(a, dx)) + im * real(dot(b, dx))
+        end
     end
-    return dy
+    return y, arroftup_to_tupofarr(ty)
 end
 
 function value_and_pushforward(
@@ -489,12 +495,7 @@ function value_and_pushforward(
     ) where {F, B, C}
     check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; pullback_prep) = prep
-    ty = ntuple(
-        b ->
-        _value_and_pushforward_via_pullback(f!, y, pullback_prep, backend, x, tx[b], contexts...),
-        Val(B),
-    )
-    return y, ty
+    return _value_and_pushforward_via_pullback(f!, y, pullback_prep, backend, x, tx, contexts...)
 end
 
 function value_and_pushforward!(
