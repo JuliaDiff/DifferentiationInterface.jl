@@ -21,3 +21,6 @@ updates:
       all-julia-packages:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "Diffractor"
+        versions: ["<= 0.2.10"]
