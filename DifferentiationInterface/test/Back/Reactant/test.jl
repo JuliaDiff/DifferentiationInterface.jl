@@ -12,10 +12,6 @@ backend = AutoReactant()
 @test check_available(backend)
 @test check_inplace(backend)
 
-scen1 = DIT.Scenario(
-
-)
-
 test_differentiation(
     backend, DifferentiationInterfaceTest.default_scenarios(;
         include_constantified = false, include_cachified = false
