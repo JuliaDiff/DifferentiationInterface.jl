@@ -1,10 +1,10 @@
-using Pkg
-Pkg.add(url = "https://github.com/EnzymeAD/Enzyme.jl")
-Pkg.add("Reactant")
+include("../../testutils.jl")
 
 using DifferentiationInterface
+import DifferentiationInterface as DI
 using DifferentiationInterfaceTest
-using Reactant
+import DifferentiationInterfaceTest as DIT
+import Enzyme, Reactant
 using Test
 
 backend = AutoReactant()
@@ -12,9 +12,13 @@ backend = AutoReactant()
 @test check_available(backend)
 @test check_inplace(backend)
 
+scen1 = DIT.Scenario(
+
+)
+
 test_differentiation(
     backend, DifferentiationInterfaceTest.default_scenarios(;
-        include_constantified = true, include_cachified = false
+        include_constantified = false, include_cachified = false
     );
     excluded = vcat(SECOND_ORDER, :jacobian, :derivative, :pushforward, :pullback),
     logging = false

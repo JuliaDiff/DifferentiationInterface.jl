@@ -69,6 +69,7 @@ include("misc/sparsity_detector.jl")
 include("misc/simple_finite_diff.jl")
 include("misc/zero_backends.jl")
 include("misc/overloading.jl")
+include("misc/reactant.jl")
 
 ## Exported
 
@@ -132,6 +133,7 @@ export AutoSparse
 @public inner, outer
 @public AutoForwardFromPrimitive, AutoReverseFromPrimitive
 @public Prep
+@public to_reactant
 
 include("init.jl")
 

@@ -169,6 +169,10 @@ If a GTPSA [`Descriptor`](https://bmad-sim.github.io/GTPSA.jl/stable/man/b_descr
 
 Most operators fall back on `AutoForwardDiff`.
 
+### Reactant
+
+See the docstring for [`AutoReactant`](@ref).
+
 ### ReverseDiff
 
 With `AutoReverseDiff(compile=false)`, preparation preallocates a [config](https://juliadiff.org/ReverseDiff.jl/dev/api/#The-AbstractConfig-API).
