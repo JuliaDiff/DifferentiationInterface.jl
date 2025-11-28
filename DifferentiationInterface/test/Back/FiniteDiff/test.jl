@@ -1,5 +1,4 @@
-using Pkg
-Pkg.add("FiniteDiff")
+include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using DifferentiationInterface: DenseSparsityDetector
@@ -9,8 +8,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 for backend in [AutoFiniteDiff()]
     @test check_available(backend)
@@ -114,3 +111,5 @@ end;
     @test prep.relstep_g == 0.1
     @test prep.relstep_h == 0.1
 end
+
+include("benchmark.jl")

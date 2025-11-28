@@ -1,7 +1,26 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 version: 2
+enable-beta-ecosystems: true # Julia ecosystem
 updates:
   - package-ecosystem: "github-actions"
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+  - package-ecosystem: "julia"
+    directories: # Location of Julia projects
+      - "/DifferentiationInterface"
+      - "/DifferentiationInterface/docs"
+      - "/DifferentiationInterface/test"
+      - "/DifferentiationInterfaceTest"
+      - "/DifferentiationInterfaceTest/docs"
+      - "/DifferentiationInterfaceTest/test"
+    schedule:
+      interval: "daily"
+    groups:
+      # Group all Julia package updates into a single PR:
+      all-julia-packages:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "Diffractor"
+        versions: ["<= 0.2.10"]

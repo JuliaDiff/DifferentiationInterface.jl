@@ -1,5 +1,4 @@
-using Pkg
-Pkg.add(["ForwardDiff", "ReverseDiff"])  # ForwardDiff already in ReverseDiff's deps
+include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 import DifferentiationInterface as DI
@@ -10,8 +9,6 @@ using Test
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
-
-LOGGING = get(ENV, "CI", "false") == "false"
 
 backends = [AutoReverseDiff(; compile = false), AutoReverseDiff(; compile = true)]
 second_order_backends = [SecondOrder(AutoForwardDiff(), AutoReverseDiff())]

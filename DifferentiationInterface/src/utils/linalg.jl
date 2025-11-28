@@ -33,3 +33,8 @@ Only specialized on `SparseMatrixCSC` because it is used with symbolic backends,
 The trivial dense fallback is designed to protect against a change of format in these packages.
 """
 get_pattern(M::AbstractMatrix) = trues(size(M))
+
+onlysecond((a, b)) = (a, only(b))
+
+arroftup_to_tupofarr(x::NTuple) = x
+arroftup_to_tupofarr(x::AbstractArray{<:NTuple{B}}) where {B} = ntuple(b -> getindex.(x, b), Val(B))

@@ -5,8 +5,6 @@ using DifferentiationInterfaceTest
 using DifferentiationInterfaceTest: allocfree_scenarios, no_matrices
 using Test
 
-LOGGING = get(ENV, "CI", "false") == "false"
-
 ## Type stability
 
 test_differentiation(
