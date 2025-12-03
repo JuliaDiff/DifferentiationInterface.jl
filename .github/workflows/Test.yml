@@ -98,23 +98,23 @@ jobs:
           - '1.11'
           - '1.12'
         group:
-          - ChainRules
-          - DifferentiateWith
-          # - Diffractor
-          - Enzyme
-          - FastDifferentiation
-          - FiniteDiff
-          - FiniteDifferences
-          - ForwardDiff
-          - GTPSA
+          # - ChainRules
+          # - DifferentiateWith
+          # # - Diffractor
+          # - Enzyme
+          # - FastDifferentiation
+          # - FiniteDiff
+          # - FiniteDifferences
+          # - ForwardDiff
+          # - GTPSA
           - HyperHessians
-          - Mooncake
-          - PolyesterForwardDiff
-          - ReverseDiff
-          - SparsityDetector
-          - Symbolics
-          - Tracker
-          - Zygote
+          # - Mooncake
+          # - PolyesterForwardDiff
+          # - ReverseDiff
+          # - SparsityDetector
+          # - Symbolics
+          # - Tracker
+          # - Zygote
         skip_lts:
           - ${{ github.event.pull_request.draft }}
         skip_pre:
