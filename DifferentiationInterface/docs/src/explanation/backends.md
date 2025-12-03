@@ -12,6 +12,7 @@ We support the following dense backend choices from [ADTypes.jl](https://github.
 - [`AutoFiniteDifferences`](@extref ADTypes.AutoFiniteDifferences)
 - [`AutoForwardDiff`](@extref ADTypes.AutoForwardDiff)
 - [`AutoGTPSA`](@extref ADTypes.AutoGTPSA)
+- [`AutoHyperHessians`](https://github.com/KristofferC/HyperHessians.jl)
 - [`AutoMooncake`](@extref ADTypes.AutoMooncake) and [`AutoMooncakeForward`](@extref ADTypes.AutoMooncake) (the latter is experimental)
 - [`AutoPolyesterForwardDiff`](@extref ADTypes.AutoPolyesterForwardDiff)
 - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff)
@@ -32,11 +33,11 @@ In practice, many AD backends have custom implementations for high-level operato
 !!! details
 
     In the rough summary table below,
-    
+
       - ✅ means that we reuse the custom implementation from the backend;
       - ❌ means that a custom implementation doesn't exist, so we use our default fallbacks;
       - 🔀 means it's complicated or not done yet.
-    
+
     |                            | `pf` | `pb` | `der` | `grad` | `jac` | `hess` | `hvp` | `der2` |
     |:-------------------------- |:---- |:---- |:----- |:------ |:----- |:------ |:----- |:------ |
     | `AutoChainRules`           | ❌    | ✅    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
@@ -48,6 +49,7 @@ In practice, many AD backends have custom implementations for high-level operato
     | `AutoFiniteDifferences`    | 🔀    | ❌    | ❌     | ✅      | ✅     | ❌      | ❌     | ❌      |
     | `AutoForwardDiff`          | ✅    | ❌    | ✅     | ✅      | ✅     | ✅      | ✅     | ✅      |
     | `AutoGTPSA`                | ✅    | ❌    | ❌     | ✅      | ✅     | ✅      | ✅     | ✅      |
+    | `AutoHyperHessians`        | ❌    | ❌    | ❌     | ❌      | ❌     | ✅      | ✅     | ✅      |
     | `AutoMooncake`             | ❌    | ✅    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
     | `AutoMooncakeForward`      | ✅    | ❌    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
     | `AutoPolyesterForwardDiff` | 🔀    | ❌    | 🔀     | ✅      | ✅     | 🔀      | 🔀     | 🔀      |
@@ -69,6 +71,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoFiniteDifferences`    | ✅                  | ✅               |
 | `AutoForwardDiff`          | ✅                  | ✅               |
 | `AutoGTPSA`                | ✅                  | ❌               |
+| `AutoHyperHessians`        | ✅                  | ✅               |
 | `AutoMooncake`             | ✅                  | ✅               |
 | `AutoMooncakeForward`      | ✅                  | ✅               |
 | `AutoPolyesterForwardDiff` | ✅                  | ✅               |

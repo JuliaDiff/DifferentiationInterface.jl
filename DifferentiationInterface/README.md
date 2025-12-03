@@ -37,6 +37,7 @@ We support the following backends defined by [ADTypes.jl](https://github.com/Sci
   - [FiniteDiff.jl](https://github.com/JuliaDiff/FiniteDiff.jl)
   - [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl)
   - [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl)
+  - [HyperHessians.jl](https://github.com/KristofferC/HyperHessians.jl)
   - [GTPSA.jl](https://github.com/bmad-sim/GTPSA.jl)
   - [Mooncake.jl](https://github.com/chalk-lab/Mooncake.jl)
   - [PolyesterForwardDiff.jl](https://github.com/JuliaDiff/PolyesterForwardDiff.jl)
