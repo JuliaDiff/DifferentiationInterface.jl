@@ -15,8 +15,8 @@ function DI.prepare_pushforward_nokwarg(
         contexts::Vararg{DI.Context, C}
     ) where {F, C, B}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
-    df = function_shadow(f, backend, Val(B))
     mode = forward_withprimal(backend)
+    df = function_shadow(f, backend, mode, Val(B))
     context_shadows = make_context_shadows(backend, mode, Val(B), contexts...)
     return EnzymeOneArgPushforwardPrep(_sig, df, context_shadows)
 end
@@ -146,8 +146,8 @@ function DI.prepare_gradient_nokwarg(
     ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     valB = to_val(DI.pick_batchsize(backend, x))
-    df = function_shadow(f, backend, valB)
     mode = forward_withprimal(backend)
+    df = function_shadow(f, backend, mode, valB)
     context_shadows = make_context_shadows(backend, mode, valB, contexts...)
     basis_shadows = create_shadows(valB, x)
     return EnzymeForwardGradientPrep(_sig, valB, df, context_shadows, basis_shadows)
@@ -236,7 +236,7 @@ function DI.prepare_jacobian_nokwarg(
     y = f(x, map(DI.unwrap, contexts)...)
     valB = to_val(DI.pick_batchsize(backend, x))
     mode = forward_withprimal(backend)
-    df = function_shadow(f, backend, valB)
+    df = function_shadow(f, backend, mode, valB)
     context_shadows = make_context_shadows(backend, mode, valB, contexts...)
     basis_shadows = create_shadows(valB, x)
     return EnzymeForwardOneArgJacobianPrep(

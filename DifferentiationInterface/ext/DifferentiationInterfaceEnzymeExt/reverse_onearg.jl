@@ -63,8 +63,8 @@ function DI.prepare_pullback_nokwarg(
         contexts::Vararg{DI.Context, C}
     ) where {F, B, C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
-    df = function_shadow(f, backend, Val(B))
     mode = reverse_split_withprimal(backend)
+    df = function_shadow(f, backend, mode, Val(B))
     context_shadows = make_context_shadows(backend, mode, Val(B), contexts...)
     y = f(x, map(DI.unwrap, contexts)...)
     return EnzymeReverseOneArgPullbackPrep(_sig, df, context_shadows, y)
@@ -214,8 +214,8 @@ function DI.prepare_gradient_nokwarg(
         contexts::Vararg{DI.Context, C}
     ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    df = function_shadow(f, backend, Val(1))
     mode = reverse_withprimal(backend)
+    df = function_shadow(f, backend, mode, Val(1))
     context_shadows = make_context_shadows(backend, mode, Val(1), contexts...)
     return EnzymeGradientPrep(_sig, df, context_shadows)
 end
