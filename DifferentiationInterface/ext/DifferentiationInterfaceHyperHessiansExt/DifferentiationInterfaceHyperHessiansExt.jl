@@ -4,7 +4,7 @@ import DifferentiationInterface as DI
 import .DI: AutoHyperHessians
 using ADTypes: ForwardMode
 using HyperHessians:
-    DirectionalHVPConfig,
+    HVPConfig,
     HessianConfig,
     Chunk,
     chunksize,
@@ -183,7 +183,7 @@ function DI.prepare_hvp_nokwarg(
         strict::Val, f, backend::DI.AutoHyperHessians, x::AbstractArray, tx::NTuple, contexts::Vararg{DI.Context, C}
     ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
-    cfg = DirectionalHVPConfig(x, tx, chunk_from_backend(backend, x))
+    cfg = HVPConfig(x, tx, chunk_from_backend(backend, x))
     return HyperHessiansHVPPrep(_sig, cfg)
 end
 
