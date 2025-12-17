@@ -41,3 +41,23 @@ test_differentiation(
     @test sparsity_pattern(jac!_prep) == Diagonal(trues(10))
     @test sparsity_pattern(hess_prep) == Diagonal(trues(10))
 end
+
+@testset "Non-numeric arguments" begin
+    function differentiate_me!(out, x, dummy)
+        @assert dummy isa Any # Just to use it somewhere
+        return copyto!(out, x)
+    end
+    function differentiate_me(x, dummy)
+        tmp = similar(x)
+        differentiate_me!(tmp, x, dummy)
+        return tmp
+    end
+    x = rand(10)
+    xbuffer = copy(x)
+    dummy = "DUMMY"
+    backend = AutoSymbolics()
+    jac_prep = prepare_jacobian(differentiate_me, backend, x, Constant(dummy))
+    jac!_prep = prepare_jacobian(differentiate_me!, xbuffer, backend, x, Constant(dummy))
+    @test jacobian(differentiate_me, jac_prep, backend, x, Constant(dummy)) ≈ I
+    @test jacobian(differentiate_me!, xbuffer, jac!_prep, backend, x, Constant(dummy)) ≈ I
+end
