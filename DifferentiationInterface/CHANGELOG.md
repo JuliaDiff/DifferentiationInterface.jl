@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.12...main)
+## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.13...main)
+
+## [0.7.13](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.12...DifferentiationInterface-v0.7.13)
+
+### Added
+
+- Allow non-numeric arguments with AutoSymbolics ([#945](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/945))
+
+### Fixed
+
+- Improve wrong-mode pushforward/pullback ([#932](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/932), [#931](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/931))
+- Clean up CI ([#926](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/926), [#924](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/924))
 
 ## [0.7.12](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.11...DifferentiationInterface-v0.7.12)
 
