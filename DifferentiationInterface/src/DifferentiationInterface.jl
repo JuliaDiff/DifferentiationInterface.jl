@@ -64,6 +64,7 @@ include("second_order/hessian.jl")
 
 include("misc/differentiate_with.jl")
 include("misc/from_primitive.jl")
+include("misc/autohyperhessians.jl")
 include("misc/sparsity_detector.jl")
 include("misc/simple_finite_diff.jl")
 include("misc/zero_backends.jl")
@@ -122,6 +123,7 @@ export AutoReverseDiff
 export AutoSymbolics
 export AutoTracker
 export AutoZygote
+export AutoHyperHessians
 
 export AutoSparse
 
