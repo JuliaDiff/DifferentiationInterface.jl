@@ -26,6 +26,7 @@ dense_ad(backend::AutoSparse{<:AutoSymbolics}) = ADTypes.dense_ad(backend)
 
 variablize(::Number, name::Symbol) = variable(name)
 variablize(x::AbstractArray, name::Symbol) = variables(name, axes(x)...)
+variablize(::T, name::Symbol) where {T} = variable(name; T)
 
 function variablize(contexts::NTuple{C, DI.Context}) where {C}
     return ntuple(Val(C)) do k
