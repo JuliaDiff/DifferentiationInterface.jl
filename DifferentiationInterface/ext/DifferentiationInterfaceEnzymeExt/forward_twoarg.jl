@@ -16,8 +16,8 @@ function DI.prepare_pushforward_nokwarg(
         contexts::Vararg{DI.Context, C}
     ) where {F, B, C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
-    df! = function_shadow(f!, backend, Val(B))
     mode = forward_noprimal(backend)
+    df! = function_shadow(f!, backend, mode, Val(B))
     context_shadows = make_context_shadows(backend, mode, Val(B), contexts...)
     return EnzymeTwoArgPushforwardPrep(_sig, df!, context_shadows)
 end

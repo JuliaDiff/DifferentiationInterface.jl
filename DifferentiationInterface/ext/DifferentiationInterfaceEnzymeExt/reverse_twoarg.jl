@@ -17,8 +17,8 @@ function DI.prepare_pullback_nokwarg(
         contexts::Vararg{DI.Context, C}
     ) where {F, B, C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
-    df! = function_shadow(f!, backend, Val(B))
     mode = reverse_noprimal(backend)
+    df! = function_shadow(f!, backend, mode, Val(B))
     context_shadows = make_context_shadows(backend, mode, Val(B), contexts...)
     ty_copy = map(copy, ty)
     return EnzymeReverseTwoArgPullbackPrep(_sig, df!, context_shadows, ty_copy)
