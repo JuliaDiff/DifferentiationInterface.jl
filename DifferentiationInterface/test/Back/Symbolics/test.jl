@@ -43,21 +43,21 @@ test_differentiation(
 end
 
 @testset "Non-numeric arguments" begin
-    function differentiate_me!(out, x, dummy)
-        @assert dummy isa Any # Just to use it somewhere
+    function differentiate_me!(out, x, c)
+        @assert c isa Any # Just to use it somewhere
         return copyto!(out, x)
     end
-    function differentiate_me(x, dummy)
+    function differentiate_me(x, c)
         tmp = similar(x)
-        differentiate_me!(tmp, x, dummy)
+        differentiate_me!(tmp, x, c)
         return tmp
     end
     x = rand(10)
     xbuffer = copy(x)
-    dummy = "DUMMY"
+    c = "I am a string"
     backend = AutoSymbolics()
-    jac_prep = prepare_jacobian(differentiate_me, backend, x, Constant(dummy))
-    jac!_prep = prepare_jacobian(differentiate_me!, xbuffer, backend, x, Constant(dummy))
-    @test jacobian(differentiate_me, jac_prep, backend, x, Constant(dummy)) ≈ I
-    @test jacobian(differentiate_me!, xbuffer, jac!_prep, backend, x, Constant(dummy)) ≈ I
+    jac_prep = prepare_jacobian(differentiate_me, backend, x, Constant(c))
+    jac!_prep = prepare_jacobian(differentiate_me!, xbuffer, backend, x, Constant(c))
+    @test jacobian(differentiate_me, jac_prep, backend, x, Constant(c)) ≈ I
+    @test jacobian(differentiate_me!, xbuffer, jac!_prep, backend, x, Constant(c)) ≈ I
 end
