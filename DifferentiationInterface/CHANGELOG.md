@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Function shadows for higher-order Enzyme ([#943](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/943))
 - Improve wrong-mode pushforward/pullback ([#932](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/932), [#931](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/931))
 - Clean up CI ([#926](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/926), [#924](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/924))
 
