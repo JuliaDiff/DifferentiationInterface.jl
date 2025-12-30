@@ -34,6 +34,7 @@ using Mooncake:
 const AnyAutoMooncake{C} = Union{AutoMooncake{C}, AutoMooncakeForward{C}}
 
 DI.check_available(::AnyAutoMooncake{C}) where {C} = true
+DI.inner_preparation_behavior(::AutoMooncakeForward) = DI.PrepareInnerSimple()
 
 include("utils.jl")
 include("onearg.jl")
