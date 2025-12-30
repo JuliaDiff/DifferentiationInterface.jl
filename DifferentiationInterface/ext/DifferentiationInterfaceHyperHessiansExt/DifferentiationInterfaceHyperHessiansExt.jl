@@ -9,6 +9,7 @@ using HyperHessians:
     Chunk,
     chunksize,
     pickchunksize,
+    HyperDual,
     hessian,
     hessian!,
     hessian_gradient_value,
@@ -22,7 +23,6 @@ using HyperHessians:
 ## Traits
 DI.check_available(::DI.AutoHyperHessians) = true
 DI.inplace_support(::DI.AutoHyperHessians) = DI.InPlaceSupported()
-DI.hvp_mode(::DI.AutoHyperHessians) = DI.ForwardOverForward()
 DI.mode(::DI.AutoHyperHessians) = ForwardMode()
 
 chunk_from_backend(backend::DI.AutoHyperHessians, x) =
@@ -35,17 +35,52 @@ function DI.pick_batchsize(backend::DI.AutoHyperHessians, x::AbstractArray)
     return DI.BatchSizeSettings{B}(length(x))
 end
 
+function DI.pick_batchsize(backend::DI.AutoHyperHessians, N::Integer)
+    B = chunksize(chunk_from_backend(backend, N, Float64))
+    return DI.BatchSizeSettings{B}(N)
+end
+
+function _translate_toprep(::Type{T}, c::Union{DI.GeneralizedConstant, DI.ConstantOrCache}) where {T}
+    return nothing
+end
+function _translate_toprep(::Type{T}, c::DI.Cache) where {T}
+    return DI.recursive_similar(DI.unwrap(c), T)
+end
+
+function translate_toprep(::Type{T}, contexts::NTuple{C, DI.Context}) where {T, C}
+    new_contexts = map(contexts) do c
+        _translate_toprep(T, c)
+    end
+    return new_contexts
+end
+
+function _translate_prepared(c::Union{DI.GeneralizedConstant, DI.ConstantOrCache}, _pc)
+    return DI.unwrap(c)
+end
+_translate_prepared(_c::DI.Cache, pc) = pc
+
+function translate_prepared(
+        contexts::NTuple{C, DI.Context}, prep_contexts::NTuple{C, Any}
+    ) where {C}
+    new_contexts = map(contexts, prep_contexts) do c, pc
+        _translate_prepared(c, pc)
+    end
+    return new_contexts
+end
+
 ## Second derivative (scalar input)
 
-struct HyperHessiansSecondDerivativePrep{SIG} <: DI.SecondDerivativePrep{SIG}
+struct HyperHessiansSecondDerivativePrep{SIG, C} <: DI.SecondDerivativePrep{SIG}
     _sig::Val{SIG}
+    contexts_prepared::C
 end
 
 function DI.prepare_second_derivative_nokwarg(
         strict::Val, f, backend::DI.AutoHyperHessians, x::Number, contexts::Vararg{DI.Context, C}
     ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    return HyperHessiansSecondDerivativePrep(_sig)
+    contexts_prepared = translate_toprep(HyperDual{1, 1, typeof(x)}, contexts)
+    return HyperHessiansSecondDerivativePrep(_sig, contexts_prepared)
 end
 
 function DI.second_derivative(
@@ -56,7 +91,8 @@ function DI.second_derivative(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     return hessian(fc, x)
 end
 
@@ -81,7 +117,8 @@ function DI.value_derivative_and_second_derivative(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     res = hessian_gradient_value(fc, x)
     return res.value, res.gradient, res.hessian
 end
@@ -104,14 +141,16 @@ end
 
 ## Preparation structs
 
-struct HyperHessiansHessianPrep{SIG, C} <: DI.HessianPrep{SIG}
+struct HyperHessiansHessianPrep{SIG, C, CP} <: DI.HessianPrep{SIG}
     _sig::Val{SIG}
     cfg::C
+    contexts_prepared::CP
 end
 
-struct HyperHessiansHVPPrep{SIG, C} <: DI.HVPPrep{SIG}
+struct HyperHessiansHVPPrep{SIG, C, CP} <: DI.HVPPrep{SIG}
     _sig::Val{SIG}
     cfg::C
+    contexts_prepared::CP
 end
 
 ## Hessian
@@ -121,7 +160,8 @@ function DI.prepare_hessian_nokwarg(
     ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     cfg = HessianConfig(x, chunk_from_backend(backend, x))
-    return HyperHessiansHessianPrep(_sig, cfg)
+    contexts_prepared = translate_toprep(eltype(cfg.duals), contexts)
+    return HyperHessiansHessianPrep(_sig, cfg, contexts_prepared)
 end
 
 function DI.hessian(
@@ -132,7 +172,8 @@ function DI.hessian(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     return hessian(fc, x, prep.cfg)
 end
 
@@ -145,7 +186,8 @@ function DI.hessian!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     return hessian!(hess, fc, x, prep.cfg)
 end
 
@@ -157,7 +199,8 @@ function DI.value_gradient_and_hessian(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     res = hessian_gradient_value(fc, x, prep.cfg)
     return res.value, res.gradient, res.hessian
 end
@@ -172,7 +215,8 @@ function DI.value_gradient_and_hessian!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     val = hessian_gradient_value!(hess, grad, fc, x, prep.cfg)
     return val, grad, hess
 end
@@ -184,7 +228,8 @@ function DI.prepare_hvp_nokwarg(
     ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     cfg = HVPConfig(x, tx, chunk_from_backend(backend, x))
-    return HyperHessiansHVPPrep(_sig, cfg)
+    contexts_prepared = translate_toprep(eltype(cfg.duals), contexts)
+    return HyperHessiansHVPPrep(_sig, cfg, contexts_prepared)
 end
 
 function DI.prepare_hvp_same_point(
@@ -208,7 +253,8 @@ function DI.hvp(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     return hvp(fc, x, tx, prep.cfg)
 end
 
@@ -222,7 +268,8 @@ function DI.hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     return hvp!(tg, fc, x, tx, prep.cfg)
 end
 
@@ -235,7 +282,8 @@ function DI.gradient_and_hvp(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     res = hvp_gradient_value(fc, x, tx, prep.cfg)
     return res.gradient, res.hvp
 end
@@ -251,7 +299,8 @@ function DI.gradient_and_hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
+    fc = DI.fix_tail(f, contexts_prepared...)
     hvp_gradient_value!(tg, grad, fc, x, tx, prep.cfg)
     return grad, tg
 end
