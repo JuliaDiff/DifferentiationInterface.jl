@@ -29,8 +29,8 @@ test_differentiation(
 );
 
 EXCLUDED = @static if VERSION ≥ v"1.11-" && VERSION ≤ v"1.12-"
-    # testing only :hessian on 1.11 due to an opaque closure bug.  
-    # This is potentially the same issue as discussed in 
+    # testing only :hessian on 1.11 due to an opaque closure bug.
+    # this is potentially the same issue as discussed in
     # https://github.com/chalk-lab/MistyClosures.jl/pull/12#issue-3278662295
     [FIRST_ORDER..., :hvp, :second_derivative]
 else
@@ -39,9 +39,9 @@ end
 
 # Test second-order differentiation (forward-over-reverse)
 test_differentiation(
-    [SecondOrder(AutoMooncakeForward(; config=nothing), AutoMooncake(; config=nothing))],
-    excluded=EXCLUDED,
-    logging=true,
+    [SecondOrder(AutoMooncakeForward(; config = nothing), AutoMooncake(; config = nothing))],
+    excluded = EXCLUDED,
+    logging = true,
 )
 
 @testset "NamedTuples" begin
