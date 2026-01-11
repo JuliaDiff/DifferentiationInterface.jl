@@ -92,6 +92,7 @@ using DifferentiationInterface:
 using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCache, unwrap
 using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
+using GPUArraysCore: @allowscalar
 using JET: @test_opt
 using LinearAlgebra: Adjoint, Diagonal, Transpose, I, dot, parent
 using PrecompileTools: @compile_workload
