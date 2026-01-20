@@ -40,6 +40,12 @@ function DI.pick_batchsize(backend::DI.AutoHyperHessians, N::Integer)
     return DI.BatchSizeSettings{B}(N)
 end
 
+function DI.threshold_batchsize(backend::DI.AutoHyperHessians, chunksize2::Integer)
+    chunksize1 = backend.chunksize
+    chunksize = isnothing(chunksize1) ? nothing : min(chunksize1, chunksize2)
+    return DI.AutoHyperHessians(; chunksize)
+end
+
 function _translate_toprep(::Type{T}, c::Union{DI.GeneralizedConstant, DI.ConstantOrCache}) where {T}
     return nothing
 end
