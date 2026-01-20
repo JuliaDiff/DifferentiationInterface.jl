@@ -19,19 +19,17 @@ for backend in backends
     @test DI.check_inplace(backend)
 end
 
-excluded_ops = [:pushforward, :pullback, :jacobian, :derivative, :gradient]
-
-scenarios = default_scenarios(; include_constantified = true)
+scenarios = default_scenarios(; include_constantified = true, include_cachified = true)
 
 test_differentiation(
     backends, scenarios;
-    excluded = excluded_ops, logging = LOGGING,
+    excluded = FIRST_ORDER, logging = LOGGING,
 )
 
 test_differentiation(
     DI.AutoHyperHessians(), scenarios;
     correctness = false,
     type_stability = safetypestab(:prepared),
-    excluded = excluded_ops,
+    excluded = FIRST_ORDER,
     logging = LOGGING,
 )
