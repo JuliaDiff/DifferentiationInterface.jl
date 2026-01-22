@@ -120,6 +120,9 @@ end
     @test DI.overloaded_input_type(
         prepare_jacobian(copyto!, similar(x), sparse_backend, x)
     ) == Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!), Float64}, Float64, 1}}
+    # Jacobian with one-element input
+    @test DI.overloaded_input_type(prepare_jacobian(copy, backend, [1.0])) ==
+        ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy), Float64}, Float64, 1}
 end;
 
 include("benchmark.jl")

@@ -28,5 +28,5 @@ DI.overloaded_input_type(prep::ForwardDiffTwoArgDerivativePrep) = typeof(prep.co
 DI.overloaded_input_type(prep::ForwardDiffGradientPrep) = typeof(prep.config.duals)
 
 ## Jacobian
-DI.overloaded_input_type(prep::ForwardDiffOneArgJacobianPrep) = typeof(prep.config.duals[2])
-DI.overloaded_input_type(prep::ForwardDiffTwoArgJacobianPrep) = typeof(prep.config.duals[2])
+DI.overloaded_input_type(prep::ForwardDiffOneArgJacobianPrep) = typeof(last(prep.config.duals))
+DI.overloaded_input_type(prep::ForwardDiffTwoArgJacobianPrep) = typeof(last(prep.config.duals))
