@@ -1,7 +1,7 @@
 """
     overloaded_input_type(prep)
 
-If it exists, return the overloaded input type which will be passed to the differentiated function when preparation result `prep` is reused.
+If it exists, return the overloaded input type (for the differentiated argument `x`) which will be passed to the differentiated function when preparation result `prep` is reused.
 
 !!! danger
 

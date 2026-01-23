@@ -104,7 +104,7 @@ end
     @test DI.overloaded_input_type(prepare_derivative(copy, backend, x)) ==
         ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy), Float64}, Float64, 1}
     @test DI.overloaded_input_type(prepare_derivative(copyto!, y, backend, x)) ==
-        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!), Float64}, Float64, 1}}
+        ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!), Float64}, Float64, 1}
 
     # Gradient
     x = [1.0, 1.0]
@@ -114,7 +114,7 @@ end
     # Jacobian
     x = [1.0, 0.0, 0.0]
     @test DI.overloaded_input_type(prepare_jacobian(copy, backend, x)) ==
-        ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy), Float64}, Float64, 3}
+        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy), Float64}, Float64, 3}}
     @test DI.overloaded_input_type(prepare_jacobian(copyto!, similar(x), backend, x)) ==
         Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!), Float64}, Float64, 3}}
     @test DI.overloaded_input_type(
@@ -122,7 +122,7 @@ end
     ) == Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copyto!), Float64}, Float64, 1}}
     # Jacobian with one-element input
     @test DI.overloaded_input_type(prepare_jacobian(copy, backend, [1.0])) ==
-        ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy), Float64}, Float64, 1}
+        Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy), Float64}, Float64, 1}}
 end;
 
 include("benchmark.jl")
