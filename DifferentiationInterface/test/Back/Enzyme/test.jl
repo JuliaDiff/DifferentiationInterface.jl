@@ -78,11 +78,15 @@ end
     )
 
     test_differentiation(
-        # TODO: replace with AutoEnzyme() when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 is fixed
-        SecondOrder(
-            AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Forward)),
-            AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Reverse))
-        ),
+        # TODO: simplify when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 and https://github.com/EnzymeAD/Enzyme.jl/issues/2925 are fixed
+        if VERSION >= v"1.11"
+            SecondOrder(
+                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Forward)),
+                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Reverse))
+            )
+        else
+            AutoEnzyme()
+        end,
         default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true);
         excluded = vcat(FIRST_ORDER, :second_derivative),
         logging = LOGGING,
