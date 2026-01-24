@@ -182,20 +182,21 @@ end
 
 ### Prepared
 
-struct ForwardDiffTwoArgDerivativePrep{SIG, C, CD} <: DI.DerivativePrep{SIG}
+struct ForwardDiffTwoArgDerivativePrep{SIG, X, C, CD} <: DI.DerivativePrep{SIG}
     _sig::Val{SIG}
+    x::X
     config::C
     contexts_dual::CD
 end
 
 function DI.prepare_derivative_nokwarg(
-        strict::Val, f!::F, y, backend::AutoForwardDiff, x, contexts::Vararg{DI.Context, C}
-    ) where {F, C}
+        strict::Val, f!::F, y, backend::AutoForwardDiff, x::X, contexts::Vararg{DI.Context, C}
+    ) where {F, C, X}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     tag = get_tag(f!, backend, x)
     config = DerivativeConfig(nothing, y, x, tag)
     contexts_dual = translate_toprep(dual_type(config), contexts)
-    return ForwardDiffTwoArgDerivativePrep(_sig, config, contexts_dual)
+    return ForwardDiffTwoArgDerivativePrep(_sig, copy(x), config, contexts_dual)
 end
 
 function DI.prepare!_derivative(
