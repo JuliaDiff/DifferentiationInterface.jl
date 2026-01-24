@@ -64,8 +64,36 @@ end
 
 @testset "Second order" begin
     test_differentiation(
+        AutoEnzyme(),
+        default_scenarios(; include_constantified = true, include_cachified = true);
+        excluded = vcat(FIRST_ORDER, :hvp, :hessian),
+        logging = LOGGING,
+    )
+
+    test_differentiation(
+        AutoEnzyme(),
+        default_scenarios(; include_constantified = true);
+        excluded = vcat(FIRST_ORDER, :second_derivative),
+        logging = LOGGING,
+    )
+
+    test_differentiation(
+        # TODO: simplify when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 and https://github.com/EnzymeAD/Enzyme.jl/issues/2925 are fixed
+        if VERSION >= v"1.11"
+            SecondOrder(
+                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Forward)),
+                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Reverse))
+            )
+        else
+            AutoEnzyme()
+        end,
+        default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true);
+        excluded = vcat(FIRST_ORDER, :second_derivative),
+        logging = LOGGING,
+    )
+
+    test_differentiation(
         [
-            AutoEnzyme(),
             SecondOrder(
                 AutoEnzyme(; mode = Enzyme.Reverse), AutoEnzyme(; mode = Enzyme.Forward)
             ),
