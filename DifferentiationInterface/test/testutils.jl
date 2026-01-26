@@ -14,8 +14,6 @@ using DifferentiationInterfaceTest
 using SparseConnectivityTracer
 using SparseMatrixColorings
 using Test
-import JET
-import Chairmarks
 
 using DifferentiationInterfaceTest:
     default_scenarios,
