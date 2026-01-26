@@ -1,7 +1,5 @@
 ## Pushforward
 
-# TODO: needs friendly tangents support
-
 struct MooncakeTwoArgPushforwardPrep{SIG, Tcache, DX, DY, FT, CT} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
@@ -29,8 +27,13 @@ function DI.prepare_pushforward_nokwarg(
         map(DI.unwrap, contexts)...;
         config,
     )
-    dx_righttype = zero_tangent(x)
-    dy_righttype = zero_tangent(y)
+    if config.friendly_tangents
+        dx_righttype = zero_tangent(x)
+        dy_righttype = zero_tangent(y)
+    else
+        dx_righttype = nothing
+        dy_righttype = nothing
+    end
     df! = zero_tangent(f!)
     context_tangents = map(zero_tangent_unwrap, contexts)
     prep = MooncakeTwoArgPushforwardPrep(_sig, cache, dx_righttype, dy_righttype, df!, context_tangents)
@@ -49,7 +52,7 @@ function DI.value_and_pushforward(
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = map(tx) do dx
         dx_righttype =
-            dx isa tangent_type(X) ? dx : _copy_to_output!!(prep.dx_righttype, dx)
+            isnothing(prep.dx_righttype) ? dx : primal_to_tangent!!(prep.dx_righttype, dx)
         y_dual = zero_dual(y)
         value_and_derivative!!(
             prep.cache,
@@ -58,7 +61,11 @@ function DI.value_and_pushforward(
             Dual(x, dx_righttype),
             map(Dual_unwrap, contexts, prep.context_tangents)...,
         )
-        dy = _copy_output(tangent(y_dual))
+        if isnothing(prep.dx_righttype)
+            dy = _copy_output(tangent(y_dual))
+        else
+            dy = tangent_to_primal!!(_copy_output(y), tangent(y_dual))
+        end
         return dy
     end
     return y, ty
@@ -90,9 +97,9 @@ function DI.value_and_pushforward!(
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     foreach(tx, ty) do dx, dy
         dx_righttype =
-            dx isa tangent_type(X) ? dx : _copy_to_output!!(prep.dx_righttype, dx)
+            isnothing(prep.dx_righttype) ? dx : primal_to_tangent!!(prep.dx_righttype, dx)
         dy_righttype =
-            dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
+            isnothing(prep.dy_righttype) ? dy : primal_to_tangent!!(prep.dy_righttype, dy)
         value_and_derivative!!(
             prep.cache,
             Dual(f!, prep.df!),
@@ -100,7 +107,7 @@ function DI.value_and_pushforward!(
             Dual(x, dx_righttype),
             map(Dual_unwrap, contexts, prep.context_tangents)...,
         )
-        dy === dy_righttype || copyto!(dy, dy_righttype)
+        isnothing(prep.dy_righttype) || tangent_to_primal!!(dy, dy_righttype)
     end
     return y, ty
 end
