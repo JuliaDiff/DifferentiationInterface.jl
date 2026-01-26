@@ -4,6 +4,8 @@ using DifferentiationInterfaceTest
 using Pkg
 using SparseConnectivityTracer
 using Test
+import JET
+import Chairmarks
 
 using DifferentiationInterfaceTest:
     default_scenarios,

@@ -3,6 +3,8 @@
 We present a typical workflow with DifferentiationInterfaceTest.jl, building on the tutorial of the [DifferentiationInterface.jl documentation](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface) (which we encourage you to read first).
 
 ```@repl tuto
+import Chairmarks
+using DataFrames
 using DifferentiationInterface, DifferentiationInterfaceTest
 using ForwardDiff: ForwardDiff
 using Zygote: Zygote
@@ -30,12 +32,12 @@ Of course we know the true gradient mapping:
 
 DifferentiationInterfaceTest.jl relies with so-called [`Scenario`](@ref)s, in which you encapsulate the information needed for your test:
 
-  - the operator category (here `:gradient`)
-  - the behavior of the operator (either `:in` or `:out` of place)
-  - the function `f`
-  - the input `x` of the function `f` (and possible tangents or contexts)
-  - the reference first-order result `res1` (and possible second-order result `res2`) of the operator
-  - the arguments `prep_args` passed during preparation
+- the operator category (here `:gradient`)
+- the behavior of the operator (either `:in` or `:out` of place)
+- the function `f`
+- the input `x` of the function `f` (and possible tangents or contexts)
+- the reference first-order result `res1` (and possible second-order result `res2`) of the operator
+- the arguments `prep_args` passed during preparation
 
 ```@example tuto
 xv = rand(Float32, 3)
@@ -68,7 +70,12 @@ Once you are confident that your backends give the correct answers, you probably
 This is made easy by the [`benchmark_differentiation`](@ref) function, whose syntax should feel familiar:
 
 ```@example tuto
-df = benchmark_differentiation(backends, scenarios);
+table = benchmark_differentiation(backends, scenarios);
 ```
 
-The resulting object is a `DataFrame` from [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl), whose columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref).
+The resulting object is a table, which can easily be converted into a `DataFrame` from [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
+Its columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref).
+
+```@example tuto
+df = DataFrame(table)
+```

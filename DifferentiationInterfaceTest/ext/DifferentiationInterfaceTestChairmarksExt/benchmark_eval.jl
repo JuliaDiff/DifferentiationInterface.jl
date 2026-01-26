@@ -1,19 +1,3 @@
-@kwdef struct BenchmarkResult
-    prepared_valop::Benchmark = failed_bench()
-    prepared_op::Benchmark = failed_bench()
-    preparation::Benchmark = failed_bench()
-    unprepared_valop::Benchmark = failed_bench()
-    unprepared_op::Benchmark = failed_bench()
-end
-
-@kwdef struct CallsResult
-    preparation::Int = -1
-    prepared_valop::Int = -1
-    prepared_op::Int = -1
-    unprepared_valop::Int = -1
-    unprepared_op::Int = -1
-end
-
 for op in ALL_OPS
     op! = Symbol(op, "!")
     val_prefix = if op == :second_derivative
@@ -34,8 +18,8 @@ for op in ALL_OPS
     S2out = Scenario{op, :out, :in}
     S2in = Scenario{op, :in, :in}
 
-    @eval function run_benchmark!(
-            data::Vector{DifferentiationBenchmarkDataRow},
+    @eval function DIT.run_benchmark!(
+            data::DifferentiationBenchmark,
             backend::AbstractADType,
             scenario::Union{$S1out, $S1in, $S2out, $S2in};
             logging::Bool,

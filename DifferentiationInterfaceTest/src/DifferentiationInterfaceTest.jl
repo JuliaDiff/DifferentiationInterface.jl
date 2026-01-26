@@ -16,8 +16,6 @@ using ADTypes:
     SymbolicMode,
     mode
 using AllocCheck: check_allocs
-using Chairmarks: @be, Benchmark, Sample
-using DataFrames: DataFrame
 import DifferentiationInterface as DI
 using DifferentiationInterface:
     prepare_pushforward,
@@ -92,13 +90,13 @@ using DifferentiationInterface:
 using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCache, unwrap
 using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
-using JET: @test_opt
 using LinearAlgebra: Adjoint, Diagonal, Transpose, I, dot, parent
 using PrecompileTools: @compile_workload
 using ProgressMeter: ProgressUnknown, next!
 using Random: AbstractRNG, default_rng, rand!
 using SparseArrays:
     SparseArrays, AbstractSparseMatrix, SparseMatrixCSC, nnz, sparse, spdiagm
+using Tables: Tables, AbstractRow
 using Test: @testset, @test, @test_throws
 
 """
@@ -139,9 +137,8 @@ include("scenarios/extensions.jl")
 
 include("tests/correctness_eval.jl")
 include("tests/prep_eval.jl")
-include("tests/type_stability_eval.jl")
+include("tests/type_stability.jl")
 include("tests/benchmark.jl")
-include("tests/benchmark_eval.jl")
 include("tests/allocs_eval.jl")
 
 include("test_differentiation.jl")
