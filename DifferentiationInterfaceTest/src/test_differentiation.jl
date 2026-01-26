@@ -209,7 +209,7 @@ function test_differentiation(
         end
     end
     if benchmark != :none
-        return DataFrame(benchmark_data)
+        return benchmark_data
     else
         return nothing
     end
