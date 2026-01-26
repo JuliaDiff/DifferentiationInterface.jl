@@ -30,6 +30,7 @@ using ADTypes:
     AutoMooncake,
     AutoMooncakeForward,
     AutoPolyesterForwardDiff,
+    AutoReactant,
     AutoReverseDiff,
     AutoSymbolics,
     AutoTracker,
@@ -68,6 +69,7 @@ include("misc/sparsity_detector.jl")
 include("misc/simple_finite_diff.jl")
 include("misc/zero_backends.jl")
 include("misc/overloading.jl")
+include("misc/reactant.jl")
 
 ## Exported
 
@@ -118,6 +120,7 @@ export AutoGTPSA
 export AutoMooncake
 export AutoMooncakeForward
 export AutoPolyesterForwardDiff
+export AutoReactant
 export AutoReverseDiff
 export AutoSymbolics
 export AutoTracker
@@ -130,6 +133,7 @@ export AutoSparse
 @public inner, outer
 @public AutoForwardFromPrimitive, AutoReverseFromPrimitive
 @public Prep
+@public to_reactant
 
 include("init.jl")
 

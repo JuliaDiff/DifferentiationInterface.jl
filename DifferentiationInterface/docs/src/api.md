@@ -144,3 +144,10 @@ DifferentiationInterface.AutoReverseFromPrimitive
 ```@docs
 DifferentiationInterface.Prep
 ```
+
+### Reactant
+
+```@docs
+AutoReactant
+DifferentiationInterface.to_reactant
+```
