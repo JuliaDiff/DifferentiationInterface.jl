@@ -1,5 +1,7 @@
 ## Pushforward
 
+# TODO: needs friendly tangents support
+
 struct MooncakeOneArgPushforwardPrep{SIG, Tcache, DX, FT, CT} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
@@ -19,7 +21,7 @@ function DI.prepare_pushforward_nokwarg(
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     config = get_config(backend)
     cache = prepare_derivative_cache(
-        f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
+        f, x, map(DI.unwrap, contexts)...; config
     )
     dx_righttype = zero_tangent(x)
     df = zero_tangent(f)

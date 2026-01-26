@@ -1,7 +1,6 @@
-struct MooncakeTwoArgPullbackPrep{SIG, Tcache, DY, F, N} <: DI.PullbackPrep{SIG}
+struct MooncakeTwoArgPullbackPrep{SIG, Tcache, F, N} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
-    dy_righttype::DY
     target_function::F
     args_to_zero::NTuple{N, Bool}
 end
@@ -27,10 +26,8 @@ function DI.prepare_pullback_nokwarg(
         y,
         x,
         map(DI.unwrap, contexts)...;
-        debug_mode = config.debug_mode,
-        silence_debug_messages = config.silence_debug_messages,
+        config,
     )
-    dy_righttype_after = zero_tangent(y)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # target_function
@@ -39,9 +36,7 @@ function DI.prepare_pullback_nokwarg(
         true,  # x
         contexts_tup_false...,
     )
-    prep = MooncakeTwoArgPullbackPrep(
-        _sig, cache, dy_righttype_after, target_function, args_to_zero
-    )
+    prep = MooncakeTwoArgPullbackPrep(_sig, cache, target_function, args_to_zero)
     return prep
 end
 
@@ -56,12 +51,10 @@ function DI.value_and_pullback(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     dy = only(ty)
-    # Prepare cotangent to add after the forward pass.
-    dy_righttype_after = copyto!(prep.dy_righttype, dy)
     # Run the reverse-pass and return the results.
     y_after, (_, _, _, dx) = value_and_pullback!!(
         prep.cache,
-        dy_righttype_after,
+        dy,
         prep.target_function,
         f!,
         y,
