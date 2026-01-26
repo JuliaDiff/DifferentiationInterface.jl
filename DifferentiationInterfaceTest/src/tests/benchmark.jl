@@ -88,6 +88,7 @@ end
 
 Tables.istable(::Type{DifferentiationBenchmark}) = true
 Tables.rowaccess(::Type{DifferentiationBenchmark}) = true
+Tables.columnaccess(::Type{DifferentiationBenchmark}) = false
 Tables.rows(data::DifferentiationBenchmark) = data.rows
 
 """
