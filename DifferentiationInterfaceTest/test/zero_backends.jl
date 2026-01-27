@@ -1,4 +1,5 @@
 using ADTypes
+import Chairmarks, JET
 using DifferentiationInterface
 using DifferentiationInterface: AutoZeroForward, AutoZeroReverse
 using DifferentiationInterfaceTest

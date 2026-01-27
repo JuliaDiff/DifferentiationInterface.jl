@@ -8,7 +8,6 @@ using SparseMatrixColorings
 using StaticArrays: StaticArrays
 using Test
 using JET
-import JET, Chairmarks
 
 zero_backends = [AutoZeroForward(), AutoZeroReverse()]
 

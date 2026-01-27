@@ -16,6 +16,7 @@ using ADTypes:
     SymbolicMode,
     mode
 using AllocCheck: check_allocs
+using DataAPI: DataAPI
 import DifferentiationInterface as DI
 using DifferentiationInterface:
     prepare_pushforward,
@@ -96,7 +97,7 @@ using ProgressMeter: ProgressUnknown, next!
 using Random: AbstractRNG, default_rng, rand!
 using SparseArrays:
     SparseArrays, AbstractSparseMatrix, SparseMatrixCSC, nnz, sparse, spdiagm
-using Tables: Tables, AbstractRow
+using Tables: Tables, AbstractRow, AbstractColumns
 using Test: @testset, @test, @test_throws
 
 """
@@ -148,8 +149,8 @@ export Scenario, compute_results
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
 
-@compile_workload begin
-    default_scenarios(; include_constantified = true, include_cachified = true)
-end
+# @compile_workload begin
+#     default_scenarios(; include_constantified = true, include_cachified = true)
+# end
 
 end

@@ -40,7 +40,7 @@ $(TYPEDFIELDS)
 
 See the documentation of [Chairmarks.jl](https://github.com/LilithHafner/Chairmarks.jl) for more details on the measurement fields.
 """
-Base.@kwdef struct DifferentiationBenchmarkDataRow{T} <: AbstractRow
+Base.@kwdef struct DifferentiationBenchmarkDataRow{T}
     "backend used for benchmarking"
     backend::AbstractADType
     "scenario used for benchmarking"
@@ -67,10 +67,6 @@ Base.@kwdef struct DifferentiationBenchmarkDataRow{T} <: AbstractRow
     compile_fraction::T
 end
 
-Tables.getcolumn(row::DifferentiationBenchmarkDataRow, i::Int) = getfield(row, i)
-Tables.getcolumn(row::DifferentiationBenchmarkDataRow, nm::Symbol) = getfield(row, nm)
-Tables.columnnames(row::DifferentiationBenchmarkDataRow) = fieldnames(typeof(row))
-
 """
     DifferentiationBenchmark
 
@@ -87,9 +83,22 @@ function DifferentiationBenchmark()
 end
 
 Tables.istable(::Type{DifferentiationBenchmark}) = true
+DataAPI.nrow(data::DifferentiationBenchmark) = length(data.rows)
+DataAPI.ncol(data::DifferentiationBenchmark) = 12
+
 Tables.rowaccess(::Type{DifferentiationBenchmark}) = true
-Tables.columnaccess(::Type{DifferentiationBenchmark}) = false
 Tables.rows(data::DifferentiationBenchmark) = data.rows
+
+Tables.getcolumn(row::DifferentiationBenchmarkDataRow, i::Int) = getfield(row, i)
+Tables.getcolumn(row::DifferentiationBenchmarkDataRow, nm::Symbol) = getproperty(row, nm)
+Tables.columnnames(row::DifferentiationBenchmarkDataRow) = fieldnames(typeof(row))
+
+Tables.columnaccess(::Type{DifferentiationBenchmark}) = true
+Tables.columns(data::DifferentiationBenchmark) = data
+
+Tables.getcolumn(cols::DifferentiationBenchmark, i::Int) = getfield.(cols.rows, i)
+Tables.getcolumn(cols::DifferentiationBenchmark, nm::Symbol) = getproperty.(cols.rows, nm)
+Tables.columnnames(cols::DifferentiationBenchmark) = fieldnames(eltype(cols.rows))
 
 """
     run_benchmark!(...)
