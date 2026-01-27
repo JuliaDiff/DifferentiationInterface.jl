@@ -5,6 +5,7 @@ using ExplicitImports
 using JET: JET
 using SparseMatrixColorings: SparseMatrixColorings
 using Test
+import Chairmarks
 
 @testset "Aqua" begin
     Aqua.test_all(DifferentiationInterfaceTest; ambiguities = false, undocumented_names = true)

@@ -60,7 +60,7 @@ using DifferentiationInterfaceTest:
     ALL_OPS,
     CallCounter, CallsResult, DifferentiationBenchmarkDataRow, DifferentiationBenchmark, Scenario,
     mysimilar, reset_count!
-using Test
+using Test: Test, @test
 
 function failed_bench()
     evals = 0.0

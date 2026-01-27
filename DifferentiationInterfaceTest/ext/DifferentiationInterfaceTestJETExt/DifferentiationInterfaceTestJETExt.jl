@@ -53,7 +53,7 @@ using DifferentiationInterface:
     hessian!,
     value_gradient_and_hessian,
     value_gradient_and_hessian!
-using DifferentiationInterfaceTest: ALL_OPS, Scenario
+using DifferentiationInterfaceTest: ALL_OPS, Scenario, mysimilar
 import DifferentiationInterfaceTest as DIT
 using JET: @test_opt
 
