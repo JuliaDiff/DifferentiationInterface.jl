@@ -7,6 +7,7 @@ import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using FiniteDiff: FiniteDiff
 using Test
+import Chairmarks
 
 @testset "Benchmarking sparse" begin
     filtered_sparse_scenarios = filter(sparse_scenarios(; band_sizes = [])) do scen

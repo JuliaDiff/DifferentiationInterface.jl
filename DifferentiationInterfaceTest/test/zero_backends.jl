@@ -1,5 +1,6 @@
 using ADTypes
 import Chairmarks, JET
+using DataFrames
 using DifferentiationInterface
 using DifferentiationInterface: AutoZeroForward, AutoZeroReverse
 using DifferentiationInterfaceTest
@@ -33,7 +34,7 @@ data0 = benchmark_differentiation(
     AutoZeroForward(),
     no_matrices(default_scenarios(; include_batchified = false, include_constantified = true));
     logging = LOGGING,
-);
+) |> DataFrame;
 
 data1 = benchmark_differentiation(
     AutoZeroForward(),
@@ -42,7 +43,7 @@ data1 = benchmark_differentiation(
     logging = LOGGING,
     benchmark_seconds = 0.05,
     benchmark_aggregation = maximum,
-);
+) |> DataFrame;
 
 struct FakeBackend <: ADTypes.AbstractADType end
 ADTypes.mode(::FakeBackend) = ADTypes.ForwardMode()
@@ -52,7 +53,7 @@ data2 = benchmark_differentiation(
     no_matrices(default_scenarios(; include_batchified = false));
     logging = false,
     benchmark_test = false,
-);
+) |> DataFrame;
 
 @testset "Benchmarking DataFrame" begin
     for col in eachcol(data1)
@@ -77,14 +78,14 @@ end
             excluded = [:pullback, :gradient],
             benchmark = :prepared,
             logging = LOGGING,
-        ),
+        ) |> DataFrame,
         benchmark_differentiation(
             AutoZeroReverse(),
             allocfree_scenarios();
             excluded = [:pushforward, :derivative],
             benchmark = :prepared,
             logging = LOGGING,
-        ),
+        ) |> DataFrame,
     )
     @testset "$(collect(row[1:4]))" for row in collect(eachrow(data_allocfree))
         @test row[:allocs] == 0
