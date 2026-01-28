@@ -82,18 +82,18 @@ function DifferentiationBenchmark()
     return DifferentiationBenchmark(DifferentiationBenchmarkDataRow{Float64}[])
 end
 
-Tables.istable(::Type{DifferentiationBenchmark}) = true
+Tables.istable(::Type{<:DifferentiationBenchmark}) = true
 DataAPI.nrow(data::DifferentiationBenchmark) = length(data.rows)
 DataAPI.ncol(data::DifferentiationBenchmark) = 12
 
-Tables.rowaccess(::Type{DifferentiationBenchmark}) = true
+Tables.rowaccess(::Type{<:DifferentiationBenchmark}) = true
 Tables.rows(data::DifferentiationBenchmark) = data.rows
 
 Tables.getcolumn(row::DifferentiationBenchmarkDataRow, i::Int) = getfield(row, i)
 Tables.getcolumn(row::DifferentiationBenchmarkDataRow, nm::Symbol) = getproperty(row, nm)
 Tables.columnnames(row::DifferentiationBenchmarkDataRow) = fieldnames(typeof(row))
 
-Tables.columnaccess(::Type{DifferentiationBenchmark}) = true
+Tables.columnaccess(::Type{<:DifferentiationBenchmark}) = true
 Tables.columns(data::DifferentiationBenchmark) = data
 
 Tables.getcolumn(cols::DifferentiationBenchmark, i::Int) = getfield.(cols.rows, i)
