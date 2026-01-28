@@ -1,14 +1,14 @@
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+Chairmarks = "0ca39b1e-fe0b-4e98-acfc-b1656634c4de"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
+DataAPI = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 DifferentiationInterfaceTest = "a82114a7-5aa3-49a8-9643-716bb13727a3"
 ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
-FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
-Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 JLArrays = "27aeb0d3-9eb9-45fb-866b-73c2ecf80fcb"
@@ -18,20 +18,22 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SparseConnectivityTracer = "9f842d2f-2579-4b1d-911e-f412cf18a3f5"
 SparseMatrixColorings = "0a514795-09f3-496d-8182-132a7b665d35"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[sources]
+DifferentiationInterfaceTest = {path = ".."}
 
 [compat]
 ADTypes = "1.18"
 Aqua = "0.8.12"
+Chairmarks = "1.2.1"
 ComponentArrays = "0.15.30"
 DataFrames = "1.8.1"
 DifferentiationInterface = "0.7.10"
-DifferentiationInterfaceTest = "0.10.2"
 ExplicitImports = "1.10.1"
 FiniteDiff = "2.27.0"
-FiniteDifferences = "0.12.33"
-Flux = "0.16.5"
 ForwardDiff = "1.2.2"
 JET = "0.9, 0.10, 0.11"
 JLArrays = "0.3"
@@ -40,6 +42,3 @@ SparseMatrixColorings = "0.4.9"
 StaticArrays = "1.9.15"
 Zygote = "0.7.10"
 julia = "1.10.10"
-
-[sources]
-DifferentiationInterfaceTest = { path = ".." }

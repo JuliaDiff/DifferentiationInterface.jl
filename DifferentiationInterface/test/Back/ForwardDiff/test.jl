@@ -9,6 +9,7 @@ using ForwardDiff: ForwardDiff
 using StaticArrays: StaticArrays, @SVector
 using JLArrays: JLArrays
 using Test
+import JET, Chairmarks
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)

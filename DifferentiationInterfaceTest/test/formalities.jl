@@ -5,6 +5,7 @@ using ExplicitImports
 using JET: JET
 using SparseMatrixColorings: SparseMatrixColorings
 using Test
+import Chairmarks
 
 @testset "Aqua" begin
     Aqua.test_all(DifferentiationInterfaceTest; ambiguities = false, undocumented_names = true)
@@ -12,7 +13,14 @@ end
 @testset verbose = true "JET" begin
     # until https://github.com/JuliaLang/julia/pull/59321 is released
     if VERSION <= v"1.12-"
-        JET.test_package(DifferentiationInterfaceTest; target_defined_modules = true)
+        JET.test_package(
+            DifferentiationInterfaceTest;
+            target_modules = (
+                DifferentiationInterfaceTest,
+                Base.get_extension(DifferentiationInterfaceTest, :DifferentiationInterfaceTestChairmarksExt),
+                Base.get_extension(DifferentiationInterfaceTest, :DifferentiationInterfaceTestJETExt),
+            )
+        )
     end
 end
 

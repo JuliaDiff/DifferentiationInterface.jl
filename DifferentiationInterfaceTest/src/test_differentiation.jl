@@ -8,7 +8,7 @@ Apply a list of `backends` on a list of `scenarios`, running a variety of differ
 This function always creates and runs a `@testset`, though its contents may vary.
 
   - if `benchmark == :none`, it returns `nothing`.
-  - if `benchmark != :none`, it returns a `DataFrame` of benchmark results, whose columns correspond to the fields of [`DifferentiationBenchmarkDataRow`](@ref).
+  - if `benchmark != :none`, it returns a table of benchmark results, compatible with the [Tables.jl](https://github.com/JuliaData/Tables.jl) interface.
 
 # Positional arguments
 
@@ -52,10 +52,14 @@ Each setting tests/benchmarks a different subset of calls:
 
 **Type stability options:**
 
+Type stability checks are implemented in a package extension: please call `import JET` beforehand if you want to use them.
+
   - `ignored_modules=nothing`: list of modules that JET.jl should ignore
   - `function_filter`: filter for functions that JET.jl should ignore (with a reasonable default)
 
 **Benchmark options:**
+
+Benchmarking is implemented in a package extension: please call `import Chairmarks` beforehand if you want to use it.
 
   - `count_calls=true`: whether to also count function calls during benchmarking
   - `benchmark_test=true`: whether to include tests which succeed iff benchmark doesn't error
@@ -120,7 +124,7 @@ function test_differentiation(
         title = testset_name
     end
 
-    benchmark_data = DifferentiationBenchmarkDataRow[]
+    benchmark_data = DifferentiationBenchmark()
 
     prog = ProgressUnknown(; desc = "$title", spinner = true, enabled = logging)
 
@@ -205,7 +209,7 @@ function test_differentiation(
         end
     end
     if benchmark != :none
-        return DataFrame(benchmark_data)
+        return benchmark_data
     else
         return nothing
     end

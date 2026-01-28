@@ -3,6 +3,7 @@ include("../../testutils.jl")
 using DifferentiationInterface, DifferentiationInterfaceTest
 using GTPSA: GTPSA
 using Test
+import JET
 
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)

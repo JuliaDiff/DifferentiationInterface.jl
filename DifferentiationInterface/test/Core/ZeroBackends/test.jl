@@ -7,7 +7,7 @@ using JLArrays: JLArrays
 using SparseMatrixColorings
 using StaticArrays: StaticArrays
 using Test
-
+using JET
 
 zero_backends = [AutoZeroForward(), AutoZeroReverse()]
 

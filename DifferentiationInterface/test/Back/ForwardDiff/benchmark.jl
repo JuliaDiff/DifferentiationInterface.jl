@@ -1,6 +1,7 @@
 using Pkg
 
 using ADTypes: ADTypes
+using DataFrames: DataFrame
 using DifferentiationInterface, DifferentiationInterfaceTest
 import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
@@ -18,7 +19,7 @@ using Test
         benchmark = :prepared,
         excluded = [:hessian, :pullback],  # TODO: figure this out
         logging = LOGGING,
-    )
+    ) |> DataFrame
     @testset "Analyzing benchmark results" begin
         @testset "$(row[:scenario])" for row in eachrow(data)
             @test row[:allocs] == 0
@@ -40,7 +41,7 @@ end
         benchmark = :prepared,
         excluded = SECOND_ORDER,
         logging = LOGGING,
-    )
+    ) |> DataFrame
     @testset "Analyzing benchmark results" begin
         @testset "$(row[:scenario])" for row in eachrow(data)
             @test row[:allocs] == 0

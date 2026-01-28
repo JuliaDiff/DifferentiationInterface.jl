@@ -21,28 +21,12 @@ function reset_count!(cc::CallCounter)
     return count
 end
 
-function failed_bench()
-    evals = 0.0
-    time = NaN
-    allocs = NaN
-    bytes = NaN
-    gc_fraction = NaN
-    compile_fraction = NaN
-    recompile_fraction = NaN
-    warmup = NaN
-    checksum = NaN
-    sample = Sample(
-        evals,
-        time,
-        allocs,
-        bytes,
-        gc_fraction,
-        compile_fraction,
-        recompile_fraction,
-        warmup,
-        checksum,
-    )
-    return Benchmark([sample])
+@kwdef struct CallsResult
+    preparation::Int = -1
+    prepared_valop::Int = -1
+    prepared_op::Int = -1
+    unprepared_valop::Int = -1
+    unprepared_op::Int = -1
 end
 
 """
@@ -83,29 +67,47 @@ Base.@kwdef struct DifferentiationBenchmarkDataRow{T}
     compile_fraction::T
 end
 
-function record!(
-        data::Vector{DifferentiationBenchmarkDataRow};
-        backend::AbstractADType,
-        scenario::Scenario,
-        operator::String,
-        prepared::Union{Nothing, Bool},
-        bench::Benchmark,
-        calls::Integer,
-        aggregation,
-    )
-    row = DifferentiationBenchmarkDataRow(;
-        backend = backend,
-        scenario = scenario,
-        operator = Symbol(operator),
-        prepared = prepared,
-        calls = calls,
-        samples = length(bench.samples),
-        evals = Int(bench.samples[1].evals),
-        time = aggregation(getfield.(bench.samples, :time)),
-        allocs = aggregation(getfield.(bench.samples, :allocs)),
-        bytes = aggregation(getfield.(bench.samples, :bytes)),
-        gc_fraction = aggregation(getfield.(bench.samples, :gc_fraction)),
-        compile_fraction = aggregation(getfield.(bench.samples, :compile_fraction)),
-    )
-    return push!(data, row)
+"""
+    DifferentiationBenchmark
+
+# Fields
+
+$(TYPEDFIELDS)
+"""
+struct DifferentiationBenchmark{T}
+    rows::Vector{DifferentiationBenchmarkDataRow{T}}
 end
+
+function DifferentiationBenchmark()
+    return DifferentiationBenchmark(DifferentiationBenchmarkDataRow{Float64}[])
+end
+
+Tables.istable(::Type{<:DifferentiationBenchmark}) = true
+DataAPI.nrow(data::DifferentiationBenchmark) = length(data.rows)
+DataAPI.ncol(data::DifferentiationBenchmark) = 12
+
+Tables.rowaccess(::Type{<:DifferentiationBenchmark}) = true
+Tables.rows(data::DifferentiationBenchmark) = data.rows
+
+Tables.getcolumn(row::DifferentiationBenchmarkDataRow, i::Int) = getfield(row, i)
+Tables.getcolumn(row::DifferentiationBenchmarkDataRow, nm::Symbol) = getproperty(row, nm)
+Tables.columnnames(row::DifferentiationBenchmarkDataRow) = fieldnames(typeof(row))
+
+Tables.columnaccess(::Type{<:DifferentiationBenchmark}) = true
+Tables.columns(data::DifferentiationBenchmark) = data
+
+Tables.getcolumn(cols::DifferentiationBenchmark, i::Int) = getfield.(cols.rows, i)
+Tables.getcolumn(cols::DifferentiationBenchmark, nm::Symbol) = getproperty.(cols.rows, nm)
+Tables.columnnames(cols::DifferentiationBenchmark) = fieldnames(eltype(cols.rows))
+
+"""
+    run_benchmark!(...)
+
+Perform the actual measurement of preparation and differentiation efficiency.
+
+!!! warning
+
+    Implemented in a package extension that depends on [Chairmarks.jl](https://github.com/LilithHafner/Chairmarks.jl).
+    If this function fails with a `MethodError`, try `import Chairmarks` before running it again.
+"""
+function run_benchmark! end

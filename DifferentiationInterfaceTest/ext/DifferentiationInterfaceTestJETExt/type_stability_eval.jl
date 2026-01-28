@@ -19,7 +19,7 @@ for op in ALL_OPS
     S2in = Scenario{op, :in, :in}
 
     if op in [:derivative, :gradient, :jacobian]
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1out;
                 subset::Symbol,
@@ -46,7 +46,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1in;
                 subset::Symbol,
@@ -77,7 +77,7 @@ for op in ALL_OPS
 
         op == :gradient && continue
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S2out;
                 subset::Symbol,
@@ -106,7 +106,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S2in;
                 subset::Symbol,
@@ -138,7 +138,7 @@ for op in ALL_OPS
         end
 
     elseif op in [:second_derivative, :hessian]
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1out;
                 subset::Symbol,
@@ -165,7 +165,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1in;
                 subset::Symbol,
@@ -197,7 +197,7 @@ for op in ALL_OPS
         end
 
     elseif op in [:pushforward, :pullback]
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1out;
                 subset::Symbol,
@@ -226,7 +226,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1in;
                 subset::Symbol,
@@ -257,7 +257,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S2out;
                 subset::Symbol,
@@ -288,7 +288,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S2in;
                 subset::Symbol,
@@ -324,7 +324,7 @@ for op in ALL_OPS
         end
 
     elseif op in [:hvp]
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1out;
                 subset::Symbol,
@@ -353,7 +353,7 @@ for op in ALL_OPS
             return nothing
         end
 
-        @eval function test_jet(
+        @eval function DIT.test_jet(
                 ba::AbstractADType,
                 scen::$S1in;
                 subset::Symbol,
