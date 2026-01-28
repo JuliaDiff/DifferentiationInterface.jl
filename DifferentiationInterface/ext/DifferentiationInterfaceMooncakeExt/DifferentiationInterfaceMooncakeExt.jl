@@ -29,7 +29,9 @@ using Mooncake:
     NoRData,
     primal,
     _copy_output,
-    _copy_to_output!!
+    _copy_to_output!!,
+    primal_to_tangent!!,
+    tangent_to_primal!!
 
 const AnyAutoMooncake{C} = Union{AutoMooncake{C}, AutoMooncakeForward{C}}
 
