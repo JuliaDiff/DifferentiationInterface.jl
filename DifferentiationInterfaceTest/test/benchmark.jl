@@ -1,8 +1,7 @@
-using Pkg; Pkg.activate(@__DIR__)
-
 using ADTypes
 using DifferentiationInterfaceTest
 import DifferentiationInterfaceTest as DIT
+import ForwardDiff
 using Tables, DataAPI
 using Test
 
