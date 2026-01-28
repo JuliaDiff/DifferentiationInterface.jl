@@ -106,6 +106,7 @@ Tables.columnnames(cols::DifferentiationBenchmark) = fieldnames(eltype(cols.rows
 Perform the actual measurement of preparation and differentiation efficiency.
 
 !!! warning
+
     Implemented in a package extension that depends on [Chairmarks.jl](https://github.com/LilithHafner/Chairmarks.jl).
     If this function fails with a `MethodError`, try `import Chairmarks` before running it again.
 """

@@ -149,8 +149,8 @@ export Scenario, compute_results
 export test_differentiation, benchmark_differentiation
 export DifferentiationBenchmarkDataRow
 
-# @compile_workload begin
-#     default_scenarios(; include_constantified = true, include_cachified = true)
-# end
+@compile_workload begin
+    default_scenarios(; include_constantified = true, include_cachified = true)
+end
 
 end
