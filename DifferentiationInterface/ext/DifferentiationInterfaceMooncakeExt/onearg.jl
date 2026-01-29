@@ -13,7 +13,7 @@ function DI.prepare_pullback_nokwarg(
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     config = get_config(backend)
     cache = prepare_pullback_cache(
-        f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
+        f, x, map(DI.unwrap, contexts)...; config
     )
     y = f(x, map(DI.unwrap, contexts)...)
     dy_righttype = zero_tangent(y)
@@ -122,7 +122,7 @@ function DI.prepare_gradient_nokwarg(
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = get_config(backend)
     cache = prepare_gradient_cache(
-        f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
+        f, x, map(DI.unwrap, contexts)...; config
     )
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (

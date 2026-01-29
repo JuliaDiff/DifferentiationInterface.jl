@@ -27,8 +27,7 @@ function DI.prepare_pullback_nokwarg(
         y,
         x,
         map(DI.unwrap, contexts)...;
-        debug_mode = config.debug_mode,
-        silence_debug_messages = config.silence_debug_messages,
+        config,
     )
     dy_righttype_after = zero_tangent(y)
     contexts_tup_false = map(_ -> false, contexts)
