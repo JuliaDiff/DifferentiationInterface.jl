@@ -25,8 +25,7 @@ function DI.prepare_pushforward_nokwarg(
         y,
         x,
         map(DI.unwrap, contexts)...;
-        config.debug_mode,
-        config.silence_debug_messages,
+        config
     )
     dx_righttype = zero_tangent(x)
     dy_righttype = zero_tangent(y)
