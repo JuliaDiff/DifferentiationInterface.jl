@@ -1,9 +1,8 @@
 ## Pushforward
 
-struct MooncakeOneArgPushforwardPrep{SIG, Tcache, DX, FT, CT} <: DI.PushforwardPrep{SIG}
+struct MooncakeOneArgPushforwardPrep{SIG, Tcache, FT, CT} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
-    dx_righttype::DX
     df::FT
     context_tangents::CT
 end
@@ -21,10 +20,9 @@ function DI.prepare_pushforward_nokwarg(
     cache = prepare_derivative_cache(
         f, x, map(DI.unwrap, contexts)...; config
     )
-    dx_righttype = zero_tangent(x)
     df = zero_tangent(f)
     context_tangents = map(zero_tangent_unwrap, contexts)
-    prep = MooncakeOneArgPushforwardPrep(_sig, cache, dx_righttype, df, context_tangents)
+    prep = MooncakeOneArgPushforwardPrep(_sig, cache, df, context_tangents)
     return prep
 end
 
@@ -38,13 +36,11 @@ function DI.value_and_pushforward(
     ) where {F, C, X}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ys_and_ty = map(tx) do dx
-        dx_righttype =
-            dx isa tangent_type(X) ? dx : _copy_to_output!!(prep.dx_righttype, dx)
         y_dual = value_and_derivative!!(
             prep.cache,
-            Dual(f, prep.df),
-            Dual(x, dx_righttype),
-            map(Dual_unwrap, contexts, prep.context_tangents)...,
+            (f, prep.df),
+            (x, dx),
+            map(first_unwrap, contexts, prep.context_tangents)...,
         )
         y = primal(y_dual)
         dy = _copy_output(tangent(y_dual))

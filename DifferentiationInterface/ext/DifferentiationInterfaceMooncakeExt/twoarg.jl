@@ -1,7 +1,7 @@
 struct MooncakeTwoArgPullbackPrep{SIG, Tcache, DY, F, N} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
-    dy_righttype::DY
+    dy_backup::DY
     target_function::F
     args_to_zero::NTuple{N, Bool}
 end
@@ -29,7 +29,7 @@ function DI.prepare_pullback_nokwarg(
         map(DI.unwrap, contexts)...;
         config,
     )
-    dy_righttype_after = zero_tangent(y)
+    dy_backup_after = zero_tangent(y)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # target_function
@@ -39,7 +39,7 @@ function DI.prepare_pullback_nokwarg(
         contexts_tup_false...,
     )
     prep = MooncakeTwoArgPullbackPrep(
-        _sig, cache, dy_righttype_after, target_function, args_to_zero
+        _sig, cache, dy_backup_after, target_function, args_to_zero
     )
     return prep
 end
@@ -56,11 +56,11 @@ function DI.value_and_pullback(
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     dy = only(ty)
     # Prepare cotangent to add after the forward pass.
-    dy_righttype_after = copyto!(prep.dy_righttype, dy)
+    dy_backup_after = copyto!(prep.dy_backup, dy)
     # Run the reverse-pass and return the results.
     y_after, (_, _, _, dx) = value_and_pullback!!(
         prep.cache,
-        dy_righttype_after,
+        dy_backup_after,
         prep.target_function,
         f!,
         y,
@@ -83,10 +83,10 @@ function DI.value_and_pullback(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     tx = map(ty) do dy
-        dy_righttype_after = copyto!(prep.dy_righttype, dy)
+        dy_backup_after = copyto!(prep.dy_backup, dy)
         y_after, (_, _, _, dx) = value_and_pullback!!(
             prep.cache,
-            dy_righttype_after,
+            dy_backup_after,
             prep.target_function,
             f!,
             y,

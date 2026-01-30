@@ -7,11 +7,11 @@ using Test
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
 
-
 backends = [
-    AutoMooncake(; config = nothing),
-    AutoMooncake(; config = Mooncake.Config()),
-    AutoMooncakeForward(; config = nothing),
+    AutoMooncake(),
+    AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true)),
+    AutoMooncakeForward(),
+    AutoMooncakeForward(; config = Mooncake.Config(; friendly_tangents = true)),
 ]
 
 for backend in backends
@@ -51,3 +51,5 @@ test_differentiation(
     @test grad.A == ps.B
     @test grad.B == ps.A
 end
+
+# TODO: test static arrays with friendly tangents!
