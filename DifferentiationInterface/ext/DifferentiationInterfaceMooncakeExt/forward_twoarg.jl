@@ -19,6 +19,7 @@ function DI.prepare_pushforward_nokwarg(
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     config = get_config(backend)
     cache = prepare_derivative_cache(
+        call_and_return,
         f!,
         y,
         x,
@@ -43,14 +44,15 @@ function DI.value_and_pushforward(
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = map(tx) do dx
         dy = zero_tangent(y)  # TODO: remove allocation?
-        value_and_derivative!!(
+        _, new_dy = value_and_derivative!!(
             prep.cache,
+            (call_and_return, zero_tangent(call_and_return)),
             (f!, prep.df!),
             (y, dy),
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
-        return dy
+        return _copy_output(new_dy)
     end
     return y, ty
 end
@@ -80,13 +82,15 @@ function DI.value_and_pushforward!(
     ) where {F, C, X, Y}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     foreach(tx, ty) do dx, dy
-        value_and_derivative!!(
+        _, new_dy = value_and_derivative!!(
             prep.cache,
+            (call_and_return, zero_tangent(call_and_return)),
             (f!, prep.df!),
             (y, dy),
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
+        copyto!(dy, new_dy)
     end
     return y, ty
 end

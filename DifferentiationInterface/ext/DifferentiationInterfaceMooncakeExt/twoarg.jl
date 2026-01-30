@@ -1,8 +1,7 @@
-struct MooncakeTwoArgPullbackPrep{SIG, Tcache, DY, F, N} <: DI.PullbackPrep{SIG}
+struct MooncakeTwoArgPullbackPrep{SIG, Tcache, DY, N} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
     dy_backup::DY
-    target_function::F
     args_to_zero::NTuple{N, Bool}
 end
 
@@ -16,13 +15,9 @@ function DI.prepare_pullback_nokwarg(
         contexts::Vararg{DI.Context, C}
     ) where {F, C}
     _sig = DI.signature(f!, y, backend, x, ty, contexts...; strict)
-    target_function = function (f!, y, x, contexts...)
-        f!(y, x, contexts...)
-        return y
-    end
     config = get_config(backend)
     cache = prepare_pullback_cache(
-        target_function,
+        call_and_return,
         f!,
         y,
         x,
@@ -32,14 +27,14 @@ function DI.prepare_pullback_nokwarg(
     dy_backup_after = zero_tangent(y)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
-        false,  # target_function
+        false,  # call_and_return
         false,  # f!
         false,  # y
         true,  # x
         contexts_tup_false...,
     )
     prep = MooncakeTwoArgPullbackPrep(
-        _sig, cache, dy_backup_after, target_function, args_to_zero
+        _sig, cache, dy_backup_after, args_to_zero
     )
     return prep
 end
@@ -61,7 +56,7 @@ function DI.value_and_pullback(
     y_after, (_, _, _, dx) = value_and_pullback!!(
         prep.cache,
         dy_backup_after,
-        prep.target_function,
+        call_and_return,
         f!,
         y,
         x,
@@ -87,7 +82,7 @@ function DI.value_and_pullback(
         y_after, (_, _, _, dx) = value_and_pullback!!(
             prep.cache,
             dy_backup_after,
-            prep.target_function,
+            call_and_return,
             f!,
             y,
             x,
