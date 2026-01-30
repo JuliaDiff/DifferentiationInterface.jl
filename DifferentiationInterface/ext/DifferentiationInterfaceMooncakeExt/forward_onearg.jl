@@ -36,14 +36,14 @@ function DI.value_and_pushforward(
     ) where {F, C, X}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     ys_and_ty = map(tx) do dx
-        y_dual = value_and_derivative!!(
+        y_and_dy = value_and_derivative!!(
             prep.cache,
             (f, prep.df),
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
-        y = primal(y_dual)
-        dy = _copy_output(tangent(y_dual))
+        y = first(y_and_dy)
+        dy = _copy_output(last(y_and_dy))
         return y, dy
     end
     y = first(ys_and_ty[1])

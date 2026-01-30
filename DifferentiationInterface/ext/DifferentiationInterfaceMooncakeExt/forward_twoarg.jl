@@ -42,15 +42,14 @@ function DI.value_and_pushforward(
     ) where {F, C, X}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = map(tx) do dx
-        y_dual = zero_dual(y)
+        dy = zero_tangent(y)  # TODO: remove allocation?
         value_and_derivative!!(
             prep.cache,
             (f!, prep.df!),
-            y_dual,
+            (y, dy),
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
-        dy = _copy_output(tangent(y_dual))
         return dy
     end
     return y, ty
