@@ -7,11 +7,11 @@ using Test
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
 
-
 backends = [
-    AutoMooncake(; config = nothing),
-    AutoMooncake(; config = Mooncake.Config()),
-    AutoMooncakeForward(; config = nothing),
+    AutoMooncake(),
+    AutoMooncakeForward(),
+    AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true)),
+    AutoMooncakeForward(; config = Mooncake.Config(; friendly_tangents = true)),
 ]
 
 for backend in backends
@@ -39,9 +39,9 @@ end
 
 # Test second-order differentiation (forward-over-reverse)
 test_differentiation(
-    [SecondOrder(AutoMooncakeForward(; config = nothing), AutoMooncake(; config = nothing))],
+    [SecondOrder(AutoMooncakeForward(), AutoMooncake())],
     excluded = EXCLUDED,
-    logging = true,
+    logging = LOGGING,
 )
 
 @testset "NamedTuples" begin
@@ -51,3 +51,10 @@ test_differentiation(
     @test grad.A == ps.B
     @test grad.B == ps.A
 end
+
+test_differentiation(
+    backends[3:4],
+    static_scenarios();
+    logging = LOGGING,
+    excluded = SECOND_ORDER
+)

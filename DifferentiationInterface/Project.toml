@@ -1,7 +1,7 @@
 name = "DifferentiationInterface"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 authors = ["Guillaume Dalle", "Adrian Hill"]
-version = "0.7.15"
+version = "0.7.16"
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -69,7 +69,7 @@ ForwardDiff = "0.10.36,1"
 GPUArraysCore = "0.2"
 GTPSA = "1.4.0"
 LinearAlgebra = "1"
-Mooncake = "0.4.175"
+Mooncake = "0.5.1"
 PolyesterForwardDiff = "0.1.2"
 ReverseDiff = "1.15.1"
 SparseArrays = "1"

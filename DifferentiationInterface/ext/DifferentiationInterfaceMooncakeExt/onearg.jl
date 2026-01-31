@@ -1,9 +1,8 @@
 ## Pullback
 
-struct MooncakeOneArgPullbackPrep{SIG, Tcache, DY, N} <: DI.PullbackPrep{SIG}
+struct MooncakeOneArgPullbackPrep{SIG, Tcache, N} <: DI.PullbackPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
-    dy_righttype::DY
     args_to_zero::NTuple{N, Bool}
 end
 
@@ -12,18 +11,14 @@ function DI.prepare_pullback_nokwarg(
     ) where {F, C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     config = get_config(backend)
-    cache = prepare_pullback_cache(
-        f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
-    )
-    y = f(x, map(DI.unwrap, contexts)...)
-    dy_righttype = zero_tangent(y)
+    cache = prepare_pullback_cache(f, x, map(DI.unwrap, contexts)...; config)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # f
         true,  # x
         contexts_tup_false...,
     )
-    prep = MooncakeOneArgPullbackPrep(_sig, cache, dy_righttype, args_to_zero)
+    prep = MooncakeOneArgPullbackPrep(_sig, cache, args_to_zero)
     return prep
 end
 
@@ -37,10 +32,8 @@ function DI.value_and_pullback(
     ) where {F, Y, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     dy = only(ty)
-    dy_righttype = dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
     new_y, (_, new_dx) = value_and_pullback!!(
-        prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...;
-        prep.args_to_zero
+        prep.cache, dy, f, x, map(DI.unwrap, contexts)...; prep.args_to_zero
     )
     return new_y, (_copy_output(new_dx),)
 end
@@ -55,11 +48,8 @@ function DI.value_and_pullback(
     ) where {F, Y, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     ys_and_tx = map(ty) do dy
-        dy_righttype =
-            dy isa tangent_type(Y) ? dy : _copy_to_output!!(prep.dy_righttype, dy)
         y, (_, new_dx) = value_and_pullback!!(
-            prep.cache, dy_righttype, f, x, map(DI.unwrap, contexts)...;
-            prep.args_to_zero
+            prep.cache, dy, f, x, map(DI.unwrap, contexts)...; prep.args_to_zero
         )
         y, _copy_output(new_dx)
     end
@@ -121,9 +111,7 @@ function DI.prepare_gradient_nokwarg(
     ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = get_config(backend)
-    cache = prepare_gradient_cache(
-        f, x, map(DI.unwrap, contexts)...; config.debug_mode, config.silence_debug_messages
-    )
+    cache = prepare_gradient_cache(f, x, map(DI.unwrap, contexts)...; config)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # f
