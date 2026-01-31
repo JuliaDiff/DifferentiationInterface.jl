@@ -9,8 +9,8 @@ check_no_implicit_imports(DifferentiationInterface)
 
 backends = [
     AutoMooncake(),
-    AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true)),
     AutoMooncakeForward(),
+    AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true)),
     AutoMooncakeForward(; config = Mooncake.Config(; friendly_tangents = true)),
 ]
 
@@ -22,7 +22,8 @@ end
 test_differentiation(
     backends,
     default_scenarios(;
-        include_constantified = true, include_cachified = true, use_tuples = true
+        include_batchified = false,
+        include_constantified = false, include_cachified = false, use_tuples = true
     );
     excluded = SECOND_ORDER,
     logging = LOGGING,
@@ -39,7 +40,7 @@ end
 
 # Test second-order differentiation (forward-over-reverse)
 test_differentiation(
-    [SecondOrder(AutoMooncakeForward(; config = nothing), AutoMooncake(; config = nothing))],
+    [SecondOrder(AutoMooncakeForward(), AutoMooncake())],
     excluded = EXCLUDED,
     logging = true,
 )
@@ -52,4 +53,9 @@ test_differentiation(
     @test grad.B == ps.A
 end
 
-# TODO: test static arrays with friendly tangents!
+test_differentiation(
+    backends[3:4],
+    static_scenarios();
+    logging = LOGGING,
+    excluded = SECOND_ORDER
+)

@@ -24,7 +24,7 @@ function DI.prepare_pullback_nokwarg(
         map(DI.unwrap, contexts)...;
         config,
     )
-    dy_backup_after = zero_tangent(y)
+    dy_backup = zero_tangent_or_primal(y, backend)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # call_and_return
@@ -34,7 +34,7 @@ function DI.prepare_pullback_nokwarg(
         contexts_tup_false...,
     )
     prep = MooncakeTwoArgPullbackPrep(
-        _sig, cache, dy_backup_after, args_to_zero
+        _sig, cache, dy_backup, args_to_zero
     )
     return prep
 end
@@ -51,11 +51,11 @@ function DI.value_and_pullback(
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     dy = only(ty)
     # Prepare cotangent to add after the forward pass.
-    dy_backup_after = copyto!(prep.dy_backup, dy)
+    dy_backup = copyto!(prep.dy_backup, dy)
     # Run the reverse-pass and return the results.
     y_after, (_, _, _, dx) = value_and_pullback!!(
         prep.cache,
-        dy_backup_after,
+        dy_backup,
         call_and_return,
         f!,
         y,
@@ -78,10 +78,10 @@ function DI.value_and_pullback(
     ) where {F, C}
     DI.check_prep(f!, y, prep, backend, x, ty, contexts...)
     tx = map(ty) do dy
-        dy_backup_after = copyto!(prep.dy_backup, dy)
+        dy_backup = copyto!(prep.dy_backup, dy)
         y_after, (_, _, _, dx) = value_and_pullback!!(
             prep.cache,
-            dy_backup_after,
+            dy_backup,
             call_and_return,
             f!,
             y,

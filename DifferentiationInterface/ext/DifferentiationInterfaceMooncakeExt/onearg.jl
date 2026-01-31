@@ -11,9 +11,7 @@ function DI.prepare_pullback_nokwarg(
     ) where {F, C}
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     config = get_config(backend)
-    cache = prepare_pullback_cache(
-        f, x, map(DI.unwrap, contexts)...; config
-    )
+    cache = prepare_pullback_cache(f, x, map(DI.unwrap, contexts)...; config)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # f
@@ -113,9 +111,7 @@ function DI.prepare_gradient_nokwarg(
     ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = get_config(backend)
-    cache = prepare_gradient_cache(
-        f, x, map(DI.unwrap, contexts)...; config
-    )
+    cache = prepare_gradient_cache(f, x, map(DI.unwrap, contexts)...; config)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # f

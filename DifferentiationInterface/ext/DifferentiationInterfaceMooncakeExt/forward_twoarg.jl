@@ -26,7 +26,7 @@ function DI.prepare_pushforward_nokwarg(
         map(DI.unwrap, contexts)...;
         config
     )
-    df! = zero_tangent(f!)
+    df! = zero_tangent_or_primal(f!, backend)
     context_tangents = map(zero_tangent_unwrap, contexts)
     prep = MooncakeTwoArgPushforwardPrep(_sig, cache, df!, context_tangents)
     return prep
@@ -43,10 +43,11 @@ function DI.value_and_pushforward(
     ) where {F, C, X}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = map(tx) do dx
-        dy = zero_tangent(y)  # TODO: remove allocation?
+        dy = zero_tangent_or_primal(y, backend)  # TODO: remove allocation?
+        dcall = zero_tangent_or_primal(call_and_return, backend)
         _, new_dy = value_and_derivative!!(
             prep.cache,
-            (call_and_return, zero_tangent(call_and_return)),
+            (call_and_return, dcall),
             (f!, prep.df!),
             (y, dy),
             (x, dx),
@@ -82,9 +83,10 @@ function DI.value_and_pushforward!(
     ) where {F, C, X, Y}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     foreach(tx, ty) do dx, dy
+        dcall = zero_tangent_or_primal(call_and_return, backend)
         _, new_dy = value_and_derivative!!(
             prep.cache,
-            (call_and_return, zero_tangent(call_and_return)),
+            (call_and_return, dcall),
             (f!, prep.df!),
             (y, dy),
             (x, dx),

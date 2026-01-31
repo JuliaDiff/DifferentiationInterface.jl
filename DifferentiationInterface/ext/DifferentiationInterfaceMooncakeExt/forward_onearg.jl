@@ -17,10 +17,8 @@ function DI.prepare_pushforward_nokwarg(
     ) where {F, C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     config = get_config(backend)
-    cache = prepare_derivative_cache(
-        f, x, map(DI.unwrap, contexts)...; config
-    )
-    df = zero_tangent(f)
+    cache = prepare_derivative_cache(f, x, map(DI.unwrap, contexts)...; config)
+    df = zero_tangent_or_primal(f, backend)
     context_tangents = map(zero_tangent_unwrap, contexts)
     prep = MooncakeOneArgPushforwardPrep(_sig, cache, df, context_tangents)
     return prep

@@ -8,3 +8,12 @@ function call_and_return(f!::F, y, x, contexts...) where {F}
     f!(y, x, contexts...)
     return y
 end
+
+function zero_tangent_or_primal(x, backend::AnyAutoMooncake)
+    if backend.config.friendly_tangents
+        # zero(x) but safer
+        return tangent_to_primal!!(_copy_output(x), zero_tangent(x))
+    else
+        return zero_tangent(x)
+    end
+end
