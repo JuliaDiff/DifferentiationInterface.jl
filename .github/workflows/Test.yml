@@ -16,71 +16,71 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
-  # test-DI-Core:
-  #   name: ${{ matrix.version }} - DI Core (${{ matrix.group }})
-  #   runs-on: ubuntu-latest
-  #   if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
-  #   timeout-minutes: 120
-  #   permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
-  #     actions: write
-  #     contents: read
-  #   strategy:
-  #     fail-fast: false # TODO: toggle
-  #     matrix:
-  #       version:
-  #         - '1.10'
-  #         - '1.11'
-  #         - '1.12'
-  #       group:
-  #         - Internals
-  #         - SimpleFiniteDiff
-  #         - ZeroBackends
-  #       skip_lts:
-  #         - ${{ github.event.pull_request.draft }}
-  #       skip_pre:
-  #         - ${{ github.event.pull_request.draft }}
-  #       exclude:
-  #         - skip_lts: true
-  #           version: '1.10'
-  #         - skip_pre: true
-  #           version: '1.12'
-  #   env:
-  #     JULIA_DI_TEST_TYPE: 'Core'
-  #     JULIA_DI_TEST_GROUP: ${{ matrix.group }}
-  #     JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
-  #   steps:
-  #     - uses: actions/checkout@v6
-  #     - uses: julia-actions/setup-julia@v2
-  #       with:
-  #         version: ${{ matrix.version }}
-  #         arch: x64
-  #     - uses: julia-actions/cache@v2
-  #     - name: Install dependencies & run tests
-  #       run: julia --color=yes -e '
-  #         using Pkg;
-  #         Pkg.activate("./DifferentiationInterface/test");
-  #         if VERSION < v"1.11";
-  #         Pkg.rm("DifferentiationInterfaceTest");
-  #         Pkg.resolve();
-  #         else;
-  #         Pkg.develop(; path="./DifferentiationInterfaceTest");
-  #         end;
-  #         Pkg.activate("./DifferentiationInterface");
-  #         test_kwargs = (; allow_reresolve=false, coverage=true);
-  #         if ENV["JULIA_DI_PR_DRAFT"] == "true";
-  #         Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);
-  #         else;
-  #         Pkg.test("DifferentiationInterface"; test_kwargs...);
-  #         end;'
-  #     - uses: julia-actions/julia-processcoverage@v1
-  #       with:
-  #         directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
-  #     - uses: codecov/codecov-action@v5
-  #       with:
-  #         files: lcov.info
-  #         flags: DI
-  #         token: ${{ secrets.CODECOV_TOKEN }}
-  #         fail_ci_if_error: false
+  test-DI-Core:
+    name: ${{ matrix.version }} - DI Core (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
+    timeout-minutes: 120
+    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+      actions: write
+      contents: read
+    strategy:
+      fail-fast: false # TODO: toggle
+      matrix:
+        version:
+          - '1.10'
+          - '1.11'
+          - '1.12'
+        group:
+          - Internals
+          - SimpleFiniteDiff
+          - ZeroBackends
+        skip_lts:
+          - ${{ github.event.pull_request.draft }}
+        skip_pre:
+          - ${{ github.event.pull_request.draft }}
+        exclude:
+          - skip_lts: true
+            version: '1.10'
+          - skip_pre: true
+            version: '1.12'
+    env:
+      JULIA_DI_TEST_TYPE: 'Core'
+      JULIA_DI_TEST_GROUP: ${{ matrix.group }}
+      JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: x64
+      - uses: julia-actions/cache@v2
+      - name: Install dependencies & run tests
+        run: julia --color=yes -e '
+          using Pkg;
+          Pkg.activate("./DifferentiationInterface/test");
+          if VERSION < v"1.11";
+          Pkg.rm("DifferentiationInterfaceTest");
+          Pkg.resolve();
+          else;
+          Pkg.develop(; path="./DifferentiationInterfaceTest");
+          end;
+          Pkg.activate("./DifferentiationInterface");
+          test_kwargs = (; allow_reresolve=false, coverage=true);
+          if ENV["JULIA_DI_PR_DRAFT"] == "true";
+          Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);
+          else;
+          Pkg.test("DifferentiationInterface"; test_kwargs...);
+          end;'
+      - uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
+      - uses: codecov/codecov-action@v5
+        with:
+          files: lcov.info
+          flags: DI
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
   test-DI-Backend:
     name: ${{ matrix.version }} - DI Back (${{ matrix.group }})
@@ -98,22 +98,22 @@ jobs:
           - '1.11'
           - '1.12'
         group:
-          # - ChainRules
-          # - DifferentiateWith
-          # # - Diffractor
-          # - Enzyme
-          # - FastDifferentiation
-          # - FiniteDiff
-          # - FiniteDifferences
-          # - ForwardDiff
-          # - GTPSA
+          - ChainRules
+          - DifferentiateWith
+          # - Diffractor
+          - Enzyme
+          - FastDifferentiation
+          - FiniteDiff
+          - FiniteDifferences
+          - ForwardDiff
+          - GTPSA
           - Mooncake
-          # - PolyesterForwardDiff
-          # - ReverseDiff
-          # - SparsityDetector
-          # - Symbolics
-          # - Tracker
-          # - Zygote
+          - PolyesterForwardDiff
+          - ReverseDiff
+          - SparsityDetector
+          - Symbolics
+          - Tracker
+          - Zygote
         skip_lts:
           - ${{ github.event.pull_request.draft }}
         skip_pre:
@@ -157,61 +157,61 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
-  # test-DIT:
-  #   name: ${{ matrix.version }} - DIT (${{ matrix.group }})
-  #   runs-on: ubuntu-latest
-  #   if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
-  #   timeout-minutes: 60
-  #   permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
-  #     actions: write
-  #     contents: read
-  #   strategy:
-  #     fail-fast: false # TODO: toggle
-  #     matrix:
-  #       version:
-  #         - '1.10'
-  #         - '1.11'
-  #         - '1.12'
-  #       group:
-  #         - Formalities
-  #         - Zero
-  #         - Standard
-  #         - Weird
-  #       skip_lts:
-  #         - ${{ github.event.pull_request.draft }}
-  #       skip_pre:
-  #         - ${{ github.event.pull_request.draft }}
-  #       exclude:
-  #         - skip_lts: true
-  #           version: '1.10'
-  #         - skip_pre: true
-  #           version: '1.12'
-  #   env:
-  #     JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
-  #     JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
-  #   steps:
-  #     - uses: actions/checkout@v6
-  #     - uses: julia-actions/setup-julia@v2
-  #       with:
-  #         version: ${{ matrix.version }}
-  #         arch: x64
-  #     - uses: julia-actions/cache@v2
-  #     - name: Install dependencies & run tests
-  #       run: julia --project=./DifferentiationInterfaceTest --color=yes -e '
-  #         using Pkg;
-  #         Pkg.Registry.update();
-  #         Pkg.develop(path="./DifferentiationInterface");
-  #         if ENV["JULIA_DI_PR_DRAFT"] == "true";
-  #         Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true, julia_args=["-O1"]);
-  #         else;
-  #         Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true);
-  #         end;'
-  #     - uses: julia-actions/julia-processcoverage@v1
-  #       with:
-  #         directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
-  #     - uses: codecov/codecov-action@v5
-  #       with:
-  #         files: lcov.info
-  #         flags: DIT
-  #         token: ${{ secrets.CODECOV_TOKEN }}
-  #         fail_ci_if_error: false
+  test-DIT:
+    name: ${{ matrix.version }} - DIT (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
+    timeout-minutes: 60
+    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+      actions: write
+      contents: read
+    strategy:
+      fail-fast: false # TODO: toggle
+      matrix:
+        version:
+          - '1.10'
+          - '1.11'
+          - '1.12'
+        group:
+          - Formalities
+          - Zero
+          - Standard
+          - Weird
+        skip_lts:
+          - ${{ github.event.pull_request.draft }}
+        skip_pre:
+          - ${{ github.event.pull_request.draft }}
+        exclude:
+          - skip_lts: true
+            version: '1.10'
+          - skip_pre: true
+            version: '1.12'
+    env:
+      JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
+      JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: x64
+      - uses: julia-actions/cache@v2
+      - name: Install dependencies & run tests
+        run: julia --project=./DifferentiationInterfaceTest --color=yes -e '
+          using Pkg;
+          Pkg.Registry.update();
+          Pkg.develop(path="./DifferentiationInterface");
+          if ENV["JULIA_DI_PR_DRAFT"] == "true";
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true, julia_args=["-O1"]);
+          else;
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true);
+          end;'
+      - uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
+      - uses: codecov/codecov-action@v5
+        with:
+          files: lcov.info
+          flags: DIT
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
