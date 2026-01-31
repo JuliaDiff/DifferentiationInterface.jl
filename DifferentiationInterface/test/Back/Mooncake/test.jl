@@ -42,7 +42,7 @@ end
 test_differentiation(
     [SecondOrder(AutoMooncakeForward(), AutoMooncake())],
     excluded = EXCLUDED,
-    logging = true,
+    logging = LOGGING,
 )
 
 @testset "NamedTuples" begin
