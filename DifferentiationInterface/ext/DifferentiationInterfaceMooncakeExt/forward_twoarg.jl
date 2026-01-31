@@ -1,9 +1,11 @@
 ## Pushforward
 
-struct MooncakeTwoArgPushforwardPrep{SIG, Tcache, FT, CT} <: DI.PushforwardPrep{SIG}
+struct MooncakeTwoArgPushforwardPrep{SIG, Tcache, FT0, FT, YT, CT} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::Tcache
+    dcall::FT0
     df!::FT
+    dy::YT
     context_tangents::CT
 end
 
@@ -26,9 +28,11 @@ function DI.prepare_pushforward_nokwarg(
         map(DI.unwrap, contexts)...;
         config
     )
+    dcall = zero_tangent_or_primal(call_and_return, backend)
     df! = zero_tangent_or_primal(f!, backend)
+    dy = zero_tangent_or_primal(y, backend)
     context_tangents = map(zero_tangent_unwrap, contexts)
-    prep = MooncakeTwoArgPushforwardPrep(_sig, cache, df!, context_tangents)
+    prep = MooncakeTwoArgPushforwardPrep(_sig, cache, dcall, df!, dy, context_tangents)
     return prep
 end
 
@@ -43,13 +47,11 @@ function DI.value_and_pushforward(
     ) where {F, C, X}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = map(tx) do dx
-        dy = zero_tangent_or_primal(y, backend)  # TODO: remove allocation?
-        dcall = zero_tangent_or_primal(call_and_return, backend)
         _, new_dy = value_and_derivative!!(
             prep.cache,
-            (call_and_return, dcall),
+            (call_and_return, prep.dcall),
             (f!, prep.df!),
-            (y, dy),
+            (y, prep.dy),
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
@@ -83,10 +85,9 @@ function DI.value_and_pushforward!(
     ) where {F, C, X, Y}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     foreach(tx, ty) do dx, dy
-        dcall = zero_tangent_or_primal(call_and_return, backend)
         _, new_dy = value_and_derivative!!(
             prep.cache,
-            (call_and_return, dcall),
+            (call_and_return, prep.dcall),
             (f!, prep.df!),
             (y, dy),
             (x, dx),

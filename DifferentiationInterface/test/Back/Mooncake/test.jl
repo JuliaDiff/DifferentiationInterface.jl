@@ -22,8 +22,7 @@ end
 test_differentiation(
     backends,
     default_scenarios(;
-        include_batchified = false,
-        include_constantified = false, include_cachified = false, use_tuples = true
+        include_constantified = true, include_cachified = true, use_tuples = true
     );
     excluded = SECOND_ORDER,
     logging = LOGGING,
