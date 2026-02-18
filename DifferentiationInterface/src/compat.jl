@@ -5,7 +5,7 @@ macro public(ex)
         elseif Base.isexpr(ex, :tuple)
             ex.args
         else
-            error("something informative")
+            error("Expected a symbol or a tuple of symbols, got $(repr(ex))")
         end
         esc(Expr(:public, args...))
     else
