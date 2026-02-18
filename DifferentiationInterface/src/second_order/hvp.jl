@@ -17,9 +17,9 @@ function prepare_hvp(
 end
 
 """
-    prepare!_hvp(f, backend, x, tx, [contexts...]) -> new_prep
+    prepare!_hvp(f, prep, backend, x, tx, [contexts...]) -> new_prep
 
-$(docstring_prepare("hvp"))
+$(docstring_prepare!("hvp"))
 """
 function prepare!_hvp(
         f::F,
