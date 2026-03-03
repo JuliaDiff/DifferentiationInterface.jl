@@ -19,31 +19,31 @@ An interface to various automatic differentiation (AD) backends in Julia.
 
 This package provides a unified syntax to differentiate functions, including:
 
-  - First- and second-order operators (gradients, Jacobians, Hessians and more)
-  - In-place and out-of-place differentiation
-  - Preparation mechanism (e.g. to pre-allocate a cache or record a tape)
-  - Built-in sparsity handling
-  - Thorough validation on standard inputs and outputs (numbers, vectors, matrices)
-  - Testing and benchmarking utilities accessible to users with [DifferentiationInterfaceTest](https://github.com/JuliaDiff/DifferentiationInterface.jl/tree/main/DifferentiationInterfaceTest)
+- First- and second-order operators (gradients, Jacobians, Hessians and more)
+- In-place and out-of-place differentiation
+- Preparation mechanism (e.g. to pre-allocate a cache or record a tape)
+- Built-in sparsity handling
+- Thorough validation on standard inputs and outputs (numbers, vectors, matrices)
+- Testing and benchmarking utilities accessible to users with [DifferentiationInterfaceTest](https://github.com/JuliaDiff/DifferentiationInterface.jl/tree/main/DifferentiationInterfaceTest)
 
 ## Compatibility
 
 We support the following backends defined by [ADTypes.jl](https://github.com/SciML/ADTypes.jl):
 
-  - [ChainRulesCore.jl](https://github.com/JuliaDiff/ChainRulesCore.jl)
-  - [Diffractor.jl](https://github.com/JuliaDiff/Diffractor.jl) (currently broken)
-  - [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl) (see below)
-  - [FastDifferentiation.jl](https://github.com/brianguenter/FastDifferentiation.jl)
-  - [FiniteDiff.jl](https://github.com/JuliaDiff/FiniteDiff.jl)
-  - [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl)
-  - [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl)
-  - [GTPSA.jl](https://github.com/bmad-sim/GTPSA.jl)
-  - [Mooncake.jl](https://github.com/chalk-lab/Mooncake.jl)
-  - [PolyesterForwardDiff.jl](https://github.com/JuliaDiff/PolyesterForwardDiff.jl)
-  - [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl)
-  - [Symbolics.jl](https://github.com/JuliaSymbolics/Symbolics.jl)
-  - [Tracker.jl](https://github.com/FluxML/Tracker.jl)
-  - [Zygote.jl](https://github.com/FluxML/Zygote.jl)
+- [ChainRulesCore.jl](https://github.com/JuliaDiff/ChainRulesCore.jl)
+- [Diffractor.jl](https://github.com/JuliaDiff/Diffractor.jl) (currently broken)
+- [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl) (see below)
+- [FastDifferentiation.jl](https://github.com/brianguenter/FastDifferentiation.jl)
+- [FiniteDiff.jl](https://github.com/JuliaDiff/FiniteDiff.jl)
+- [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl)
+- [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl)
+- [GTPSA.jl](https://github.com/bmad-sim/GTPSA.jl)
+- [Mooncake.jl](https://github.com/chalk-lab/Mooncake.jl)
+- [PolyesterForwardDiff.jl](https://github.com/JuliaDiff/PolyesterForwardDiff.jl)
+- [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl)
+- [Symbolics.jl](https://github.com/JuliaSymbolics/Symbolics.jl)
+- [Tracker.jl](https://github.com/FluxML/Tracker.jl)
+- [Zygote.jl](https://github.com/FluxML/Zygote.jl)
 
 > [!CAUTION]
 > Note that in some cases, going through DifferentiationInterface.jl might be slower or cause more errors than a direct call to the backend's API. This is especially true for Enzyme.jl, whose handling of activities and multiple arguments is not fully supported here. We are working on this challenge, and welcome any suggestions or contributions. Meanwhile, if differentiation fails or takes too long, consider using Enzyme.jl through its [native API](https://enzymead.github.io/Enzyme.jl/stable/) instead.
@@ -92,42 +92,44 @@ To improve your performance by up to several orders of magnitude compared to thi
 
 Whenever you refer to this package or the ideas it contains, please cite:
 
- 1. our preprint [*A Common Interface for Automatic Differentiation*](https://arxiv.org/abs/2505.05542);
+ 1. our JMLR paper [*A Common Interface for Automatic Differentiation*](https://jmlr.org/papers/v27/25-1024.html);
  2. our inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl).
+ 3. if you use sparse differentiation capabilities, our companion packages [SparseConnectivityTracer.jl](https://github.com/adrhill/SparseConnectivityTracer.jl) and [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl) which provide these capabilities (see their respective repositories for guidelines).
 
-You can use the provided [`CITATION.cff`](https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/CITATION.cff) file or the following BibTeX entries:
+For the first two items, you can use the provided [`CITATION.cff`](https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/CITATION.cff) file or the following BibTeX entries:
 
 ```bibtex
-@misc{dalle2025commoninterfaceautomaticdifferentiation,
-      title={A Common Interface for Automatic Differentiation},
-      author={Guillaume Dalle and Adrian Hill},
-      year={2025},
-      eprint={2505.05542},
-      archivePrefix={arXiv},
-      primaryClass={cs.MS},
-      url={https://arxiv.org/abs/2505.05542},
+@article{dalle2026commoninterfaceautomaticdifferentiation,
+  author  = {Guillaume Dalle and Adrian Hill},
+  title   = {A Common Interface for Automatic Differentiation},
+  journal = {Journal of Machine Learning Research},
+  year    = {2026},
+  volume  = {27},
+  number  = {25},
+  pages   = {1--13},
+  url     = {http://jmlr.org/papers/v27/25-1024.html}
 }
 
-@misc{schäfer2022abstractdifferentiationjlbackendagnosticdifferentiableprogramming,
-      title={AbstractDifferentiation.jl: Backend-Agnostic Differentiable Programming in Julia},
-      author={Frank Schäfer and Mohamed Tarek and Lyndon White and Chris Rackauckas},
-      year={2022},
-      eprint={2109.12449},
-      archivePrefix={arXiv},
-      primaryClass={cs.MS},
-      url={https://arxiv.org/abs/2109.12449},
+@misc{schäfer2022abstractdifferentiationjlbackendagnostic,
+  title         = {AbstractDifferentiation.jl: Backend-Agnostic Differentiable Programming in Julia},
+  author        = {Frank Schäfer and Mohamed Tarek and Lyndon White and Chris Rackauckas},
+  year          = {2022},
+  eprint        = {2109.12449},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.MS},
+  url           = {https://arxiv.org/abs/2109.12449}
 }
 ```
 
-If you use the software, additionally cite us using the precise [Zenodo DOI](https://zenodo.org/records/11092033) of the package version you used, or the BibTeX entry below:
+If you run the actual software as part of your experiments, please cite the precise [Zenodo DOI](https://zenodo.org/records/11092033) of the package version you used, or the BibTeX entry below:
 
 ```bibtex
-@software{dalleDifferentiationInterface2025,
-      author={Dalle, Guillaume and Hill, Adrian},
-      title={Differentiation{I}nterface.jl},
-      year={2024},
-      publisher={Zenodo},
-      doi={10.5281/zenodo.11092033},
-      url={https://doi.org/10.5281/zenodo.11092033},
+@software{dalle2024DifferentiationInterface202,
+  author    = {Dalle, Guillaume and Hill, Adrian},
+  title     = {Differentiation{I}nterface.jl},
+  year      = {2024},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.11092033},
+  url       = {https://doi.org/10.5281/zenodo.11092033}
 }
 ```
