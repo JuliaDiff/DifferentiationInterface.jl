@@ -19,8 +19,8 @@ function DI.multibasis(a::AbstractGPUArray{T}, inds) where {T}
 end
 
 function DI.arroftup_to_tupofarr(
-        tx::AbstractArray{NTuple{B, T}}, x::AbstractGPUArray{T}
-    ) where {B, T}
+        tx::AbstractArray{<:NTuple{B, <:Number}}, x::AbstractGPUArray{<:Number}
+    ) where {B}
     return ntuple(b -> adapt(typeof(x), getindex.(tx, b)), Val(B))
 end
 
