@@ -83,7 +83,7 @@ function (dw::DifferentiateWith{C})(x, args::Vararg{Any, C}) where {C}
 end
 
 function Base.show(io::IO, dw::DifferentiateWith)
-    (; f, backend) = dw
+    (; f, backend, context_wrappers) = dw
     return print(
         io,
         DifferentiateWith,
@@ -91,6 +91,8 @@ function Base.show(io::IO, dw::DifferentiateWith)
         repr(f; context = io),
         ", ",
         repr(backend; context = io),
+        ", ",
+        repr(context_wrappers; context = io),
         ")",
     )
 end

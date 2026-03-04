@@ -26,7 +26,7 @@ nanify(::NoRData) = NoRData()
 
 function nanify_fdata_and_rdata!!(contexts::Vararg{CoDual, C}) where {C}
     primal_contexts = map(primal, contexts)
-    fdata_contexts = map(fdata, contexts)
+    fdata_contexts = map(tangent, contexts)
     zero_rdata_contexts = map(zero_rdata, primal_contexts)
     foreach(fdata_contexts) do fc
         increment!!(fc, nanify(fc))
