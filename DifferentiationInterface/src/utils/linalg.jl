@@ -41,8 +41,8 @@ onlysecond((a, b)) = (a, only(b))
 
 Convert an array of tuples `tx` into a tuple of arrays, while respecting the array type of the primal `x`.
 """
-arroftup_to_tupofarr(tx::NTuple{B, T}, x::T) where {B, T} = tx
+arroftup_to_tupofarr(tx::NTuple{B, <:Number}, x::Number) where {B} = tx
 
-function arroftup_to_tupofarr(tx::AbstractArray{NTuple{B, T}}, x::AbstractArray{T}) where {B, T}
+function arroftup_to_tupofarr(tx::AbstractArray{<:NTuple{B, <:Number}}, x::AbstractArray{<:Number}) where {B}
     return ntuple(b -> similar(x) .= getindex.(tx, b), Val(B))
 end
