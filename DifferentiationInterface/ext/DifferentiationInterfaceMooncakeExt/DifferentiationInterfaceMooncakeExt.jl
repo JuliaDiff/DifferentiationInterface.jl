@@ -18,6 +18,7 @@ using Mooncake:
     value_and_pullback!!,
     zero_dual,
     zero_tangent,
+    zero_rdata,
     rdata_type,
     fdata,
     rdata,
@@ -26,11 +27,13 @@ using Mooncake:
     @is_primitive,
     zero_fcodual,
     MinimalCtx,
+    NoFData,
     NoRData,
     primal,
     _copy_output,
     _copy_to_output!!,
-    tangent_to_primal!!
+    tangent_to_primal!!,
+    increment!!
 
 const AnyAutoMooncake{C} = Union{AutoMooncake{C}, AutoMooncakeForward{C}}
 

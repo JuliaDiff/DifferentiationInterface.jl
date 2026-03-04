@@ -9,7 +9,8 @@ using ChainRulesCore:
     RuleConfig,
     frule_via_ad,
     rrule_via_ad,
-    unthunk
+    unthunk,
+    @not_implemented
 import DifferentiationInterface as DI
 
 ruleconfig(backend::AutoChainRules) = backend.ruleconfig

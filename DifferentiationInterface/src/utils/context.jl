@@ -179,3 +179,5 @@ Convenience for constructing a [`FixTail`](@ref), with a shortcut when there are
 """
 @inline fix_tail(f::F) where {F} = f
 fix_tail(f::F, args::Vararg{Any, N}) where {F, N} = FixTail(f, args...)
+
+@inline call(f::F, x) where {F} = f(x)

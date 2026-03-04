@@ -24,9 +24,14 @@ function (adb::ADBreaker)(x::AbstractArray)
     return adb.f(x)
 end
 
-function differentiatewith_scenarios()
-    outofplace_scens = filter(DIT.default_scenarios()) do scen
-        DIT.function_place(scen) == :out
+# TODO: break Mooncake with overlay?
+
+function differentiatewith_scenarios(; kwargs...)
+    outofplace_scens = filter(DIT.default_scenarios(; kwargs...)) do scen
+        DIT.function_place(scen) == :out &&
+            # save some time
+            !isa(scen.x, AbstractMatrix) &&
+            !isa(scen.y, AbstractMatrix)
     end
     # with bad_scens, everything would break
     bad_scens = map(outofplace_scens) do scen
@@ -44,7 +49,23 @@ test_differentiation(
     differentiatewith_scenarios();
     excluded = SECOND_ORDER,
     logging = LOGGING,
-    testset_name = "DI tests",
+    testset_name = "DI tests - normal",
+)
+
+test_differentiation(
+    [AutoZygote(), AutoMooncake(; config = nothing)],
+    map(DIT.constantify, differentiatewith_scenarios());
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+    testset_name = "DI tests - Constant",
+)
+
+test_differentiation(
+    [AutoMooncake(; config = nothing)],
+    map(DIT.cachify, differentiatewith_scenarios());
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+    testset_name = "DI tests - Cache",
 )
 
 @testset "ChainRules tests" begin
@@ -71,7 +92,7 @@ end;
 
     e = MooncakeDifferentiateWithError(identity, 1.0, 2.0)
     @test sprint(showerror, e) ==
-        "MooncakeDifferentiateWithError: For the function type typeof(identity) and input type Float64, the output type Float64 is currently not supported."
+        "MooncakeDifferentiateWithError: For the function type typeof(identity) and input types (Float64,), the output type Float64 is currently not supported."
 
     f_num2tup(x::Number) = (x,)
     f_vec2tup(x::Vector) = (first(x),)
