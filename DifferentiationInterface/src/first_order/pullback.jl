@@ -332,7 +332,7 @@ function _value_and_pullback_via_pushforward(
     tx = map(ty) do dy
         dot(a, dy)
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function _value_and_pullback_via_pushforward(
@@ -348,7 +348,7 @@ function _value_and_pullback_via_pushforward(
     tx = map(ty) do dy
         real(dot(a, dy)) + im * real(dot(b, dy))
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function _value_and_pullback_via_pushforward(
@@ -366,7 +366,7 @@ function _value_and_pullback_via_pushforward(
             dot(a, dy)
         end
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function _value_and_pullback_via_pushforward(
@@ -387,7 +387,7 @@ function _value_and_pullback_via_pushforward(
             real(dot(a, dy)) + im * real(dot(b, dy))
         end
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function value_and_pullback(
@@ -458,7 +458,7 @@ function _value_and_pullback_via_pushforward(
     tx = map(ty) do dy
         dot(a, dy)
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function _value_and_pullback_via_pushforward(
@@ -477,7 +477,7 @@ function _value_and_pullback_via_pushforward(
     tx = map(ty) do dy
         real(dot(a, dy)) + im * real(dot(b, dy))
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function _value_and_pullback_via_pushforward(
@@ -495,7 +495,7 @@ function _value_and_pullback_via_pushforward(
             dot(a, dy)
         end
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function _value_and_pullback_via_pushforward(
@@ -518,7 +518,7 @@ function _value_and_pullback_via_pushforward(
             real(dot(a, dy)) + im * real(dot(b, dy))
         end
     end
-    return y, arroftup_to_tupofarr(tx)
+    return y, arroftup_to_tupofarr(tx, x)
 end
 
 function value_and_pullback(
