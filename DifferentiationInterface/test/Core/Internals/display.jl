@@ -11,7 +11,7 @@ detector = DenseSparsityDetector(AutoForwardDiff(); atol = 1.0e-23)
     "DenseSparsityDetector(AutoForwardDiff(); atol=1.0e-23, method=:iterative)"
 
 diffwith = DifferentiateWith(exp, AutoForwardDiff())
-@test string(diffwith) == "DifferentiateWith(exp, AutoForwardDiff())"
+@test string(diffwith) == "DifferentiateWith(exp, AutoForwardDiff(), ())"
 
 @test required_packages(AutoForwardDiff()) == ["ForwardDiff"]
 @test required_packages(AutoZygote()) == ["Zygote"]
