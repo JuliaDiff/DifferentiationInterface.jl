@@ -1,8 +1,8 @@
 const NumberOrArray = Union{Number, AbstractArray{<:Number}}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{0}, <:NumberOrArray}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{1}, <:NumberOrArray, <:NumberOrArray}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{2}, <:NumberOrArray, <:NumberOrArray, <:NumberOrArray}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{3}, <:NumberOrArray, <:NumberOrArray, <:NumberOrArray, <:NumberOrArray}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{0}, Any}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{1}, Any, Any}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{2}, Any, Any, Any}
+@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{3}, Any, Any, Any, Any}
 # TODO: generate more cases programmatically
 
 struct MooncakeDifferentiateWithError <: Exception
@@ -17,14 +17,14 @@ end
 function Base.showerror(io::IO, e::MooncakeDifferentiateWithError)
     return print(
         io,
-        "MooncakeDifferentiateWithError: For the function type $(e.F) and argument types $(e.X), the output type $(e.Y) is currently not supported.",
+        "MooncakeDifferentiateWithError: For the function type `$(e.F)` and input types `$(e.X)`, the output type `$(e.Y)` is currently not supported.",
     )
 end
 
 function Mooncake.rrule!!(
         dw::CoDual{<:DI.DifferentiateWith{C}},
         x::CoDual{<:Number},
-        contexts::Vararg{CoDual, C}
+        contexts::Vararg{CoDual{<:NumberOrArray}, C}
     ) where {C}
     @assert tangent_type(typeof(dw)) == NoTangent
     primal_func = primal(dw)
@@ -64,7 +64,7 @@ end
 function Mooncake.rrule!!(
         dw::CoDual{<:DI.DifferentiateWith{C}},
         x::CoDual{<:AbstractArray{<:Number}},
-        contexts::Vararg{CoDual, C}
+        contexts::Vararg{CoDual{<:NumberOrArray}, C}
     ) where {C}
     @assert tangent_type(typeof(dw)) == NoTangent
     primal_func = primal(dw)

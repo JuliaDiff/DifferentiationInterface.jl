@@ -90,9 +90,9 @@ end;
     MooncakeDifferentiateWithError =
         Base.get_extension(DifferentiationInterface, :DifferentiationInterfaceMooncakeExt).MooncakeDifferentiateWithError
 
-    e = MooncakeDifferentiateWithError(identity, 1.0, 2.0)
+    e = MooncakeDifferentiateWithError(identity, (1.0,), 2.0)
     @test sprint(showerror, e) ==
-        "MooncakeDifferentiateWithError: For the function type typeof(identity) and input types (Float64,), the output type Float64 is currently not supported."
+        "MooncakeDifferentiateWithError: For the function type `typeof(identity)` and input types `Tuple{Float64}`, the output type `Float64` is currently not supported."
 
     f_num2tup(x::Number) = (x,)
     f_vec2tup(x::Vector) = (first(x),)
