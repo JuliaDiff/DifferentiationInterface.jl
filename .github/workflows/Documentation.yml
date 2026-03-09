@@ -39,7 +39,7 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'  # TODO: 1
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v3
       - name: Install dependencies
         run: julia --project=${{ matrix.pkg.dir}}/docs/ --color=yes -e '
           using Pkg;
