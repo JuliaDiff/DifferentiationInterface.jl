@@ -1,10 +1,12 @@
 const NumberOrArray = Union{Number, AbstractArray{<:Number}}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{0}, Any}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{1}, Any, Any}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{2}, Any, Any, Any}
-@is_primitive MinimalCtx Tuple{DI.DifferentiateWith{3}, Any, Any, Any, Any}
-# TODO: generate more cases programmatically
 
+# Mark DifferentiateWith with a range of context arities as primitives.
+# For C contexts, the corresponding call tuple type is
+# Tuple{DI.DifferentiateWith{C}, Any, Vararg{Any, C}}:
+# one slot for the primal input x and C slots for contexts.
+for C in 0:16
+    @eval @is_primitive MinimalCtx Tuple{DI.DifferentiateWith{$C}, Vararg{Any, $(C + 1)}}
+end
 struct MooncakeDifferentiateWithError <: Exception
     F::Type
     X::Type
@@ -37,7 +39,7 @@ function Mooncake.rrule!!(
     # output is a vector, so we need to use the vector pullback
     function pullback_array!!(dy::NoRData)
         dx = DI.pullback(f, backend, primal_x, (y.dx,), wrapped_primal_contexts...) |> only
-        @assert rdata(only(dx)) isa rdata_type(tangent_type(typeof(primal_x)))
+        @assert rdata(dx) isa rdata_type(tangent_type(typeof(primal_x)))
         rc = nanify_fdata_and_rdata!!(contexts...)
         return (NoRData(), rdata(dx), rc...)
     end

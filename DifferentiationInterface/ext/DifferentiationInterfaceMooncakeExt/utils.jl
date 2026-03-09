@@ -19,8 +19,9 @@ function zero_tangent_or_primal(x, backend::AnyAutoMooncake)
 end
 
 nanify(x::AbstractFloat) = convert(typeof(x), NaN)
-nanify(x::AbstractArray) = map(nan_tangent, x)
-nanify(x::Union{Tuple, NamedTuple}) = map(nan_tangent, x)
+nanify(x::AbstractArray) = map(nanify, x)
+nanify(x::NamedTuple) = NamedTuple{keys(x)}(map(nanify, values(x)))
+nanify(x::Tuple) = map(nanify, x)
 nanify(::NoFData) = NoFData()
 nanify(::NoRData) = NoRData()
 
