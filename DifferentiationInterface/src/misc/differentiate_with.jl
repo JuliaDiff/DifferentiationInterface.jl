@@ -77,18 +77,18 @@ struct DifferentiateWith{C, F, B <: AbstractADType, N <: NTuple{C, Any}}
 end
 
 function DifferentiateWith(
-    f::F,
-    backend::B,
-    context_wrappers::NTuple{C, Any},
-) where {F, B <: AbstractADType, C}
+        f::F,
+        backend::B,
+        context_wrappers::NTuple{C, Any},
+    ) where {F, B <: AbstractADType, C}
     for (i, wrapper) in pairs(context_wrappers)
         # Accept typical constructor-like values: functions or types.
         if !(wrapper isa Function || wrapper isa Type)
             throw(
                 ArgumentError(
                     "Each context wrapper must be a callable object or type " *
-                    "(e.g., a wrapper constructor like `Constant` or `Cache`), " *
-                    "but element $i has type $(typeof(wrapper)).",
+                        "(e.g., a wrapper constructor like `Constant` or `Cache`), " *
+                        "but element $i has type $(typeof(wrapper)).",
                 ),
             )
         end
@@ -99,7 +99,6 @@ function DifferentiateWith(
         context_wrappers,
     )
 end
-DifferentiateWith(f::F, backend::AbstractADType) where {F} = DifferentiateWith(f, backend, ())
 
 function (dw::DifferentiateWith{C})(x, args::Vararg{Any, C}) where {C}
     return dw.f(x, args...)
