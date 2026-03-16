@@ -91,7 +91,7 @@ Whenever you refer to this package or the ideas it contains, please cite:
 
  1. our JMLR paper [*A Common Interface for Automatic Differentiation*](https://jmlr.org/papers/v27/25-1024.html);
  2. our inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl).
- 3. if you use sparse differentiation capabilities, our companion packages [SparseConnectivityTracer.jl](https://github.com/adrhill/SparseConnectivityTracer.jl) and [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl) which provide these capabilities (see their respective repositories for guidelines).
+ 3. if you use sparse differentiation capabilities, our companion packages [SparseConnectivityTracer.jl](https://github.com/adrhill/SparseConnectivityTracer.jl) and [SparseMatrixColorings.jl](https://github.com/JuliaDiff/SparseMatrixColorings.jl) which provide these capabilities (see their respective repositories for guidelines).
 
 For the first two items, you can use the provided [`CITATION.cff`](https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/CITATION.cff) file or the following BibTeX entries:
 

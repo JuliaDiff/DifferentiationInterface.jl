@@ -23,7 +23,7 @@ An `AutoSparse` backend must be constructed from three ingredients:
       + [`DenseSparsityDetector`](@ref) from DifferentiationInterface.jl (beware that this detector only gives a locally valid pattern)
       + [`KnownJacobianSparsityDetector`](@extref ADTypes.KnownJacobianSparsityDetector) or [`KnownHessianSparsityDetector`](@extref ADTypes.KnownHessianSparsityDetector) from [ADTypes.jl](https://github.com/SciML/ADTypes.jl) (if you already know the pattern)
 
- 3. A coloring algorithm following the [`ADTypes.AbstractColoringAlgorithm`](@extref ADTypes.AbstractColoringAlgorithm) interface, such as those from [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl):
+ 3. A coloring algorithm following the [`ADTypes.AbstractColoringAlgorithm`](@extref ADTypes.AbstractColoringAlgorithm) interface, such as those from [SparseMatrixColorings.jl](https://github.com/JuliaDiff/SparseMatrixColorings.jl):
 
       + [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) (our generic recommendation, don't forget to tune the `order` parameter)
       + [`ConstantColoringAlgorithm`](@extref SparseMatrixColorings.ConstantColoringAlgorithm) (if you have already computed the optimal coloring and always want to return it)
@@ -48,7 +48,7 @@ But after preparation, the more zeros are present in the matrix, the greater the
 The complexity of sparse Jacobians or Hessians grows with the number of distinct colors in a coloring of the sparsity pattern.
 To reduce this number of colors, [`GreedyColoringAlgorithm`](@extref SparseMatrixColorings.GreedyColoringAlgorithm) has two main settings: the order used for vertices and the decompression method.
 Depending on your use case, you may want to modify either of these options to increase performance.
-See the documentation of [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl) for details.
+See the documentation of [SparseMatrixColorings.jl](https://github.com/JuliaDiff/SparseMatrixColorings.jl) for details.
 
 ### Mixed mode
 
