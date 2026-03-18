@@ -64,7 +64,7 @@ test_differentiation(
     [AutoMooncake(; config = nothing)],
     map(differentiatewith_scenarios()) do s
         s = DIT.cachify(s; use_tuples = true)
-        DIT.change_function(s, DifferentiateWith(scen.f, AutoFiniteDiff(), (Cache,)))
+        DIT.change_function(s, DifferentiateWith(s.f, AutoFiniteDiff(), (Cache,)))
     end;
     excluded = SECOND_ORDER,
     logging = LOGGING,
