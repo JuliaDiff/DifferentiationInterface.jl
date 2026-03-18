@@ -54,7 +54,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: x64
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - name: Install dependencies & run tests
         run: julia --color=yes -e '
           using Pkg;
@@ -139,7 +139,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: x64
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - name: Install dependencies & run tests
         run: julia --code-coverage=user --color=yes -e '
           using Pkg;
@@ -195,7 +195,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: x64
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - name: Install dependencies & run tests
         run: julia --project=./DifferentiationInterfaceTest --color=yes -e '
           using Pkg;

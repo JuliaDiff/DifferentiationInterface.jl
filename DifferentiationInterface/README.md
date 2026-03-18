@@ -2,16 +2,13 @@
 
 # DifferentiationInterface
 
-[![Build Status](https://github.com/JuliaDiff/DifferentiationInterface.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/JuliaDiff/DifferentiationInterface.jl/actions/workflows/Test.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/JuliaDiff/DifferentiationInterface.jl/branch/main/graph/badge.svg?flag=DI)](https://app.codecov.io/gh/JuliaDiff/DifferentiationInterface.jl)
-[![code style: runic](https://img.shields.io/badge/code_style-%E1%9A%B1%E1%9A%A2%E1%9A%BE%E1%9B%81%E1%9A%B2-black)](https://github.com/fredrikekre/Runic.jl)
-[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor%27s%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
-[![DOI](https://zenodo.org/badge/740973714.svg)](https://zenodo.org/doi/10.5281/zenodo.11092033)
-
-|           Package            |                                                                                                                                                 Docs                                                                                                                                                 |
-| :--------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|   DifferentiationInterface   |   [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/stable/)     [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/dev/)   |
-| DifferentiationInterfaceTest | [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterfaceTest/stable/) [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterfaceTest/dev/) |
+| Category | Badges |
+|---|---|
+| Build status | [![Tests](https://github.com/JuliaDiff/DifferentiationInterface.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/JuliaDiff/DifferentiationInterface.jl/actions/workflows/Test.yml?query=branch%3Amain) [![Coverage](https://codecov.io/gh/JuliaDiff/DifferentiationInterface.jl/branch/main/graph/badge.svg?flag=DI)](https://app.codecov.io/gh/JuliaDiff/DifferentiationInterface.jl) |
+| Documentation | [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/stable/)     [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadiff.org/DifferentiationInterface.jl/DifferentiationInterface/dev/) [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor%27s%20Guide-blueviolet)](https://github.com/SciML/ColPrac) |
+| Code quality | [![code style: runic](https://img.shields.io/badge/code_style-%E1%9A%B1%E1%9A%A2%E1%9A%BE%E1%9B%81%E1%9A%B2-black)](https://github.com/fredrikekre/Runic.jl) [![Aqua QA](https://juliatesting.github.io/Aqua.jl/dev/assets/badge.svg)](https://github.com/JuliaTesting/Aqua.jl) |
+| Downloads | [![Downloads](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2Fjuliapkgstats.com%2Fapi%2Fv2%2Fmonthly_downloads%2FDifferentiationInterface&query=total_requests&suffix=%2Fmonth&label=Downloads)](http://juliapkgstats.com/pkg/DifferentiationInterface) [![Dependents](https://juliahub.com/docs/General/DifferentiationInterface/stable/deps.svg)](https://juliahub.com/ui/Packages/General/DifferentiationInterface?#dependents) |
+| References | [![DOI](https://zenodo.org/badge/740973714.svg)](https://zenodo.org/doi/10.5281/zenodo.11092033) |
 
 An interface to various automatic differentiation (AD) backends in Julia.
 
@@ -94,7 +91,7 @@ Whenever you refer to this package or the ideas it contains, please cite:
 
  1. our JMLR paper [*A Common Interface for Automatic Differentiation*](https://jmlr.org/papers/v27/25-1024.html);
  2. our inspiration [AbstractDifferentiation.jl](https://github.com/JuliaDiff/AbstractDifferentiation.jl).
- 3. if you use sparse differentiation capabilities, our companion packages [SparseConnectivityTracer.jl](https://github.com/adrhill/SparseConnectivityTracer.jl) and [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl) which provide these capabilities (see their respective repositories for guidelines).
+ 3. if you use sparse differentiation capabilities, our companion packages [SparseConnectivityTracer.jl](https://github.com/adrhill/SparseConnectivityTracer.jl) and [SparseMatrixColorings.jl](https://github.com/JuliaDiff/SparseMatrixColorings.jl) which provide these capabilities (see their respective repositories for guidelines).
 
 For the first two items, you can use the provided [`CITATION.cff`](https://github.com/JuliaDiff/DifferentiationInterface.jl/blob/main/CITATION.cff) file or the following BibTeX entries:
 
