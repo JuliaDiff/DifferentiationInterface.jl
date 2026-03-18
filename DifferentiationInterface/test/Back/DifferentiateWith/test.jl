@@ -62,7 +62,10 @@ test_differentiation(
 
 test_differentiation(
     [AutoMooncake(; config = nothing)],
-    map(s -> DIT.cachify(s; use_tuples = true), differentiatewith_scenarios());
+    map(differentiatewith_scenarios()) do s
+        s = DIT.cachify(s; use_tuples = true)
+        DIT.change_function(s, DifferentiateWith(scen.f, AutoFiniteDiff(), (Cache,)))
+    end;
     excluded = SECOND_ORDER,
     logging = LOGGING,
     testset_name = "DI tests - Cache",
