@@ -66,7 +66,7 @@ end
 function Mooncake.rrule!!(
         dw::CoDual{<:DI.DifferentiateWith{C}},
         x::CoDual{<:AbstractArray{<:Number}},
-        contexts::Vararg{<:CoDual{<:NumberOrArray}, C}
+        contexts::Vararg{<:CoDual, C}
     ) where {C}
     @assert tangent_type(typeof(dw)) == NoTangent
     primal_func = primal(dw)
