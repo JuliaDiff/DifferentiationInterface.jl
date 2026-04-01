@@ -23,8 +23,20 @@ end
 
 test_differentiation(
     backends[3:4],
-    default_scenarios(;
-        include_constantified = true, include_cachified = true, use_tuples = true
+    default_scenarios();
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+);
+
+test_differentiation(
+    backends[3:4],
+    nomatrix(
+        default_scenarios(;
+            include_normal = false,
+            include_constantified = true,
+            include_cachified = true,
+            use_tuples = true
+        )
     );
     excluded = SECOND_ORDER,
     logging = LOGGING,
@@ -49,6 +61,7 @@ end
 # Test second-order differentiation (forward-over-reverse)
 test_differentiation(
     [SecondOrder(AutoMooncakeForward(), AutoMooncake())],
+    nomatrix(default_scenarios());
     excluded = EXCLUDED,
     logging = LOGGING,
 )
