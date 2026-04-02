@@ -346,9 +346,12 @@ function DI.prepare_jacobian_nokwarg(
     ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    y = fc(x)
-    x1 = similar(x)
-    fx = similar(y)
+    x1 = if backend.fdjtype == Val(:Central)
+        copy(x)
+    else
+        similar(x)
+    end
+    fx = fc(x)
     fx1 = similar(y)
     cache = JacobianCache(x1, fx, fx1, fdjtype(backend))
     relstep = if isnothing(backend.relstep)
