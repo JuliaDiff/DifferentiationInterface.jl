@@ -1,6 +1,7 @@
 include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
+using LinearAlgebra: Hermitian, SymTridiagonal, Symmetric
 using Mooncake: Mooncake
 using Test
 
@@ -80,3 +81,34 @@ test_differentiation(
     logging = LOGGING,
     excluded = SECOND_ORDER
 )
+
+@testset "Friendly tangents structured matrices" begin
+    backend = AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true))
+    inputs = (
+        Symmetric([2.0 1.0; 1.0 3.0]),
+        Hermitian(ComplexF64[2 1 + im; 1 - im 3]),
+        SymTridiagonal([2.0, 3.0, 4.0], [5.0, 6.0]),
+    )
+    f(x) = real(sum(abs2, x))
+
+    @testset "$(typeof(x))" for x in inputs
+        grad = gradient(f, backend, x)
+        y, grad2 = value_and_gradient(f, backend, x)
+        pb = only(pullback(identity, backend, x, (x,)))
+
+        @test grad isa Matrix
+        @test grad2 isa Matrix
+        @test pb isa Matrix
+        @test grad == grad2
+        @test y == f(x)
+        @test pb == Matrix(x)
+
+        grad_dense = zero(Matrix(x))
+        @test gradient!(f, grad_dense, backend, x) === grad_dense
+        @test grad_dense == grad
+
+        tx_dense = (zero(Matrix(x)),)
+        @test only(pullback!(identity, tx_dense, backend, x, (x,))) === tx_dense[1]
+        @test tx_dense[1] == pb
+    end
+end
