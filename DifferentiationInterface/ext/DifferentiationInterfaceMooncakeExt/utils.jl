@@ -21,18 +21,21 @@ function zero_tangent_or_primal(x, backend::AnyAutoMooncake)
     end
 end
 
-@inline maybe_getfield(mod, name::Symbol) = isdefined(mod, name) ? getfield(mod, name) : nothing
+@inline maybe_getfield(mod, name::Symbol) =
+    isdefined(mod, name) ? getfield(mod, name) : nothing
 
-const mooncake_tangent_to_friendly = maybe_getfield(Mooncake, Symbol("tangent_to_friendly!!"))
+const mooncake_tangent_to_friendly = maybe_getfield(
+    Mooncake, Symbol("tangent_to_friendly!!")
+)
 const mooncake_friendly_tangent_cache = maybe_getfield(Mooncake, :FriendlyTangentCache)
 const mooncake_as_primal = maybe_getfield(Mooncake, :AsPrimal)
 const mooncake_no_cache = maybe_getfield(Mooncake, :NoCache)
 
 function tangent_to_user_primal(tx, x)
     if !isnothing(mooncake_tangent_to_friendly) &&
-       !isnothing(mooncake_friendly_tangent_cache) &&
-       !isnothing(mooncake_as_primal) &&
-       !isnothing(mooncake_no_cache)
+        !isnothing(mooncake_friendly_tangent_cache) &&
+        !isnothing(mooncake_as_primal) &&
+        !isnothing(mooncake_no_cache)
         dest = mooncake_friendly_tangent_cache{mooncake_as_primal}(_copy_output(x))
         cache = isbitstype(typeof(x)) ? mooncake_no_cache() : IdDict{Any,Any}()
         return mooncake_tangent_to_friendly(dest, x, tx, cache)

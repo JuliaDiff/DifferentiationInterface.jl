@@ -13,8 +13,8 @@ nomatrix(scens) = filter(s -> !(s.x isa AbstractMatrix) && !(s.y isa AbstractMat
 backends = [
     AutoMooncake(),
     AutoMooncakeForward(),
-    AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true)),
-    AutoMooncakeForward(; config = Mooncake.Config(; friendly_tangents = true)),
+    AutoMooncake(; config=Mooncake.Config(; friendly_tangents=true)),
+    AutoMooncakeForward(; config=Mooncake.Config(; friendly_tangents=true)),
 ]
 
 for backend in backends
@@ -23,31 +23,25 @@ for backend in backends
 end
 
 test_differentiation(
-    backends[3:4],
-    default_scenarios();
-    excluded = SECOND_ORDER,
-    logging = LOGGING,
+    backends[3:4], default_scenarios(); excluded=SECOND_ORDER, logging=LOGGING
 );
 
 test_differentiation(
     backends[3:4],
     nomatrix(
         default_scenarios(;
-            include_normal = false,
-            include_constantified = true,
-            include_cachified = true,
-            use_tuples = true
-        )
+            include_normal=false,
+            include_constantified=true,
+            include_cachified=true,
+            use_tuples=true,
+        ),
     );
-    excluded = SECOND_ORDER,
-    logging = LOGGING,
+    excluded=SECOND_ORDER,
+    logging=LOGGING,
 );
 
 test_differentiation(
-    backends[1:2],
-    nomatrix(default_scenarios());
-    excluded = SECOND_ORDER,
-    logging = LOGGING,
+    backends[1:2], nomatrix(default_scenarios()); excluded=SECOND_ORDER, logging=LOGGING
 );
 
 EXCLUDED = @static if VERSION ≥ v"1.11-" && VERSION ≤ v"1.12-"
@@ -63,12 +57,12 @@ end
 test_differentiation(
     [SecondOrder(AutoMooncakeForward(), AutoMooncake())],
     nomatrix(default_scenarios());
-    excluded = EXCLUDED,
-    logging = LOGGING,
+    excluded=EXCLUDED,
+    logging=LOGGING,
 )
 
 @testset "NamedTuples" begin
-    ps = (; A = rand(5), B = rand(5))
+    ps = (; A=rand(5), B=rand(5))
     myfun(ps) = sum(ps.A .* ps.B)
     grad = gradient(myfun, backends[1], ps)
     @test grad.A == ps.B
@@ -76,14 +70,11 @@ test_differentiation(
 end
 
 test_differentiation(
-    backends[3:4],
-    nomatrix(static_scenarios());
-    logging = LOGGING,
-    excluded = SECOND_ORDER
+    backends[3:4], nomatrix(static_scenarios()); logging=LOGGING, excluded=SECOND_ORDER
 )
 
 @testset "Friendly tangents structured matrices" begin
-    backend = AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true))
+    backend = AutoMooncake(; config=Mooncake.Config(; friendly_tangents=true))
     inputs = (
         Symmetric([2.0 1.0; 1.0 3.0]),
         Hermitian(ComplexF64[2 1 + im; 1 - im 3]),
