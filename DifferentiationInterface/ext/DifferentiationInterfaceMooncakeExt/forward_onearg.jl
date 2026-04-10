@@ -41,7 +41,7 @@ function DI.value_and_pushforward(
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
         y = first(y_and_dy)
-        dy = _copy_output(last(y_and_dy))
+        dy = _maybe_to_primal(last(y_and_dy), y)
         return y, dy
     end
     y = _copy_output(first(ys_and_ty[1]))
