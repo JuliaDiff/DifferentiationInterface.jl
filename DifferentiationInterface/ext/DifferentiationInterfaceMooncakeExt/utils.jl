@@ -21,6 +21,11 @@ function zero_tangent_or_primal(x, backend::AnyAutoMooncake)
     end
 end
 
+# Safety net: if Mooncake returns a raw Tangent (e.g. Julia 1.11 + StaticArrays),
+# convert it to a primal-shaped value. No-op for already-converted results.
+_maybe_to_primal(tx, x) = _copy_output(tx)
+_maybe_to_primal(tx::Mooncake.Tangent, x) = tangent_to_user_primal(tx, x)
+
 @inline maybe_getfield(mod, name::Symbol) =
     isdefined(mod, name) ? getfield(mod, name) : nothing
 
