@@ -75,7 +75,7 @@ pushforward_performance(::ReverseMode) = PushforwardSlow()
 pushforward_performance(::SymbolicMode) = PushforwardFast()
 
 function pushforward_performance(backend::Union{AutoSparse, SecondOrder})
-    throw(ArgumentError("Pushforward performance not defined for $backend`."))
+    throw(ArgumentError("Pushforward performance not defined for `$backend`."))
 end
 
 ## Pullback
@@ -108,7 +108,7 @@ pullback_performance(::ReverseMode) = PullbackFast()
 pullback_performance(::SymbolicMode) = PullbackFast()
 
 function pullback_performance(backend::Union{AutoSparse, SecondOrder})
-    throw(ArgumentError("Pullback performance not defined for $backend`."))
+    throw(ArgumentError("Pullback performance not defined for `$backend`."))
 end
 
 ## HVP
@@ -170,7 +170,7 @@ function hvp_mode(ba::SecondOrder)
 end
 
 function hvp_mode(backend::AutoSparse)
-    throw(ArgumentError("HVP mode not defined for $backend`."))
+    throw(ArgumentError("HVP mode not defined for `$backend`."))
 end
 
 ## Inner prep

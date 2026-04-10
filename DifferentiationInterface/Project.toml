@@ -1,13 +1,14 @@
 name = "DifferentiationInterface"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
-authors = ["Guillaume Dalle", "Adrian Hill"]
 version = "0.7.16"
+authors = ["Guillaume Dalle", "Adrian Hill"]
 
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [weakdeps]
+Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
 Diffractor = "9f5e2b26-1114-432f-b630-d3fe2085c51c"
@@ -38,7 +39,7 @@ DifferentiationInterfaceFastDifferentiationExt = "FastDifferentiation"
 DifferentiationInterfaceFiniteDiffExt = "FiniteDiff"
 DifferentiationInterfaceFiniteDifferencesExt = "FiniteDifferences"
 DifferentiationInterfaceForwardDiffExt = ["ForwardDiff", "DiffResults"]
-DifferentiationInterfaceGPUArraysCoreExt = "GPUArraysCore"
+DifferentiationInterfaceGPUArraysCoreExt = ["GPUArraysCore", "Adapt"]
 DifferentiationInterfaceGTPSAExt = "GTPSA"
 DifferentiationInterfaceMooncakeExt = "Mooncake"
 DifferentiationInterfacePolyesterForwardDiffExt = [
@@ -56,6 +57,7 @@ DifferentiationInterfaceTrackerExt = "Tracker"
 DifferentiationInterfaceZygoteExt = ["Zygote", "ForwardDiff"]
 
 [compat]
+Adapt = "4.5.0"
 ADTypes = "1.18.0"
 ChainRulesCore = "1.23.0"
 DiffResults = "1.1.0"

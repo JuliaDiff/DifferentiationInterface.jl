@@ -58,7 +58,7 @@ references:
     abstract: An abstract interface for automatic differentiation.
     license: MIT
 preferred-citation:
-  type: generic
+  type: article
   authors:
   - family-names: "Dalle"
     given-names: "Guillaume"
@@ -67,9 +67,9 @@ preferred-citation:
     given-names: "Adrian"
     orcid: "https://orcid.org/0009-0009-5977-301X"
   title: "A Common Interface for Automatic Differentiation"
-  year: 2025
-  eprint: "2505.05542"
-  archivePrefix: "arXiv"
-  primaryClass: "cs.MS"
-  url: "https://arxiv.org/abs/2505.05542"
-  doi: "10.48550/arXiv.2505.05542"
+  year: 2026
+  journal: "Journal of Machine Learning Research"
+  volume: 27
+  number: 25
+  pages: "1--13"
+  url: "http://jmlr.org/papers/v27/25-1024.html"

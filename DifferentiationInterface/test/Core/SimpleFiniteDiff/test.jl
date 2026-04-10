@@ -169,3 +169,8 @@ end
         logging = LOGGING,
     )
 end;
+
+@testset "Array format preservation in wrong mode" begin
+    @test gradient(sum, AutoSimpleFiniteDiff(), jl(ones(2))) isa JLVector
+    @test derivative(t -> jl(fill(t, 2)), AutoReverseFromPrimitive(AutoSimpleFiniteDiff()), 1.0) isa JLVector
+end

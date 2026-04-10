@@ -127,7 +127,7 @@ In the examples above, we didn't use preparation.
 Sparse preparation is more costly than dense preparation, but it is even more essential.
 Indeed, once preparation is done, sparse differentiation is much faster than dense differentiation, because it makes fewer calls to the underlying function.
 
-Some result analysis functions from [SparseMatrixColorings.jl](https://github.com/gdalle/SparseMatrixColorings.jl) can help you figure out what the preparation contains.
+Some result analysis functions from [SparseMatrixColorings.jl](https://github.com/JuliaDiff/SparseMatrixColorings.jl) can help you figure out what the preparation contains.
 First, it records the sparsity pattern itself (the one returned by the detector).
 
 ```@example tuto_advanced

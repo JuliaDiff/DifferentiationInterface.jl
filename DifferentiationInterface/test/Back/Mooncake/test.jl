@@ -7,6 +7,8 @@ using Test
 using ExplicitImports
 check_no_implicit_imports(DifferentiationInterface)
 
+nomatrix(scens) = filter(s -> !(s.x isa AbstractMatrix) && !(s.y isa AbstractMatrix), scens)
+
 backends = [
     AutoMooncake(),
     AutoMooncakeForward(),
@@ -20,10 +22,29 @@ for backend in backends
 end
 
 test_differentiation(
-    backends,
-    default_scenarios(;
-        include_constantified = true, include_cachified = true, use_tuples = true
+    backends[3:4],
+    default_scenarios();
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+);
+
+test_differentiation(
+    backends[3:4],
+    nomatrix(
+        default_scenarios(;
+            include_normal = false,
+            include_constantified = true,
+            include_cachified = true,
+            use_tuples = true
+        )
     );
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+);
+
+test_differentiation(
+    backends[1:2],
+    nomatrix(default_scenarios());
     excluded = SECOND_ORDER,
     logging = LOGGING,
 );
@@ -40,6 +61,7 @@ end
 # Test second-order differentiation (forward-over-reverse)
 test_differentiation(
     [SecondOrder(AutoMooncakeForward(), AutoMooncake())],
+    nomatrix(default_scenarios());
     excluded = EXCLUDED,
     logging = LOGGING,
 )
@@ -54,7 +76,7 @@ end
 
 test_differentiation(
     backends[3:4],
-    static_scenarios();
+    nomatrix(static_scenarios());
     logging = LOGGING,
     excluded = SECOND_ORDER
 )

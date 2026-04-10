@@ -331,7 +331,7 @@ function _value_and_pushforward_via_pullback(
     ty = map(tx) do dx
         dot(a, dx)
     end
-    return y, arroftup_to_tupofarr(ty)
+    return y, arroftup_to_tupofarr(ty, y)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -348,7 +348,7 @@ function _value_and_pushforward_via_pullback(
     ty = map(tx) do dx
         real(dot(a, dx)) + im * real(dot(b, dx))
     end
-    return y, arroftup_to_tupofarr(ty)
+    return y, arroftup_to_tupofarr(ty, y)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -367,7 +367,7 @@ function _value_and_pushforward_via_pullback(
             dot(a, dx)
         end
     end
-    return y, arroftup_to_tupofarr(ty)
+    return y, arroftup_to_tupofarr(ty, y)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -387,7 +387,7 @@ function _value_and_pushforward_via_pullback(
             real(dot(a, dx)) + im * real(dot(b, dx))
         end
     end
-    return y, arroftup_to_tupofarr(ty)
+    return y, arroftup_to_tupofarr(ty, y)
 end
 
 function value_and_pushforward(
@@ -460,7 +460,7 @@ function _value_and_pushforward_via_pullback(
             dot(a, dx)
         end
     end
-    return y, arroftup_to_tupofarr(ty)
+    return y, arroftup_to_tupofarr(ty, y)
 end
 
 function _value_and_pushforward_via_pullback(
@@ -481,7 +481,7 @@ function _value_and_pushforward_via_pullback(
             real(dot(a, dx)) + im * real(dot(b, dx))
         end
     end
-    return y, arroftup_to_tupofarr(ty)
+    return y, arroftup_to_tupofarr(ty, y)
 end
 
 function value_and_pushforward(

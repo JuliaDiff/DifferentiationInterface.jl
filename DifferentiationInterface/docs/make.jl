@@ -11,7 +11,7 @@ using Zygote: Zygote
 links = InterLinks(
     "ADTypes" => "https://sciml.github.io/ADTypes.jl/stable/",
     "SparseConnectivityTracer" => "https://adrianhill.de/SparseConnectivityTracer.jl/stable/",
-    "SparseMatrixColorings" => "https://gdalle.github.io/SparseMatrixColorings.jl/stable/",
+    "SparseMatrixColorings" => "https://juliadiff.org/SparseMatrixColorings.jl/stable/",
     "Symbolics" => "https://symbolics.juliasymbolics.org/stable/",
 )
 

@@ -36,5 +36,13 @@ get_pattern(M::AbstractMatrix) = trues(size(M))
 
 onlysecond((a, b)) = (a, only(b))
 
-arroftup_to_tupofarr(x::NTuple) = x
-arroftup_to_tupofarr(x::AbstractArray{<:NTuple{B}}) where {B} = ntuple(b -> getindex.(x, b), Val(B))
+"""
+    arroftup_to_tupofarr(tx, x)
+
+Convert an array of tuples `tx` into a tuple of arrays, while respecting the array type of the primal `x`.
+"""
+arroftup_to_tupofarr(tx::NTuple{B, <:Number}, x::Number) where {B} = tx
+
+function arroftup_to_tupofarr(tx::AbstractArray{<:NTuple{B, <:Number}}, x::AbstractArray{<:Number}) where {B}
+    return ntuple(b -> similar(x) .= getindex.(tx, b), Val(B))
+end

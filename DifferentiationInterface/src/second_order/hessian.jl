@@ -12,7 +12,7 @@ function prepare_hessian(
 end
 
 """
-    prepare!_hessian(f, backend, x, [contexts...]) -> new_prep
+    prepare!_hessian(f, prep, backend, x, [contexts...]) -> new_prep
 
 $(docstring_prepare!("hessian"))
 """
