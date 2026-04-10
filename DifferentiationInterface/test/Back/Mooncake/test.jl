@@ -75,12 +75,15 @@ test_differentiation(
     @test grad.B == ps.A
 end
 
-test_differentiation(
-    backends[3:4],
-    nomatrix(static_scenarios());
-    logging = LOGGING,
-    excluded = SECOND_ORDER
-)
+# friendly_tangents + StaticArrays broken on Julia 1.11 (upstream Mooncake bug)
+@static if !(VERSION ≥ v"1.11-" && VERSION < v"1.12-")
+    test_differentiation(
+        backends[3:4],
+        nomatrix(static_scenarios());
+        logging = LOGGING,
+        excluded = SECOND_ORDER,
+    )
+end
 
 @testset "Friendly tangents structured matrices" begin
     backend = AutoMooncake(; config = Mooncake.Config(; friendly_tangents = true))
