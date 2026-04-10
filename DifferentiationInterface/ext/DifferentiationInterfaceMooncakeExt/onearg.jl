@@ -35,7 +35,7 @@ function DI.value_and_pullback(
     new_y, (_, new_dx) = value_and_pullback!!(
         prep.cache, dy, f, x, map(DI.unwrap, contexts)...; prep.args_to_zero
     )
-    return new_y, (_copy_output(new_dx),)
+    return new_y, (_to_primal_alloc(x, new_dx),)
 end
 
 function DI.value_and_pullback(
@@ -51,7 +51,7 @@ function DI.value_and_pullback(
         y, (_, new_dx) = value_and_pullback!!(
             prep.cache, dy, f, x, map(DI.unwrap, contexts)...; prep.args_to_zero
         )
-        y, _copy_output(new_dx)
+        y, _to_primal_alloc(x, new_dx)
     end
     y = first(ys_and_tx[1])
     tx = map(last, ys_and_tx)
@@ -69,7 +69,7 @@ function DI.value_and_pullback!(
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, ty, contexts...)
     y, new_tx = DI.value_and_pullback(f, prep, backend, x, ty, contexts...)
-    foreach(copyto!, tx, new_tx)
+    foreach(_to_primal!, tx, new_tx)
     return y, tx
 end
 
@@ -134,7 +134,7 @@ function DI.value_and_gradient(
         prep.cache, f, x, map(DI.unwrap, contexts)...;
         prep.args_to_zero
     )
-    return y, _copy_output(new_grad)
+    return y, _to_primal_alloc(x, new_grad)
 end
 
 function DI.value_and_gradient!(
@@ -150,7 +150,7 @@ function DI.value_and_gradient!(
         prep.cache, f, x, map(DI.unwrap, contexts)...;
         prep.args_to_zero
     )
-    copyto!(grad, new_grad)
+    grad = _to_primal_into!(grad, x, new_grad)
     return y, grad
 end
 
@@ -175,6 +175,10 @@ function DI.gradient!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    DI.value_and_gradient!(f, grad, prep, backend, x, contexts...)
-    return grad
+    # Note: when `grad` is immutable (e.g. an `SVector`), `value_and_gradient!`
+    # returns a freshly built primal-shaped value rather than the original
+    # buffer (no in-place update is possible).  Forward that value to the
+    # caller instead of returning the unchanged `grad`.
+    _, new_grad = DI.value_and_gradient!(f, grad, prep, backend, x, contexts...)
+    return new_grad
 end

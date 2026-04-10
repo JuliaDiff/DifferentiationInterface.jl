@@ -55,7 +55,7 @@ function DI.value_and_pushforward(
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
-        return _copy_output(new_dy)
+        return _to_primal_alloc(y, new_dy)
     end
     return y, ty
 end
@@ -93,7 +93,7 @@ function DI.value_and_pushforward!(
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
-        copyto!(dy, new_dy)
+        _to_primal!(dy, new_dy)
     end
     return y, ty
 end

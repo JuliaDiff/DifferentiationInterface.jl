@@ -41,7 +41,8 @@ function DI.value_and_pushforward(
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
         y = first(y_and_dy)
-        dy = _copy_output(last(y_and_dy))
+        dy_raw = last(y_and_dy)
+        dy = _to_primal_alloc(y, dy_raw)
         return y, dy
     end
     y = _copy_output(first(ys_and_ty[1]))
@@ -72,7 +73,7 @@ function DI.value_and_pushforward!(
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     y, new_ty = DI.value_and_pushforward(f, prep, backend, x, tx, contexts...)
-    foreach(copyto!, ty, new_ty)
+    foreach(_to_primal!, ty, new_ty)
     return y, ty
 end
 

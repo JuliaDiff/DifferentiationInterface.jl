@@ -23,6 +23,8 @@ using Mooncake:
     rdata,
     tangent_type,
     NoTangent,
+    Tangent,
+    MutableTangent,
     @is_primitive,
     zero_fcodual,
     MinimalCtx,
