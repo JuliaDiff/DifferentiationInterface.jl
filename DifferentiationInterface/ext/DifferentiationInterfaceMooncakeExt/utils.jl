@@ -33,11 +33,11 @@ const mooncake_no_cache = maybe_getfield(Mooncake, :NoCache)
 
 function tangent_to_user_primal(tx, x)
     if !isnothing(mooncake_tangent_to_friendly) &&
-        !isnothing(mooncake_friendly_tangent_cache) &&
-        !isnothing(mooncake_as_primal) &&
-        !isnothing(mooncake_no_cache)
+            !isnothing(mooncake_friendly_tangent_cache) &&
+            !isnothing(mooncake_as_primal) &&
+            !isnothing(mooncake_no_cache)
         dest = mooncake_friendly_tangent_cache{mooncake_as_primal}(_copy_output(x))
-        cache = isbitstype(typeof(x)) ? mooncake_no_cache() : IdDict{Any,Any}()
+        cache = isbitstype(typeof(x)) ? mooncake_no_cache() : IdDict{Any, Any}()
         return mooncake_tangent_to_friendly(dest, x, tx, cache)
     else
         return tangent_to_primal!!(_copy_output(x), tx)
