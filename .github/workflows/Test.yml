@@ -50,7 +50,7 @@ jobs:
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@v6
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
           arch: x64
@@ -131,7 +131,7 @@ jobs:
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@v6
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
           arch: x64
@@ -187,7 +187,7 @@ jobs:
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
     steps:
       - uses: actions/checkout@v6
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
           arch: x64
