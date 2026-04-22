@@ -20,7 +20,7 @@ jobs:
     name: ${{ matrix.version }} - DI Core (${{ matrix.group }})
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
@@ -125,10 +125,6 @@ jobs:
             version: '1.12'
           - version: '1.11'
             group: ChainRules
-          - version: '1.12'
-            group: Enzyme
-          - version: '1.12'
-            group: DifferentiateWith
     env:
       JULIA_DI_TEST_TYPE: 'Back'
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
