@@ -127,3 +127,5 @@ end;
         ([2.0],),
     )
 end
+
+@test_throws MethodError DifferentiateWith(exp, AutoForwardDiff(), (3,))
