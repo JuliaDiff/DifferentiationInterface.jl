@@ -2,19 +2,16 @@ module DifferentiationInterfaceHyperHessiansExt
 
 import DifferentiationInterface as DI
 import .DI: AutoHyperHessians
-using ADTypes: ForwardMode
 using HyperHessians:
     HVPConfig,
     HessianConfig,
     Chunk,
     chunksize,
-    pickchunksize,
     HyperDual,
     hessian,
     hessian!,
     hessian_gradient_value,
     hessian_gradient_value!,
-    hessian,
     hvp,
     hvp!,
     hvp_gradient_value,
@@ -22,13 +19,12 @@ using HyperHessians:
 
 ## Traits
 DI.check_available(::DI.AutoHyperHessians) = true
-DI.inplace_support(::DI.AutoHyperHessians) = DI.InPlaceSupported()
-DI.mode(::DI.AutoHyperHessians) = ForwardMode()
+DI.inplace_support(::DI.AutoHyperHessians) = DI.InPlaceNotSupported()
 
-chunk_from_backend(backend::DI.AutoHyperHessians, x) =
-    isnothing(backend.chunksize) ? Chunk(x) : Chunk{backend.chunksize}()
-chunk_from_backend(backend::DI.AutoHyperHessians, N::Integer, ::Type{T}) where {T} =
-    isnothing(backend.chunksize) ? Chunk(pickchunksize(N, T), T) : Chunk{backend.chunksize}()
+chunk_from_backend(::DI.AutoHyperHessians{nothing}, x) = Chunk(x)
+chunk_from_backend(::DI.AutoHyperHessians{CS}, x) where {CS} = Chunk{CS}()
+chunk_from_backend(::DI.AutoHyperHessians{nothing}, N::Integer, ::Type{T}) where {T} = Chunk(N, T)
+chunk_from_backend(::DI.AutoHyperHessians{CS}, ::Integer, ::Type) where {CS} = Chunk{CS}()
 
 function DI.pick_batchsize(backend::DI.AutoHyperHessians, x::AbstractArray)
     B = chunksize(chunk_from_backend(backend, x))
@@ -40,10 +36,11 @@ function DI.pick_batchsize(backend::DI.AutoHyperHessians, N::Integer)
     return DI.BatchSizeSettings{B}(N)
 end
 
-function DI.threshold_batchsize(backend::DI.AutoHyperHessians, chunksize2::Integer)
-    chunksize1 = backend.chunksize
-    chunksize = isnothing(chunksize1) ? nothing : min(chunksize1, chunksize2)
-    return DI.AutoHyperHessians(; chunksize)
+function DI.threshold_batchsize(::DI.AutoHyperHessians{nothing}, ::Integer)
+    return DI.AutoHyperHessians()
+end
+function DI.threshold_batchsize(::DI.AutoHyperHessians{CS}, chunksize2::Integer) where {CS}
+    return DI.AutoHyperHessians(; chunksize = min(CS, chunksize2))
 end
 
 function _translate_toprep(::Type{T}, c::Union{DI.GeneralizedConstant, DI.ConstantOrCache}) where {T}
@@ -111,8 +108,8 @@ function DI.second_derivative!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
-    copyto!(der2, DI.second_derivative(f, prep, backend, x, contexts...))
-    return der2
+    new_der2 = DI.second_derivative(f, prep, backend, x, contexts...)
+    return copyto!(der2, new_der2)
 end
 
 function DI.value_derivative_and_second_derivative(
@@ -253,7 +250,7 @@ end
 function DI.hvp(
         f,
         prep::HyperHessiansHVPPrep,
-        backend::AutoHyperHessians,
+        backend::DI.AutoHyperHessians,
         x,
         tx::NTuple,
         contexts::Vararg{DI.Context, C},

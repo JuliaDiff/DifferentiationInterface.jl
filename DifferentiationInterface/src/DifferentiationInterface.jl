@@ -33,7 +33,8 @@ using ADTypes:
     AutoReverseDiff,
     AutoSymbolics,
     AutoTracker,
-    AutoZygote
+    AutoZygote,
+    AutoHyperHessians
 using LinearAlgebra: dot
 
 include("compat.jl")
@@ -64,7 +65,6 @@ include("second_order/hessian.jl")
 
 include("misc/differentiate_with.jl")
 include("misc/from_primitive.jl")
-include("misc/autohyperhessians.jl")
 include("misc/sparsity_detector.jl")
 include("misc/simple_finite_diff.jl")
 include("misc/zero_backends.jl")

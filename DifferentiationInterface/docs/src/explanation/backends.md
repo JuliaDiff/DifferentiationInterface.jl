@@ -12,7 +12,7 @@ We support the following dense backend choices from [ADTypes.jl](https://github.
 - [`AutoFiniteDifferences`](@extref ADTypes.AutoFiniteDifferences)
 - [`AutoForwardDiff`](@extref ADTypes.AutoForwardDiff)
 - [`AutoGTPSA`](@extref ADTypes.AutoGTPSA)
-- [`AutoHyperHessians`](https://github.com/KristofferC/HyperHessians.jl)
+- [`AutoHyperHessians`](@extref ADTypes.AutoHyperHessians)
 - [`AutoMooncake`](@extref ADTypes.AutoMooncake) and [`AutoMooncakeForward`](@extref ADTypes.AutoMooncake) (the latter is experimental)
 - [`AutoPolyesterForwardDiff`](@extref ADTypes.AutoPolyesterForwardDiff)
 - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff)
@@ -71,7 +71,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoFiniteDifferences`    | ✅                  | ✅               |
 | `AutoForwardDiff`          | ✅                  | ✅               |
 | `AutoGTPSA`                | ✅                  | ❌               |
-| `AutoHyperHessians`        | ✅                  | ✅               |
+| `AutoHyperHessians`        | ✅                  | ❌               |
 | `AutoMooncake`             | ✅                  | ✅               |
 | `AutoMooncakeForward`      | ✅                  | ✅               |
 | `AutoPolyesterForwardDiff` | ✅                  | ✅               |
