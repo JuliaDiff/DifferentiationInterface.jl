@@ -30,7 +30,7 @@ using Mooncake:
     primal,
     _copy_output,
     _copy_to_output!!,
-    tangent_to_primal!!
+    tangent_to_friendly!!
 
 const AnyAutoMooncake{C} = Union{AutoMooncake{C}, AutoMooncakeForward{C}}
 

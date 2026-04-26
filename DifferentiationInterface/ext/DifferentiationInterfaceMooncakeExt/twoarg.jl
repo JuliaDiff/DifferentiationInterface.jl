@@ -64,7 +64,7 @@ function DI.value_and_pullback(
         prep.args_to_zero
     )
     copyto!(y, y_after)
-    return y, (_maybe_to_primal(dx, x),)
+    return y, (@something(_to_friendly_value(dx, x), _copy_output(dx)),)
 end
 
 function DI.value_and_pullback(
@@ -90,7 +90,7 @@ function DI.value_and_pullback(
             prep.args_to_zero
         )
         copyto!(y, y_after)
-        _maybe_to_primal(dx, x)
+        @something(_to_friendly_value(dx, x), _copy_output(dx))
     end
     return y, tx
 end

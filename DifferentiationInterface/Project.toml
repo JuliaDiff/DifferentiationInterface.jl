@@ -42,6 +42,7 @@ DifferentiationInterfaceForwardDiffExt = ["ForwardDiff", "DiffResults"]
 DifferentiationInterfaceGPUArraysCoreExt = ["GPUArraysCore", "Adapt"]
 DifferentiationInterfaceGTPSAExt = "GTPSA"
 DifferentiationInterfaceMooncakeExt = "Mooncake"
+DifferentiationInterfaceMooncakeStaticArraysExt = ["Mooncake", "StaticArrays"]
 DifferentiationInterfacePolyesterForwardDiffExt = [
     "PolyesterForwardDiff",
     "ForwardDiff",
@@ -71,7 +72,7 @@ ForwardDiff = "0.10.36,1"
 GPUArraysCore = "0.2"
 GTPSA = "1.4.0"
 LinearAlgebra = "1"
-Mooncake = "0.5.1"
+Mooncake = "0.5.27"
 PolyesterForwardDiff = "0.1.2"
 ReverseDiff = "1.15.1"
 SparseArrays = "1"

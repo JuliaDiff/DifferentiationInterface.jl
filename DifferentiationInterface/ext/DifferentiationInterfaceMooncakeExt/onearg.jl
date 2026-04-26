@@ -35,7 +35,7 @@ function DI.value_and_pullback(
     new_y, (_, new_dx) = value_and_pullback!!(
         prep.cache, dy, f, x, map(DI.unwrap, contexts)...; prep.args_to_zero
     )
-    return new_y, (_maybe_to_primal(new_dx, x),)
+    return new_y, (@something(_to_friendly_value(new_dx, x), _copy_output(new_dx)),)
 end
 
 function DI.value_and_pullback(
@@ -51,7 +51,7 @@ function DI.value_and_pullback(
         y, (_, new_dx) = value_and_pullback!!(
             prep.cache, dy, f, x, map(DI.unwrap, contexts)...; prep.args_to_zero
         )
-        y, _maybe_to_primal(new_dx, x)
+        y, @something(_to_friendly_value(new_dx, x), _copy_output(new_dx))
     end
     y = first(ys_and_tx[1])
     tx = map(last, ys_and_tx)
@@ -134,7 +134,7 @@ function DI.value_and_gradient(
         prep.cache, f, x, map(DI.unwrap, contexts)...;
         prep.args_to_zero
     )
-    return y, _maybe_to_primal(new_grad, x)
+    return y, @something(_to_friendly_value(new_grad, x), _copy_output(new_grad))
 end
 
 function DI.value_and_gradient!(
@@ -150,7 +150,7 @@ function DI.value_and_gradient!(
         prep.cache, f, x, map(DI.unwrap, contexts)...;
         prep.args_to_zero
     )
-    copyto!(grad, _maybe_to_primal(new_grad, x))
+    copyto!(grad, something(_to_friendly_value(new_grad, x), new_grad))
     return y, grad
 end
 

@@ -55,7 +55,7 @@ function DI.value_and_pushforward(
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
-        return _maybe_to_primal(new_dy, y)
+        return @something(_to_friendly_value(new_dy, y), _copy_output(new_dy))
     end
     return y, ty
 end
@@ -93,7 +93,7 @@ function DI.value_and_pushforward!(
             (x, dx),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
-        copyto!(dy, _maybe_to_primal(new_dy, y))
+        copyto!(dy, something(_to_friendly_value(new_dy, y), new_dy))
     end
     return y, ty
 end
