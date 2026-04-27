@@ -36,15 +36,13 @@ jobs:
           - Internals
           - SimpleFiniteDiff
           - ZeroBackends
-        skip_lts:
-          - ${{ github.event.pull_request.draft }}
-        skip_pre:
+        skip_past:
           - ${{ github.event.pull_request.draft }}
         exclude:
-          - skip_lts: true
+          - skip_past: true
             version: '1.10'
-          - skip_pre: true
-            version: '1.12'
+          - skip_past: true
+            version: '1.11'
     env:
       JULIA_DI_TEST_TYPE: 'Core'
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
@@ -109,11 +107,13 @@ jobs:
           - Symbolics
           - Tracker
           - Zygote
-        skip_lts:
+        skip_past:
           - ${{ github.event.pull_request.draft }}
         exclude:
-          - skip_lts: true
+          - skip_past: true
             version: '1.10'
+          - skip_past: true
+            version: '1.11'
           - version: '1.11'
             group: ChainRules
     env:
@@ -174,15 +174,13 @@ jobs:
           - Zero
           - Standard
           - Weird
-        skip_lts:
-          - ${{ github.event.pull_request.draft }}
-        skip_pre:
+        skip_past:
           - ${{ github.event.pull_request.draft }}
         exclude:
-          - skip_lts: true
+          - skip_past: true
             version: '1.10'
-          - skip_pre: true
-            version: '1.12'
+          - skip_past: true
+            version: '1.11'
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
