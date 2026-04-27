@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-    tags: ['*']
+    tags: [ '*' ]
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [ opened, reopened, synchronize, ready_for_review ]
   workflow_dispatch:
 
 concurrency:
@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
     timeout-minutes: 180
-    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+    permissions:
+      # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
     strategy:
@@ -56,22 +57,15 @@ jobs:
           arch: x64
       - uses: julia-actions/cache@v3
       - name: Install dependencies & run tests
-        run: julia --color=yes -e '
-          using Pkg;
-          Pkg.activate("./DifferentiationInterface/test");
-          if VERSION < v"1.11";
-          Pkg.rm("DifferentiationInterfaceTest");
-          Pkg.resolve();
-          else;
-          Pkg.develop(; path="./DifferentiationInterfaceTest");
-          end;
-          Pkg.activate("./DifferentiationInterface");
-          test_kwargs = (; allow_reresolve=false, coverage=true);
-          if ENV["JULIA_DI_PR_DRAFT"] == "true";
-          Pkg.test("DifferentiationInterface"; julia_args=["-O1"], test_kwargs...);
-          else;
-          Pkg.test("DifferentiationInterface"; test_kwargs...);
-          end;'
+        run: julia --color=yes -e ' using Pkg;
+          Pkg.activate("./DifferentiationInterface/test"); if VERSION < v"1.11";
+          Pkg.rm("DifferentiationInterfaceTest"); Pkg.resolve(); else;
+          Pkg.develop(; path="./DifferentiationInterfaceTest"); end;
+          Pkg.activate("./DifferentiationInterface"); test_kwargs = (;
+          allow_reresolve=false, coverage=true); if ENV["JULIA_DI_PR_DRAFT"] ==
+          "true"; Pkg.test("DifferentiationInterface"; julia_args=["-O1"],
+          test_kwargs...); else; Pkg.test("DifferentiationInterface";
+          test_kwargs...); end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
@@ -87,7 +81,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
     timeout-minutes: 120
-    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+    permissions:
+      # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
     strategy:
@@ -116,13 +111,9 @@ jobs:
           - Zygote
         skip_lts:
           - ${{ github.event.pull_request.draft }}
-        skip_pre:
-          - ${{ github.event.pull_request.draft }}
         exclude:
           - skip_lts: true
             version: '1.10'
-          - skip_pre: true
-            version: '1.12'
           - version: '1.11'
             group: ChainRules
     env:
@@ -136,12 +127,21 @@ jobs:
           version: ${{ matrix.version }}
           arch: x64
       - uses: julia-actions/cache@v3
-      - name: Install dependencies & run tests
-        run: julia --code-coverage=user --color=yes -e '
-          using Pkg;
-          group = ENV["JULIA_DI_TEST_GROUP"];
+      - name: Install dependencies & run tests (draft)
+        if: ${{ github.event.pull_request.draft }}
+        run: julia --code-coverage=user --color=yes -e ' using Pkg; group =
+          ENV["JULIA_DI_TEST_GROUP"];
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
-          Pkg.develop([PackageSpec(path="./DifferentiationInterface"), PackageSpec(path="./DifferentiationInterfaceTest")]);
+          Pkg.develop([PackageSpec(path="./DifferentiationInterface"),
+          PackageSpec(path="./DifferentiationInterfaceTest")]);
+          include("./DifferentiationInterface/test/Back/run_backend.jl");'
+      - name: Install dependencies & run tests (not draft)
+        if: ${{ github.event.pull_request.draft }}
+        run: julia -O1 --code-coverage=user --color=yes -e ' using Pkg; group =
+          ENV["JULIA_DI_TEST_GROUP"];
+          Pkg.activate("./DifferentiationInterface/test/Back/$group");
+          Pkg.develop([PackageSpec(path="./DifferentiationInterface"),
+          PackageSpec(path="./DifferentiationInterfaceTest")]);
           include("./DifferentiationInterface/test/Back/run_backend.jl");'
       - uses: julia-actions/julia-processcoverage@v1
         with:
@@ -158,7 +158,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
     timeout-minutes: 60
-    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+    permissions:
+      # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
     strategy:
@@ -193,15 +194,13 @@ jobs:
           arch: x64
       - uses: julia-actions/cache@v3
       - name: Install dependencies & run tests
-        run: julia --project=./DifferentiationInterfaceTest --color=yes -e '
-          using Pkg;
-          Pkg.Registry.update();
-          Pkg.develop(path="./DifferentiationInterface");
+        run: julia --project=./DifferentiationInterfaceTest --color=yes -e ' using Pkg;
+          Pkg.Registry.update(); Pkg.develop(path="./DifferentiationInterface");
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
-          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true, julia_args=["-O1"]);
-          else;
-          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false, coverage=true);
-          end;'
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false,
+          coverage=true, julia_args=["-O1"]); else;
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false,
+          coverage=true); end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
