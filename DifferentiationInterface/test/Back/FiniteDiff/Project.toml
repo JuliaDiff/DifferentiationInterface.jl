@@ -9,3 +9,6 @@ FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 SparseConnectivityTracer = "9f842d2f-2579-4b1d-911e-f412cf18a3f5"
 SparseMatrixColorings = "0a514795-09f3-496d-8182-132a7b665d35"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources]
+DifferentiationInterface = { path = "../../.." }
