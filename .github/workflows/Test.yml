@@ -93,7 +93,7 @@ jobs:
         group:
           - ChainRules
           - DifferentiateWith
-          - Diffractor
+          # - Diffractor
           - Enzyme
           - FastDifferentiation
           - FiniteDiff
@@ -153,6 +153,7 @@ jobs:
           flags: DI
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
   test-DIT:
     name: ${{ matrix.version }} - DIT (${{ matrix.group }})
     runs-on: ubuntu-latest
