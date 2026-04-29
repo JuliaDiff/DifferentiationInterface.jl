@@ -9,10 +9,19 @@ function call_and_return(f!::F, y, x, contexts...) where {F}
     return y
 end
 
+function adaptive_tangent_to_primal!!(primal, tangent)
+    @static if new_friendly_tangents()
+        # TODO: optimize performance by allocating cache during prep
+        return Mooncake.tangent_to_friendly!!(primal, tangent)
+    else
+        return Mooncake.tangent_to_primal!!(primal, tangent)
+    end
+end
+
 function zero_tangent_or_primal(x, backend::AnyAutoMooncake)
     if get_config(backend).friendly_tangents
         # zero(x) but safer
-        return tangent_to_primal!!(_copy_output(x), zero_tangent(x))
+        return adaptive_tangent_to_primal!!(_copy_output(x), zero_tangent(x))
     else
         return zero_tangent(x)
     end

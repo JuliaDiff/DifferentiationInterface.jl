@@ -101,6 +101,7 @@ jobs:
           - ForwardDiff
           - GTPSA
           - Mooncake
+          - Mooncake-old
           - PolyesterForwardDiff
           - ReverseDiff
           - SparsityDetector
