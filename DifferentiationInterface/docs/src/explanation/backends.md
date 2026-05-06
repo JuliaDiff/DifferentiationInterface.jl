@@ -71,7 +71,7 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoFiniteDifferences`    | ✅                  | ✅               |
 | `AutoForwardDiff`          | ✅                  | ✅               |
 | `AutoGTPSA`                | ✅                  | ❌               |
-| `AutoHyperHessians`        | ✅                  | ❌               |
+| `AutoHyperHessians`        | ✅                  | ✅               |
 | `AutoMooncake`             | ✅                  | ✅               |
 | `AutoMooncakeForward`      | ✅                  | ✅               |
 | `AutoPolyesterForwardDiff` | ✅                  | ✅               |
