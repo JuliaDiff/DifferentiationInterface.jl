@@ -100,6 +100,7 @@ jobs:
           - FiniteDifferences
           - ForwardDiff
           - GTPSA
+          - HyperHessians
           - Mooncake
           - Mooncake-old
           - PolyesterForwardDiff
