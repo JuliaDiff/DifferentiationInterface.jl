@@ -74,9 +74,12 @@ test_differentiation(
     @test grad.B == ps.A
 end
 
-test_differentiation(
-    backends[3:4],
-    nomatrix(static_scenarios());
-    logging = LOGGING,
-    excluded = SECOND_ORDER
-)
+# see https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/986
+if pkgversion(Mooncake) < v"0.5.25"
+    test_differentiation(
+        backends[3:4],
+        nomatrix(static_scenarios());
+        logging = LOGGING,
+        excluded = SECOND_ORDER
+    )
+end

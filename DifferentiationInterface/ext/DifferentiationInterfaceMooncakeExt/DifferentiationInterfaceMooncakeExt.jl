@@ -29,13 +29,14 @@ using Mooncake:
     NoRData,
     primal,
     _copy_output,
-    _copy_to_output!!,
-    tangent_to_primal!!
+    _copy_to_output!!
 
 const AnyAutoMooncake{C} = Union{AutoMooncake{C}, AutoMooncakeForward{C}}
 
 DI.check_available(::AnyAutoMooncake{C}) where {C} = true
 DI.inner_preparation_behavior(::AutoMooncakeForward) = DI.PrepareInnerSimple()
+
+@inline new_friendly_tangents() = isdefined(Mooncake, :FriendlyTangentCache)
 
 include("utils.jl")
 include("onearg.jl")
