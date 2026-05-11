@@ -33,7 +33,8 @@ using ADTypes:
     AutoReverseDiff,
     AutoSymbolics,
     AutoTracker,
-    AutoZygote
+    AutoZygote,
+    AutoHyperHessians
 using LinearAlgebra: dot
 
 include("compat.jl")
@@ -122,6 +123,7 @@ export AutoReverseDiff
 export AutoSymbolics
 export AutoTracker
 export AutoZygote
+export AutoHyperHessians
 
 export AutoSparse
 
