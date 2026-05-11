@@ -44,5 +44,5 @@ Convert an array of tuples `tx` into a tuple of arrays, while respecting the arr
 arroftup_to_tupofarr(tx::NTuple{B, <:Number}, x::Number) where {B} = tx
 
 function arroftup_to_tupofarr(tx::AbstractArray{<:NTuple{B, <:Number}}, x::AbstractArray{<:Number}) where {B}
-    return ntuple(b -> similar(x) .= getindex.(tx, b), Val(B))
+    return ntuple(b -> similar(x, eltype(eltype(tx))) .= getindex.(tx, b), Val(B))
 end
