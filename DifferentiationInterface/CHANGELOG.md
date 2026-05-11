@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add support for HyperHessians backend ([#940](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/940))
 
+### Fixed
+
+- Proper eltype in wrong-mode pushforward/pullback ([#1003](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1003))
+
 ## [0.7.17](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.16...DifferentiationInterface-v0.7.17)
 
 ### Fixed
