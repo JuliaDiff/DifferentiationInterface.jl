@@ -5,6 +5,7 @@ import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using ExplicitImports
 using HyperHessians
+import JET
 using Test
 
 check_no_implicit_imports(DifferentiationInterface)
