@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-    tags: [ '*' ]
+    tags: ['*']
   pull_request:
-    types: [ opened, reopened, synchronize, ready_for_review ]
+    types: [opened, reopened, synchronize, ready_for_review]
   workflow_dispatch:
 
 concurrency:
@@ -138,7 +138,7 @@ jobs:
           PackageSpec(path="./DifferentiationInterfaceTest")]);
           include("./DifferentiationInterface/test/Back/run_backend.jl");'
       - name: Install dependencies & run tests (not draft)
-        if: ${{ github.event.pull_request.draft }}
+        if: ${{ !github.event.pull_request.draft }}
         run: julia -O1 --code-coverage=user --color=yes -e ' using Pkg; group =
           ENV["JULIA_DI_TEST_GROUP"];
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
@@ -194,7 +194,8 @@ jobs:
           arch: x64
       - uses: julia-actions/cache@v3
       - name: Install dependencies & run tests
-        run: julia --project=./DifferentiationInterfaceTest --color=yes -e ' using Pkg;
+        run:
+          julia --project=./DifferentiationInterfaceTest --color=yes -e ' using Pkg;
           Pkg.Registry.update(); Pkg.develop(path="./DifferentiationInterface");
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
           Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false,
