@@ -14,7 +14,7 @@ function DI.prepare_pushforward_nokwarg(
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
-    cache = if x isa Number || y isa Number
+    cache = if x isa Number || y isa Number || (! DI.ismutable_array(x)) || (! DI.ismutable_array(y))
         nothing
     else
         JVPCache(similar(x), y, fdtype(backend))
@@ -130,7 +130,7 @@ function DI.prepare_derivative_nokwarg(
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
-    cache = if y isa Number
+    cache = if y isa Number || (! DI.ismutable_array(y))
         nothing
     elseif y isa AbstractArray
         df = similar(y)
