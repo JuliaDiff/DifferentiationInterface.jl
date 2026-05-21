@@ -614,7 +614,7 @@ function DI.hvp(
         hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
     tg = map(tx) do dx
-        hess * dx
+        reshape(hess * vec(dx), size(x))
     end
     return tg
 end
@@ -635,7 +635,7 @@ function DI.hvp!(
         hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
     for b in eachindex(tx, tg)
-        mul!(tg[b], hess, tx[b])
+        mul!(vec(tg[b]), hess, vec(tx[b]))
     end
     return tg
 end
@@ -658,7 +658,7 @@ function DI.gradient_and_hvp(
         hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
     tg = map(tx) do dx
-        hess * dx
+        reshape(hess * vec(dx), size(x))
     end
     return grad, tg
 end
@@ -683,7 +683,7 @@ function DI.gradient_and_hvp!(
         hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
     )
     for b in eachindex(tx, tg)
-        mul!(tg[b], hess, tx[b])
+        mul!(vec(tg[b]), hess, vec(tx[b]))
     end
     return grad, tg
 end
