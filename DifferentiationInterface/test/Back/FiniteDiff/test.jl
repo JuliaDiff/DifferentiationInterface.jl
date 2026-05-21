@@ -26,7 +26,7 @@ end
             use_tuples = true,
             include_smaller = true,
         );
-        excluded = [:second_derivative, :hvp],
+        excluded = [:second_derivative],
         logging = LOGGING,
     )
 
@@ -43,7 +43,7 @@ end
             AutoFiniteDiff(; relstep = cbrt(eps(Float64)), absstep = cbrt(eps(Float64))),
             AutoFiniteDiff(; dir = 0.5),
         ];
-        excluded = [:second_derivative, :hvp],
+        excluded = [:second_derivative],
         logging = LOGGING,
     )
 end
@@ -90,6 +90,11 @@ end;
     @test prep.absstep_h == 1000
     @test prep.relstep_g == 0.1
     @test prep.relstep_h == 0.1
+    prep = prepare_hvp(sum, backend, [1.0], ([1.0],))
+    @test prep.absstep_g == 1000
+    @test prep.absstep_h == 1000
+    @test prep.relstep_g == 0.1
+    @test prep.relstep_h == 0.1
 
     backend = AutoFiniteDiff(; relstep = 0.1)
     preps = [
@@ -110,6 +115,55 @@ end;
     @test prep.absstep_h == 0.1
     @test prep.relstep_g == 0.1
     @test prep.relstep_h == 0.1
+    prep = prepare_hvp(sum, backend, [1.0], ([1.0],))
+    @test prep.absstep_g == 0.1
+    @test prep.absstep_h == 0.1
+    @test prep.relstep_g == 0.1
+    @test prep.relstep_h == 0.1
+end
+
+@testset "HVP accuracy (issue 1012)" begin
+    # hvp should match hessian * v for default AutoFiniteDiff()
+    # Previously, hvp used fdtype (forward) while hessian used fdhtype (central),
+    # causing significant accuracy differences
+    backend = AutoFiniteDiff()
+
+    for (f, x, v) in [
+        (x -> sum(x .^ 2), [1.0, 2.0, 3.0], [1.0, 0.0, 0.0]),
+        (x -> sum(x .^ 3), [1.0, 2.0, 3.0], [1.0, 0.0, 0.0]),
+        (x -> sum(x .^ 4), [1.0, 2.0, 3.0], [1.0, 0.0, 0.0]),
+        (x -> x' * [1 2; 3 4] * x, [1.0, 2.0], [1.0, 0.0]),
+    ]
+        H = hessian(f, backend, x)
+        Hv_direct = H * v
+        Hv_hvp = hvp(f, backend, x, (v,))[1]
+        @test Hv_hvp ≈ Hv_direct rtol = 1e-10
+    end
+
+    # Also test hvp!, gradient_and_hvp, gradient_and_hvp!
+    f(x) = sum(x .^ 2)
+    x = [1.0, 2.0, 3.0]
+    v = [1.0, 0.0, 0.0]
+    H = hessian(f, backend, x)
+    expected_Hv = H * v
+    expected_grad = [2.0, 4.0, 6.0]
+
+    # hvp!
+    tg = (similar(x),)
+    hvp!(f, tg, backend, x, (v,))
+    @test tg[1] ≈ expected_Hv rtol = 1e-10
+
+    # gradient_and_hvp
+    grad, tg = gradient_and_hvp(f, backend, x, (v,))
+    @test grad ≈ expected_grad rtol = 1e-6
+    @test tg[1] ≈ expected_Hv rtol = 1e-10
+
+    # gradient_and_hvp!
+    grad = similar(x)
+    tg = (similar(x),)
+    gradient_and_hvp!(f, grad, tg, backend, x, (v,))
+    @test grad ≈ expected_grad rtol = 1e-6
+    @test tg[1] ≈ expected_Hv rtol = 1e-10
 end
 
 include("benchmark.jl")
