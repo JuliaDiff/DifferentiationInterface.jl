@@ -25,7 +25,7 @@ duplicated_backends = [
     AutoEnzyme(; mode = Enzyme.Reverse, function_annotation = Enzyme.Duplicated),
 ]
 
-nomatrix(scens) = filter(s -> !(s.x isa AbstractMatrix) && !(s.y isa AbstractMatrix), scens)
+onlymatrix(scens) = filter(s -> (s.x isa AbstractMatrix) || (s.y isa AbstractMatrix), scens)
 
 @testset "Checks" begin
     @testset "Check $(typeof(backend))" for backend in backends
@@ -70,7 +70,7 @@ end;
     @info "Test1"
     test_differentiation(
         AutoEnzyme(),
-        nomatrix(default_scenarios(; include_constantified = true, include_cachified = true));
+        onlymatrix(default_scenarios(; include_constantified = true, include_cachified = true));
         excluded = vcat(FIRST_ORDER, :hvp, :hessian),
         logging = LOGGING,
     )
@@ -78,7 +78,7 @@ end;
     @info "Test2"
     test_differentiation(
         AutoEnzyme(),
-        nomatrix(default_scenarios(; include_constantified = true));
+        onlymatrix(default_scenarios(; include_constantified = true));
         excluded = vcat(FIRST_ORDER, :second_derivative),
         logging = LOGGING,
     )
@@ -94,7 +94,7 @@ end;
         else
             AutoEnzyme()
         end,
-        nomatrix(default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true));
+        onlymatrix(default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true));
         excluded = vcat(FIRST_ORDER, :second_derivative),
         logging = LOGGING,
     )
@@ -106,7 +106,7 @@ end;
                 AutoEnzyme(; mode = Enzyme.Reverse), AutoEnzyme(; mode = Enzyme.Forward)
             ),
         ],
-        nomatrix(default_scenarios(; include_constantified = true, include_cachified = true));
+        onlymatrix(default_scenarios(; include_constantified = true, include_cachified = true));
         excluded = FIRST_ORDER,
         logging = LOGGING,
     )
