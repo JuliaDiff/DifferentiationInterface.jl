@@ -17,7 +17,7 @@ function DI.prepare_pushforward_nokwarg(
     cache = if x isa Number || y isa Number
         nothing
     else
-        JVPCache(similar(x), y, fdtype(backend))
+        JVPCache(copy(x), y, fdtype(backend))
     end
     relstep = if isnothing(backend.relstep)
         default_relstep(fdtype(backend), eltype(x))
@@ -133,7 +133,7 @@ function DI.prepare_derivative_nokwarg(
     cache = if y isa Number
         nothing
     elseif y isa AbstractArray
-        df = similar(y)
+        df = copy(y)
         cache = GradientCache(df, x, fdtype(backend), eltype(y), FUNCTION_NOT_INPLACE)
     end
     relstep = if isnothing(backend.relstep)
@@ -347,9 +347,9 @@ function DI.prepare_jacobian_nokwarg(
     _sig = DI.signature(f, backend, x, contexts...; strict)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
-    x1 = similar(x)
-    fx = similar(y)
-    fx1 = similar(y)
+    x1 = copy(x)
+    fx = copy(y)
+    fx1 = copy(y)
     cache = JacobianCache(x1, fx, fx1, fdjtype(backend))
     relstep = if isnothing(backend.relstep)
         default_relstep(fdjtype(backend), eltype(x))

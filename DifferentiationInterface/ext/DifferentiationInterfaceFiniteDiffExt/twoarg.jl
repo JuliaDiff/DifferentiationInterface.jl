@@ -21,7 +21,7 @@ function DI.prepare_pushforward_nokwarg(
     cache = if x isa Number
         nothing
     else
-        JVPCache(similar(x), similar(y), fdtype(backend))
+        JVPCache(copy(x), copy(y), fdtype(backend))
     end
     relstep = if isnothing(backend.relstep)
         default_relstep(fdtype(backend), eltype(x))
