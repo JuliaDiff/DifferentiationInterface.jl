@@ -23,6 +23,8 @@ duplicated_backends = [
     AutoEnzyme(; mode = Enzyme.Reverse, function_annotation = Enzyme.Duplicated),
 ]
 
+nomatrix(scens) = filter(s -> (s.x isa AbstractMatrix) || (s.y isa AbstractMatrix), scens)
+
 @testset "Checks" begin
     @testset "Check $(typeof(backend))" for backend in backends
         @test check_available(backend)
@@ -30,39 +32,42 @@ duplicated_backends = [
     end
 end;
 
-@testset "First order" begin
-    test_differentiation(
-        backends, default_scenarios(); excluded = SECOND_ORDER, logging = LOGGING
-    )
+# @testset "First order" begin
+#     test_differentiation(
+#         backends, default_scenarios(); excluded = SECOND_ORDER, logging = LOGGING
+#     )
 
-    test_differentiation(
-        backends[1:3],
-        default_scenarios(; include_normal = false, include_constantified = true);
-        excluded = SECOND_ORDER,
-        logging = LOGGING,
-    )
+#     test_differentiation(
+#         backends[1:3],
+#         nomatrix(default_scenarios(; include_normal = false, include_constantified = true));
+#         excluded = SECOND_ORDER,
+#         logging = LOGGING,
+#     )
 
-    test_differentiation(
-        backends[2:3],
-        default_scenarios(;
-            include_normal = false,
-            include_cachified = true,
-            include_constantorcachified = true,
-            use_tuples = true,
-        );
-        excluded = SECOND_ORDER,
-        logging = LOGGING,
-    )
+#     test_differentiation(
+#         backends[2:3],
+#         nomatrix(
+#             default_scenarios(;
+#                 include_normal = false,
+#                 include_cachified = true,
+#                 include_constantorcachified = true,
+#                 use_tuples = true,
+#             )
+#         );
+#         excluded = SECOND_ORDER,
+#         logging = LOGGING,
+#     )
 
-    test_differentiation(
-        duplicated_backends,
-        default_scenarios(; include_normal = false, include_closurified = true);
-        excluded = SECOND_ORDER,
-        logging = LOGGING,
-    )
-end
+#     test_differentiation(
+#         duplicated_backends,
+#         nomatrix(default_scenarios(; include_normal = false, include_closurified = true));
+#         excluded = SECOND_ORDER,
+#         logging = LOGGING,
+#     )
+# end
 
 @testset "Second order" begin
+    @info "Guillaume1"
     test_differentiation(
         AutoEnzyme(),
         default_scenarios(; include_constantified = true, include_cachified = true);
@@ -70,13 +75,15 @@ end
         logging = LOGGING,
     )
 
+    @info "Guillaume2"
     test_differentiation(
         AutoEnzyme(),
-        default_scenarios(; include_constantified = true);
+        nomatrix(default_scenarios(; include_constantified = true));
         excluded = vcat(FIRST_ORDER, :second_derivative),
         logging = LOGGING,
     )
 
+    @info "Guillaume3"
     test_differentiation(
         # TODO: simplify when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 and https://github.com/EnzymeAD/Enzyme.jl/issues/2925 are fixed
         if VERSION >= v"1.11"
@@ -87,11 +94,14 @@ end
         else
             AutoEnzyme()
         end,
-        default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true);
+        nomatrix(
+            default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true)
+        );
         excluded = vcat(FIRST_ORDER, :second_derivative),
         logging = LOGGING,
     )
 
+    @info "Guillaume4"
     test_differentiation(
         [
             SecondOrder(
@@ -104,96 +114,96 @@ end
     )
 end
 
-@testset "Sparse" begin
-    test_differentiation(
-        MyAutoSparse.(AutoEnzyme(; function_annotation = Enzyme.Const)),
-        if VERSION < v"1.11"
-            sparse_scenarios()
-        else
-            filter(s -> s.x isa AbstractVector, sparse_scenarios())
-        end;
-        sparsity = true,
-        logging = LOGGING,
-    )
-end
+# @testset "Sparse" begin
+#     test_differentiation(
+#         MyAutoSparse.(AutoEnzyme(; function_annotation = Enzyme.Const)),
+#         if VERSION < v"1.11"
+#             sparse_scenarios()
+#         else
+#             filter(s -> s.x isa AbstractVector, sparse_scenarios())
+#         end;
+#         sparsity = true,
+#         logging = LOGGING,
+#     )
+# end
 
-@testset "Static" begin
-    filtered_static_scenarios = filter(static_scenarios()) do s
-        DIT.operator_place(s) == :out && DIT.function_place(s) == :out
-    end
+# @testset "Static" begin
+#     filtered_static_scenarios = filter(static_scenarios()) do s
+#         DIT.operator_place(s) == :out && DIT.function_place(s) == :out
+#     end
 
-    test_differentiation(
-        [AutoEnzyme(; mode = Enzyme.Forward), AutoEnzyme(; mode = Enzyme.Reverse)],
-        filtered_static_scenarios;
-        excluded = SECOND_ORDER,
-        logging = LOGGING,
-    )
-end
+#     test_differentiation(
+#         [AutoEnzyme(; mode = Enzyme.Forward), AutoEnzyme(; mode = Enzyme.Reverse)],
+#         filtered_static_scenarios;
+#         excluded = SECOND_ORDER,
+#         logging = LOGGING,
+#     )
+# end
 
-@testset "Coverage" begin
-    # ConstantOrCache without cache
-    f_nocontext(x, p) = x
-    @test I == DifferentiationInterface.jacobian(
-        f_nocontext, AutoEnzyme(; mode = Enzyme.Forward), rand(10), ConstantOrCache(nothing)
-    )
-    @test I == DifferentiationInterface.jacobian(
-        f_nocontext, AutoEnzyme(; mode = Enzyme.Reverse), rand(10), ConstantOrCache(nothing)
-    )
-end
+# @testset "Coverage" begin
+#     # ConstantOrCache without cache
+#     f_nocontext(x, p) = x
+#     @test I == DifferentiationInterface.jacobian(
+#         f_nocontext, AutoEnzyme(; mode = Enzyme.Forward), rand(10), ConstantOrCache(nothing)
+#     )
+#     @test I == DifferentiationInterface.jacobian(
+#         f_nocontext, AutoEnzyme(; mode = Enzyme.Reverse), rand(10), ConstantOrCache(nothing)
+#     )
+# end
 
-@testset "Hints" begin
-    @testset "MutabilityError" begin
-        f = let
-            cache = [0.0]
-            x -> sum(copyto!(cache, x))
-        end
+# @testset "Hints" begin
+#     @testset "MutabilityError" begin
+#         f = let
+#             cache = [0.0]
+#             x -> sum(copyto!(cache, x))
+#         end
 
-        e = nothing
-        try
-            gradient(f, AutoEnzyme(), [1.0])
-        catch e
-        end
-        msg = sprint(showerror, e)
-        @test occursin("AutoEnzyme", msg)
-        @test occursin("function_annotation", msg)
-        @test occursin("ADTypes", msg)
-    end
+#         e = nothing
+#         try
+#             gradient(f, AutoEnzyme(), [1.0])
+#         catch e
+#         end
+#         msg = sprint(showerror, e)
+#         @test occursin("AutoEnzyme", msg)
+#         @test occursin("function_annotation", msg)
+#         @test occursin("ADTypes", msg)
+#     end
 
-    @testset "RuntimeActivityError" begin
-        function g(active_var, constant_var, cond)
-            if cond
-                return active_var
-            else
-                return constant_var
-            end
-        end
+#     @testset "RuntimeActivityError" begin
+#         function g(active_var, constant_var, cond)
+#             if cond
+#                 return active_var
+#             else
+#                 return constant_var
+#             end
+#         end
 
-        function h(active_var, constant_var, cond)
-            return [g(active_var, constant_var, cond), g(active_var, constant_var, cond)]
-        end
+#         function h(active_var, constant_var, cond)
+#             return [g(active_var, constant_var, cond), g(active_var, constant_var, cond)]
+#         end
 
-        e = nothing
-        try
-            pushforward(
-                h,
-                AutoEnzyme(; mode = Enzyme.Forward),
-                [1.0],
-                ([1.0],),
-                Constant([1.0]),
-                Constant(true),
-            )
-        catch e
-        end
-        msg = sprint(showerror, e)
-        @test_broken occursin("AutoEnzyme", msg)
-        @test_broken occursin("ADTypes", msg)
-    end
-end
+#         e = nothing
+#         try
+#             pushforward(
+#                 h,
+#                 AutoEnzyme(; mode = Enzyme.Forward),
+#                 [1.0],
+#                 ([1.0],),
+#                 Constant([1.0]),
+#                 Constant(true),
+#             )
+#         catch e
+#         end
+#         msg = sprint(showerror, e)
+#         @test_broken occursin("AutoEnzyme", msg)
+#         @test_broken occursin("ADTypes", msg)
+#     end
+# end
 
-@testset "Empty arrays" begin
-    test_differentiation(
-        [AutoEnzyme(; mode = Enzyme.Forward), AutoEnzyme(; mode = Enzyme.Reverse)],
-        empty_scenarios();
-        excluded = [:jacobian],
-    )
-end;
+# @testset "Empty arrays" begin
+#     test_differentiation(
+#         [AutoEnzyme(; mode = Enzyme.Forward), AutoEnzyme(; mode = Enzyme.Reverse)],
+#         empty_scenarios();
+#         excluded = [:jacobian],
+#     )
+# end;

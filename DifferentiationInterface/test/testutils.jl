@@ -35,4 +35,4 @@ end
 
 safetypestab(symb) = VERSION < v"1.12-" ? symb : :none  # TODO: remove
 
-LOGGING = get(ENV, "CI", "false") == "false"
+LOGGING = true
