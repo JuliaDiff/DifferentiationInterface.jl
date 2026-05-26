@@ -18,10 +18,10 @@ function DI.prepare_pushforward_nokwarg(
         contexts::Vararg{DI.Context, C}
     ) where {C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
-    cache = if x isa Number || (! DI.ismutable_array(x))
+    cache = if x isa Number
         nothing
     else
-        JVPCache(similar(x), similar(y), fdtype(backend))
+        JVPCache(copy(x), copy(y), fdtype(backend))
     end
     relstep = if isnothing(backend.relstep)
         default_relstep(fdtype(backend), eltype(x))
