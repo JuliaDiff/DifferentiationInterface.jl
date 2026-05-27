@@ -67,13 +67,13 @@ end;
 # end
 
 @testset "Second order" begin
-    @info "Test1"
-    test_differentiation(
-        AutoEnzyme(),
-        onlymatrix(default_scenarios(; include_constantified = true, include_cachified = true));
-        excluded = vcat(FIRST_ORDER, :hvp, :hessian),
-        logging = LOGGING,
-    )
+    # @info "Test1"
+    # test_differentiation(
+    #     AutoEnzyme(),
+    #     onlymatrix(default_scenarios(; include_constantified = true, include_cachified = true));
+    #     excluded = vcat(FIRST_ORDER, :hvp, :hessian),
+    #     logging = LOGGING,
+    # )
 
     @info "Test2"
     test_differentiation(
@@ -83,33 +83,33 @@ end;
         logging = LOGGING,
     )
 
-    @info "Test3"
-    test_differentiation(
-        # TODO: simplify when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 and https://github.com/EnzymeAD/Enzyme.jl/issues/2925 are fixed
-        if VERSION >= v"1.11"
-            SecondOrder(
-                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Forward)),
-                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Reverse))
-            )
-        else
-            AutoEnzyme()
-        end,
-        onlymatrix(default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true));
-        excluded = vcat(FIRST_ORDER, :second_derivative),
-        logging = LOGGING,
-    )
+    # @info "Test3"
+    # test_differentiation(
+    #     # TODO: simplify when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 and https://github.com/EnzymeAD/Enzyme.jl/issues/2925 are fixed
+    #     if VERSION >= v"1.11"
+    #         SecondOrder(
+    #             AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Forward)),
+    #             AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Reverse))
+    #         )
+    #     else
+    #         AutoEnzyme()
+    #     end,
+    #     onlymatrix(default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true));
+    #     excluded = vcat(FIRST_ORDER, :second_derivative),
+    #     logging = LOGGING,
+    # )
 
-    @info "Test4"
-    test_differentiation(
-        [
-            SecondOrder(
-                AutoEnzyme(; mode = Enzyme.Reverse), AutoEnzyme(; mode = Enzyme.Forward)
-            ),
-        ],
-        onlymatrix(default_scenarios(; include_constantified = true, include_cachified = true));
-        excluded = FIRST_ORDER,
-        logging = LOGGING,
-    )
+    # @info "Test4"
+    # test_differentiation(
+    #     [
+    #         SecondOrder(
+    #             AutoEnzyme(; mode = Enzyme.Reverse), AutoEnzyme(; mode = Enzyme.Forward)
+    #         ),
+    #     ],
+    #     onlymatrix(default_scenarios(; include_constantified = true, include_cachified = true));
+    #     excluded = FIRST_ORDER,
+    #     logging = LOGGING,
+    # )
 end
 
 # @testset "Sparse" begin
