@@ -131,7 +131,7 @@ jobs:
       - uses: julia-actions/cache@v3
       - name: Install dependencies & run tests (draft)
         if: ${{ github.event.pull_request.draft }}
-        run: julia --code-coverage=user --color=yes -e ' using Pkg; group =
+        run: julia -O1 --code-coverage=user --color=yes -e ' using Pkg; group =
           ENV["JULIA_DI_TEST_GROUP"];
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
           Pkg.develop([PackageSpec(path="./DifferentiationInterface"),
@@ -139,7 +139,7 @@ jobs:
           include("./DifferentiationInterface/test/Back/run_backend.jl");'
       - name: Install dependencies & run tests (not draft)
         if: ${{ !github.event.pull_request.draft }}
-        run: julia -O1 --code-coverage=user --color=yes -e ' using Pkg; group =
+        run: julia --code-coverage=user --color=yes -e ' using Pkg; group =
           ENV["JULIA_DI_TEST_GROUP"];
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
           Pkg.develop([PackageSpec(path="./DifferentiationInterface"),
