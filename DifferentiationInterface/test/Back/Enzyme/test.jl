@@ -106,7 +106,7 @@ end;
                 include_cachified = true
             )
         );
-        excluded = vcat(FIRST_ORDER, :second_derivative),
+        excluded = vcat(FIRST_ORDER, :second_derivative, :hessian),
         logging = LOGGING,
     )
 
