@@ -16,7 +16,6 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
-
   test-DI-Backend:
     name: ${{ matrix.version }} - DI Back (${{ matrix.group }})
     runs-on: ubuntu-latest
@@ -65,7 +64,7 @@ jobs:
           include("./DifferentiationInterface/test/Back/run_backend.jl");'
       - name: Install dependencies & run tests (not draft)
         if: ${{ !github.event.pull_request.draft }}
-        run: julia -O1 --code-coverage=user --color=yes -e ' using Pkg; group =
+        run: julia --code-coverage=user --color=yes -e ' using Pkg; group =
           ENV["JULIA_DI_TEST_GROUP"];
           Pkg.activate("./DifferentiationInterface/test/Back/$group");
           Pkg.develop([PackageSpec(path="./DifferentiationInterface"),
@@ -80,5 +79,3 @@ jobs:
           flags: DI
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
-
-  
