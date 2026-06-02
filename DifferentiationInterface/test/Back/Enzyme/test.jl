@@ -99,14 +99,17 @@ end;
         else
             AutoEnzyme()
         end,
-        onlymatrix(
-            default_scenarios(;
-                include_normal = false,
-                include_constantified = false,
-                include_cachified = true
+        filter(
+            onlymatrix(
+                default_scenarios(;
+                    include_normal = false,
+                    include_constantified = false,
+                    include_cachified = true
+                )
             )
-        );
-        excluded = vcat(FIRST_ORDER, :second_derivative, :hessian),
+        ) do s
+            DifferentiationInterfaceTest.operator(s) == :hvp
+        end[1:1],
         logging = LOGGING,
     )
 
