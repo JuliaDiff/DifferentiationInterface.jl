@@ -67,18 +67,23 @@ end;
 # end
 
 @testset "Second order" begin
-    # @info "Test1"
-    # test_differentiation(
-    #     AutoEnzyme(),
-    #     onlymatrix(default_scenarios(; include_constantified = true, include_cachified = true));
-    #     excluded = vcat(FIRST_ORDER, :hvp, :hessian),
-    #     logging = LOGGING,
-    # )
+    @info "Test1"
+    test_differentiation(
+        AutoEnzyme(),
+        onlymatrix(
+            default_scenarios(;
+                include_constantified = false,
+                include_cachified = false
+            )
+        );
+        excluded = vcat(FIRST_ORDER, :hvp, :hessian),
+        logging = LOGGING,
+    )
 
     @info "Test2"
     test_differentiation(
         AutoEnzyme(),
-        onlymatrix(default_scenarios(; include_constantified = true));
+        onlymatrix(default_scenarios(; include_constantified = false));
         excluded = vcat(FIRST_ORDER, :second_derivative),
         logging = LOGGING,
     )
