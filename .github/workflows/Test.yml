@@ -67,7 +67,7 @@ jobs:
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         with:
           files: lcov.info
           flags: DI
@@ -148,7 +148,7 @@ jobs:
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterface/src,./DifferentiationInterface/ext,./DifferentiationInterface/test
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         with:
           files: lcov.info
           flags: DI
@@ -205,7 +205,7 @@ jobs:
       - uses: julia-actions/julia-processcoverage@v1
         with:
           directories: ./DifferentiationInterfaceTest/src,./DifferentiationInterfaceTest/ext,./DifferentiationInterfaceTest/test
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         with:
           files: lcov.info
           flags: DIT
