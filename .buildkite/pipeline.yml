@@ -6,6 +6,5 @@ steps:
     command: |
       julia ./DifferentiationInterface/test/GPU/CUDA/main.jl
     agents:
-      queue: "juliagpu"
-      cuda: "*"
+      queue: "cuda"
     timeout_in_minutes: 60
