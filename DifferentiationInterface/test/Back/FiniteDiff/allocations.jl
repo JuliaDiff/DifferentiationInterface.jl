@@ -19,7 +19,7 @@ using StaticArrays: @SVector
         backend = AutoFiniteDiff()
         x = 3.0
         f(x) = x .* (@SVector [1.0, 2.0])
-        prep =  DifferentiationInterface.prepare_derivative(f, backend, x)
+        prep = DifferentiationInterface.prepare_derivative(f, backend, x)
         return prep
     end
     derivative_allocs()
@@ -30,7 +30,7 @@ using StaticArrays: @SVector
         backend = AutoFiniteDiff()
         x = @SVector [1.0, 2.0]
         f(x) = 3.0 .* x
-        prep =  DifferentiationInterface.prepare_jacobian(f, backend, x)
+        prep = DifferentiationInterface.prepare_jacobian(f, backend, x)
         return prep
     end
     jacobian_allocs()
