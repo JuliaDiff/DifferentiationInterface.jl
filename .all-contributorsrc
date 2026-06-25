@@ -1,4 +1,28 @@
 {
   "projectName": "DifferentiationInterface.jl",
-  "projectOwner": "JuliaDiff"
+  "projectOwner": "JuliaDiff",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "gdalle",
+      "name": "Guillaume Dalle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22795598?v=4",
+      "profile": "https://gdalle.github.io/",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "maintenance",
+        "research",
+        "review",
+        "test",
+        "talk"
+      ]
+    }
+  ]
 }
