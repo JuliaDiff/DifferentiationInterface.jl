@@ -131,3 +131,14 @@ If you run the actual software as part of your experiments, please cite the prec
   url       = {https://doi.org/10.5281/zenodo.11092033}
 }
 ```
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
