@@ -9,7 +9,7 @@
 | Code quality | [![code style: runic](https://img.shields.io/badge/code_style-%E1%9A%B1%E1%9A%A2%E1%9A%BE%E1%9B%81%E1%9A%B2-black)](https://github.com/fredrikekre/Runic.jl) [![Aqua QA](https://juliatesting.github.io/Aqua.jl/dev/assets/badge.svg)](https://github.com/JuliaTesting/Aqua.jl) |
 | Downloads | [![Downloads](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2Fjuliapkgstats.com%2Fapi%2Fv2%2Fmonthly_downloads%2FDifferentiationInterface&query=total_requests&suffix=%2Fmonth&label=Downloads)](http://juliapkgstats.com/pkg/DifferentiationInterface) [![Dependents](https://juliahub.com/docs/General/DifferentiationInterface/stable/deps.svg)](https://juliahub.com/ui/Packages/General/DifferentiationInterface?#dependents) |
 | Community | [![All Contributors](https://img.shields.io/github/all-contributors/JuliaDiff/DifferentiationInterface.jl?color=ee8449&style=flat-square)](#contributors) |
-| References | [![DOI](https://zenodo.org/badge/740973714.svg)](https://zenodo.org/doi/10.5281/zenodo.11092033) |
+| References | [![DOI](https://img.shields.io/badge/DOI-10.5281/zenodo.11092033-blue.svg)](https://zenodo.org/doi/10.5281/zenodo.11092033) |
 
 An interface to various automatic differentiation (AD) backends in Julia.
 
