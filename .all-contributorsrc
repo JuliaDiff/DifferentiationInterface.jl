@@ -1,4 +1,7 @@
 {
   "projectName": "DifferentiationInterface.jl",
-  "projectOwner": "JuliaDiff"
+  "projectOwner": "JuliaDiff",
+  "files": [
+    "DifferentiationInterface/README.md"
+  ]
 }
