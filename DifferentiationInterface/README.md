@@ -142,6 +142,7 @@ If you run the actual software as part of your experiments, please cite the prec
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://gdalle.github.io/"><img src="https://avatars.githubusercontent.com/u/22795598?v=4?s=100" width="100px;" alt="Guillaume Dalle"/><br /><sub><b>Guillaume Dalle</b></sub></a><br /><a href="#code-gdalle" title="Code">💻</a> <a href="#doc-gdalle" title="Documentation">📖</a> <a href="#ideas-gdalle" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-gdalle" title="Maintenance">🚧</a> <a href="#research-gdalle" title="Research">🔬</a> <a href="#review-gdalle" title="Reviewed Pull Requests">👀</a> <a href="#test-gdalle" title="Tests">⚠️</a> <a href="#talk-gdalle" title="Talks">📢</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://adrianhill.de"><img src="https://avatars.githubusercontent.com/u/20258504?v=4?s=100" width="100px;" alt="Adrian Hill"/><br /><sub><b>Adrian Hill</b></sub></a><br /><a href="#code-adrhill" title="Code">💻</a> <a href="#doc-adrhill" title="Documentation">📖</a> <a href="#ideas-adrhill" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-adrhill" title="Maintenance">🚧</a> <a href="#research-adrhill" title="Research">🔬</a> <a href="#review-adrhill" title="Reviewed Pull Requests">👀</a> <a href="#test-adrhill" title="Tests">⚠️</a> <a href="#talk-adrhill" title="Talks">📢</a></td>
     </tr>
   </tbody>
 </table>

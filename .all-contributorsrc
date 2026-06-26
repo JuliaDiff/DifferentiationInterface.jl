@@ -23,6 +23,22 @@
         "test",
         "talk"
       ]
+    },
+    {
+      "login": "adrhill",
+      "name": "Adrian Hill",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20258504?v=4",
+      "profile": "http://adrianhill.de",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "maintenance",
+        "research",
+        "review",
+        "test",
+        "talk"
+      ]
     }
   ]
 }
