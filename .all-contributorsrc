@@ -1,0 +1,44 @@
+{
+  "projectName": "DifferentiationInterface.jl",
+  "projectOwner": "JuliaDiff",
+  "files": [
+    "DifferentiationInterface/README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "gdalle",
+      "name": "Guillaume Dalle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22795598?v=4",
+      "profile": "https://gdalle.github.io/",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "maintenance",
+        "research",
+        "review",
+        "test",
+        "talk"
+      ]
+    },
+    {
+      "login": "adrhill",
+      "name": "Adrian Hill",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20258504?v=4",
+      "profile": "http://adrianhill.de",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "maintenance",
+        "research",
+        "review",
+        "test",
+        "talk"
+      ]
+    }
+  ]
+}
