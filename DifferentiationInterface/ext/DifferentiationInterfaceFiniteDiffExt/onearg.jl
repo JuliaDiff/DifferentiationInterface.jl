@@ -550,3 +550,140 @@ function DI.value_gradient_and_hessian!(
     )
     return fc(x), grad, hess
 end
+
+## HVP
+
+struct FiniteDiffHVPPrep{SIG, C1, C2, RG, AG, RH, AH, H} <: DI.HVPPrep{SIG}
+    _sig::Val{SIG}
+    gradient_cache::C1
+    hessian_cache::C2
+    relstep_g::RG
+    absstep_g::AG
+    relstep_h::RH
+    absstep_h::AH
+    hess::H
+end
+
+function DI.prepare_hvp_nokwarg(
+        strict::Val, f, backend::AutoFiniteDiff, x, tx::NTuple, contexts::Vararg{DI.Context, C}
+    ) where {C}
+    _sig = DI.signature(f, backend, x, tx, contexts...; strict)
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    y = fc(x)
+    df = zero(y) .* x
+    gradient_cache = GradientCache(df, x, fdtype(backend))
+    hessian_cache = HessianCache(x, fdhtype(backend))
+    relstep_g = if isnothing(backend.relstep)
+        default_relstep(fdtype(backend), eltype(x))
+    else
+        backend.relstep
+    end
+    relstep_h = if isnothing(backend.relstep)
+        default_relstep(fdhtype(backend), eltype(x))
+    else
+        backend.relstep
+    end
+    absstep_g = if isnothing(backend.absstep)
+        relstep_g
+    else
+        backend.absstep
+    end
+    absstep_h = if isnothing(backend.absstep)
+        relstep_h
+    else
+        backend.absstep
+    end
+    hess = similar(x, eltype(x), (length(x), length(x)))
+    return FiniteDiffHVPPrep(
+        _sig, gradient_cache, hessian_cache, relstep_g, absstep_g, relstep_h, absstep_h, hess
+    )
+end
+
+function DI.hvp(
+        f,
+        prep::FiniteDiffHVPPrep,
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
+    (; relstep_h, absstep_h, hess) = prep
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    finite_difference_hessian!(
+        hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
+    )
+    tg = map(tx) do dx
+        reshape(hess * vec(dx), size(x))
+    end
+    return tg
+end
+
+function DI.hvp!(
+        f,
+        tg::NTuple,
+        prep::FiniteDiffHVPPrep,
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
+    (; relstep_h, absstep_h, hess) = prep
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    finite_difference_hessian!(
+        hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
+    )
+    for b in eachindex(tx, tg)
+        mul!(vec(tg[b]), hess, vec(tx[b]))
+    end
+    return tg
+end
+
+function DI.gradient_and_hvp(
+        f,
+        prep::FiniteDiffHVPPrep,
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
+    (; relstep_g, absstep_g, relstep_h, absstep_h, hess) = prep
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    grad = finite_difference_gradient(
+        fc, x, prep.gradient_cache; relstep = relstep_g, absstep = absstep_g
+    )
+    finite_difference_hessian!(
+        hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
+    )
+    tg = map(tx) do dx
+        reshape(hess * vec(dx), size(x))
+    end
+    return grad, tg
+end
+
+function DI.gradient_and_hvp!(
+        f,
+        grad,
+        tg::NTuple,
+        prep::FiniteDiffHVPPrep,
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C},
+    ) where {C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
+    (; relstep_g, absstep_g, relstep_h, absstep_h, hess) = prep
+    fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+    finite_difference_gradient!(
+        grad, fc, x, prep.gradient_cache; relstep = relstep_g, absstep = absstep_g
+    )
+    finite_difference_hessian!(
+        hess, fc, x, prep.hessian_cache; relstep = relstep_h, absstep = absstep_h
+    )
+    for b in eachindex(tx, tg)
+        mul!(vec(tg[b]), hess, vec(tx[b]))
+    end
+    return grad, tg
+end
