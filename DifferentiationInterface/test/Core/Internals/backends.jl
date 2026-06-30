@@ -11,7 +11,9 @@ using DifferentiationInterface:
     inplace_support,
     pushforward_performance,
     pullback_performance,
-    hvp_mode
+    hvp_mode,
+    forward_counterpart,
+    reverse_counterpart
 import DifferentiationInterface as DI
 using Test
 
@@ -43,6 +45,15 @@ end
     @test Bool(inplace_support(backend))
     @test_throws MethodError pushforward_performance(backend)
     @test_throws MethodError pullback_performance(backend)
+end
+
+@testset "Counterparts" begin
+    # already-forward / already-reverse backends are their own counterpart
+    @test forward_counterpart(fb) === fb
+    @test reverse_counterpart(rb) === rb
+    # no known counterpart in the opposite mode
+    @test_throws ArgumentError forward_counterpart(rb)
+    @test_throws ArgumentError reverse_counterpart(fb)
 end
 
 @testset "Sparse" begin

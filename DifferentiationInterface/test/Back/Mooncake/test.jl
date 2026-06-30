@@ -21,6 +21,13 @@ for backend in backends
     @test check_inplace(backend)
 end
 
+@testset "Counterparts" begin
+    config = Mooncake.Config(; friendly_tangents = true)
+    @test DifferentiationInterface.forward_counterpart(AutoMooncake()) === AutoMooncakeForward()
+    @test DifferentiationInterface.forward_counterpart(AutoMooncake(; config)) ===
+        AutoMooncakeForward(; config)
+end
+
 test_differentiation(
     backends[3:4],
     default_scenarios();

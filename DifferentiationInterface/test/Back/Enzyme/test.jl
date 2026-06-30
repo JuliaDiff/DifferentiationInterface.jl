@@ -30,6 +30,14 @@ duplicated_backends = [
     end
 end;
 
+@testset "Counterparts" begin
+    rev = AutoEnzyme(; mode = Enzyme.Reverse, function_annotation = Enzyme.Const)
+    fwd = DifferentiationInterface.forward_counterpart(rev)
+    @test ADTypes.mode(fwd) isa ADTypes.ForwardMode
+    @test fwd isa AutoEnzyme{<:Any, Enzyme.Const}  # function annotation preserved
+    @test ADTypes.mode(DifferentiationInterface.reverse_counterpart(fwd)) isa ADTypes.ReverseMode
+end;
+
 @testset "First order" begin
     test_differentiation(
         backends, default_scenarios(); excluded = SECOND_ORDER, logging = LOGGING
