@@ -87,7 +87,10 @@ using DifferentiationInterface:
     outer,
     inplace_support,
     pushforward_performance,
-    pullback_performance
+    pullback_performance,
+    check_available,
+    forward_counterpart,
+    reverse_counterpart
 using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCache, unwrap
 using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
@@ -137,6 +140,7 @@ include("scenarios/empty.jl")
 include("scenarios/extensions.jl")
 
 include("tests/correctness_eval.jl")
+include("tests/counterparts.jl")
 include("tests/prep_eval.jl")
 include("tests/type_stability.jl")
 include("tests/benchmark.jl")
@@ -147,6 +151,7 @@ include("test_differentiation.jl")
 export FIRST_ORDER, SECOND_ORDER
 export Scenario, compute_results
 export test_differentiation, benchmark_differentiation
+export test_counterparts
 export DifferentiationBenchmarkDataRow
 
 @compile_workload begin

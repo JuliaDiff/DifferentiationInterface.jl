@@ -12,6 +12,7 @@ check_no_implicit_imports(DifferentiationInterface)
 for backend in [AutoSymbolics(), AutoSparse(AutoSymbolics())]
     @test check_available(backend)
     @test check_inplace(backend)
+    test_counterparts(backend)
 end
 
 test_differentiation(

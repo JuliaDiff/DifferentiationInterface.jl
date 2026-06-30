@@ -39,6 +39,7 @@ DI.inner_preparation_behavior(::AutoMooncakeForward) = DI.PrepareInnerSimple()
 @inline new_friendly_tangents() = isdefined(Mooncake, :FriendlyTangentCache)
 
 include("utils.jl")
+include("counterparts.jl")
 include("onearg.jl")
 include("twoarg.jl")
 include("forward_onearg.jl")
