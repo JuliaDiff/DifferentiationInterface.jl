@@ -25,6 +25,7 @@ backends = [
 for backend in backends
     @test check_available(backend)
     @test check_inplace(backend)
+    test_counterparts(backend)
 end
 
 @testset "Dense" begin

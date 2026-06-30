@@ -27,15 +27,21 @@ duplicated_backends = [
     @testset "Check $(typeof(backend))" for backend in backends
         @test check_available(backend)
         @test check_inplace(backend)
+        test_counterparts(backend)
     end
 end;
 
-@testset "Counterparts" begin
-    rev = AutoEnzyme(; mode = Enzyme.Reverse, function_annotation = Enzyme.Const)
+@testset "Counterpart mode attributes" begin
+    # a reverse mode with non-default attributes, to check they survive the flip
+    rev_mode = Enzyme.set_runtime_activity(Enzyme.ReverseWithPrimal)
+    rev = AutoEnzyme(; mode = rev_mode, function_annotation = Enzyme.Const)
     fwd = DifferentiationInterface.forward_counterpart(rev)
     @test ADTypes.mode(fwd) isa ADTypes.ForwardMode
     @test fwd isa AutoEnzyme{<:Any, Enzyme.Const}  # function annotation preserved
-    @test ADTypes.mode(DifferentiationInterface.reverse_counterpart(fwd)) isa ADTypes.ReverseMode
+    # ReturnPrimal and RuntimeActivity must carry over (ForwardMode{ReturnPrimal,...,RuntimeActivity,...})
+    @test fwd.mode isa Enzyme.EnzymeCore.ForwardMode{true, <:Any, <:Any, true}
+    # round-trip back to reverse rcovers the original mode
+    @test DifferentiationInterface.reverse_counterpart(fwd) === rev
 end;
 
 @testset "First order" begin

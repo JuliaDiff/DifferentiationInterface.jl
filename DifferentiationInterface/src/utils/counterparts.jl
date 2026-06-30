@@ -1,26 +1,36 @@
 """
     forward_counterpart(backend)
 
-Return the forward-mode counterpart of `backend`, if it exists.
+Return a forward-mode counterpart of `backend`.
+
+If `backend` has a dedicated forward-mode counterpart (e.g. `AutoMooncake` has
+`AutoMooncakeForward`), it is returned. Else, a warning is emitted in the case the `backend`
+is reverse-mode only.
 """
 function forward_counterpart(backend::AbstractADType)
-    mode(backend) isa ReverseMode &&
-        throw(ArgumentError("No forward-mode counterpart known for `$backend`."))
+    if !(mode(backend) isa Union{ForwardMode, ForwardOrReverseMode, SymbolicMode})
+        @warn "No forward-mode counterpart known for `$backend`, returning it unchanged." maxlog =
+            1
+    end
     return backend
 end
-forward_counterpart(backend::AutoMooncake) = AutoMooncakeForward(; config = backend.config)
 
 """
     reverse_counterpart(backend)
 
-Return the reverse-mode counterpart of `backend`, if it exists.
+Return a reverse-mode counterpart of `backend`.
+
+If `backend` has a dedicated reverse-mode counterpart (e.g. `AutoMooncakeForward` has
+`AutoMooncake`), it is returned. Else, a warning is emitted in the case the `backend` is
+forward-mode only.
 """
 function reverse_counterpart(backend::AbstractADType)
-    mode(backend) isa ForwardMode &&
-        throw(ArgumentError("No reverse-mode counterpart known for `$backend`."))
+    if !(mode(backend) isa Union{ReverseMode, ForwardOrReverseMode, SymbolicMode})
+        @warn "No reverse-mode counterpart known for `$backend`, returning it unchanged." maxlog =
+            1
+    end
     return backend
 end
-reverse_counterpart(backend::AutoMooncakeForward) = AutoMooncake(; config = backend.config)
 
-# AutoEnzyme counterparts need the `Forward`/`Reverse` mode objects from EnzymeCore,
-# so they live in DifferentiationInterfaceEnzymeExt.
+# Backend-specific counterparts (e.g., for AutoMooncake and AutoEnzyme) are defined in the
+# corresponding package extensions.

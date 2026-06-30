@@ -10,6 +10,7 @@ check_no_implicit_imports(DifferentiationInterface)
 for backend in [AutoFiniteDifferences(; fdm = FiniteDifferences.central_fdm(3, 1))]
     @test check_available(backend)
     @test !check_inplace(backend)
+    test_counterparts(backend)
     @test DifferentiationInterface.inner_preparation_behavior(backend) isa
         DifferentiationInterface.PrepareInnerSimple
 end

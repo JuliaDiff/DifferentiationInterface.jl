@@ -48,12 +48,12 @@ end
 end
 
 @testset "Counterparts" begin
-    # already-forward / already-reverse backends are their own counterpart
+    # forward-/reverse-mode backends are their own counterpart
     @test forward_counterpart(fb) === fb
     @test reverse_counterpart(rb) === rb
-    # no known counterpart in the opposite mode
-    @test_throws ArgumentError forward_counterpart(rb)
-    @test_throws ArgumentError reverse_counterpart(fb)
+    # without a known counterpart, the backend is returned unchanged (with a warning)
+    @test forward_counterpart(rb) === rb
+    @test reverse_counterpart(fb) === fb
 end
 
 @testset "Sparse" begin
