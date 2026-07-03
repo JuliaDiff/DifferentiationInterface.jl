@@ -15,6 +15,22 @@ function DI.forward_counterpart(
     return AutoEnzyme(; mode, function_annotation = A)
 end
 
+function DI.forward_counterpart(
+        ::AutoEnzyme{
+            <:ReverseModeSplit{
+                ReturnPrimal, ReturnShadow, RuntimeActivity, StrongZero, Width,
+                ModifiedBetween, ABI, Holomorphic, ErrIfFuncWritten, ShadowInit,
+            },
+            A,
+        },
+    ) where {
+        ReturnPrimal, ReturnShadow, RuntimeActivity, StrongZero, Width,
+        ModifiedBetween, ABI, Holomorphic, ErrIfFuncWritten, ShadowInit, A,
+    }
+    mode = ForwardMode{ReturnPrimal, ABI, ErrIfFuncWritten, RuntimeActivity, StrongZero}()
+    return AutoEnzyme(; mode, function_annotation = A)
+end
+
 function DI.reverse_counterpart(
         ::AutoEnzyme{
             <:ForwardMode{ReturnPrimal, ABI, ErrIfFuncWritten, RuntimeActivity, StrongZero},
