@@ -11,9 +11,8 @@ using StaticArrays: @SVector
     end
     pushforward_allocs()
     allocs = @allocated prep = pushforward_allocs()
-    # This needs https://github.com/JuliaDiff/FiniteDiff.jl/pull/216 to be released.
-    # Should be FiniteDiff v2.31.1.
-    @test_broken allocs == 0
+    # This needs FiniteDiff v2.31.1.
+    @test allocs == 0
 
     function derivative_allocs()
         backend = AutoFiniteDiff()
