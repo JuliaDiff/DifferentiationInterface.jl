@@ -28,7 +28,7 @@ function DI.prepare_pullback_nokwarg(
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
         false,  # call_and_return
-        true,  # f!
+        tangent_type(typeof(f)) != NoTangent,  # f!
         false,  # y
         true,  # x
         contexts_tup_false...,
