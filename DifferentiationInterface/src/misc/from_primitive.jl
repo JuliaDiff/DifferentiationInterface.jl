@@ -270,3 +270,16 @@ function value_and_pullback!(
         f!, y, tx, prep.pullback_prep, backend.backend, x, ty, contexts...
     )
 end
+
+## Counterparts
+
+# The counterpart of a `FromPrimitive` wrapper swaps the primitive (pushforward or
+# pullback), applying the counterpart to the wrapped backend as well.
+
+function forward_counterpart(backend::AutoReverseFromPrimitive)
+    return AutoForwardFromPrimitive(forward_counterpart(backend.backend))
+end
+
+function reverse_counterpart(backend::AutoForwardFromPrimitive)
+    return AutoReverseFromPrimitive(reverse_counterpart(backend.backend))
+end

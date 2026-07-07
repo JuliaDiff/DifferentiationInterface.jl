@@ -201,3 +201,10 @@ function value_and_pullback!(
     end
     return y, tx
 end
+
+## Counterparts
+
+# The zero backends are each other's counterpart, since they both return zero derivatives.
+
+forward_counterpart(::AutoZeroReverse) = AutoZeroForward()
+reverse_counterpart(::AutoZeroForward) = AutoZeroReverse()

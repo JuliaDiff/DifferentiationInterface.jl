@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.18...main)
 
+### Added
+
+- Add `forward_counterpart` and `reverse_counterpart` to retrieve the forward- or reverse-mode counterpart of a backend ([#1025](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/1025))
+
 ## [0.7.18](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.17...DifferentiationInterface-v0.7.18)
 
 ### Added

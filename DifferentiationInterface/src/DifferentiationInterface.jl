@@ -49,6 +49,7 @@ include("utils/traits.jl")
 include("utils/basis.jl")
 include("utils/batchsize.jl")
 include("utils/check.jl")
+include("utils/counterparts.jl")
 include("utils/errors.jl")
 include("utils/linalg.jl")
 include("utils/sparse.jl")
@@ -132,6 +133,7 @@ export AutoSparse
 @public inner, outer
 @public AutoForwardFromPrimitive, AutoReverseFromPrimitive
 @public Prep
+@public forward_counterpart, reverse_counterpart
 
 include("init.jl")
 
