@@ -2,6 +2,7 @@ include("../../testutils.jl")
 
 using DifferentiationInterface, DifferentiationInterfaceTest
 using Mooncake: Mooncake
+using LinearAlgebra
 using Test
 
 using ExplicitImports
@@ -26,6 +27,7 @@ test_differentiation(
     default_scenarios();
     excluded = SECOND_ORDER,
     logging = LOGGING,
+    testset_name = "Basics"
 );
 
 test_differentiation(
@@ -40,6 +42,7 @@ test_differentiation(
     );
     excluded = SECOND_ORDER,
     logging = LOGGING,
+    testset_name = "Constantified and cachified"
 );
 
 test_differentiation(
@@ -47,6 +50,7 @@ test_differentiation(
     nomatrix(default_scenarios());
     excluded = SECOND_ORDER,
     logging = LOGGING,
+    testset_name = "No friendly tangents"
 );
 
 EXCLUDED = @static if VERSION ≥ v"1.11-" && VERSION ≤ v"1.12-"
@@ -64,6 +68,7 @@ test_differentiation(
     nomatrix(default_scenarios());
     excluded = EXCLUDED,
     logging = LOGGING,
+    testset_name = "Second order"
 )
 
 @testset "NamedTuples" begin
@@ -80,6 +85,24 @@ if pkgversion(Mooncake) < v"0.5.25"
         backends[3:4],
         nomatrix(static_scenarios());
         logging = LOGGING,
-        excluded = SECOND_ORDER
+        excluded = SECOND_ORDER,
+        testset_name = "Static scenarios"
     )
+end
+
+@testset "Closure over differentiable data" begin
+    # https://github.com/chalk-lab/Mooncake.jl/issues/1238
+    function make_f()
+        data = [1.0, 2.0, 3.0]
+        return p -> sum(abs2, LowerTriangular([p[1] 0 0; p[2] p[1] 0; p[3] p[2] p[1]] + I) \ data)
+    end
+
+    f = make_f()
+    xA = [0.3, 0.5, 0.2]
+    xB = [1.5, 2.0, -1.0]
+    b = DI.AutoMooncake()
+    g = DI.gradient(f, b, xB)
+    prep = DI.prepare_gradient(f, b, xA)
+    @test DI.gradient(f, prep, b, xB) ≈ g
+    @test DI.gradient(f, prep, b, xB) ≈ g
 end
