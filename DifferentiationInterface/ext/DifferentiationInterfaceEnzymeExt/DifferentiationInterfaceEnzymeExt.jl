@@ -47,6 +47,7 @@ using Enzyme:
 DI.check_available(::AutoEnzyme) = true
 
 include("utils.jl")
+include("counterparts.jl")
 
 include("forward_onearg.jl")
 include("forward_twoarg.jl")

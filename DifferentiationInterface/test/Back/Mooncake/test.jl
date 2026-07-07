@@ -20,6 +20,18 @@ backends = [
 for backend in backends
     @test check_available(backend)
     @test check_inplace(backend)
+    test_counterparts(backend)
+end
+
+@testset "Counterpart config" begin
+    config = Mooncake.Config(; friendly_tangents = true)
+    @test DifferentiationInterface.forward_counterpart(AutoMooncake()) === AutoMooncakeForward()
+    @test DifferentiationInterface.reverse_counterpart(AutoMooncakeForward()) === AutoMooncake()
+    # the Mooncake config must carry over to the counterpart
+    @test DifferentiationInterface.forward_counterpart(AutoMooncake(; config)) ===
+        AutoMooncakeForward(; config)
+    @test DifferentiationInterface.reverse_counterpart(AutoMooncakeForward(; config)) ===
+        AutoMooncake(; config)
 end
 
 test_differentiation(
