@@ -4,7 +4,7 @@ using DataFrames
 using DifferentiationInterface
 using DifferentiationInterface: AutoZeroForward, AutoZeroReverse
 using DifferentiationInterfaceTest
-using DifferentiationInterfaceTest: allocfree_scenarios, no_matrices
+using DifferentiationInterfaceTest: allocfree_scenarios, no_matrices, test_counterparts
 using Test
 
 ## Counterparts
