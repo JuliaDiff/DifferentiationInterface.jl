@@ -59,8 +59,8 @@ end
     # forward-/reverse-mode backends are their own counterpart
     @test forward_counterpart(fb) === fb
     @test reverse_counterpart(rb) === rb
-    # without a known counterpart, the backend is returned unchanged, with a warning
-    @test (@test_logs (:warn, r"reverse-mode counterpart") reverse_counterpart(fb)) === fb
+    # without a known counterpart, the backend is returned unchanged
+    @test reverse_counterpart(fb) === fb
     # FromPrimitive wrappers swap the primitive, applying the counterpart inside
     @test forward_counterpart(rb) isa AutoForwardFromPrimitive{<:Any, <:AutoSimpleFiniteDiff}
     @test reverse_counterpart(forward_counterpart(rb)) isa

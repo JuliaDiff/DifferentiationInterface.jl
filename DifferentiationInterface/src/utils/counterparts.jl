@@ -4,17 +4,14 @@
 Return a forward-mode counterpart of `backend`.
 
 If `backend` has a dedicated forward-mode counterpart (e.g. `AutoMooncake` has
-`AutoMooncakeForward`), it is returned. Else, `backend` itself is returned (DI allows
-reverse-mode backends to execute pushforwards), with a warning in the case it is
-reverse-mode only.
+`AutoMooncakeForward`), it is returned.
+
+!!! warning
+    If `backend` has no known forward-mode counterpart, it is returned unchanged, even
+    when it is reverse-mode only (DI allows reverse-mode backends to execute
+    pushforwards).
 """
-function forward_counterpart(backend::AbstractADType)
-    if !(mode(backend) isa Union{ForwardMode, ForwardOrReverseMode, SymbolicMode})
-        @warn "The forward-mode counterpart of `$backend` is itself, returning it unchanged." maxlog =
-            1
-    end
-    return backend
-end
+forward_counterpart(backend::AbstractADType) = backend
 
 """
     reverse_counterpart(backend)
@@ -22,17 +19,16 @@ end
 Return a reverse-mode counterpart of `backend`.
 
 If `backend` has a dedicated reverse-mode counterpart (e.g. `AutoMooncakeForward` has
-`AutoMooncake`), it is returned. Else, `backend` itself is returned (DI allows
-forward-mode backends to execute pullbacks), with a warning in the case it is
-forward-mode only.
+`AutoMooncake`), it is returned.
+
+!!! warning
+    If `backend` has no known reverse-mode counterpart, it is returned unchanged, even
+    when it is forward-mode only (DI allows forward-mode backends to execute pullbacks).
 """
-function reverse_counterpart(backend::AbstractADType)
-    if !(mode(backend) isa Union{ReverseMode, ForwardOrReverseMode, SymbolicMode})
-        @warn "The reverse-mode counterpart of `$backend` is itself, returning it unchanged." maxlog =
-            1
-    end
-    return backend
-end
+reverse_counterpart(backend::AbstractADType) = backend
+
+forward_counterpart(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
+reverse_counterpart(::ADTypes.NoAutoDiff) = throw(ADTypes.NoAutoDiffSelectedError())
 
 ## Wrapper backends
 

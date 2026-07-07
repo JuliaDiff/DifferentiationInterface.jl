@@ -8,6 +8,8 @@ Test that `forward_counterpart` and `reverse_counterpart` behave sensibly for `b
 the returned backends are available, they support the requested mode (unless `backend` is
 returned unchanged for lack of a known counterpart), and applying the same counterpart
 again leaves the mode unchanged.
+
+For `SecondOrder` backends, test that both counterparts throw an `ArgumentError` instead.
 """
 function test_counterparts(backend::AbstractADType)
     @testset "Counterparts: $(typeof(backend))" begin
@@ -26,6 +28,14 @@ function test_counterparts(backend::AbstractADType)
         # applying the counterpart a second time leaves the mode unchanged
         @test mode(forward_counterpart(fc)) == mode(fc)
         @test mode(reverse_counterpart(rc)) == mode(rc)
+    end
+    return nothing
+end
+
+function test_counterparts(backend::SecondOrder)
+    @testset "Counterparts: $(typeof(backend))" begin
+        @test_throws ArgumentError forward_counterpart(backend)
+        @test_throws ArgumentError reverse_counterpart(backend)
     end
     return nothing
 end
