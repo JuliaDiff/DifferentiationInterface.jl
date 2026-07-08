@@ -112,9 +112,9 @@ end
     f = make_f()
     xA = [0.3, 0.5, 0.2]
     xB = [1.5, 2.0, -1.0]
-    b = DI.AutoMooncake()
-    g = DI.gradient(f, b, xB)
-    prep = DI.prepare_gradient(f, b, xA)
-    @test DI.gradient(f, prep, b, xB) ≈ g
-    @test DI.gradient(f, prep, b, xB) ≈ g
+    b = AutoMooncake()
+    g = gradient(f, b, xB)
+    prep = prepare_gradient(f, b, xA)
+    @test gradient(f, prep, b, xB) ≈ g
+    @test gradient(f, prep, b, xB) ≈ g
 end
