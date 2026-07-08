@@ -14,7 +14,7 @@ function DI.prepare_pullback_nokwarg(
     cache = prepare_pullback_cache(f, x, map(DI.unwrap, contexts)...; config)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
-        false,  # f
+        tangent_type(typeof(f)) != NoTangent,  # f
         true,  # x
         contexts_tup_false...,
     )
@@ -114,7 +114,7 @@ function DI.prepare_gradient_nokwarg(
     cache = prepare_gradient_cache(f, x, map(DI.unwrap, contexts)...; config)
     contexts_tup_false = map(_ -> false, contexts)
     args_to_zero = (
-        false,  # f
+        tangent_type(typeof(f)) != NoTangent,  # f
         true,  # x
         contexts_tup_false...,
     )

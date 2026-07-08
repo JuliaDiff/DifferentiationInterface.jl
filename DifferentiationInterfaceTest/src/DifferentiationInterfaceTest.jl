@@ -151,7 +151,6 @@ include("test_differentiation.jl")
 export FIRST_ORDER, SECOND_ORDER
 export Scenario, compute_results
 export test_differentiation, benchmark_differentiation
-export test_counterparts
 export DifferentiationBenchmarkDataRow
 
 @compile_workload begin
