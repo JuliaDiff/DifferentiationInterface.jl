@@ -11,17 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Set `args_to_zero` to `true` for constant arguments in reverse-mode Mooncake ([#1040](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/#1040))
+- Set `args_to_zero` to `true` for constant arguments in reverse-mode Mooncake ([#1041](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1041))
 
 ## [0.7.19](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.18...v0.7.19)
 
 ### Fixed
 
-- Set `args_to_zero` to `true` for closures in reverse-mode Mooncake ([#1039](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/1039))
+- Set `args_to_zero` to `true` for closures in reverse-mode Mooncake ([#1039](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1039))
 
 ### Added
 
-- Add `forward_counterpart` and `reverse_counterpart` to retrieve the forward- or reverse-mode counterpart of a backend ([#1025](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/1025))
+- Add `forward_counterpart` and `reverse_counterpart` to retrieve the forward- or reverse-mode counterpart of a backend ([#1036](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1036))
 
 ## [0.7.18](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.17...DifferentiationInterface-v0.7.18)
 
