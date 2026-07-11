@@ -102,19 +102,37 @@ if pkgversion(Mooncake) < v"0.5.25"
     )
 end
 
-@testset "Closure over differentiable data" begin
+@testset "Zeroing of constant contexts" begin
     # https://github.com/chalk-lab/Mooncake.jl/issues/1238
-    function make_f()
-        data = [1.0, 2.0, 3.0]
-        return p -> sum(abs2, LowerTriangular([p[1] 0 0; p[2] p[1] 0; p[3] p[2] p[1]] + I) \ data)
+    @testset "Closure" begin
+        function make_f()
+            data = [1.0, 2.0, 3.0]
+            return p -> sum(
+                abs2,
+                LowerTriangular([p[1] 0 0; p[2] p[1] 0; p[3] p[2] p[1]] + I) \ data
+            )
+        end
+        f = make_f()
+        xA = [0.3, 0.5, 0.2]
+        xB = [1.5, 2.0, -1.0]
+        backend = AutoMooncake()
+        g = gradient(f, backend, xB)
+        prep = prepare_gradient(f, backend, xA)
+        @test gradient(f, prep, backend, xB) ≈ g
+        @test gradient(f, prep, backend, xB) ≈ g
     end
-
-    f = make_f()
-    xA = [0.3, 0.5, 0.2]
-    xB = [1.5, 2.0, -1.0]
-    b = AutoMooncake()
-    g = gradient(f, b, xB)
-    prep = prepare_gradient(f, b, xA)
-    @test gradient(f, prep, b, xB) ≈ g
-    @test gradient(f, prep, b, xB) ≈ g
+    @testset "Constant context" begin
+        f(p, data) = sum(
+            abs2,
+            LowerTriangular([p[1] 0 0; p[2] p[1] 0; p[3] p[2] p[1]] + I) \ data
+        )
+        data = [1.0, 2.0, 3.0]
+        xA = [0.3, 0.5, 0.2]
+        xB = [1.5, 2.0, -1.0]
+        backend = AutoMooncake()
+        g = gradient(f, backend, xB, Constant(data))
+        prep = prepare_gradient(f, backend, xA, Constant(data))
+        @test gradient(f, prep, backend, xB, Constant(data)) ≈ g
+        @test gradient(f, prep, backend, xB, Constant(data)) ≈ g
+    end
 end
