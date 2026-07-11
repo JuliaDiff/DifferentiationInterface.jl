@@ -16,7 +16,7 @@ Consider a mathematical function $f(x, c, s) = y$ where
 -  $y \in \mathcal{Y}$ is the output
 
 In Julia code, some of the input arguments might be mutated, while the output may be written to as well.
-Therefore, the proper model is a function $\phi(x_0, c_0, s_0, y_0) = (x_1, c_1, s_1, y_1)$ where $a_0$ is the state of argument $a$ before $f$ is run, while $a_1$ is its state after $a$ is run.
+Therefore, the proper model is a function $\phi(x_0, c_0, s_0, y_0) = (x_1, c_1, s_1, y_1)$ where $a_0$ is the state of argument $a$ before $f$ is run, while $a_1$ is its state after $f$ is run.
 
 DI makes the following hypotheses on the implementation of $f$ (aka the behavior of $\phi$):
 
@@ -83,3 +83,7 @@ Should the shadow/dual memory inside `prep` be reset before every AD call?
 
 - In forward mode, no need ($\dot{c}$ will remain $0$ if it is initialized to $0$)
 - In reverse mode, just set $\bar{x} = 0$ ($\bar{s}$ will be reset to $0$ at every AD call)
+
+!!! warning "Mooncake's constant handling"
+    As noticed in [Mooncake#1238](https://github.com/chalk-lab/Mooncake.jl/issues/1238), the actual pullback implemented by Mooncake doesn't annihilate the influence of $\bar{c}_1$ onto $\bar{x}_0$.
+    Thus, constant contexts also need to be zeroed out systematically with this backend, otherwise noise will accumulate into their cotangents.

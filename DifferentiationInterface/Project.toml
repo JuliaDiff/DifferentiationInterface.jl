@@ -1,6 +1,6 @@
 name = "DifferentiationInterface"
 uuid = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
-version = "0.7.19"
+version = "0.7.20"
 authors = ["Guillaume Dalle", "Adrian Hill"]
 
 [deps]

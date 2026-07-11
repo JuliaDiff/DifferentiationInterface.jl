@@ -12,11 +12,11 @@ function DI.prepare_pullback_nokwarg(
     _sig = DI.signature(f, backend, x, ty, contexts...; strict)
     config = get_config(backend)
     cache = prepare_pullback_cache(f, x, map(DI.unwrap, contexts)...; config)
-    contexts_tup_false = map(_ -> false, contexts)
+    contexts_tup_true_except_cache = map(c -> !(c isa DI.Cache), contexts)
     args_to_zero = (
-        tangent_type(typeof(f)) != NoTangent,  # f
+        true,  # f
         true,  # x
-        contexts_tup_false...,
+        contexts_tup_true_except_cache...,
     )
     prep = MooncakeOneArgPullbackPrep(_sig, cache, args_to_zero)
     return prep
@@ -112,11 +112,11 @@ function DI.prepare_gradient_nokwarg(
     _sig = DI.signature(f, backend, x, contexts...; strict)
     config = get_config(backend)
     cache = prepare_gradient_cache(f, x, map(DI.unwrap, contexts)...; config)
-    contexts_tup_false = map(_ -> false, contexts)
+    contexts_tup_true_except_cache = map(c -> !(c isa DI.Cache), contexts)
     args_to_zero = (
-        tangent_type(typeof(f)) != NoTangent,  # f
+        true,  # f
         true,  # x
-        contexts_tup_false...,
+        contexts_tup_true_except_cache...,
     )
     prep = MooncakeGradientPrep(_sig, cache, args_to_zero)
     return prep
