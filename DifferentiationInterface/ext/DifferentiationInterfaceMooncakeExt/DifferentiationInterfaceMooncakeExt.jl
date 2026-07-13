@@ -9,12 +9,14 @@ using Mooncake:
     Dual,
     prepare_derivative_cache,
     prepare_gradient_cache,
+    prepare_hvp_cache,
     prepare_pullback_cache,
     primal,
     tangent,
     tangent_type,
     value_and_derivative!!,
     value_and_gradient!!,
+    value_and_hvp!!,
     value_and_pullback!!,
     zero_dual,
     zero_tangent,
@@ -44,6 +46,7 @@ include("onearg.jl")
 include("twoarg.jl")
 include("forward_onearg.jl")
 include("forward_twoarg.jl")
+include("second_order.jl")
 include("differentiate_with.jl")
 
 end

@@ -102,7 +102,6 @@ jobs:
           - GTPSA
           - HyperHessians
           - Mooncake
-          - Mooncake-old
           - PolyesterForwardDiff
           - ReverseDiff
           - SparsityDetector
