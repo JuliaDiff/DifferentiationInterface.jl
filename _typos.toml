@@ -1,0 +1,3 @@
+[default.extend-identifiers]
+# `ba` is used throughout as an abbreviation for "backend", not a typo of "by"/"be".
+ba = "ba"
