@@ -59,7 +59,7 @@ function DI.gradient_and_hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    y, new_tg = DI.value_and_hvp(f, prep, backend, x, tx, contexts...)
+    y, new_tg = DI.gradient_and_hvp(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, tg, new_tg)
     return y, tx
 end
