@@ -77,7 +77,7 @@ end
 # Test second-order differentiation (forward-over-reverse)
 test_differentiation(
     [SecondOrder(AutoMooncakeForward(), AutoMooncake())],
-    nomatrix(default_scenarios());
+    nomatrix(default_scenarios(; include_constantified = true));
     excluded = EXCLUDED,
     logging = LOGGING,
     testset_name = "Second order"
