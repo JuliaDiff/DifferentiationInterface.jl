@@ -102,6 +102,7 @@ function DI.hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    g = similar(x)
-    return DI.gradient_and_hvp!(f, g, tg, prep, backend, x, tx, contexts...)[2]
+    _, new_tg = DI.gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+    foreach(copyto!, tg, new_tg)
+    return tg
 end
