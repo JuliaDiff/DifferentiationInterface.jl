@@ -197,9 +197,9 @@ jobs:
           julia --project=./DifferentiationInterfaceTest --color=yes -e ' using Pkg;
           Pkg.Registry.update(); Pkg.develop(path="./DifferentiationInterface");
           if ENV["JULIA_DI_PR_DRAFT"] == "true";
-          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false,
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=true,
           coverage=true, julia_args=["-O1"]); else;
-          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=false,
+          Pkg.test("DifferentiationInterfaceTest"; allow_reresolve=true,
           coverage=true); end;'
       - uses: julia-actions/julia-processcoverage@v1
         with:
