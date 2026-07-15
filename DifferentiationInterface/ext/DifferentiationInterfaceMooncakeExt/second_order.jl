@@ -25,14 +25,15 @@ function DI.gradient_and_hvp(
     dx = only(tx)
     if isempty(contexts)
         _, new_g, new_dg = value_and_hvp!!(
-            prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+            prep.cache, f, (dx,), x
         )
     else
-        _, (_, new_g), (_, new_dg) = value_and_hvp!!(
-            prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+        dall = (dx, map(zero_tangent_unwrap, contexts)...)
+        _, (new_g,), (new_dg,) = value_and_hvp!!(
+            prep.cache, f, dall, x, map(DI.unwrap, contexts)...
         )
     end
-    return _copy_output(new_g), _copy_output(new_dg)
+    return _copy_output(new_g), (_copy_output(new_dg),)
 end
 
 function DI.gradient_and_hvp(
@@ -50,8 +51,9 @@ function DI.gradient_and_hvp(
                 prep.cache, f, dx, x, map(DI.unwrap, contexts)...
             )
         else
-            _, (_, new_g), (_, new_dg) = value_and_hvp!!(
-                prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+            dall = (dx, map(zero_tangent_unwrap, contexts)...)
+            _, (new_g,), (new_dg,) = value_and_hvp!!(
+                prep.cache, f, dall, x, map(DI.unwrap, contexts)...
             )
         end
         _copy_output(new_g), _copy_output(new_dg)
@@ -63,6 +65,7 @@ end
 
 function DI.gradient_and_hvp!(
         f::F,
+        g,
         tg::NTuple,
         prep::MooncakeHVPPrep,
         backend::AutoMooncakeForwardOverReverse,
@@ -71,9 +74,10 @@ function DI.gradient_and_hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    y, new_tg = DI.gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+    g, new_tg = DI.gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+    copyto!(g, new_g)
     foreach(copyto!, tg, new_tg)
-    return y, tx
+    return g, tg
 end
 
 function DI.hvp(
@@ -98,5 +102,6 @@ function DI.hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    return DI.gradient_and_hvp!(f, tg, prep, backend, x, tx, contexts...)[2]
+    g = similar(x)
+    return DI.gradient_and_hvp!(f, g, tg, prep, backend, x, tx, contexts...)[2]
 end
