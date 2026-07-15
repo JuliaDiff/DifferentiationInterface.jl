@@ -23,9 +23,15 @@ function DI.gradient_and_hvp(
     ) where {F, Y, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     dx = only(tx)
-    _, (_, new_g), (_, new_dg) = value_and_hvp!!(
-        prep.cache, f, dx, x, map(DI.unwrap, contexts)...
-    )
+    if isempty(contexts)
+        _, new_g, new_dg = value_and_hvp!!(
+            prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+        )
+    else
+        _, (_, new_g), (_, new_dg) = value_and_hvp!!(
+            prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+        )
+    end
     return _copy_output(new_g), _copy_output(new_dg)
 end
 
@@ -39,9 +45,15 @@ function DI.gradient_and_hvp(
     ) where {F, Y, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     gs_and_tg = map(tx) do dx
-        _, (_, new_g), (_, new_dg) = value_and_hvp!!(
-            prep.cache, f, dx, x, map(DI.unwrap, contexts)...
-        )
+        if isempty(contexts)
+            _, new_g, new_dg = value_and_hvp!!(
+                prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+            )
+        else
+            _, (_, new_g), (_, new_dg) = value_and_hvp!!(
+                prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+            )
+        end
         _copy_output(new_g), _copy_output(new_dg)
     end
     g = first(gs_and_tg[1])
