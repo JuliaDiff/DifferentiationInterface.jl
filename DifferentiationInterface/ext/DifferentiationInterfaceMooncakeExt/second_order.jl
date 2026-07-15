@@ -48,7 +48,7 @@ function DI.gradient_and_hvp(
     gs_and_tg = map(tx) do dx
         if isempty(contexts)
             _, new_g, new_dg = value_and_hvp!!(
-                prep.cache, f, dx, x, map(DI.unwrap, contexts)...
+                prep.cache, f, dx, x
             )
         else
             dall = (dx, map(zero_tangent_unwrap, contexts)...)
