@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Make DI compatible with latest Mooncake friendly tangents ([#1001](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1001))
-- Add docstrings to the result anlysis methods for sparse matrix preparations ([#984](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/984))
+- Add docstrings to the result analysis methods for sparse matrix preparations ([#984](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/984))
 - Make wrong-mode pushforward/pullback return the correct array type ([#974](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/974))
 
 ## [0.7.16](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.15...DifferentiationInterface-v0.7.16)
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Speed up Mooncake in forward mode by preallocating tangents ([#915](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/915))
-- Speed up Mooncake reverse mode with selective zeroing ([#916](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/916))  
+- Speed up Mooncake reverse mode with selective zeroing ([#916](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/916))
 
 ## [0.7.11](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.10...DifferentiationInterface-v0.7.11)
 
