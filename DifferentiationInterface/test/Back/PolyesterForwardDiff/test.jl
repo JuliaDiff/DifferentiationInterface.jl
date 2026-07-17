@@ -19,6 +19,7 @@ backends = [
 for backend in backends
     @test check_available(backend)
     @test check_inplace(backend)
+    test_counterparts(backend)
     @test DifferentiationInterface.inner_preparation_behavior(backend) isa
         DifferentiationInterface.PrepareInnerOverload
 end

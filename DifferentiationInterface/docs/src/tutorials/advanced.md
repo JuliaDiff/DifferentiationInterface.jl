@@ -38,7 +38,7 @@ x = float.(1:3)
 gradient(f_singlearg(10), backend, x)
 ```
 
-However, for performance reasons, it is sometimes preferrable to avoid closures and pass all arguments to the original function.
+However, for performance reasons, it is sometimes preferable to avoid closures and pass all arguments to the original function.
 We can do this by wrapping `c` into a [`Constant`](@ref) and giving this constant to the `gradient` operator.
 
 ```@example tuto_advanced

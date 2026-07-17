@@ -16,7 +16,7 @@ Consider a mathematical function $f(x, c, s) = y$ where
 -  $y \in \mathcal{Y}$ is the output
 
 In Julia code, some of the input arguments might be mutated, while the output may be written to as well.
-Therefore, the proper model is a function $\phi(x_0, c_0, s_0, y_0) = (x_1, c_1, s_1, y_1)$ where $a_0$ is the state of argument $a$ before $f$ is run, while $a_1$ is its state after $a$ is run.
+Therefore, the proper model is a function $\phi(x_0, c_0, s_0, y_0) = (x_1, c_1, s_1, y_1)$ where $a_0$ is the state of argument $a$ before $f$ is run, while $a_1$ is its state after $f$ is run.
 
 DI makes the following hypotheses on the implementation of $f$ (aka the behavior of $\phi$):
 
@@ -44,7 +44,7 @@ The tangent of $c$ will always be preserved by differentiation.
 
 ## Reverse mode
 
-We want to compute a Vector-Jacobian Product (VJP) $\bar{x} = \left(\frac{\partial f}{\partial x}\right)^* \bar{y}$ where $\bar{y} \in \mathcal{Y}$ is an output sensivity.
+We want to compute a Vector-Jacobian Product (VJP) $\bar{x} = \left(\frac{\partial f}{\partial x}\right)^* \bar{y}$ where $\bar{y} \in \mathcal{Y}$ is an output sensitivity.
 
 To do that, we run our AD backend on $\phi$ with output sensitivities $(\bar{x}_1, \bar{c}_1, \bar{s}_1, \bar{y}_1)$ and obtain $(\bar{x}_0, \bar{c}_0, \bar{s}_0, \bar{y}_0)$.
 The value of interest is
@@ -83,3 +83,7 @@ Should the shadow/dual memory inside `prep` be reset before every AD call?
 
 - In forward mode, no need ($\dot{c}$ will remain $0$ if it is initialized to $0$)
 - In reverse mode, just set $\bar{x} = 0$ ($\bar{s}$ will be reset to $0$ at every AD call)
+
+!!! warning "Mooncake's constant handling"
+    As noticed in [Mooncake#1238](https://github.com/chalk-lab/Mooncake.jl/issues/1238), the actual pullback implemented by Mooncake doesn't annihilate the influence of $\bar{c}_1$ onto $\bar{x}_0$.
+    Thus, constant contexts also need to be zeroed out systematically with this backend, otherwise noise will accumulate into their cotangents.

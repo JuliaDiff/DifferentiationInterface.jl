@@ -35,7 +35,7 @@ jobs:
             dir: './DifferentiationInterfaceTest'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v3
         with:
           version: '1'  # TODO: 1

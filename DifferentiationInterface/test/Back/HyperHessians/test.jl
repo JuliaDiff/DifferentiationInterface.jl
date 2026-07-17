@@ -18,6 +18,7 @@ backends = [
 for backend in backends
     @test DI.check_available(backend)
     @test !DI.check_inplace(backend)
+    test_counterparts(backend)
 end
 
 scenarios = default_scenarios(; include_constantified = true, include_cachified = true)

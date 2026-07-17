@@ -25,13 +25,13 @@ function DI.prepare_pullback_nokwarg(
         config,
     )
     dy_backup = zero_tangent_or_primal(y, backend)
-    contexts_tup_false = map(_ -> false, contexts)
+    contexts_tup_true_except_cache = map(c -> !(c isa DI.Cache), contexts)
     args_to_zero = (
         false,  # call_and_return
-        false,  # f!
+        true,  # f!
         false,  # y
         true,  # x
-        contexts_tup_false...,
+        contexts_tup_true_except_cache...,
     )
     prep = MooncakeTwoArgPullbackPrep(
         _sig, cache, dy_backup, args_to_zero

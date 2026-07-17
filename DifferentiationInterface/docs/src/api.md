@@ -123,6 +123,8 @@ DifferentiationInterface.inner
 
 ```@docs
 DifferentiateWith
+DifferentiationInterface.forward_counterpart
+DifferentiationInterface.reverse_counterpart
 ```
 
 ### Sparsity tools

@@ -13,3 +13,4 @@ Its code is formatted using [Runic.jl](https://github.com/fredrikekre/Runic.jl).
 As part of continuous integration, a set of formal tests is run using [pre-commit](https://pre-commit.com/).
 We invite you to install pre-commit so that these checks are performed locally before you open or update a pull request.
 You can refer to the relevant page of the development documentation for details on the package structure and the testing pipeline.
+When you open a pull request or otherwise contribute to the package, feel free to add yourself to the contributors list on the README using the [All Contributors bot](https://allcontributors.org/en/bot/usage/)!

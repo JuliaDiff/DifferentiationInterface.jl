@@ -1,7 +1,7 @@
 """
     AutoSimpleFiniteDiff <: ADTypes.AbstractADType
 
-Forward mode backend based on the finite difference `(f(x + ε) - f(x)) / ε`, with artificial chunk size to mimick ForwardDiff.
+Forward mode backend based on the finite difference `(f(x + ε) - f(x)) / ε`, with artificial chunk size to mimic ForwardDiff.
 
 # Constructor
 
