@@ -78,7 +78,7 @@ jobs:
     name: ${{ matrix.version }} - DI Back (${{ matrix.group }})
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     permissions:
       # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
