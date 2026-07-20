@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use native Mooncake HVP in forward-over-reverse ([#1042](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1042))
 
+### Fixed
+
+- Make FiniteDiff prep non-allocating with static arrays ([#1019](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1019))
+
 ## [0.7.20](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.19...v0.7.19)
 
 ### Fixed
