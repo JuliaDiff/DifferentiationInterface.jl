@@ -114,3 +114,5 @@ end;
 end
 
 include("benchmark.jl")
+
+include("allocations.jl")
