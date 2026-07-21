@@ -46,7 +46,7 @@ include("onearg.jl")
 include("twoarg.jl")
 include("forward_onearg.jl")
 include("forward_twoarg.jl")
-include("second_order.jl")
+# include("second_order.jl")
 include("differentiate_with.jl")
 
 end
