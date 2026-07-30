@@ -17,6 +17,15 @@ links = InterLinks(
 
 readme_str = read(joinpath(@__DIR__, "..", "README.md"), String)
 readme_str = replace(readme_str, "> [!CAUTION]\n> " => "!!! warning\n    ")
+#= The all-contributors table is raw HTML, which Documenter's Markdown parser escapes
+instead of rendering. Wrap it in a `@raw html` block, leaving the README untouched. =#
+readme_str = replace(
+    readme_str,
+    r"<!-- ALL-CONTRIBUTORS-LIST:START.*?<!-- ALL-CONTRIBUTORS-LIST:END -->"s =>
+        table -> "```@raw html\n$table\n```",
+)
+# GitHub lowercases heading anchors, Documenter does not, so the badge link needs fixing.
+readme_str = replace(readme_str, "](#contributors)" => "](#Contributors)")
 write(joinpath(@__DIR__, "src", "index.md"), readme_str)
 
 makedocs(;
