@@ -20,27 +20,31 @@ end
         DI;
         target_modules = (
             DI,
-            get_extension(DI, :DifferentiationInterfaceChainRulesCoreExt),
-            # get_extension(DI, :DifferentiationInterfaceDiffractorExt),
-            get_extension(DI, :DifferentiationInterfaceEnzymeExt),
-            get_extension(DI, :DifferentiationInterfaceFastDifferentiationExt),
-            get_extension(DI, :DifferentiationInterfaceFiniteDiffExt),
-            get_extension(DI, :DifferentiationInterfaceFiniteDifferencesExt),
-            get_extension(DI, :DifferentiationInterfaceForwardDiffExt),
-            get_extension(DI, :DifferentiationInterfaceGPUArraysCoreExt),
-            get_extension(DI, :DifferentiationInterfaceHyperHessiansExt),
-            get_extension(DI, :DifferentiationInterfaceGTPSAExt),
-            get_extension(DI, :DifferentiationInterfaceMooncakeExt),
-            get_extension(DI, :DifferentiationInterfacePolyesterForwardDiffExt),
-            get_extension(DI, :DifferentiationInterfaceReverseDiffExt),
-            get_extension(DI, :DifferentiationInterfaceSparseArraysExt),
-            get_extension(DI, :DifferentiationInterfaceSparseConnectivityTracerExt),
-            get_extension(DI, :DifferentiationInterfaceSparseMatrixColoringsExt),
-            get_extension(DI, :DifferentiationInterfaceStaticArraysExt),
-            get_extension(DI, :DifferentiationInterfaceSymbolicsExt),
-            get_extension(DI, :DifferentiationInterfaceTrackerExt),
-            get_extension(DI, :DifferentiationInterfaceZygoteExt),
-        )
+            filter(
+                !isnothing, (
+                    get_extension(DI, :DifferentiationInterfaceChainRulesCoreExt),
+                    # get_extension(DI, :DifferentiationInterfaceDiffractorExt),
+                    get_extension(DI, :DifferentiationInterfaceEnzymeExt),
+                    get_extension(DI, :DifferentiationInterfaceFastDifferentiationExt),
+                    get_extension(DI, :DifferentiationInterfaceFiniteDiffExt),
+                    get_extension(DI, :DifferentiationInterfaceFiniteDifferencesExt),
+                    get_extension(DI, :DifferentiationInterfaceForwardDiffExt),
+                    get_extension(DI, :DifferentiationInterfaceGPUArraysCoreExt),
+                    get_extension(DI, :DifferentiationInterfaceHyperHessiansExt),
+                    get_extension(DI, :DifferentiationInterfaceGTPSAExt),
+                    get_extension(DI, :DifferentiationInterfaceMooncakeExt),
+                    get_extension(DI, :DifferentiationInterfacePolyesterForwardDiffExt),
+                    get_extension(DI, :DifferentiationInterfaceReverseDiffExt),
+                    get_extension(DI, :DifferentiationInterfaceSparseArraysExt),
+                    get_extension(DI, :DifferentiationInterfaceSparseConnectivityTracerExt),
+                    get_extension(DI, :DifferentiationInterfaceSparseMatrixColoringsExt),
+                    get_extension(DI, :DifferentiationInterfaceStaticArraysExt),
+                    get_extension(DI, :DifferentiationInterfaceSymbolicsExt),
+                    get_extension(DI, :DifferentiationInterfaceTrackerExt),
+                    get_extension(DI, :DifferentiationInterfaceZygoteExt),
+                )
+            ),
+        )...
     )
 end
 
