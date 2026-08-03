@@ -18,11 +18,15 @@ end
         DIT;
         target_modules = (
             DIT,
-            get_extension(DIT, :DifferentiationInterfaceTestChairmarksExt),
-            get_extension(DIT, :DifferentiationInterfaceTestComponentArraysExt),
-            get_extension(DIT, :DifferentiationInterfaceTestJETExt),
-            get_extension(DIT, :DifferentiationInterfaceTestJLArraysExt),
-            get_extension(DIT, :DifferentiationInterfaceTestStaticArraysExt),
+            filter(
+                !isnothing, (
+                    get_extension(DIT, :DifferentiationInterfaceTestChairmarksExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestComponentArraysExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestJETExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestJLArraysExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestStaticArraysExt),
+                )
+            )...,
         )
     )
 end
