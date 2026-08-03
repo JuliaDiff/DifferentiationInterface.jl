@@ -1,27 +1,34 @@
 using DifferentiationInterface
 using DifferentiationInterfaceTest
 using Aqua: Aqua
+using Base: get_extension
 using ExplicitImports
 using JET: JET
 using SparseMatrixColorings: SparseMatrixColorings
 using Test
 import Chairmarks
 
+const DIT = DifferentiationInterfaceTest
+
 @testset "Aqua" begin
     Aqua.test_all(DifferentiationInterfaceTest; ambiguities = false, undocumented_names = true)
 end
 @testset verbose = true "JET" begin
-    # until https://github.com/JuliaLang/julia/pull/59321 is released
-    if VERSION <= v"1.12-"
-        JET.test_package(
-            DifferentiationInterfaceTest;
-            target_modules = (
-                DifferentiationInterfaceTest,
-                Base.get_extension(DifferentiationInterfaceTest, :DifferentiationInterfaceTestChairmarksExt),
-                Base.get_extension(DifferentiationInterfaceTest, :DifferentiationInterfaceTestJETExt),
-            )
+    JET.test_package(
+        DIT;
+        target_modules = (
+            DIT,
+            filter(
+                !isnothing, (
+                    get_extension(DIT, :DifferentiationInterfaceTestChairmarksExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestComponentArraysExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestJETExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestJLArraysExt),
+                    get_extension(DIT, :DifferentiationInterfaceTestStaticArraysExt),
+                )
+            )...,
         )
-    end
+    )
 end
 
 @testset "Documentation" begin
