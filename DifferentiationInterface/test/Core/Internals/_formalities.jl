@@ -43,8 +43,8 @@ end
                     get_extension(DI, :DifferentiationInterfaceTrackerExt),
                     get_extension(DI, :DifferentiationInterfaceZygoteExt),
                 )
-            ),
-        )...
+            )...,
+        )
     )
 end
 
