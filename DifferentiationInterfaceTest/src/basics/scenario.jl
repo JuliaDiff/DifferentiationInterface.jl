@@ -50,8 +50,41 @@ clean_pre_backend_args(s::Scenario) = map(a -> fmap(similar, a), pre_backend_arg
 clean_value_args(s::Scenario) = map(a -> fmap(similar, a), value_args(s))
 protected_post_backend_args(s::Scenario) = filter(a -> !(a isa Union{Cache, ConstantOrCache}), post_backend_args(s))
 
+function _scenario(name::String, differentiation::Expr, result::Expr)
+    @assert differentiation.head == :call "Expression is not a function call"
+    @assert result.head == :call "Expression is not a function call"
+    # Parse operator call
+    b = 0
+    for (i, a) in enumerate(differentiation.args)
+        if a == :missing
+            b = i
+        end
+    end
+    @assert b != 0 "Backend argument must be replaced by `missing`"
+    pre_backend_tup = Expr(:tuple, differentiation.args[3:(b - 1)]...)
+    post_backend_tup = Expr(:tuple, differentiation.args[(b + 1):end]...)
+    return quote
+        operator = $(esc(differentiation.args[1]))
+        func = $(esc(differentiation.args[2]))
+        pre_backend_args = $(esc(pre_backend_tup))
+        post_backend_args = $(esc(post_backend_tup))
+        result = $(esc(result))
+        name = $(esc(name))
+        s = Scenario(;
+            operator, func, pre_backend_args, post_backend_args, result, name,
+        )
+    end
+end
+
+_scenario(name::String, expr::Expr) = _scenario(name, expr, :(Result()))
+_scenario(expr::Expr) = _scenario(nothing, expr)
+
+macro scenario(args...)
+    return _scenario(args...)
+end
+
 function Base.show(io::IO, s::Scenario)
-    !isnothing(s.name) && print(io, "Scenario ", s.name, ":\n")
+    !isnothing(s.name) && print(io, s.name, ": ")
     print(io, operator(s), "(")
     print(io, "::", repr(typeof(func(s))), ", ")
     for a in pre_backend_args(s)
@@ -74,15 +107,17 @@ end
     flush_scen::S
 end
 
+TripleScenario(ts::TripleScenario) = ts
+
 function TripleScenario(s::Scenario)
     # by default, prepare and flush on zeroed-out scenario
-    prep_scen = Scenario(
-        operator(s),
-        deepcopy(func(s)),
-        map(a -> fmap(myzero, a), pre_backend_args(s)),
-        map(a -> fmap(myzero, a), post_backend_args(s)),
-        fmap(myzero, result(s)),
-        isnothing(name(s)) ? nothing : string(name(s), " - zero")
+    prep_scen = Scenario(;
+        operator = operator(s),
+        func = deepcopy(func(s)),
+        pre_backend_args = map(a -> fmap(myzero, a), pre_backend_args(s)),
+        post_backend_args = map(a -> fmap(myzero, a), post_backend_args(s)),
+        result = fmap(myzero, result(s)),
+        name = isnothing(name(s)) ? nothing : string(name(s), " - zero")
     )
     exec_scen = s
     flush_scen = deepcopy(prep_scen)

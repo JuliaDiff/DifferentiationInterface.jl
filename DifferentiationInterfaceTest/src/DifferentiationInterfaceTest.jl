@@ -113,7 +113,7 @@ include("tests/loop.jl")
 include("tests/correctness.jl")
 include("tests/benchmark.jl")
 
-export Scenario, Result, TripleScenario
+export Scenario, Result, TripleScenario, @scenario
 export test_differentiation
 
 end

@@ -74,7 +74,7 @@ Benchmarking is implemented in a package extension: please call `import Chairmar
 """
 function test_differentiation(
         backends::Vector{<:AbstractADType},
-        scenarios::Vector{<:TripleScenario};
+        scenarios::Vector{<:Union{Scenario, TripleScenario}};
         testset_name::Union{String, Nothing} = nothing,
         # test categories
         correctness::Bool = true,
@@ -105,6 +105,7 @@ function test_differentiation(
         # batch size
         adaptive_batchsize::Bool = true,
     )
+    scenarios = map(TripleScenario, scenarios)  # TODO: remove?
     scenarios = filter(s -> !(operator(s) in excluded), scenarios)
     scenarios = sort(scenarios; by = s -> (operator(s), string(s.f)))
 
