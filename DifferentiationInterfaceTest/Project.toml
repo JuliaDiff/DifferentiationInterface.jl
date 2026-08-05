@@ -1,6 +1,6 @@
 name = "DifferentiationInterfaceTest"
 uuid = "a82114a7-5aa3-49a8-9643-716bb13727a3"
-version = "0.11.0"
+version = "0.12.0"
 authors = ["Guillaume Dalle", "Adrian Hill"]
 
 [deps]
@@ -9,6 +9,7 @@ AllocCheck = "9b6a8646-10ed-4001-bbdc-1d2f46dfbb1a"
 DataAPI = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+Functors = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
@@ -42,6 +43,7 @@ DataAPI = "1.16.0"
 DifferentiationInterface = "0.7.7"
 DocStringExtensions = "0.8,0.9"
 ForwardDiff = "0.10.36,1"
+Functors = "0.5.2"
 JET = "0.9,0.10,0.11"
 JLArrays = "0.1,0.2,0.3"
 LinearAlgebra = "1"

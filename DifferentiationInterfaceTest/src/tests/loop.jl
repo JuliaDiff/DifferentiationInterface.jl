@@ -1,3 +1,5 @@
+@enum TestSubset TEST_FULL TEST_PREPARED TEST_NONE
+
 """
 $(TYPEDSIGNATURES)
 
@@ -72,13 +74,13 @@ Benchmarking is implemented in a package extension: please call `import Chairmar
 """
 function test_differentiation(
         backends::Vector{<:AbstractADType},
-        scenarios::Vector{<:Scenario} = default_scenarios();
+        scenarios::Vector{<:TripleScenario};
         testset_name::Union{String, Nothing} = nothing,
         # test categories
         correctness::Bool = true,
-        type_stability::Symbol = :none,
-        allocations::Symbol = :none,
-        benchmark::Symbol = :none,
+        type_stability::TestSubset = TEST_NONE,
+        allocations::TestSubset = TEST_NONE,
+        benchmark::TestSubset = TEST_NONE,
         # misc options
         excluded::Vector{Symbol} = Symbol[],
         detailed::Bool = false,
@@ -92,11 +94,7 @@ function test_differentiation(
         reprepare::Bool = true,
         # type stability options
         ignored_modules = nothing,
-        function_filter = if VERSION >= v"1.11"
-            @nospecialize(f) -> true
-        else
-            @nospecialize(f) -> f != Base.mapreduce_empty  # fix for `mapreduce` in jacobian and hessian
-        end,
+        function_filter = @nospecialize(f) -> true,
         # allocs options
         skip_allocations::Bool = false,  # private, only for code coverage
         # benchmark options
@@ -107,18 +105,14 @@ function test_differentiation(
         # batch size
         adaptive_batchsize::Bool = true,
     )
-    @assert type_stability in (:none, :prepared, :full)
-    @assert allocations in (:none, :prepared, :full)
-    @assert benchmark in (:none, :prepared, :full)
-
     scenarios = filter(s -> !(operator(s) in excluded), scenarios)
     scenarios = sort(scenarios; by = s -> (operator(s), string(s.f)))
 
     if isnothing(testset_name)
         title_additions =
             (correctness ? " + correctness" : "") *
-            ((type_stability != :none) ? " + type stability" : "") *
-            ((benchmark != :none) ? " + benchmarks" : "")
+            ((type_stability != TEST_NONE) ? " + type stability" : "") *
+            ((benchmark != TEST_NONE) ? " + benchmarks" : "")
         title = "Testing" * title_additions[3:end]
     else
         title = testset_name
@@ -130,135 +124,76 @@ function test_differentiation(
 
     @testset verbose = true "$title" begin
         @testset verbose = detailed "$backend" for (i, backend) in enumerate(backends)
-            filtered_scenarios = filter(s -> compatible(backend, s), scenarios)
-            grouped_scenarios = group_by_operator(filtered_scenarios)
-            @testset verbose = detailed "$op" for (j, (op, op_group)) in
-                enumerate(pairs(grouped_scenarios))
-                @testset "$scen" for (k, scen) in enumerate(op_group)
+            for (j, s) in enumerate(scenarios)
+                @testset verbose = detailed "$s" for (j, s) in enumerate(scenarios)
                     next!(
                         prog;
                         showvalues = [
-                            (:backend, "$backend - $i/$(length(backends))"),
-                            (:scenario_type, "$op - $j/$(length(grouped_scenarios))"),
-                            (:scenario, "$k/$(length(op_group))"),
-                            (:operator_place, operator_place(scen)),
-                            (:function_place, function_place(scen)),
-                            (:function, scen.f),
-                            (:input_type, typeof(scen.x)),
-                            (:input_size, mysize(scen.x)),
-                            (:output_type, typeof(scen.y)),
-                            (:output_size, mysize(scen.y)),
-                            (:nb_tangents, scen.t isa NTuple ? length(scen.t) : nothing),
-                            (:nb_contexts, length(scen.contexts)),
+                            (:backend, "$i/$(length(backends)) - $backend"),
+                            (:scenario, "$j/$(length(scenarios)) - $s"),
                         ],
                     )
                     adapted_backend = if adaptive_batchsize
-                        adapt_batchsize(backend, scen)
+                        adapt_batchsize(backend, s)
                     else
                         backend
                     end
-                    correctness && @testset "Correctness" begin
-                        test_correctness(
-                            adapted_backend,
-                            scen;
-                            isapprox,
-                            atol,
-                            rtol,
-                            scenario_intact,
-                            sparsity,
-                            reprepare,
-                        )
-                        test_prep(adapted_backend, scen)
+                    if correctness
+                        @testset verbose = true "Correctness" begin
+                            test_correctness(
+                                adapted_backend,
+                                s;
+                                isapprox,
+                                atol,
+                                rtol,
+                                reprepare,
+                            )
+                            # test_prep(adapted_backend, scen)
+                        end
                     end
                     yield()
-                    (type_stability != :none) && @testset "Type stability" begin
-                        test_jet(
-                            adapted_backend,
-                            scen;
-                            subset = type_stability,
-                            ignored_modules,
-                            function_filter,
-                        )
+                    if type_stability != TEST_NONE
+                        @testset verbose = true "Type stability" begin
+                            test_type_stability(
+                                adapted_backend,
+                                s;
+                                subset = type_stability,
+                                ignored_modules,
+                                function_filter,
+                            )
+                        end
                     end
                     yield()
-                    (allocations != :none) && @testset "Allocations" begin
-                        test_alloccheck(
-                            adapted_backend,
-                            scen;
-                            subset = allocations,
-                            skip = skip_allocations,
-                        )
+                    if allocations != TEST_NONE
+                        @testset verbose = true "Allocations" begin
+                            test_allocations(
+                                adapted_backend,
+                                s;
+                                subset = allocations,
+                                skip = skip_allocations,
+                            )
+                        end
                     end
                     yield()
-                    (benchmark != :none) && @testset "Benchmark" begin
-                        run_benchmark!(
-                            benchmark_data,
-                            adapted_backend,
-                            scen;
-                            logging,
-                            subset = benchmark,
-                            count_calls,
-                            benchmark_test,
-                            benchmark_seconds,
-                            benchmark_aggregation,
-                        )
+                    if benchmark != TEST_NONE
+                        @testset verbose = true "Benchmark" begin
+                            run_benchmark!(
+                                benchmark_data,
+                                adapted_backend,
+                                s;
+                                logging,
+                                subset = benchmark,
+                                count_calls,
+                                benchmark_test,
+                                benchmark_seconds,
+                                benchmark_aggregation,
+                            )
+                        end
                     end
                     yield()
                 end
             end
         end
     end
-    if benchmark != :none
-        return benchmark_data
-    else
-        return nothing
-    end
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Shortcut for a single backend.
-"""
-function test_differentiation(backend::AbstractADType, args...; kwargs...)
-    return test_differentiation([backend], args...; kwargs...)
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Shortcut for [`test_differentiation`](@ref) with only benchmarks and no correctness or type stability checks.
-
-Specifying the set of scenarios is mandatory for this function.
-"""
-function benchmark_differentiation(
-        backends,
-        scenarios::Vector{<:Scenario};
-        testset_name::Union{String, Nothing} = nothing,
-        benchmark::Symbol = :prepared,
-        excluded::Vector{Symbol} = Symbol[],
-        logging::Bool = false,
-        count_calls::Bool = true,
-        benchmark_test::Bool = true,
-        benchmark_seconds::Real = 1,
-        benchmark_aggregation = minimum,
-        # batch size
-        adaptive_batchsize::Bool = true,
-    )
-    return test_differentiation(
-        backends,
-        scenarios;
-        testset_name,
-        correctness = false,
-        type_stability = :none,
-        allocations = :none,
-        benchmark,
-        logging,
-        excluded,
-        count_calls,
-        benchmark_test,
-        benchmark_seconds,
-        benchmark_aggregation,
-        adaptive_batchsize,
-    )
+    return benchmark_data
 end

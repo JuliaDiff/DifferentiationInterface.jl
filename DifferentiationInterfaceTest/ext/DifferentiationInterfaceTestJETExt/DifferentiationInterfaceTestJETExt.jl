@@ -53,10 +53,19 @@ using DifferentiationInterface:
     hessian!,
     value_gradient_and_hessian,
     value_gradient_and_hessian!
-using DifferentiationInterfaceTest: ALL_OPS, Scenario, mysimilar
+using DifferentiationInterfaceTest:
+    Scenario,
+    TestSubset,
+    TripleScenario,
+    operator,
+    preparator,
+    pre_backend_args,
+    post_backend_args,
+    TEST_FULL,
+    TEST_PREPARED
 import DifferentiationInterfaceTest as DIT
 using JET: @test_opt
 
-include("type_stability_eval.jl")
+include("type_stability.jl")
 
 end

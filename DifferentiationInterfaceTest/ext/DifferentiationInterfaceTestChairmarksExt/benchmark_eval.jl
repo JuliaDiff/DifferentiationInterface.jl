@@ -25,7 +25,7 @@ for op in ALL_OPS
             logging::Bool,
             subset::Symbol,
             count_calls::Bool,
-            benchmark_test::Bool,
+            benchmark_test::Bwool,
             benchmark_seconds::Real,
             benchmark_aggregation,
         )
