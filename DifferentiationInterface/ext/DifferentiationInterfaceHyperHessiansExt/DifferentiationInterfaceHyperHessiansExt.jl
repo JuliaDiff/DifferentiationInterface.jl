@@ -8,6 +8,7 @@ using HyperHessians:
     Chunk,
     chunksize,
     HyperDual,
+    Jet,
     hessian,
     hessian!,
     hessian_gradient_value,
@@ -36,11 +37,13 @@ function DI.pick_batchsize(backend::DI.AutoHyperHessians, N::Integer)
     return DI.BatchSizeSettings{B}(N)
 end
 
-function DI.threshold_batchsize(::DI.AutoHyperHessians{nothing}, ::Integer)
-    return DI.AutoHyperHessians()
+function DI.threshold_batchsize(backend::DI.AutoHyperHessians{nothing}, ::Integer)
+    return backend
 end
-function DI.threshold_batchsize(::DI.AutoHyperHessians{CS}, chunksize2::Integer) where {CS}
-    return DI.AutoHyperHessians(; chunksize = min(CS, chunksize2))
+function DI.threshold_batchsize(backend::DI.AutoHyperHessians{CS}, chunksize2::Integer) where {CS}
+    return DI.AutoHyperHessians(;
+        chunksize = min(CS, chunksize2), simd = backend.simd, jet = backend.jet
+    )
 end
 
 function _translate_toprep(::Type{T}, c::Union{DI.GeneralizedConstant, DI.ConstantOrCache}) where {T}
@@ -82,7 +85,7 @@ function DI.prepare_second_derivative_nokwarg(
         strict::Val, f, backend::DI.AutoHyperHessians, x::Number, contexts::Vararg{DI.Context, C}
     ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    contexts_prepared = translate_toprep(HyperDual{1, 1, typeof(x)}, contexts)
+    contexts_prepared = translate_toprep(HyperDual{1, 1, typeof(x), false}, contexts)
     return HyperHessiansSecondDerivativePrep(_sig, contexts_prepared)
 end
 
@@ -162,7 +165,11 @@ function DI.prepare_hessian_nokwarg(
         strict::Val, f, backend::DI.AutoHyperHessians, x::AbstractArray, contexts::Vararg{DI.Context, C}
     ) where {C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
-    cfg = HessianConfig(x, chunk_from_backend(backend, x))
+    cfg = if backend.jet
+        HessianConfig(x, Jet; simd = backend.simd)
+    else
+        HessianConfig(x, chunk_from_backend(backend, x); simd = backend.simd)
+    end
     contexts_prepared = translate_toprep(eltype(cfg.duals), contexts)
     return HyperHessiansHessianPrep(_sig, cfg, contexts_prepared)
 end
@@ -230,7 +237,7 @@ function DI.prepare_hvp_nokwarg(
         strict::Val, f, backend::DI.AutoHyperHessians, x::AbstractArray, tx::NTuple, contexts::Vararg{DI.Context, C}
     ) where {C}
     _sig = DI.signature(f, backend, x, tx, contexts...; strict)
-    cfg = HVPConfig(x, tx, chunk_from_backend(backend, x))
+    cfg = HVPConfig(x, tx, chunk_from_backend(backend, x); simd = backend.simd)
     contexts_prepared = translate_toprep(eltype(cfg.duals), contexts)
     return HyperHessiansHVPPrep(_sig, cfg, contexts_prepared)
 end
