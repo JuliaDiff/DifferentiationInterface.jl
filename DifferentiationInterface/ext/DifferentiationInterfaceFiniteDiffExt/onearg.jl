@@ -1,11 +1,13 @@
 ## Pushforward
 
-struct FiniteDiffOneArgPushforwardPrep{SIG, C, R, A, D} <: DI.PushforwardPrep{SIG}
+struct FiniteDiffOneArgPushforwardPrep{SIG, C, R, A, D, V} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
     dir::D
+    f_in::V
+    same_point::Base.RefValue{Bool}
 end
 
 function DI.prepare_pushforward_nokwarg(
@@ -30,7 +32,32 @@ function DI.prepare_pushforward_nokwarg(
         backend.absstep
     end
     dir = backend.dir
-    return FiniteDiffOneArgPushforwardPrep(_sig, cache, relstep, absstep, dir)
+    f_in = copy(y)
+    same_point = false
+    return FiniteDiffOneArgPushforwardPrep(
+        _sig,
+        cache,
+        relstep,
+        absstep,
+        dir,
+        f_in,
+        same_point
+    )
+end
+
+function DI.prepare_pushforward_same_point(
+        f,
+        prep::FiniteDiffOneArgPushforwardPrep{SIG, <:JVPCache},
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {SIG, C}
+    DI.check_prep(f, prep, backend, x, tx, contexts...)
+    # store the value f(x) inside the JVPCache since it will not change
+    copyto!(prep.f_in, f(x, map(DI.unwrap, contexts)...))
+    prep.same_point[] = true
+    return prep
 end
 
 function DI.pushforward(
@@ -90,8 +117,14 @@ function DI.pushforward(
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    ty = map(tx) do dx
-        finite_difference_jvp(fc, x, dx, prep.cache; relstep, absstep, dir)
+    ty = if prep.same_point[]
+        map(tx) do dx
+            finite_difference_jvp(fc, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
+        end
+    else
+        map(tx) do dx
+            finite_difference_jvp(fc, x, dx, prep.cache; relstep, absstep, dir)
+        end
     end
     return ty
 end
@@ -107,7 +140,11 @@ function DI.value_and_pushforward(
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    y = fc(x)
+    y = if prep.same_point[]
+        copy(prep.f_in)
+    else
+        fc(x)
+    end
     ty = map(tx) do dx
         finite_difference_jvp(fc, x, dx, prep.cache, y; relstep, absstep, dir)
     end
