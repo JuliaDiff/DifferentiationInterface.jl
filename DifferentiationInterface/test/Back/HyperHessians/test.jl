@@ -13,6 +13,9 @@ check_no_implicit_imports(DifferentiationInterface)
 backends = [
     DI.AutoHyperHessians(),
     DI.AutoHyperHessians(; chunksize = 4),
+    DI.AutoHyperHessians(; simd = true),
+    DI.AutoHyperHessians(; jet = true),
+    DI.AutoHyperHessians(; simd = true, jet = true),
 ]
 
 for backend in backends
