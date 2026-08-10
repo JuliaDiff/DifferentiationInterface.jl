@@ -33,7 +33,7 @@ function DI.prepare_pushforward_nokwarg(
     end
     dir = backend.dir
     f_in = copy(y)
-    same_point = false
+    same_point = Ref(false)
     return FiniteDiffOneArgPushforwardPrep(
         _sig,
         cache,

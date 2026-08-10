@@ -41,7 +41,7 @@ function DI.prepare_pushforward_nokwarg(
     else
         similar(y)
     end
-    same_point = false
+    same_point = Ref(false)
     return FiniteDiffTwoArgPushforwardPrep(_sig, cache, relstep, absstep, dir, f_in, same_point)
 end
 
