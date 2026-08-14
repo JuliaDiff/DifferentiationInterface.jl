@@ -9,6 +9,7 @@ import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using ForwardDiff: ForwardDiff
 using StaticArrays: StaticArrays, @SVector
+import Chairmarks
 using Test
 
 @testset verbose = true "Benchmarking static" begin
