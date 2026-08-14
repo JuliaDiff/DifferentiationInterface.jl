@@ -1,4 +1,39 @@
+include("../../testutils.jl")
+
+using Pkg
+
+using ADTypes: ADTypes
+using DataFrames: DataFrame
+using DifferentiationInterface, DifferentiationInterfaceTest
+import DifferentiationInterface as DI
+import DifferentiationInterfaceTest as DIT
+using FiniteDiff: FiniteDiff
+using Test
+import Chairmarks
 using StaticArrays: @SVector
+
+@testset "Benchmarking sparse" begin
+    filtered_sparse_scenarios = filter(sparse_scenarios(; band_sizes = [])) do scen
+        DIT.function_place(scen) == :in &&
+            DIT.operator_place(scen) == :in &&
+            scen.x isa AbstractVector &&
+            scen.y isa AbstractVector
+    end
+
+    data = benchmark_differentiation(
+        MyAutoSparse(AutoFiniteDiff()),
+        filtered_sparse_scenarios;
+        benchmark = :prepared,
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
+    ) |> DataFrame
+    @testset "Analyzing benchmark results" begin
+        @testset "$(row[:scenario])" for row in eachrow(data)
+            @test row[:allocs] == 0
+        end
+    end
+end
+
 
 @testset "allocations checks" begin
     function pushforward_allocs()

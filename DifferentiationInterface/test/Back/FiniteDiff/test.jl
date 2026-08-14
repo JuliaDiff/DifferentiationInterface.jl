@@ -112,7 +112,3 @@ end;
     @test prep.relstep_g == 0.1
     @test prep.relstep_h == 0.1
 end
-
-include("benchmark.jl")
-
-include("allocations.jl")

@@ -126,5 +126,3 @@ end
     @test DI.overloaded_input_type(prepare_jacobian(copy, backend, [1.0])) ==
         Vector{ForwardDiff.Dual{ForwardDiff.Tag{typeof(copy), Float64}, Float64, 1}}
 end;
-
-include("benchmark.jl")
