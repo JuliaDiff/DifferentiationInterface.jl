@@ -1,13 +1,13 @@
 ## Pushforward
 
-struct FiniteDiffOneArgPushforwardPrep{SIG, C, R, A, D, V} <: DI.PushforwardPrep{SIG}
+struct FiniteDiffOneArgPushforwardPrep{SIG, C, R, A, D, SP, V} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
     dir::D
+    same_point::Val{SP}
     f_in::V
-    same_point::Base.RefValue{Bool}
 end
 
 function DI.prepare_pushforward_nokwarg(
@@ -32,16 +32,14 @@ function DI.prepare_pushforward_nokwarg(
         backend.absstep
     end
     dir = backend.dir
-    f_in = copy(y)
-    same_point = Ref(false)
     return FiniteDiffOneArgPushforwardPrep(
         _sig,
         cache,
         relstep,
         absstep,
         dir,
-        f_in,
-        same_point
+        Val(false),
+        nothing
     )
 end
 
@@ -54,10 +52,11 @@ function DI.prepare_pushforward_same_point(
         contexts::Vararg{DI.Context, C}
     ) where {SIG, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    # store the value f(x) inside the JVPCache since it will not change
-    copyto!(prep.f_in, f(x, map(DI.unwrap, contexts)...))
-    prep.same_point[] = true
-    return prep
+    # store the value f(x) since it will not change
+    f_in = f(x, map(DI.unwrap, contexts)...)
+    return FiniteDiffOneArgPushforwardPrep(
+        prep._sig, prep.cache, prep.relstep, prep.absstep, prep.dir, Val(true), f_in
+    )
 end
 
 function DI.pushforward(
@@ -117,7 +116,7 @@ function DI.pushforward(
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    ty = if prep.same_point[]
+    ty = if prep.same_point isa Val{true}
         map(tx) do dx
             finite_difference_jvp(fc, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
         end
@@ -140,7 +139,7 @@ function DI.value_and_pushforward(
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    y = if prep.same_point[]
+    y = if prep.same_point isa Val{true}
         copy(prep.f_in)
     else
         fc(x)
