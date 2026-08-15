@@ -155,7 +155,7 @@ jobs:
           fail_ci_if_error: false
 
   bench-DI-Backend:
-    name: ${{ matrix.version }} - DI Back (${{ matrix.group }})
+    name: ${{ matrix.version }} - DI Bench (${{ matrix.group }})
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skipci') }}
     timeout-minutes: 180
