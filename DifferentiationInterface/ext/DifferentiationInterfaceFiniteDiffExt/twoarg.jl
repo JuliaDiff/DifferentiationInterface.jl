@@ -139,14 +139,15 @@ function DI.value_and_pushforward(
             finite_difference_jvp!(dy, fc!, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
             dy
         end
+        copyto!(y, prep.f_in)
     else
         ty = map(tx) do dx
             dy = similar(y)
             finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
             dy
         end
+        fc!(y, x)
     end
-    fc!(y, x)
     return y, ty
 end
 
@@ -165,7 +166,11 @@ function DI.pushforward!(
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        if prep.same_point[]
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
+        else
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        end
     end
     return ty
 end
@@ -185,9 +190,17 @@ function DI.value_and_pushforward!(
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        if prep.same_point[]
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
+        else
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        end
     end
-    fc!(y, x)
+    if prep.same_point[]
+        copyto!(y, prep.f_in)
+    else
+        fc!(y, x)
+    end
     return y, ty
 end
 
