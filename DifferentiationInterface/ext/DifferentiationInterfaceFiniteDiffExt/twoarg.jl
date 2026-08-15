@@ -1,11 +1,13 @@
 ## Pushforward
 
-struct FiniteDiffTwoArgPushforwardPrep{SIG, C, R, A, D} <: DI.PushforwardPrep{SIG}
+struct FiniteDiffTwoArgPushforwardPrep{SIG, C, R, A, D, V} <: DI.PushforwardPrep{SIG}
     _sig::Val{SIG}
     cache::C
     relstep::R
     absstep::A
     dir::D
+    f_in::V
+    same_point::Base.RefValue{Bool}
 end
 
 function DI.prepare_pushforward_nokwarg(
@@ -34,7 +36,29 @@ function DI.prepare_pushforward_nokwarg(
         backend.absstep
     end
     dir = backend.dir
-    return FiniteDiffTwoArgPushforwardPrep(_sig, cache, relstep, absstep, dir)
+    f_in = if x isa Number
+        nothing
+    else
+        similar(y)
+    end
+    same_point = Ref(false)
+    return FiniteDiffTwoArgPushforwardPrep(_sig, cache, relstep, absstep, dir, f_in, same_point)
+end
+
+function DI.prepare_pushforward_same_point(
+        f!,
+        y,
+        prep::FiniteDiffTwoArgPushforwardPrep{SIG, <:JVPCache},
+        backend::AutoFiniteDiff,
+        x,
+        tx::NTuple,
+        contexts::Vararg{DI.Context, C}
+    ) where {SIG, C}
+    DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
+    # store the value f!(y, x) inside the JVPCache since it will not change
+    f!(prep.f_in, x, map(DI.unwrap, contexts)...)
+    prep.same_point[] = true
+    return prep
 end
 
 function DI.value_and_pushforward(
@@ -81,10 +105,18 @@ function DI.pushforward(
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
-    ty = map(tx) do dx
-        dy = similar(y)
-        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
-        dy
+    if prep.same_point[]
+        ty = map(tx) do dx
+            dy = similar(y)
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
+            dy
+        end
+    else
+        ty = map(tx) do dx
+            dy = similar(y)
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+            dy
+        end
     end
     return ty
 end
@@ -101,12 +133,21 @@ function DI.value_and_pushforward(
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     (; relstep, absstep, dir) = prep
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
-    ty = map(tx) do dx
-        dy = similar(y)
-        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
-        dy
+    if prep.same_point[]
+        ty = map(tx) do dx
+            dy = similar(y)
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
+            dy
+        end
+        copyto!(y, prep.f_in)
+    else
+        ty = map(tx) do dx
+            dy = similar(y)
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+            dy
+        end
+        fc!(y, x)
     end
-    fc!(y, x)
     return y, ty
 end
 
@@ -125,7 +166,11 @@ function DI.pushforward!(
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        if prep.same_point[]
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
+        else
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        end
     end
     return ty
 end
@@ -145,9 +190,17 @@ function DI.value_and_pushforward!(
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     for b in eachindex(tx, ty)
         dx, dy = tx[b], ty[b]
-        finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        if prep.same_point[]
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache, prep.f_in; relstep, absstep, dir)
+        else
+            finite_difference_jvp!(dy, fc!, x, dx, prep.cache; relstep, absstep, dir)
+        end
     end
-    fc!(y, x)
+    if prep.same_point[]
+        copyto!(y, prep.f_in)
+    else
+        fc!(y, x)
+    end
     return y, ty
 end
 
