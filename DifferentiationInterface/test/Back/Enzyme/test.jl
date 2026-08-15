@@ -98,20 +98,24 @@ end
         logging = LOGGING,
     )
 
-    test_differentiation(
-        # TODO: simplify when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 and https://github.com/EnzymeAD/Enzyme.jl/issues/2925 are fixed
-        if VERSION >= v"1.11"
-            SecondOrder(
-                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Forward)),
-                AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Reverse))
-            )
-        else
-            AutoEnzyme()
-        end,
-        default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true);
-        excluded = vcat(FIRST_ORDER, :second_derivative),
-        logging = LOGGING,
-    )
+    # TODO: reinstate on Julia 1.12 once https://github.com/EnzymeAD/Enzyme.jl/issues/3448 is fixed upstream
+    # (forward-over-reverse HVP errors for cachified scenarios on Julia 1.12, x86_64)
+    if VERSION < v"1.12"
+        test_differentiation(
+            # TODO: simplify when https://github.com/EnzymeAD/Enzyme.jl/issues/2854 and https://github.com/EnzymeAD/Enzyme.jl/issues/2925 are fixed
+            if VERSION >= v"1.11"
+                SecondOrder(
+                    AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Forward)),
+                    AutoEnzyme(; mode = Enzyme.set_runtime_activity(Enzyme.Reverse))
+                )
+            else
+                AutoEnzyme()
+            end,
+            default_scenarios(; include_normal = false, include_constantified = false, include_cachified = true);
+            excluded = vcat(FIRST_ORDER, :second_derivative),
+            logging = LOGGING,
+        )
+    end
 
     test_differentiation(
         [
