@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.21](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.20...v0.7.21)
 
+### Changed
+
+- Update HyperHessians extension for HyperHessians v0.3, forwarding the new `simd` and `jet` backend options ([#1053](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1053))
+
 ### Fixed
 
 - Make FiniteDiff prep non-allocating with static arrays ([#1019](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1019))
+- Avoid duplicate function calls with FiniteDiff ([#1061](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1061))
 
 ## [0.7.20](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.19...v0.7.19)
 
