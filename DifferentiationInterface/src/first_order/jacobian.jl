@@ -131,6 +131,8 @@ end
 
 ## Preparation
 
+_use_reactant_jacobian(::AbstractADType) = false
+
 abstract type StandardJacobianPrep{SIG} <: JacobianPrep{SIG} end
 
 struct PushforwardJacobianPrep{

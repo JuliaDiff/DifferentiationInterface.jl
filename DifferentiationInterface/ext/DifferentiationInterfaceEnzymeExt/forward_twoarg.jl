@@ -114,3 +114,97 @@ function DI.pushforward!(
     DI.value_and_pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
     return ty
 end
+
+## Jacobian
+
+struct EnzymeReactantTwoArgJacobianPrep{SIG, D, P} <: DI.JacobianPrep{SIG}
+    _sig::Val{SIG}
+    directions::D
+    pushforward_prep::P
+end
+
+function reactant_out_of_place(x, f!::F, y, contexts...) where {F}
+    new_y = zero(y)
+    f!(new_y, x, contexts...)
+    return new_y
+end
+
+function prepare_reactant_twoarg_jacobian(
+        strict::Val,
+        f!::F,
+        y,
+        backend::AutoEnzyme,
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
+    directions = onehot(x)
+    wrapped_contexts = (DI.Constant(f!), DI.Constant(y), contexts...)
+    pushforward_prep = DI.prepare_pushforward_nokwarg(
+        strict, reactant_out_of_place, backend, x, directions, wrapped_contexts...
+    )
+    return EnzymeReactantTwoArgJacobianPrep(_sig, directions, pushforward_prep)
+end
+
+function reactant_twoarg_jacobian(
+        f!::F,
+        y,
+        prep::EnzymeReactantTwoArgJacobianPrep,
+        backend::AutoEnzyme,
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
+    wrapped_contexts = (DI.Constant(f!), DI.Constant(y), contexts...)
+    columns = DI.pushforward(
+        reactant_out_of_place,
+        prep.pushforward_prep,
+        backend,
+        x,
+        prep.directions,
+        wrapped_contexts...,
+    )
+    return DI.stack_vec_col(columns)
+end
+
+function DI.prepare_jacobian_nokwarg(
+        strict::Val,
+        f!::F,
+        y,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {F, C}
+    if DI._use_reactant_jacobian(backend)
+        return prepare_reactant_twoarg_jacobian(strict, f!, y, backend, x, contexts...)
+    end
+    batch_size_settings = DI.pick_batchsize(backend, x)
+    return DI._prepare_jacobian_aux(
+        strict, DI.PushforwardFast(), batch_size_settings, y, (f!, y), backend, x, contexts...
+    )
+end
+
+function DI.jacobian(
+        f!::F,
+        y,
+        prep::EnzymeReactantTwoArgJacobianPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
+    return reactant_twoarg_jacobian(f!, y, prep, backend, x, contexts...)
+end
+
+function DI.jacobian!(
+        f!::F,
+        y,
+        jac,
+        prep::EnzymeReactantTwoArgJacobianPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
+    DI.check_prep(f!, y, prep, backend, x, contexts...)
+    new_jac = reactant_twoarg_jacobian(f!, y, prep, backend, x, contexts...)
+    return copyto!(jac, new_jac)
+end

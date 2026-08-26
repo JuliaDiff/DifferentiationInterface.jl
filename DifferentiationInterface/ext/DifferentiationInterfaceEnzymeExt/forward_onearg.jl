@@ -216,6 +216,40 @@ end
 
 ## Jacobian
 
+struct EnzymeReactantJacobianPrep{SIG, D, P} <: DI.JacobianPrep{SIG}
+    _sig::Val{SIG}
+    directions::D
+    pushforward_prep::P
+end
+
+function prepare_reactant_jacobian(
+        strict::Val,
+        f_or_f!y::Tuple,
+        backend::AutoEnzyme,
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {C}
+    _sig = DI.signature(f_or_f!y..., backend, x, contexts...; strict)
+    directions = onehot(x)
+    pushforward_prep = DI.prepare_pushforward_nokwarg(
+        strict, f_or_f!y..., backend, x, directions, contexts...
+    )
+    return EnzymeReactantJacobianPrep(_sig, directions, pushforward_prep)
+end
+
+function reactant_jacobian(
+        f_or_f!y::Tuple,
+        prep::EnzymeReactantJacobianPrep,
+        backend::AutoEnzyme,
+        x,
+        contexts::Vararg{DI.Context, C}
+    ) where {C}
+    columns = DI.pushforward(
+        f_or_f!y..., prep.pushforward_prep, backend, x, prep.directions, contexts...
+    )
+    return DI.stack_vec_col(columns)
+end
+
 struct EnzymeForwardOneArgJacobianPrep{SIG, B, DF, DC, O} <: DI.JacobianPrep{SIG}
     _sig::Val{SIG}
     _valB::Val{B}
@@ -232,6 +266,9 @@ function DI.prepare_jacobian_nokwarg(
         x,
         contexts::Vararg{DI.Constant, C}
     ) where {F, C}
+    if DI._use_reactant_jacobian(backend)
+        return prepare_reactant_jacobian(strict, (f,), backend, x, contexts...)
+    end
     _sig = DI.signature(f, backend, x, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)
     valB = to_val(DI.pick_batchsize(backend, x))
@@ -242,6 +279,29 @@ function DI.prepare_jacobian_nokwarg(
     return EnzymeForwardOneArgJacobianPrep(
         _sig, valB, df, context_shadows, basis_shadows, length(y)
     )
+end
+
+function DI.jacobian(
+        f::F,
+        prep::EnzymeReactantJacobianPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
+    DI.check_prep(f, prep, backend, x, contexts...)
+    return reactant_jacobian((f,), prep, backend, x, contexts...)
+end
+
+function DI.jacobian!(
+        f::F,
+        jac,
+        prep::EnzymeReactantJacobianPrep,
+        backend::AutoEnzyme{<:Union{ForwardMode, Nothing}},
+        x,
+        contexts::Vararg{DI.Context, C},
+    ) where {F, C}
+    DI.check_prep(f, prep, backend, x, contexts...)
+    return copyto!(jac, reactant_jacobian((f,), prep, backend, x, contexts...))
 end
 
 function DI.jacobian(

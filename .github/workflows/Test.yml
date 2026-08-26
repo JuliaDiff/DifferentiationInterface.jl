@@ -95,6 +95,7 @@ jobs:
           - DifferentiateWith
           # - Diffractor
           - Enzyme
+          - EnzymeReactant
           - FastDifferentiation
           - FiniteDiff
           - FiniteDifferences
