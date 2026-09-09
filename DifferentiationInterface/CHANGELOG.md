@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add the `PrepTimeConstant` context type, for constants whose value is fixed at preparation time and may therefore be specialized upon by backends ([#265](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/265))
+- `AutoReverseDiff(compile=true)` now records a tape when every context is a `PrepTimeConstant`, instead of falling back to a config as it does for `Constant` ([#265](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/265))
+- `AutoSymbolics` and `AutoFastDifferentiation` now substitute the value of a `PrepTimeConstant` into the symbolic expression, instead of turning it into a variable ([#265](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/265))
 
 ## [0.7.21](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.20...v0.7.21)
 

@@ -1,5 +1,6 @@
 using DifferentiationInterface
-using DifferentiationInterface: AnyConstant, GeneralizedConstant, Rewrap, fix_tail, unwrap
+using DifferentiationInterface:
+    AnyConstant, GeneralizedConstant, Rewrap, adapt_eltype, fix_tail, maker, unwrap
 using Test
 
 f1(x) = x
@@ -32,3 +33,8 @@ r = @inferred Rewrap(contexts...)
 @test !(ConstantOrCache <: AnyConstant)
 @test unwrap(PrepTimeConstant(2.0)) == 2.0
 @test PrepTimeConstant(2.0) == PrepTimeConstant(2.0)
+
+# `maker` and `adapt_eltype` are the two hooks every context type must provide
+@test maker(PrepTimeConstant(1.0))(2.0) === PrepTimeConstant(2.0)
+@test adapt_eltype(PrepTimeConstant(1.0), Float32) === PrepTimeConstant(1.0)
+@test adapt_eltype(PrepTimeConstant([1.0]), Float32) isa PrepTimeConstant{Vector{Float64}}

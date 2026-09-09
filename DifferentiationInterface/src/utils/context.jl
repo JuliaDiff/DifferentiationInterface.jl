@@ -69,7 +69,10 @@ This is the rule that already applies to `Constant` during same-point preparatio
 In exchange, backends are allowed (but not required) to bake the value into the preparation result.
 
 Most backends treat `PrepTimeConstant` exactly like `Constant`, so the two are interchangeable.
-The distinction matters for backends which specialize the preparation result on the _value_ of a context and not just on its type.
+The distinction matters for backends which specialize the preparation result on the _value_ of a context and not just on its type:
+
+  - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff) with `compile=true` records a tape, which it cannot do with a `Constant` because the value would be frozen inside it.
+  - [`AutoSymbolics`](@extref ADTypes.AutoSymbolics) and [`AutoFastDifferentiation`](@extref ADTypes.AutoFastDifferentiation) substitute the value into the symbolic expression, so that it takes part in the simplification of the derivative.
 
 !!! warning
 
