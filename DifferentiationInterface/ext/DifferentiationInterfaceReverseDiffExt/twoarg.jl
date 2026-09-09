@@ -213,6 +213,29 @@ function DI.prepare_jacobian_nokwarg(
     return ReverseDiffTwoArgJacobianPrep(_sig, config, nothing)
 end
 
+#=
+Tape recording bakes the context values in, which is forbidden for `Constant` (whose value may
+change after preparation) but explicitly allowed for `PrepTimeConstant`.
+=#
+function DI.prepare_jacobian_nokwarg(
+        strict::Val,
+        f!,
+        y,
+        backend::AutoReverseDiff{compile},
+        x,
+        contexts::Vararg{DI.PrepTimeConstant, C},
+    ) where {compile, C}
+    _sig = DI.signature(f!, y, backend, x, contexts...; strict)
+    if compile
+        fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
+        tape = ReverseDiff.compile(JacobianTape(fc!, y, x))
+        return ReverseDiffTwoArgJacobianPrep(_sig, nothing, tape)
+    else
+        config = JacobianConfig(y, x)
+        return ReverseDiffTwoArgJacobianPrep(_sig, config, nothing)
+    end
+end
+
 function DI.value_and_jacobian(
         f!,
         y,
@@ -225,7 +248,11 @@ function DI.value_and_jacobian(
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     jac = similar(y, length(y), length(x))
     result = MutableDiffResult(y, (jac,))
-    result = jacobian!(result, fc!, y, x, prep.config)
+    result = if isnothing(prep.tape)
+        jacobian!(result, fc!, y, x, prep.config)
+    else
+        jacobian!(result, prep.tape, x)
+    end
     return DiffResults.value(result), DiffResults.derivative(result)
 end
 
@@ -241,7 +268,11 @@ function DI.value_and_jacobian!(
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
     result = MutableDiffResult(y, (jac,))
-    result = jacobian!(result, fc!, y, x, prep.config)
+    result = if isnothing(prep.tape)
+        jacobian!(result, fc!, y, x, prep.config)
+    else
+        jacobian!(result, prep.tape, x)
+    end
     return DiffResults.value(result), DiffResults.derivative(result)
 end
 
@@ -255,7 +286,11 @@ function DI.jacobian(
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
-    jac = jacobian(fc!, y, x, prep.config)
+    jac = if isnothing(prep.tape)
+        jacobian(fc!, y, x, prep.config)
+    else
+        jacobian!(prep.tape, x)
+    end
     return jac
 end
 
@@ -270,6 +305,10 @@ function DI.jacobian!(
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
-    jac = jacobian!(jac, fc!, y, x, prep.config)
+    jac = if isnothing(prep.tape)
+        jacobian!(jac, fc!, y, x, prep.config)
+    else
+        jacobian!(jac, prep.tape, x)
+    end
     return jac
 end
