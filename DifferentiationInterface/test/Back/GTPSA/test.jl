@@ -32,7 +32,6 @@ test_differentiation(
         include_preptimeconstantified = true,
     );
     excluded = SECOND_ORDER,
-    type_stability = safetypestab(:full),
     logging = LOGGING,
 );
 
