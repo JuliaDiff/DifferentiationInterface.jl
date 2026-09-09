@@ -63,6 +63,19 @@ end;
         logging = LOGGING,
     )
 
+    # `PrepTimeConstant` takes a different dispatch path than `Constant` in this extension
+    # (see the `DI.AnyConstant` method signatures), so it needs its own coverage
+    test_differentiation(
+        backends[1:3],
+        default_scenarios(;
+            include_normal = false,
+            include_batchified = false,
+            include_preptimeconstantified = true,
+        );
+        excluded = SECOND_ORDER,
+        logging = LOGGING,
+    )
+
     test_differentiation(
         backends[2:3],
         default_scenarios(;

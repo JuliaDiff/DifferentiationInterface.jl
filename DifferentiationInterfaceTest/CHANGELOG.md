@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.11.0...main)
 
+### Added
+
+- Add the `include_preptimeconstantified` keyword argument to `default_scenarios`, which adds scenarios with a `PrepTimeConstant` context given the same value at preparation and at execution ([#265](https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/265))
+
 ## [0.11.0](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.10.4...DifferentiationInterfaceTest-v0.11.0)
 
 ### Changed

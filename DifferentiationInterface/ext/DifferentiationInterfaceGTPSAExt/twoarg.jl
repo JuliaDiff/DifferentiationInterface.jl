@@ -17,7 +17,7 @@ function DI.prepare_pushforward_nokwarg(
         backend::AutoGTPSA{D},
         x,
         tx::NTuple,
-        contexts::Vararg{DI.Constant, C}
+        contexts::Vararg{DI.AnyConstant, C}
     ) where {F, D, C}
     _sig = DI.signature(f!, y, backend, x, tx, contexts...; strict)
     # For pushforward/JVP, we only actually need 1 single variable (in the GTPSA sense)
@@ -51,7 +51,7 @@ function DI.pushforward(
         backend::AutoGTPSA,
         x,
         tx::NTuple,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
@@ -73,7 +73,7 @@ function DI.pushforward!(
         backend::AutoGTPSA,
         x,
         tx::NTuple,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     fc! = DI.fix_tail(f!, map(DI.unwrap, contexts)...)
@@ -94,7 +94,7 @@ function DI.value_and_pushforward(
         backend::AutoGTPSA,
         x,
         tx::NTuple,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     ty = DI.pushforward(f!, y, prep, backend, x, tx, contexts...)
@@ -109,7 +109,7 @@ function DI.value_and_pushforward!(
         backend::AutoGTPSA,
         x,
         tx::NTuple,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, tx, contexts...)
     DI.pushforward!(f!, y, ty, prep, backend, x, tx, contexts...)
@@ -126,7 +126,7 @@ struct GTPSATwoArgJacobianPrep{SIG, X, Y} <: DI.JacobianPrep{SIG}
 end
 
 function DI.prepare_jacobian_nokwarg(
-        strict::Val, f!, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.Constant, C}
+        strict::Val, f!, y, backend::AutoGTPSA{D}, x, contexts::Vararg{DI.AnyConstant, C}
     ) where {D, C}
     _sig = DI.signature(f!, y, backend, x, contexts...; strict)
     if D != Nothing
@@ -159,7 +159,7 @@ function DI.jacobian(
         prep::GTPSATwoArgJacobianPrep,
         backend::AutoGTPSA,
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
@@ -178,7 +178,7 @@ function DI.jacobian!(
         prep::GTPSATwoArgJacobianPrep,
         backend::AutoGTPSA,
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     foreach((t, xi) -> t[0] = xi, prep.xt, x) # Set the scalar part
@@ -195,7 +195,7 @@ function DI.value_and_jacobian(
         prep::GTPSATwoArgJacobianPrep,
         backend::AutoGTPSA,
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     jac = DI.jacobian(f!, y, prep, backend, x, contexts...) # y set on line 151
@@ -209,7 +209,7 @@ function DI.value_and_jacobian!(
         prep::GTPSATwoArgJacobianPrep,
         backend::AutoGTPSA,
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {C}
     DI.check_prep(f!, y, prep, backend, x, contexts...)
     DI.jacobian!(f!, y, jac, prep, backend, x, contexts...)
