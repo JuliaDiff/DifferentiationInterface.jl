@@ -91,7 +91,8 @@ using DifferentiationInterface:
     check_available,
     forward_counterpart,
     reverse_counterpart
-using DifferentiationInterface: Rewrap, Context, Constant, Cache, ConstantOrCache, unwrap
+using DifferentiationInterface:
+    Rewrap, Context, Constant, PrepTimeConstant, Cache, ConstantOrCache, unwrap
 using DifferentiationInterface: PreparationMismatchError
 using DocStringExtensions: TYPEDFIELDS, TYPEDSIGNATURES
 using LinearAlgebra: Adjoint, Diagonal, Transpose, I, dot, parent

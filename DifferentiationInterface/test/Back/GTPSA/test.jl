@@ -22,6 +22,19 @@ test_differentiation(
     logging = LOGGING,
 );
 
+# `PrepTimeConstant` takes a different dispatch path than `Constant` in this extension
+# (see the `DI.AnyConstant` method signatures), so it needs its own coverage
+test_differentiation(
+    AutoGTPSA(),
+    default_scenarios(;
+        include_normal = false,
+        include_batchified = false,
+        include_preptimeconstantified = true,
+    );
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+);
+
 # Test with Descriptor:
 d1 = GTPSA.Descriptor(20, 2) # 20 variables to 2nd order
 test_differentiation(AutoGTPSA(d1); type_stability = safetypestab(:full), logging = LOGGING);

@@ -23,6 +23,19 @@ test_differentiation(
     logging = LOGGING,
 );
 
+# `PrepTimeConstant` is substituted into the symbolic expression instead of becoming a variable,
+# so it exercises a different code path than `Constant`
+test_differentiation(
+    AutoFastDifferentiation(),
+    default_scenarios(;
+        include_normal = false,
+        include_batchified = false,
+        include_preptimeconstantified = true,
+    );
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+);
+
 test_differentiation(
     AutoSparse(AutoFastDifferentiation()),
     sparse_scenarios(; band_sizes = 0:-1);

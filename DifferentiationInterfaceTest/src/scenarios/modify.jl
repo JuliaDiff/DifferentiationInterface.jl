@@ -206,6 +206,30 @@ function constantify(scen::Scenario{op, pl_op, pl_fun}) where {op, pl_op, pl_fun
     )
 end
 
+"""
+    preptimeconstantify(scen::Scenario)
+
+Return a new `Scenario` identical to `scen` except for the function `f`, which is made to accept an additional constant argument by which the output is multiplied.
+The constant is passed as a `PrepTimeConstant` context, so unlike in `constantify`, the value given at preparation is the same as the one given at execution.
+"""
+function preptimeconstantify(scen::Scenario{op, pl_op, pl_fun}) where {op, pl_op, pl_fun}
+    (; f) = scen
+    @assert isempty(scen.contexts)
+    multiply_f = MultiplyByConstant{pl_fun}(f)
+    a = 3.0
+    return Scenario{op, pl_op, pl_fun}(;
+        f = multiply_f,
+        x = scen.x,
+        y = mymultiply(scen.y, a),
+        t = scen.t,
+        contexts = (PrepTimeConstant(a),),
+        res1 = mymultiply(scen.res1, a),
+        res2 = mymultiply(scen.res2, a),
+        prep_args = (; scen.prep_args..., contexts = (PrepTimeConstant(a),)),
+        name = isnothing(scen.name) ? nothing : scen.name * " [preptimeconstantified]",
+    )
+end
+
 struct StoreInCache{pl_fun, F} <: FunctionModifier
     f::F
 end
@@ -364,6 +388,7 @@ end
 
 closurify(scens::AbstractVector{<:Scenario}) = closurify.(scens)
 constantify(scens::AbstractVector{<:Scenario}) = constantify.(scens)
+preptimeconstantify(scens::AbstractVector{<:Scenario}) = preptimeconstantify.(scens)
 cachify(scens::AbstractVector{<:Scenario}; use_tuples) = cachify.(scens; use_tuples)
 constantorcachify(scens::AbstractVector{<:Scenario}) = constantorcachify.(scens)
 

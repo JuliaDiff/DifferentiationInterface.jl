@@ -43,6 +43,16 @@ But after preparation, the more zeros are present in the matrix, the greater the
     The result of preparation for an `AutoSparse` backend cannot be reused if the sparsity pattern changes.
     In particular, during preparation, make sure to pick input and context values that do not give rise to exceptional patterns (e.g. with too many zeros because of a multiplication with a constant `c = 0`, which may then be non-zero later on). Random values are usually a better choice during sparse preparation.
 
+    When it is a context which determines the pattern, you can also pass it as a [`PrepTimeConstant`](@ref) instead of a [`Constant`](@ref).
+    This declares that its value will not change after preparation, which is exactly the condition under which the recorded pattern remains valid.
+
+!!! note
+
+    How much the values of the contexts matter depends on the detector.
+    A global detector like [`TracerSparsityDetector`](@extref SparseConnectivityTracer.TracerSparsityDetector) ignores numerical values, so the `c = 0` example above does not actually affect the pattern it returns.
+    A local detector like `TracerLocalSparsityDetector` or [`DenseSparsityDetector`](@ref) does depend on them.
+    With any detector, the pattern still depends on the control flow that the context values trigger inside the function, since only the branch taken during preparation is recorded.
+
 ### Tuning the coloring algorithm
 
 The complexity of sparse Jacobians or Hessians grows with the number of distinct colors in a coloring of the sparsity pattern.
