@@ -73,6 +73,7 @@ The distinction matters for backends which specialize the preparation result on 
 
   - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff) with `compile=true` records a tape, which it cannot do with a `Constant` because the value would be frozen inside it.
   - [`AutoSymbolics`](@extref ADTypes.AutoSymbolics) and [`AutoFastDifferentiation`](@extref ADTypes.AutoFastDifferentiation) substitute the value into the symbolic expression, so that it takes part in the simplification of the derivative.
+  - [`AutoSparse`](@extref ADTypes.AutoSparse) detects the sparsity pattern once, using the context values given at preparation. Passing a `PrepTimeConstant` states that the pattern recorded then stays valid.
 
 !!! warning
 
