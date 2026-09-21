@@ -30,8 +30,8 @@ jobs:
       matrix:
         version:
           - '1.10'
-          - '1.11'
           - '1.12'
+          - '1.13'
         group:
           - Internals
           - SimpleFiniteDiff
@@ -41,8 +41,6 @@ jobs:
         exclude:
           - skip_past: true
             version: '1.10'
-          - skip_past: true
-            version: '1.11'
     env:
       JULIA_DI_TEST_TYPE: 'Core'
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
@@ -88,8 +86,8 @@ jobs:
       matrix:
         version:
           - '1.10'
-          - '1.11'
           - '1.12'
+          - '1.13'
         group:
           - ChainRules
           - DifferentiateWith
@@ -113,10 +111,6 @@ jobs:
         exclude:
           - skip_past: true
             version: '1.10'
-          - skip_past: true
-            version: '1.11'
-          - version: '1.11'
-            group: ChainRules
     env:
       JULIA_DI_TEST_TYPE: 'Back'
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}
@@ -207,8 +201,8 @@ jobs:
       matrix:
         version:
           - '1.10'
-          - '1.11'
           - '1.12'
+          - '1.13'
         group:
           - Formalities
           - Zero
@@ -219,8 +213,6 @@ jobs:
         exclude:
           - skip_past: true
             version: '1.10'
-          - skip_past: true
-            version: '1.11'
     env:
       JULIA_DIT_TEST_GROUP: ${{ matrix.group }}
       JULIA_DI_PR_DRAFT: ${{ github.event.pull_request.draft }}
