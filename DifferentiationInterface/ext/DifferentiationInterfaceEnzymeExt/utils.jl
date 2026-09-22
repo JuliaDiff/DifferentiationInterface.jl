@@ -61,7 +61,7 @@ end
 force_annotation(f::F) where {F <: Annotation} = f
 force_annotation(f::F) where {F} = Const(f)
 
-function _shadow(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.Constant) where {B}
+function _shadow(::AutoEnzyme, ::Mode, ::Val{B}, c_wrapped::DI.AnyConstant) where {B}
     return nothing
 end
 
@@ -109,7 +109,7 @@ function make_context_shadows(
     return context_shadows
 end
 
-function _translate_prepared!(dc, c_wrapped::DI.Constant, ::Val{B}) where {B}
+function _translate_prepared!(dc, c_wrapped::DI.AnyConstant, ::Val{B}) where {B}
     c = DI.unwrap(c_wrapped)
     return Const(c)
 end

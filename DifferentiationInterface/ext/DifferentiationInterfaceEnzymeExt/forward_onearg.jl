@@ -142,7 +142,7 @@ function DI.prepare_gradient_nokwarg(
         f::F,
         backend::AutoEnzyme{<:ForwardMode, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C}
+        contexts::Vararg{DI.AnyConstant, C}
     ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     valB = to_val(DI.pick_batchsize(backend, x))
@@ -158,7 +158,7 @@ function DI.gradient(
         prep::EnzymeForwardGradientPrep{SIG, B},
         backend::AutoEnzyme{<:ForwardMode, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, SIG, B, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows, basis_shadows) = prep
@@ -176,7 +176,7 @@ function DI.value_and_gradient(
         prep::EnzymeForwardGradientPrep{SIG, B},
         backend::AutoEnzyme{<:ForwardMode, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, SIG, B, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows, basis_shadows) = prep
@@ -195,7 +195,7 @@ function DI.gradient!(
         prep::EnzymeForwardGradientPrep{SIG, B},
         backend::AutoEnzyme{<:ForwardMode, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, SIG, B, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(grad, DI.gradient(f, prep, backend, x, contexts...))
@@ -207,7 +207,7 @@ function DI.value_and_gradient!(
         prep::EnzymeForwardGradientPrep{SIG, B},
         backend::AutoEnzyme{<:ForwardMode, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, SIG, B, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_grad = DI.value_and_gradient(f, prep, backend, x, contexts...)
@@ -230,7 +230,7 @@ function DI.prepare_jacobian_nokwarg(
         f::F,
         backend::AutoEnzyme{<:Union{ForwardMode, Nothing}, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C}
+        contexts::Vararg{DI.AnyConstant, C}
     ) where {F, C}
     _sig = DI.signature(f, backend, x, contexts...; strict)
     y = f(x, map(DI.unwrap, contexts)...)
@@ -249,7 +249,7 @@ function DI.jacobian(
         prep::EnzymeForwardOneArgJacobianPrep{SIG, B},
         backend::AutoEnzyme{<:Union{ForwardMode, Nothing}, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, SIG, B, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows, basis_shadows, output_length) = prep
@@ -268,7 +268,7 @@ function DI.value_and_jacobian(
         prep::EnzymeForwardOneArgJacobianPrep{SIG, B},
         backend::AutoEnzyme{<:Union{ForwardMode, Nothing}, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, SIG, B, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows, basis_shadows, output_length) = prep
@@ -288,7 +288,7 @@ function DI.jacobian!(
         prep::EnzymeForwardOneArgJacobianPrep,
         backend::AutoEnzyme{<:Union{ForwardMode, Nothing}, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     return copyto!(jac, DI.jacobian(f, prep, backend, x, contexts...))
@@ -300,7 +300,7 @@ function DI.value_and_jacobian!(
         prep::EnzymeForwardOneArgJacobianPrep,
         backend::AutoEnzyme{<:Union{ForwardMode, Nothing}, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     y, new_jac = DI.value_and_jacobian(f, prep, backend, x, contexts...)

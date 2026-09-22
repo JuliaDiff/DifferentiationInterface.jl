@@ -63,6 +63,21 @@ end;
         logging = LOGGING,
     )
 
+    # `PrepTimeConstant` takes a different dispatch path than `Constant` in this extension
+    # (see the `DI.AnyConstant` method signatures), so it needs its own coverage.
+    # Only `gradient` and `jacobian` were widened, and this job is already the longest
+    # in CI, so the other operators are left out on purpose.
+    test_differentiation(
+        backends[1:3],
+        default_scenarios(;
+            include_normal = false,
+            include_batchified = false,
+            include_preptimeconstantified = true,
+        );
+        excluded = vcat(SECOND_ORDER, [:pushforward, :pullback, :derivative]),
+        logging = LOGGING,
+    )
+
     test_differentiation(
         backends[2:3],
         default_scenarios(;

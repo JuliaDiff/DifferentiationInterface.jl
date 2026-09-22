@@ -22,7 +22,7 @@ function DI.prepare_pushforward_nokwarg(
     f!(y_var, x_var, context_vars...)
 
     x_vec_var = myvec(x_var)
-    context_vec_vars = map(myvec, context_vars)
+    context_vec_vars = map(myvec, argumentize(context_vars, contexts))
     y_vec_var = myvec(y_var)
     jv_vec_var, v_vec_var = jacobian_times_v(y_vec_var, x_vec_var)
     jvp_exe = make_function(
@@ -123,7 +123,7 @@ function DI.prepare_pullback_nokwarg(
     f!(y_var, x_var, context_vars...)
 
     x_vec_var = myvec(x_var)
-    context_vec_vars = map(myvec, context_vars)
+    context_vec_vars = map(myvec, argumentize(context_vars, contexts))
     y_vec_var = myvec(y_var)
     vj_vec_var, v_vec_var = jacobian_transpose_v(y_vec_var, x_vec_var)
     vjp_exe = make_function(
@@ -223,7 +223,7 @@ function DI.prepare_derivative_nokwarg(
     f!(y_var, x_var, context_vars...)
 
     x_vec_var = myvec(x_var)
-    context_vec_vars = map(myvec, context_vars)
+    context_vec_vars = map(myvec, argumentize(context_vars, contexts))
     y_vec_var = myvec(y_var)
     der_vec_var = derivative(y_vec_var, x_var)
     der_exe = make_function(der_vec_var, x_vec_var, context_vec_vars...; in_place = false)
@@ -311,7 +311,7 @@ function DI.prepare_jacobian_nokwarg(
     f!(y_var, x_var, context_vars...)
 
     x_vec_var = myvec(x_var)
-    context_vec_vars = map(myvec, context_vars)
+    context_vec_vars = map(myvec, argumentize(context_vars, contexts))
     y_vec_var = myvec(y_var)
     if backend isa AutoSparse
         jac_var = sparse_jacobian(y_vec_var, x_vec_var)

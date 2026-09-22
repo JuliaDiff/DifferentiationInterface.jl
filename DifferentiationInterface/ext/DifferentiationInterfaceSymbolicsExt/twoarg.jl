@@ -20,6 +20,7 @@ function DI.prepare_pushforward_nokwarg(
     x_var = variablize(x, :x)
     dx_var = variablize(dx, :dx)
     context_vars = variablize(contexts)
+    context_args = argumentize(context_vars, contexts)
     y_var = variablize(y, :y)
     t_var = variable(:t)
     f!(y_var, x_var + t_var * dx_var, context_vars...)
@@ -28,7 +29,7 @@ function DI.prepare_pushforward_nokwarg(
 
     erase_cache_vars!(context_vars, contexts)
     res = build_function(
-        pf_var, x_var, dx_var, context_vars...; expression = Val(false), cse = true
+        pf_var, x_var, dx_var, context_args...; expression = Val(false), cse = true
     )
     (pushforward_exe, pushforward_exe!) = res
     return SymbolicsTwoArgPushforwardPrep(_sig, pushforward_exe, pushforward_exe!)
@@ -114,11 +115,12 @@ function DI.prepare_derivative_nokwarg(
     x_var = variablize(x, :x)
     y_var = variablize(y, :y)
     context_vars = variablize(contexts)
+    context_args = argumentize(context_vars, contexts)
     f!(y_var, x_var, context_vars...)
     der_var = derivative(y_var, x_var)
 
     erase_cache_vars!(context_vars, contexts)
-    res = build_function(der_var, x_var, context_vars...; expression = Val(false), cse = true)
+    res = build_function(der_var, x_var, context_args...; expression = Val(false), cse = true)
     (der_exe, der_exe!) = res
     return SymbolicsTwoArgDerivativePrep(_sig, der_exe, der_exe!)
 end
@@ -199,6 +201,7 @@ function DI.prepare_jacobian_nokwarg(
     x_var = variablize(x, :x)
     y_var = variablize(y, :y)
     context_vars = variablize(contexts)
+    context_args = argumentize(context_vars, contexts)
     f!(y_var, x_var, context_vars...)
     if backend isa AutoSparse
         jac_var = sparsejacobian(vec(y_var), vec(x_var))
@@ -209,7 +212,7 @@ function DI.prepare_jacobian_nokwarg(
     end
 
     erase_cache_vars!(context_vars, contexts)
-    res = build_function(jac_var, x_var, context_vars...; expression = Val(false), cse = true)
+    res = build_function(jac_var, x_var, context_args...; expression = Val(false), cse = true)
     (jac_exe, jac_exe!) = res
     return SymbolicsTwoArgJacobianPrep(_sig, sparsity, jac_exe, jac_exe!)
 end

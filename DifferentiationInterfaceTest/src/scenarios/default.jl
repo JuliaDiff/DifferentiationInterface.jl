@@ -554,6 +554,7 @@ function default_scenarios(;
         include_batchified = true,
         include_closurified = false,
         include_constantified = false,
+        include_preptimeconstantified = false,
         include_cachified = false,
         include_constantorcachified = false,
         use_tuples = false,
@@ -644,6 +645,7 @@ function default_scenarios(;
     include_normal && append!(final_scens, scens)
     include_closurified && append!(final_scens, closurify(scens))
     include_constantified && append!(final_scens, constantify(scens))
+    include_preptimeconstantified && append!(final_scens, preptimeconstantify(scens))
     include_cachified && append!(final_scens, cachify(scens; use_tuples = use_tuples))
     include_constantorcachified && append!(final_scens, constantorcachify(scens))
     include_smaller && append!(final_scens, scens_smaller_prep)

@@ -227,7 +227,7 @@ function DI.gradient(
         prep::EnzymeGradientPrep,
         backend::AutoEnzyme{<:Union{ReverseMode, Nothing}, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep
@@ -243,7 +243,7 @@ function DI.value_and_gradient(
         prep::EnzymeGradientPrep,
         backend::AutoEnzyme{<:Union{ReverseMode, Nothing}, <:Union{Nothing, Const}},
         x,
-        contexts::Vararg{DI.Constant, C},
+        contexts::Vararg{DI.AnyConstant, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, contexts...)
     (; df, context_shadows) = prep

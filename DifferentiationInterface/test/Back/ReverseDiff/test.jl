@@ -27,6 +27,19 @@ test_differentiation(
     logging = LOGGING,
 );
 
+# `PrepTimeConstant` lets `compile=true` record a tape even with contexts, which `Constant`
+# forbids, so both settings need their own coverage
+test_differentiation(
+    backends,
+    default_scenarios(;
+        include_normal = false,
+        include_batchified = false,
+        include_preptimeconstantified = true,
+    );
+    excluded = SECOND_ORDER,
+    logging = LOGGING,
+);
+
 test_differentiation(
     backends, static_scenarios(; include_constantified = true); logging = LOGGING
 );

@@ -6,6 +6,7 @@ Abstract supertype for additional context arguments, which can be passed to diff
 # Subtypes
 
   - [`Constant`](@ref)
+  - [`PrepTimeConstant`](@ref)
   - [`Cache`](@ref)
   - [`ConstantOrCache`](@ref)
 """
@@ -57,6 +58,61 @@ end
 constant_maker(c) = Constant(c)
 maker(::Constant) = constant_maker
 adapt_eltype(c::Constant, ::Type) = c
+
+"""
+    PrepTimeConstant
+
+Concrete type of [`Context`](@ref) argument which is kept constant during differentiation, and whose value is additionally fixed at preparation time.
+
+Unlike [`Constant`](@ref), whose value is allowed to change between preparation and execution, a `PrepTimeConstant` must be given the _same value_ at preparation and at every subsequent execution.
+This is the rule that already applies to `Constant` during same-point preparation, extended to different-point preparation as well.
+In exchange, backends are allowed (but not required) to bake the value into the preparation result.
+
+Most backends treat `PrepTimeConstant` exactly like `Constant`, so the two are interchangeable.
+The distinction matters for backends which specialize the preparation result on the _value_ of a context and not just on its type:
+
+  - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff) with `compile=true` records a tape, which it cannot do with a `Constant` because the value would be frozen inside it.
+  - [`AutoSymbolics`](@extref ADTypes.AutoSymbolics) and [`AutoFastDifferentiation`](@extref ADTypes.AutoFastDifferentiation) substitute the value into the symbolic expression, so that it takes part in the simplification of the derivative.
+  - [`AutoSparse`](@extref ADTypes.AutoSparse) detects the sparsity pattern once, using the context values given at preparation. Passing a `PrepTimeConstant` states that the pattern recorded then stays valid.
+
+!!! warning
+
+    Passing a different value at execution than at preparation may silently give wrong results, without raising an error.
+
+# Example
+
+```jldoctest
+julia> using DifferentiationInterface
+
+julia> using ForwardDiff: ForwardDiff
+
+julia> f(x, c) = c * sum(abs2, x);
+
+julia> prep = prepare_gradient(f, AutoForwardDiff(), [1.0, 2.0], PrepTimeConstant(10));
+
+julia> gradient(f, prep, AutoForwardDiff(), [3.0, 4.0], PrepTimeConstant(10))
+2-element Vector{Float64}:
+ 60.0
+ 80.0
+```
+"""
+struct PrepTimeConstant{T} <: GeneralizedConstant
+    data::T
+end
+
+preptimeconstant_maker(c) = PrepTimeConstant(c)
+maker(::PrepTimeConstant) = preptimeconstant_maker
+adapt_eltype(c::PrepTimeConstant, ::Type) = c
+
+"""
+    AnyConstant
+
+Union of the public context types which are kept constant during differentiation, namely `Constant` and `PrepTimeConstant`.
+
+Useful for backend extensions which provide a fast path restricted to constant contexts.
+Unlike `GeneralizedConstant`, it does not include the internal `FunctionContext`.
+"""
+const AnyConstant = Union{Constant, PrepTimeConstant}
 
 """
     Cache

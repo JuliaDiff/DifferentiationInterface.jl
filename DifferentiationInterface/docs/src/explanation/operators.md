@@ -146,6 +146,7 @@ provided that the following conditions all hold:
 - `other_y` has the same type and size as `y`
 - `other_t` has the same type and size as `t`
 - all the elements of `other_contexts` have the same type and size as the corresponding elements of `contexts`
+- any element of `other_contexts` with type [`PrepTimeConstant`](@ref) is _equal_ to the corresponding element of `contexts`
 
 For same-point preparation, the same rules hold with two modifications:
 
@@ -153,6 +154,9 @@ For same-point preparation, the same rules hold with two modifications:
 - any element of `other_contexts` with type `Constant`, as well as any constant parts of `ConstantOrCache`, must be _equal_ to the corresponding element of `contexts`
 
 Therein lies the key difference between same-point and different-point preparation: in the latter, input and context values are allowed to differ.
+
+In other words, [`PrepTimeConstant`](@ref) is the context type for values which you promise not to change after preparation, in exchange for backends being allowed to specialize on them.
+Use [`Constant`](@ref) whenever the value may change between calls.
 
 !!! danger
 

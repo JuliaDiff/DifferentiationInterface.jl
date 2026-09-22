@@ -151,6 +151,29 @@ function DI.prepare_gradient_nokwarg(
     return ReverseDiffGradientPrep(_sig, config, nothing)
 end
 
+#=
+Tape recording bakes the context values in, which is forbidden for `Constant` (whose value may
+change after preparation) but explicitly allowed for `PrepTimeConstant`. So when every context is
+a `PrepTimeConstant`, we can record a tape of the partially applied function.
+=#
+function DI.prepare_gradient_nokwarg(
+        strict::Val,
+        f,
+        backend::AutoReverseDiff{compile},
+        x,
+        contexts::Vararg{DI.PrepTimeConstant, C},
+    ) where {compile, C}
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    if compile
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+        tape = ReverseDiff.compile(GradientTape(fc, x))
+        return ReverseDiffGradientPrep(_sig, nothing, tape)
+    else
+        config = GradientConfig(x)
+        return ReverseDiffGradientPrep(_sig, config, nothing)
+    end
+end
+
 function DI.value_and_gradient!(
         f,
         grad,
@@ -162,7 +185,11 @@ function DI.value_and_gradient!(
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     result = MutableDiffResult(zero(eltype(x)), (grad,))  # ReverseDiff#251
-    result = gradient!(result, fc, x, prep.config)
+    result = if isnothing(prep.tape)
+        gradient!(result, fc, x, prep.config)
+    else
+        gradient!(result, prep.tape, x)
+    end
     return DR.value(result), grad  # ReverseDiff#269
 end
 
@@ -177,7 +204,11 @@ function DI.value_and_gradient(
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     # GradientResult tries to mutate an SArray
     result = MutableDiffResult(zero(eltype(x)), (similar(x),))
-    result = gradient!(result, fc, x, prep.config)
+    result = if isnothing(prep.tape)
+        gradient!(result, fc, x, prep.config)
+    else
+        gradient!(result, prep.tape, x)
+    end
     return DR.value(result), DR.gradient(result)
 end
 
@@ -191,7 +222,11 @@ function DI.gradient!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    return gradient!(grad, fc, x, prep.config)
+    return if isnothing(prep.tape)
+        gradient!(grad, fc, x, prep.config)
+    else
+        gradient!(grad, prep.tape, x)
+    end
 end
 
 function DI.gradient(
@@ -203,7 +238,11 @@ function DI.gradient(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    return gradient(fc, x, prep.config)
+    return if isnothing(prep.tape)
+        gradient(fc, x, prep.config)
+    else
+        gradient!(prep.tape, x)
+    end
 end
 
 ## Jacobian
@@ -288,6 +327,25 @@ function DI.prepare_jacobian_nokwarg(
     return ReverseDiffOneArgJacobianPrep(_sig, config, nothing)
 end
 
+# see the comment on `prepare_gradient_nokwarg` above
+function DI.prepare_jacobian_nokwarg(
+        strict::Val,
+        f,
+        backend::AutoReverseDiff{compile},
+        x,
+        contexts::Vararg{DI.PrepTimeConstant, C},
+    ) where {compile, C}
+    _sig = DI.signature(f, backend, x, contexts...; strict)
+    if compile
+        fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
+        tape = ReverseDiff.compile(JacobianTape(fc, x))
+        return ReverseDiffOneArgJacobianPrep(_sig, nothing, tape)
+    else
+        config = JacobianConfig(x)
+        return ReverseDiffOneArgJacobianPrep(_sig, config, nothing)
+    end
+end
+
 function DI.value_and_jacobian!(
         f,
         jac,
@@ -300,7 +358,11 @@ function DI.value_and_jacobian!(
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
     y = fc(x)
     result = DiffResult(y, (jac,))
-    result = jacobian!(result, fc, x, prep.config)
+    result = if isnothing(prep.tape)
+        jacobian!(result, fc, x, prep.config)
+    else
+        jacobian!(result, prep.tape, x)
+    end
     y = DR.value(result)
     jac === DR.jacobian(result) || copyto!(jac, DR.jacobian(result))
     return y, jac
@@ -315,7 +377,11 @@ function DI.value_and_jacobian(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    return fc(x), jacobian(fc, x, prep.config)
+    return if isnothing(prep.tape)
+        fc(x), jacobian(fc, x, prep.config)
+    else
+        fc(x), jacobian!(prep.tape, x)
+    end
 end
 
 function DI.jacobian!(
@@ -328,7 +394,11 @@ function DI.jacobian!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    return jacobian!(jac, fc, x, prep.config)
+    return if isnothing(prep.tape)
+        jacobian!(jac, fc, x, prep.config)
+    else
+        jacobian!(jac, prep.tape, x)
+    end
 end
 
 function DI.jacobian(
@@ -340,7 +410,11 @@ function DI.jacobian(
     ) where {C}
     DI.check_prep(f, prep, backend, x, contexts...)
     fc = DI.fix_tail(f, map(DI.unwrap, contexts)...)
-    return jacobian(fc, x, prep.config)
+    return if isnothing(prep.tape)
+        jacobian(fc, x, prep.config)
+    else
+        jacobian!(prep.tape, x)
+    end
 end
 
 ## Hessian
