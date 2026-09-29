@@ -37,7 +37,7 @@ function DI.value_and_pushforward(
         y_and_dy = value_and_derivative!!(
             prep.cache,
             (f, prep.df),
-            (x, dx),
+            (x, input_tangent(x, dx, backend)),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
         y = first(y_and_dy)
