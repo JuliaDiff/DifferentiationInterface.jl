@@ -32,3 +32,33 @@ function zero_tangent_or_primal(x, backend::AnyAutoMooncake)
         return zero_tangent(x)
     end
 end
+
+# a copy of `x` with the same type and all its differentiable data set to zero
+# (`FriendlyTangentCache` and `AsPrimal` exist since Mooncake v0.5.25, the compat lower bound)
+function zero_primal(x)
+    cache = Mooncake.FriendlyTangentCache{Mooncake.AsPrimal}(_copy_output(x))
+    return Mooncake.tangent_to_friendly!!(cache, x, zero_tangent(x), IdDict{Any, Any}())
+end
+
+"""
+    input_tangent(x, dx, backend)
+
+Convert the tangent `dx` provided by DI for an input `x` into what Mooncake expects.
+
+DI builds tangents of an array `x` with `similar(x)`, which is an `Array` for many other array types (`SubArray`, `Transpose`, ...).
+Mooncake expects a tangent of type `tangent_type(typeof(x))`, or with friendly tangents an array of the same type as `x`.
+"""
+input_tangent(x, dx, ::AnyAutoMooncake) = dx
+
+function input_tangent(x::AbstractArray, dx::AbstractArray, backend::AnyAutoMooncake)
+    friendly = get_config(backend).friendly_tangents
+    if dx isa tangent_type(typeof(x)) || (friendly && dx isa typeof(x))
+        return dx
+    end
+    dx_like_x = copyto!(zero_primal(x), dx)
+    if friendly
+        return dx_like_x
+    else
+        return Mooncake.primal_to_tangent!!(zero_tangent(x), dx_like_x)
+    end
+end

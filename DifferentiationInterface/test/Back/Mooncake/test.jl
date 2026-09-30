@@ -91,6 +91,29 @@ test_differentiation(
     @test grad.B == ps.A
 end
 
+@testset "Forward mode with non-Array inputs" begin
+    f(x) = x .^ 2
+    f!(y, x) = (y .= x .^ 2; nothing)
+    inputs = [
+        view([1.0, 2.0, 3.0, 4.0], 2:4),
+        view([1.0 2.0; 3.0 4.0; 5.0 6.0], :, 2),
+        transpose([1.0 2.0; 3.0 4.0]),
+    ]
+    @testset "$(typeof(x)) with $backend" for x in inputs, backend in backends[[2, 4]]
+        dx = fill!(similar(x), 1.0)
+        jac = Diagonal(2 .* vec(x))
+        @test only(pushforward(f, backend, x, (dx,))) ≈ 2 .* x
+        @test jacobian(f, backend, x) ≈ jac
+        y = similar(x, size(x))
+        @test only(pushforward(f!, y, backend, x, (dx,))) ≈ 2 .* x
+        @test jacobian(f!, y, backend, x) ≈ jac
+        prep = prepare_pushforward(f!, y, backend, x, (dx,))
+        dy = similar(y)
+        pushforward!(f!, y, (dy,), prep, backend, x, (dx,))
+        @test dy ≈ 2 .* x
+    end
+end
+
 # see https://github.com/JuliaDiff/DifferentiationInterface.jl/issues/986
 if pkgversion(Mooncake) < v"0.5.25"
     test_differentiation(

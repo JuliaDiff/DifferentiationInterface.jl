@@ -52,7 +52,7 @@ function DI.value_and_pushforward(
             (call_and_return, prep.dcall),
             (f!, prep.df!),
             (y, prep.dy),
-            (x, dx),
+            (x, input_tangent(x, dx, backend)),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
         return _copy_output(new_dy)
@@ -90,7 +90,7 @@ function DI.value_and_pushforward!(
             (call_and_return, prep.dcall),
             (f!, prep.df!),
             (y, dy),
-            (x, dx),
+            (x, input_tangent(x, dx, backend)),
             map(first_unwrap, contexts, prep.context_tangents)...,
         )
         copyto!(dy, new_dy)

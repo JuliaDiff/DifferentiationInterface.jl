@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.21...main)
 
+### Fixed
+
+- Convert input tangents for non-`Array` inputs (e.g. `SubArray`, `Transpose`) in forward-mode Mooncake ([#1074](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1074))
+
 ## [0.7.21](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.20...v0.7.21)
 
 ### Changed
