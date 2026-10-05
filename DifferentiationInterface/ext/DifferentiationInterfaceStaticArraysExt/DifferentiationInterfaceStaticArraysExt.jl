@@ -29,15 +29,11 @@ end
 function DI.pick_batchsize(
         ::DI.AutoSimpleFiniteDiff{chunksize}, x::StaticArray
     ) where {chunksize}
-    N = length(x)
-    singlebatch, aligned = DI.batchsize_flags(chunksize, N)
-    return DI.BatchSizeSettings{chunksize, singlebatch, aligned}(N)
+    return DI.BatchSizeSettings(chunksize, length(x))
 end
 
 function DI.pick_batchsize(::AutoForwardDiff{chunksize}, x::StaticArray) where {chunksize}
-    N = length(x)
-    singlebatch, aligned = DI.batchsize_flags(chunksize, N)
-    return DI.BatchSizeSettings{chunksize, singlebatch, aligned}(N)
+    return DI.BatchSizeSettings(chunksize, length(x))
 end
 
 end

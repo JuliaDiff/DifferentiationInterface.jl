@@ -33,7 +33,6 @@ end
     @test BSS(4, 8) === BSS{4, false, true}(8, 2, 0)
     @test BSS(8, 13) === BSS{8, false, false}(13, 2, 5)
     @test_throws ArgumentError BSS(3, 2)
-    @test Core.Compiler.is_foldable(Base.infer_effects(DI.batchsize_flags, (Int, Int)))
 end
 
 @testset "SimpleFiniteDiff (adaptive)" begin
