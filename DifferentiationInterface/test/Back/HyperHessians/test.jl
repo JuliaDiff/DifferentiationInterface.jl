@@ -24,6 +24,15 @@ for backend in backends
     test_counterparts(backend)
 end
 
+@testset "Batch size" begin
+    @test DI.pick_batchsize(DI.AutoHyperHessians(), rand(10)) isa DI.BatchSizeSettings
+    @test DI.pick_batchsize(DI.AutoHyperHessians(), 10) isa DI.BatchSizeSettings
+    @test DI.pick_batchsize(DI.AutoHyperHessians(; chunksize = 4), rand(10)) isa
+        DI.BatchSizeSettings{4}
+    @test DI.pick_batchsize(DI.AutoHyperHessians(; chunksize = 4), 10) isa
+        DI.BatchSizeSettings{4}
+end
+
 scenarios = default_scenarios(; include_constantified = true, include_cachified = true)
 
 test_differentiation(
