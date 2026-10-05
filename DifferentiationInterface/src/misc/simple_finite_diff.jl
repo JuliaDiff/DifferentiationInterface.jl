@@ -22,11 +22,11 @@ inner_preparation_behavior(::AutoSimpleFiniteDiff) = PrepareInnerSimple()
 
 function pick_batchsize(::AutoSimpleFiniteDiff{nothing}, N::Integer)
     B = reasonable_batchsize(N, 12)
-    return BatchSizeSettings{B}(N)
+    return BatchSizeSettings(B, N)
 end
 
 function pick_batchsize(::AutoSimpleFiniteDiff{chunksize}, N::Integer) where {chunksize}
-    return BatchSizeSettings{chunksize}(N)
+    return BatchSizeSettings(chunksize, N)
 end
 
 function threshold_batchsize(
