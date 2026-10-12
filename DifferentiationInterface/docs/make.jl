@@ -10,7 +10,7 @@ using Zygote: Zygote
 
 links = InterLinks(
     "ADTypes" => "https://sciml.github.io/ADTypes.jl/stable/",
-    "SparseConnectivityTracer" => "https://adrianhill.de/SparseConnectivityTracer.jl/stable/",
+    "SparseConnectivityTracer" => "https://juliadiff.org/SparseConnectivityTracer.jl/stable/",
     "SparseMatrixColorings" => "https://juliadiff.org/SparseMatrixColorings.jl/stable/",
     "Symbolics" => "https://symbolics.juliasymbolics.org/stable/",
 )
@@ -44,11 +44,7 @@ makedocs(;
             "explanation/advanced.md",
         ],
         "FAQ" => ["faq/limitations.md", "faq/differentiability.md"],
-        "Development" => [
-            "dev/internals.md",
-            "dev/math.md",
-            "dev/contributing.md",
-        ],
+        "Development" => ["dev/internals.md", "dev/math.md", "dev/contributing.md"],
     ],
     plugins = [links],
 )
