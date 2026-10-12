@@ -1,4 +1,5 @@
 using DifferentiationInterface, DifferentiationInterfaceTest
+import DifferentiationInterfaceTest as DIT
 using DifferentiationInterface:
     AutoSimpleFiniteDiff,
     AutoForwardFromPrimitive,
@@ -166,6 +167,15 @@ end
             AutoReverseFromPrimitive(AutoSimpleFiniteDiff()),
         ],
         vcat(static_scenarios(), gpu_scenarios());
+        logging = LOGGING,
+    )
+    # multiple batches
+    test_differentiation(
+        [
+            AutoSimpleFiniteDiff(; chunksize = 2),
+            AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 2)),
+        ],
+        filter(s -> DIT.operator(s) in (:jacobian, :hessian), static_scenarios());
         logging = LOGGING,
     )
 end;
