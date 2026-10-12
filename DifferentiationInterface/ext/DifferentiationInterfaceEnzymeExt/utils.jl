@@ -10,7 +10,7 @@ const AnyDuplicated = Union{
 # until https://github.com/EnzymeAD/Enzyme.jl/pull/1545 is merged
 function DI.pick_batchsize(::AutoEnzyme, N::Integer)
     B = DI.reasonable_batchsize(N, 16)
-    return DI.BatchSizeSettings{B}(N)
+    return DI.BatchSizeSettings(B, N)
 end
 
 to_val(::DI.BatchSizeSettings{B}) where {B} = Val(B)

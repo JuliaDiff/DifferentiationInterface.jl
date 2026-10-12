@@ -29,12 +29,12 @@ chunk_from_backend(::DI.AutoHyperHessians{CS}, ::Integer, ::Type) where {CS} = C
 
 function DI.pick_batchsize(backend::DI.AutoHyperHessians, x::AbstractArray)
     B = chunksize(chunk_from_backend(backend, x))
-    return DI.BatchSizeSettings{B}(length(x))
+    return DI.BatchSizeSettings(B, length(x))
 end
 
 function DI.pick_batchsize(backend::DI.AutoHyperHessians, N::Integer)
     B = chunksize(chunk_from_backend(backend, N, Float64))
-    return DI.BatchSizeSettings{B}(N)
+    return DI.BatchSizeSettings(B, N)
 end
 
 function DI.threshold_batchsize(backend::DI.AutoHyperHessians{nothing}, ::Integer)

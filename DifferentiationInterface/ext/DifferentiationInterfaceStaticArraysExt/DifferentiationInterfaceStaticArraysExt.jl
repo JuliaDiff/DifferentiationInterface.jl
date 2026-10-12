@@ -29,11 +29,11 @@ end
 function DI.pick_batchsize(
         ::DI.AutoSimpleFiniteDiff{chunksize}, x::StaticArray
     ) where {chunksize}
-    return DI.BatchSizeSettings{chunksize}(Val(length(x)))
+    return DI.BatchSizeSettings(chunksize, length(x))
 end
 
 function DI.pick_batchsize(::AutoForwardDiff{chunksize}, x::StaticArray) where {chunksize}
-    return DI.BatchSizeSettings{chunksize}(Val(length(x)))
+    return DI.BatchSizeSettings(chunksize, length(x))
 end
 
 end

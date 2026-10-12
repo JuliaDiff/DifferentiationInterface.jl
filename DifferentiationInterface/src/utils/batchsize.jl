@@ -32,14 +32,8 @@ function BatchSizeSettings{B, singlebatch, aligned}(N::Integer) where {B, single
     return BatchSizeSettings{B, singlebatch, aligned}(N, A, B_last)
 end
 
-function BatchSizeSettings{B}(::Val{N}) where {B, N}
-    singlebatch = B == N
-    aligned = (B == N == 0) || (N % B == 0)
-    return BatchSizeSettings{B, singlebatch, aligned}(N)
-end
-
-function BatchSizeSettings{B}(N::Integer) where {B}
-    # type-unstable
+function BatchSizeSettings(B::Int, N::Int)
+    # type-unstable, unless `B` and `N` are constant-propagated
     singlebatch = B == N
     aligned = (B == N == 0) || (N % B == 0)
     return BatchSizeSettings{B, singlebatch, aligned}(N)

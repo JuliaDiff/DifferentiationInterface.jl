@@ -1,10 +1,10 @@
 function DI.pick_batchsize(::AutoForwardDiff{nothing}, N::Integer)
     chunksize = pickchunksize(N)
-    return DI.BatchSizeSettings{chunksize}(N)
+    return DI.BatchSizeSettings(chunksize, N)
 end
 
 function DI.pick_batchsize(::AutoForwardDiff{chunksize}, N::Integer) where {chunksize}
-    return DI.BatchSizeSettings{chunksize}(N)
+    return DI.BatchSizeSettings(chunksize, N)
 end
 
 function DI.threshold_batchsize(

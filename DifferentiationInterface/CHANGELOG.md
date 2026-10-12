@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.21...main)
 
+### Fixed
+
+- Speed up `pick_batchsize` when the batch size is only known at run time ([#1076](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1076))
+
 ## [0.7.21](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.20...v0.7.21)
 
 ### Changed
