@@ -120,9 +120,10 @@ Same-point preparation runs the forward sweep and returns the pullback closure.
 
 We only implement `pushforward`.
 
-!!! danger
+!!! warning
 
-    The latest releases of Diffractor [broke DifferentiationInterface](https://github.com/JuliaDiff/Diffractor.jl/issues/290).
+    The latest release of Diffractor (v0.2.10) cannot be loaded on Julia 1.12 and above, so this backend only works on Julia 1.10 and 1.11.
+    To make broadcasting work, our extension has to patch [a Diffractor bug](https://github.com/JuliaDiff/Diffractor.jl/issues/290) with a bit of type piracy.
 
 ### Enzyme
 

@@ -29,7 +29,7 @@ This package provides a unified syntax to differentiate functions, including:
 We support the following backends defined by [ADTypes.jl](https://github.com/SciML/ADTypes.jl):
 
 - [ChainRulesCore.jl](https://github.com/JuliaDiff/ChainRulesCore.jl)
-- [Diffractor.jl](https://github.com/JuliaDiff/Diffractor.jl) (currently broken)
+- [Diffractor.jl](https://github.com/JuliaDiff/Diffractor.jl) (only on Julia 1.10 and 1.11)
 - [Enzyme.jl](https://github.com/EnzymeAD/Enzyme.jl) (see below)
 - [FastDifferentiation.jl](https://github.com/brianguenter/FastDifferentiation.jl)
 - [FiniteDiff.jl](https://github.com/JuliaDiff/FiniteDiff.jl)

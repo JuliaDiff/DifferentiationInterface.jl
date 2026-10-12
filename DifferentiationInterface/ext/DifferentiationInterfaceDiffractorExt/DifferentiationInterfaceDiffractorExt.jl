@@ -2,7 +2,16 @@ module DifferentiationInterfaceDiffractorExt
 
 using ADTypes: ADTypes, AutoDiffractor
 import DifferentiationInterface as DI
-using Diffractor: DiffractorRuleConfig, TaylorTangentIndex, ZeroBundle, bundle, ∂☆
+using Diffractor:
+    Diffractor, AbstractTangentBundle, FwdMap, TaylorTangentIndex, ZeroBundle, bundle, ∂☆
+
+#=
+Workaround for https://github.com/JuliaDiff/Diffractor.jl/issues/290 (type piracy).
+The forward broadcast rule of Diffractor v0.2.7 to v0.2.10 calls `FwdMap{E}(f)` instead of `FwdMap{N,E}(f)`, which has no method.
+=#
+function Diffractor.FwdMap{E}(f::T) where {E, N, T <: AbstractTangentBundle{N}}
+    return FwdMap{N, E, T}(f)
+end
 
 DI.check_available(::AutoDiffractor) = true
 DI.inplace_support(::AutoDiffractor) = DI.InPlaceNotSupported()

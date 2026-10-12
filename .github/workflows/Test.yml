@@ -91,7 +91,7 @@ jobs:
         group:
           - ChainRules
           - DifferentiateWith
-          # - Diffractor
+          - Diffractor
           - Enzyme
           - FastDifferentiation
           - FiniteDiff
@@ -111,6 +111,10 @@ jobs:
         exclude:
           - skip_past: true
             version: '1.10'
+          - version: '1.12'
+            group: Diffractor
+          - version: '1.13'
+            group: Diffractor
     env:
       JULIA_DI_TEST_TYPE: 'Back'
       JULIA_DI_TEST_GROUP: ${{ matrix.group }}

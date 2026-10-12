@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Speed up `pick_batchsize` when the batch size is only known at run time ([#1076](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1076))
+- Restore Diffractor support on Julia 1.10 and 1.11 by working around a broadcasting bug ([#1079](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1079))
 
 ## [0.7.21](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.20...v0.7.21)
 
