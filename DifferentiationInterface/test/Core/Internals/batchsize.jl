@@ -74,6 +74,27 @@ end
     ) isa BSS{4, false, true}
 end
 
+@testset "Static arrays" begin
+    # the batch size must be deduced from the type, for any static array shape
+    for x in (@SVector(zeros(6)), @SMatrix(zeros(2, 3)), @MVector(zeros(6)))
+        @test (@inferred pick_batchsize(AutoSimpleFiniteDiff(), x)) isa BSS{6, true, true}
+        @test (@inferred pick_batchsize(AutoSimpleFiniteDiff(; chunksize = 4), x)) isa
+            BSS{4, false, false}
+        @test (@inferred pick_batchsize(AutoEnzyme(), x)) isa BSS{6, true, true}
+        @test (@inferred prepare_jacobian(identity, AutoSimpleFiniteDiff(), x)) isa
+            DI.PushforwardJacobianPrep{<:Any, BSS{6, true, true}}
+        @test (
+            @inferred prepare_jacobian(identity, AutoSimpleFiniteDiff(; chunksize = 4), x)
+        ) isa DI.PushforwardJacobianPrep{<:Any, BSS{4, false, false}}
+        @test (@inferred jacobian(identity, AutoSimpleFiniteDiff(), x)) isa StaticMatrix
+        # multiple batches are assembled with `mapreduce(hcat, ...)`, which changes the
+        # static size at every step
+        @test_broken (
+            @inferred jacobian(identity, AutoSimpleFiniteDiff(; chunksize = 4), x)
+        ) isa StaticMatrix
+    end
+end
+
 @testset "Thresholding" begin
     @test threshold_batchsize(AutoSimpleFiniteDiff(), 2) isa AutoSimpleFiniteDiff{nothing}
     @test threshold_batchsize(AutoSimpleFiniteDiff(; chunksize = 4), 2) isa
