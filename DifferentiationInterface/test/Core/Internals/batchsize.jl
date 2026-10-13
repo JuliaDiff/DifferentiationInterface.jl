@@ -87,12 +87,27 @@ end
             @inferred prepare_jacobian(identity, AutoSimpleFiniteDiff(; chunksize = 4), x)
         ) isa DI.PushforwardJacobianPrep{<:Any, BSS{4, false, false}}
         @test (@inferred jacobian(identity, AutoSimpleFiniteDiff(), x)) isa StaticMatrix
-        # multiple batches are assembled with `mapreduce(hcat, ...)`, which changes the
-        # static size at every step
-        @test_broken (
-            @inferred jacobian(identity, AutoSimpleFiniteDiff(; chunksize = 4), x)
-        ) isa StaticMatrix
     end
+
+    # multiple batches must be concatenated without losing static sizes
+    f(x) = vcat(vec(x), vec(x) .^ 2)  # non-square Jacobian
+    for x in (@SVector(rand(6)), @SMatrix(rand(2, 3)), @MVector(rand(6)))
+        J_ref = jacobian(f, AutoSimpleFiniteDiff(), Array(x))
+        @testset "Pushforward, chunksize $chunksize" for chunksize in (3, 4)  # aligned, unaligned
+            J = @inferred jacobian(f, AutoSimpleFiniteDiff(; chunksize), x)
+            @test J isa StaticMatrix
+            @test J ≈ J_ref
+        end
+        @testset "Pullback, chunksize $chunksize" for chunksize in (4, 5)  # aligned, unaligned
+            backend = DI.AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize))
+            J = jacobian(f, backend, x)
+            @test J isa StaticMatrix
+            @test J ≈ J_ref
+        end
+    end
+    @test_throws ArgumentError("Cannot concatenate zero batches") jacobian(
+        identity, AutoSimpleFiniteDiff(; chunksize = 2), @SVector(zeros(0))
+    )
 end
 
 @testset "Thresholding" begin
