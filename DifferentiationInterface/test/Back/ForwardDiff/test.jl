@@ -6,7 +6,7 @@ using DifferentiationInterface, DifferentiationInterfaceTest
 import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using ForwardDiff: ForwardDiff
-using StaticArrays: StaticArrays, @SVector
+using StaticArrays: StaticArrays, @MVector, @SMatrix, @SVector, StaticMatrix
 using JLArrays: JLArrays
 using Test
 import JET, Chairmarks
@@ -93,6 +93,20 @@ end
                 AutoForwardDiff(; chunksize = 5), @SVector(rand(7))
             )
         ) isa DI.BatchSizeSettings{5}
+    end
+
+    @testset "Static Hessian with multiple batches" begin
+        f(x) = sum(abs2, x) * sum(x)  # non-diagonal Hessian
+        for x in (@SVector(rand(6)), @SMatrix(rand(2, 3)), @MVector(rand(6)))
+            H_ref = hessian(f, AutoForwardDiff(), Array(x))
+            # B = 1 and unaligned use different methods
+            @testset "Chunksize $chunksize" for chunksize in (1, 3, 4)
+                backend = SecondOrder(DI.AutoSimpleFiniteDiff(; chunksize), AutoForwardDiff())
+                H = @inferred hessian(f, backend, x)
+                @test H isa StaticMatrix
+                @test H ≈ H_ref rtol = 1.0e-5
+            end
+        end
     end
 end
 

@@ -2,6 +2,38 @@ stack_vec_col(t::NTuple) = stack(vec, t; dims = 2)
 stack_vec_row(t::NTuple) = stack(vec, t; dims = 1)
 
 """
+    stack_batches_col(blocks, batch_size_settings, seed_example)
+    stack_batches_row(blocks, batch_size_settings, seed_example)
+
+Concatenate the blocks computed from all batches along columns (resp. rows), and drop the trailing entries of the last batch if it was padded by wrapping around the seeds.
+
+The `seed_example` is only used for dispatch, e.g. to deduce the number of seeds statically.
+
+Unlike `mapreduce(hcat, ...)`, `reduce(hcat, ...)` allocates the result only once.
+"""
+function stack_batches_col(
+        blocks::AbstractVector, batch_size_settings::BatchSizeSettings{B, singlebatch, aligned}, _
+    ) where {B, singlebatch, aligned}
+    M = reduce(hcat, blocks)
+    if aligned
+        return M
+    else
+        return M[:, 1:(batch_size_settings.N)]
+    end
+end
+
+function stack_batches_row(
+        blocks::AbstractVector, batch_size_settings::BatchSizeSettings{B, singlebatch, aligned}, _
+    ) where {B, singlebatch, aligned}
+    M = reduce(vcat, blocks)
+    if aligned
+        return M
+    else
+        return M[1:(batch_size_settings.N), :]
+    end
+end
+
+"""
     ismutable_array(x)
 
 Check whether `x` is a mutable array and return a `Bool`.

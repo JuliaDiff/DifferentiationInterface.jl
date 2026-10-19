@@ -159,44 +159,38 @@ function hessian(
         contexts::Vararg{Context, C},
     ) where {F, SIG, C}
     check_prep(f, prep, backend, x, contexts...)
-    (; batched_seeds, seed_example, hvp_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, hvp_prep) = prep
 
     hvp_prep_same = prepare_hvp_same_point(
         f, hvp_prep, backend, x, seed_example, contexts...
     )
 
-    hess = mapreduce(hcat, eachindex(batched_seeds)) do a
+    blocks = map(eachindex(batched_seeds)) do a
         dg = only(hvp(f, hvp_prep_same, backend, x, batched_seeds[a], contexts...))
         return vec(dg)
     end
-    return hess
+    return stack_batches_col(blocks, batch_size_settings, seed_example)
 end
 
 function hessian(
         f::F,
-        prep::HVPGradientHessianPrep{SIG, <:BatchSizeSettings{B, false, aligned}},
+        prep::HVPGradientHessianPrep{SIG, <:BatchSizeSettings{B, false}},
         backend::AbstractADType,
         x,
         contexts::Vararg{Context, C},
-    ) where {F, SIG, B, aligned, C}
+    ) where {F, SIG, B, C}
     check_prep(f, prep, backend, x, contexts...)
     (; batch_size_settings, batched_seeds, seed_example, hvp_prep) = prep
-    (; A, B_last) = batch_size_settings
 
     hvp_prep_same = prepare_hvp_same_point(
         f, hvp_prep, backend, x, seed_example, contexts...
     )
 
-    hess = mapreduce(hcat, eachindex(batched_seeds)) do a
+    blocks = map(eachindex(batched_seeds)) do a
         dg_batch = hvp(f, hvp_prep_same, backend, x, batched_seeds[a], contexts...)
-        block = stack_vec_col(dg_batch)
-        if !aligned && a == A
-            return block[:, 1:B_last]
-        else
-            return block
-        end
+        return stack_vec_col(dg_batch)
     end
-    return hess
+    return stack_batches_col(blocks, batch_size_settings, seed_example)
 end
 
 function hessian!(
