@@ -26,12 +26,12 @@ BSS = BatchSizeSettings
 end
 
 @testset "Constructor" begin
-    @test BSS(1, 0) === BSS{1, false, true}(0, 0, 0)
-    @test BSS(0, 0) === BSS{0, true, true}(0, 0, 0)
-    @test BSS(1, 1) === BSS{1, true, true}(1, 1, 0)
-    @test BSS(2, 2) === BSS{2, true, true}(2, 1, 0)
-    @test BSS(4, 8) === BSS{4, false, true}(8, 2, 0)
-    @test BSS(8, 13) === BSS{8, false, false}(13, 2, 5)
+    @test BSS(1, 0) === BSS{1, false, true}(0, 0)
+    @test BSS(0, 0) === BSS{0, true, true}(0, 0)
+    @test BSS(1, 1) === BSS{1, true, true}(1, 1)
+    @test BSS(2, 2) === BSS{2, true, true}(2, 1)
+    @test BSS(4, 8) === BSS{4, false, true}(8, 2)
+    @test BSS(8, 13) === BSS{8, false, false}(13, 2)
     @test_throws ArgumentError BSS(3, 2)
 end
 
@@ -93,12 +93,13 @@ end
     f(x) = vcat(vec(x), vec(x) .^ 2)  # non-square Jacobian
     for x in (@SVector(rand(6)), @SMatrix(rand(2, 3)), @MVector(rand(6)))
         J_ref = jacobian(f, AutoSimpleFiniteDiff(), Array(x))
-        @testset "Pushforward, chunksize $chunksize" for chunksize in (3, 4)  # aligned, unaligned
+        # B = 1, aligned, unaligned use different methods
+        @testset "Pushforward, chunksize $chunksize" for chunksize in (1, 3, 4)
             J = @inferred jacobian(f, AutoSimpleFiniteDiff(; chunksize), x)
             @test J isa StaticMatrix
             @test J ≈ J_ref
         end
-        @testset "Pullback, chunksize $chunksize" for chunksize in (4, 5)  # aligned, unaligned
+        @testset "Pullback, chunksize $chunksize" for chunksize in (1, 4, 5)
             backend = DI.AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize))
             J = jacobian(f, backend, x)
             @test J isa StaticMatrix

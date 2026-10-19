@@ -373,13 +373,13 @@ function _jacobian_aux(
         x,
         contexts::Vararg{Context, C},
     ) where {FY, SIG, C}
-    (; batched_seeds, seed_example, pushforward_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, pushforward_prep) = prep
 
     pushforward_prep_same = prepare_pushforward_same_point(
         f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
     )
 
-    jac = stack(eachindex(batched_seeds); dims = 2) do a
+    blocks = map(eachindex(batched_seeds)) do a
         dy = only(
             pushforward(
                 f_or_f!y...,
@@ -392,7 +392,7 @@ function _jacobian_aux(
         )
         return vec(dy)
     end
-    return jac
+    return stack_batches_col(blocks, batch_size_settings, seed_example)
 end
 
 function _jacobian_aux(
@@ -446,25 +446,26 @@ function _jacobian_aux(
         x,
         contexts::Vararg{Context, C},
     ) where {FY, SIG, C}
-    (; batched_seeds, seed_example, pullback_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, pullback_prep) = prep
 
     pullback_prep_same = prepare_pullback_same_point(
         f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
     )
 
-    jac = stack(eachindex(batched_seeds); dims = 1) do a
+    blocks = map(eachindex(batched_seeds)) do a
         dx = only(
             pullback(
                 f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
             )
         )
+        # each block is a row of the Jacobian
         if eltype(x) <: Complex
-            return map(conj, vec(dx))
+            return transpose(map(conj, vec(dx)))
         else
-            return vec(dx)
+            return transpose(vec(dx))
         end
     end
-    return jac
+    return stack_batches_row(blocks, batch_size_settings, seed_example)
 end
 
 function _jacobian_aux(

@@ -2,7 +2,8 @@ module DifferentiationInterfaceStaticArraysExt
 
 using ADTypes: AutoForwardDiff, AutoEnzyme
 import DifferentiationInterface as DI
-using StaticArrays: SArray, SOneTo, StaticArray
+using LinearAlgebra: Transpose
+using StaticArrays: SArray, SOneTo, StaticArray, StaticVector
 
 function DI.stack_vec_col(t::NTuple{B, <:StaticArray}) where {B}
     return hcat(map(vec, t)...)
@@ -30,17 +31,26 @@ function DI.stack_batches_col(
     ) where {B, singlebatch, aligned, T <: StaticArray}
     N, A = static_batch_count(T, B)
     M = hcat(ntuple(a -> blocks[a], Val(A))...)
-    return aligned ? M : M[:, SOneTo(N)]
+    if aligned
+        return M
+    else
+        return M[:, SOneTo(N)]
+    end
 end
 
+# rows are either blocks of a batch or transposed vectors for batch size one
 function DI.stack_batches_row(
-        blocks::AbstractVector{<:StaticArray},
+        blocks::AbstractVector{<:Union{StaticArray, Transpose{<:Any, <:StaticVector}}},
         ::DI.BatchSizeSettings{B, singlebatch, aligned},
         ::NTuple{B, T},
     ) where {B, singlebatch, aligned, T <: StaticArray}
     N, A = static_batch_count(T, B)
     M = vcat(ntuple(a -> blocks[a], Val(A))...)
-    return aligned ? M : M[SOneTo(N), :]
+    if aligned
+        return M
+    else
+        return M[SOneTo(N), :]
+    end
 end
 
 DI.ismutable_array(::Type{<:SArray}) = false

@@ -15,14 +15,22 @@ function stack_batches_col(
         blocks::AbstractVector, batch_size_settings::BatchSizeSettings{B, singlebatch, aligned}, _
     ) where {B, singlebatch, aligned}
     M = reduce(hcat, blocks)
-    return aligned ? M : M[:, 1:(batch_size_settings.N)]
+    if aligned
+        return M
+    else
+        return M[:, 1:(batch_size_settings.N)]
+    end
 end
 
 function stack_batches_row(
         blocks::AbstractVector, batch_size_settings::BatchSizeSettings{B, singlebatch, aligned}, _
     ) where {B, singlebatch, aligned}
     M = reduce(vcat, blocks)
-    return aligned ? M : M[1:(batch_size_settings.N), :]
+    if aligned
+        return M
+    else
+        return M[1:(batch_size_settings.N), :]
+    end
 end
 
 """
