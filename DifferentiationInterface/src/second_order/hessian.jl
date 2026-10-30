@@ -165,11 +165,10 @@ function hessian(
         f, hvp_prep, backend, x, seed_example, contexts...
     )
 
-    blocks = map(eachindex(batched_seeds)) do a
+    return stack_batches_col(batch_size_settings, seed_example) do a
         dg = only(hvp(f, hvp_prep_same, backend, x, batched_seeds[a], contexts...))
-        return vec(dg)
+        return vec_block(dg)
     end
-    return stack_batches_col(blocks, batch_size_settings, seed_example)
 end
 
 function hessian(
@@ -186,11 +185,10 @@ function hessian(
         f, hvp_prep, backend, x, seed_example, contexts...
     )
 
-    blocks = map(eachindex(batched_seeds)) do a
+    return stack_batches_col(batch_size_settings, seed_example) do a
         dg_batch = hvp(f, hvp_prep_same, backend, x, batched_seeds[a], contexts...)
         return stack_vec_col(dg_batch)
     end
-    return stack_batches_col(blocks, batch_size_settings, seed_example)
 end
 
 function hessian!(

@@ -7,6 +7,7 @@ using DifferentiationInterface:
     DenseSparsityDetector
 using SparseMatrixColorings
 using JLArrays, StaticArrays
+using JET: JET
 using Test
 
 backends = [ #
@@ -170,14 +171,44 @@ end
         logging = LOGGING,
     )
     # multiple batches
-    test_differentiation(
-        [
-            AutoSimpleFiniteDiff(; chunksize = 2),
-            AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 2)),
-        ],
-        filter(s -> DIT.operator(s) in (:jacobian, :hessian), static_scenarios());
-        logging = LOGGING,
+    forward_backend = AutoSimpleFiniteDiff(; chunksize = 2)
+    reverse_backend = AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize = 2))
+    multibatch_scenarios = filter(
+        s -> DIT.operator(s) in (:jacobian, :hessian), static_scenarios()
     )
+    test_differentiation(
+        [forward_backend, reverse_backend], multibatch_scenarios; logging = LOGGING
+    )
+
+    # JET < 0.12 does not define `JET_AVAILABLE`
+    if !isdefined(JET, :JET_AVAILABLE) || JET.JET_AVAILABLE
+        inplace_hessian(s) = DIT.operator(s) == :hessian && DIT.operator_place(s) == :in
+        test_differentiation(
+            forward_backend,
+            multibatch_scenarios;
+            correctness = false,
+            type_stability = :prepared,
+            logging = LOGGING,
+        )
+        test_differentiation(
+            reverse_backend,
+            filter(!inplace_hessian, multibatch_scenarios);
+            correctness = false,
+            type_stability = :prepared,
+            logging = LOGGING,
+        )
+        @testset "Type stability (broken)" for scen in filter(inplace_hessian, multibatch_scenarios)
+            # the inner pullback-based gradient fails to infer in `hessian!`
+            (; f, x, res1, res2, prep_args) = deepcopy(scen)
+            prep = prepare_hessian(f, reverse_backend, prep_args.x)
+            JET.@test_opt broken = true hessian!(
+                f, DIT.mysimilar(res2), prep, reverse_backend, x
+            )
+            JET.@test_opt broken = true value_gradient_and_hessian!(
+                f, DIT.mysimilar(res1), DIT.mysimilar(res2), prep, reverse_backend, x
+            )
+        end
+    end
 end;
 
 @testset "Array format preservation in wrong mode" begin

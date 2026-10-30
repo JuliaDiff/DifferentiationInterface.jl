@@ -379,7 +379,7 @@ function _jacobian_aux(
         f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
     )
 
-    blocks = map(eachindex(batched_seeds)) do a
+    return stack_batches_col(batch_size_settings, seed_example) do a
         dy = only(
             pushforward(
                 f_or_f!y...,
@@ -390,9 +390,8 @@ function _jacobian_aux(
                 contexts...,
             )
         )
-        return vec(dy)
+        return vec_block(dy)
     end
-    return stack_batches_col(blocks, batch_size_settings, seed_example)
 end
 
 function _jacobian_aux(
@@ -408,7 +407,7 @@ function _jacobian_aux(
         f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
     )
 
-    blocks = map(eachindex(batched_seeds)) do a
+    return stack_batches_col(batch_size_settings, seed_example) do a
         dy_batch = pushforward(
             f_or_f!y...,
             pushforward_prep_same,
@@ -419,7 +418,6 @@ function _jacobian_aux(
         )
         return stack_vec_col(dy_batch)
     end
-    return stack_batches_col(blocks, batch_size_settings, seed_example)
 end
 
 function _jacobian_aux(
@@ -452,7 +450,7 @@ function _jacobian_aux(
         f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
     )
 
-    blocks = map(eachindex(batched_seeds)) do a
+    return stack_batches_row(batch_size_settings, seed_example) do a
         dx = only(
             pullback(
                 f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
@@ -460,12 +458,11 @@ function _jacobian_aux(
         )
         # each block is a row of the Jacobian
         if eltype(x) <: Complex
-            return transpose(map(conj, vec(dx)))
+            return transpose(map(conj, vec_block(dx)))
         else
-            return transpose(vec(dx))
+            return transpose(vec_block(dx))
         end
     end
-    return stack_batches_row(blocks, batch_size_settings, seed_example)
 end
 
 function _jacobian_aux(
@@ -481,7 +478,7 @@ function _jacobian_aux(
         f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
     )
 
-    blocks = map(eachindex(batched_seeds)) do a
+    return stack_batches_row(batch_size_settings, seed_example) do a
         dx_batch = pullback(
             f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
         )
@@ -490,7 +487,6 @@ function _jacobian_aux(
         end
         return stack_vec_row(dx_batch)
     end
-    return stack_batches_row(blocks, batch_size_settings, seed_example)
 end
 
 function _jacobian_aux!(

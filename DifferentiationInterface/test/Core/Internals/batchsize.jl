@@ -7,6 +7,7 @@ using DifferentiationInterface:
     reasonable_batchsize,
     threshold_batchsize
 import DifferentiationInterface as DI
+using LinearAlgebra: I
 using StaticArrays
 using Test
 
@@ -89,21 +90,64 @@ end
         @test (@inferred jacobian(identity, AutoSimpleFiniteDiff(), x)) isa StaticMatrix
     end
 
-    # multiple batches must be concatenated without losing static sizes
+    # multiple batches must be concatenated without losing static sizes or inference
     f(x) = vcat(vec(x), vec(x) .^ 2)  # non-square Jacobian
-    for x in (@SVector(rand(6)), @SMatrix(rand(2, 3)), @MVector(rand(6)))
+    function f!(y, x)
+        y[1:length(x)] .= vec(x)
+        y[(length(x) + 1):end] .= vec(x) .^ 2
+        return nothing
+    end
+    g(x) = sum(abs2, x) * sum(x)  # non-diagonal Hessian
+    has_type(J, x) = x isa StaticArray ? J isa Union{SArray, MArray} : J isa Matrix
+    # without preparation, the batch size is only inferred for static arrays
+    function inferred_jacobian(f_or_f!y, backend, x)
+        x isa StaticArray && @inferred jacobian(f_or_f!y..., backend, x)
+        prep = prepare_jacobian(f_or_f!y..., backend, x)
+        return @inferred jacobian(f_or_f!y..., prep, backend, x)
+    end
+    function inferred_hessian(f, backend, x)
+        x isa StaticArray && @inferred hessian(f, backend, x)
+        prep = prepare_hessian(f, backend, x)
+        return @inferred hessian(f, prep, backend, x)
+    end
+    @testset "$(typeof(x))" for x in (
+            @SVector(rand(6)),
+            @SMatrix(rand(2, 3)),
+            @MVector(rand(6)),
+            rand(6),
+            @SVector(rand(ComplexF64, 6)),
+        )
+        y = x isa StaticArray ? MVector{12, eltype(x)}(undef) : similar(x, 12)
         J_ref = jacobian(f, AutoSimpleFiniteDiff(), Array(x))
-        # B = 1, aligned, unaligned use different methods
-        @testset "Pushforward, chunksize $chunksize" for chunksize in (1, 3, 4)
-            J = @inferred jacobian(f, AutoSimpleFiniteDiff(; chunksize), x)
-            @test J isa StaticMatrix
+        # B = 1, aligned, unaligned and single batch use different methods
+        @testset "Pushforward, chunksize $chunksize" for chunksize in (1, 3, 4, 6)
+            backend = AutoSimpleFiniteDiff(; chunksize)
+            J = inferred_jacobian((f,), backend, x)
+            @test has_type(J, x)
+            @test J ≈ J_ref
+            J = inferred_jacobian((f!, y), backend, x)
+            @test has_type(J, x)
             @test J ≈ J_ref
         end
-        @testset "Pullback, chunksize $chunksize" for chunksize in (1, 4, 5)
+        @testset "Pullback, chunksize $chunksize" for chunksize in (1, 4, 5, 12)
             backend = DI.AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize))
-            J = jacobian(f, backend, x)
-            @test J isa StaticMatrix
+            J = inferred_jacobian((f,), backend, x)
+            @test has_type(J, x)
             @test J ≈ J_ref
+            J = inferred_jacobian((f!, y), backend, x)
+            @test has_type(J, x)
+            @test J ≈ J_ref
+        end
+        if eltype(x) <: Real
+            H_ref = 2 * (sum(x) * I + (vec(x) .+ vec(x)'))
+            @testset "Hessian, chunksize $chunksize" for chunksize in (1, 3, 4, 6)
+                backend = SecondOrder(
+                    AutoSimpleFiniteDiff(; chunksize), AutoSimpleFiniteDiff()
+                )
+                H = inferred_hessian(g, backend, x)
+                @test has_type(H, x)
+                @test H ≈ H_ref rtol = 1.0e-4
+            end
         end
     end
     @test_throws ArgumentError("Cannot concatenate zero batches") jacobian(
