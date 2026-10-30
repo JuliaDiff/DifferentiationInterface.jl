@@ -1,5 +1,45 @@
+"""
+    vec_block(a)
+
+Flatten `a` into a vector suitable for concatenation into a Jacobian or Hessian block.
+"""
+vec_block(a) = vec(a)
+
 stack_vec_col(t::NTuple) = stack(vec, t; dims = 2)
 stack_vec_row(t::NTuple) = stack(vec, t; dims = 1)
+
+"""
+    stack_batches_col(block, batch_size_settings, seed_example)
+    stack_batches_row(block, batch_size_settings, seed_example)
+
+Concatenate the blocks `block(a)` computed from all batches `a` along columns (resp. rows), and drop the trailing entries of the last batch if it was padded by wrapping around the seeds.
+
+The `seed_example` is only used for dispatch, e.g. to deduce the number of seeds statically.
+
+Unlike `mapreduce(hcat, ...)`, `reduce(hcat, ...)` allocates the result only once.
+"""
+function stack_batches_col(
+        block::F, batch_size_settings::BatchSizeSettings{B, singlebatch, aligned}, _
+    ) where {F, B, singlebatch, aligned}
+    # a comprehension, since `map` fails to infer when `block` calls `map` itself
+    M = reduce(hcat, [block(a) for a in 1:(batch_size_settings.A)])
+    if aligned
+        return M
+    else
+        return M[:, 1:(batch_size_settings.N)]
+    end
+end
+
+function stack_batches_row(
+        block::F, batch_size_settings::BatchSizeSettings{B, singlebatch, aligned}, _
+    ) where {F, B, singlebatch, aligned}
+    M = reduce(vcat, [block(a) for a in 1:(batch_size_settings.A)])
+    if aligned
+        return M
+    else
+        return M[1:(batch_size_settings.N), :]
+    end
+end
 
 """
     ismutable_array(x)

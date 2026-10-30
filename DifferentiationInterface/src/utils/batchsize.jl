@@ -13,23 +13,16 @@ Configuration for the batch size deduced from a backend and a sample array of le
 
   - `N::Int`: array length
   - `A::Int`: number of batches `A = div(N, B, RoundUp)`
-  - `B_last::Int`: size of the last batch (if `aligned` is `false`)
 """
 struct BatchSizeSettings{B, singlebatch, aligned}
     N::Int
     A::Int
-    B_last::Int
 end
 
 function BatchSizeSettings{B, singlebatch, aligned}(N::Integer) where {B, singlebatch, aligned}
     B > N > 0 && throw(ArgumentError("Batch size $B larger than input size $N"))
-    if B == N == 0
-        A = B_last = 0
-    else
-        A = div(N, B, RoundUp)
-        B_last = N % B
-    end
-    return BatchSizeSettings{B, singlebatch, aligned}(N, A, B_last)
+    A = B == N == 0 ? 0 : div(N, B, RoundUp)
+    return BatchSizeSettings{B, singlebatch, aligned}(N, A)
 end
 
 function BatchSizeSettings(B::Int, N::Int)

@@ -7,6 +7,7 @@ using DifferentiationInterface:
     reasonable_batchsize,
     threshold_batchsize
 import DifferentiationInterface as DI
+using LinearAlgebra: I
 using StaticArrays
 using Test
 
@@ -26,12 +27,12 @@ BSS = BatchSizeSettings
 end
 
 @testset "Constructor" begin
-    @test BSS(1, 0) === BSS{1, false, true}(0, 0, 0)
-    @test BSS(0, 0) === BSS{0, true, true}(0, 0, 0)
-    @test BSS(1, 1) === BSS{1, true, true}(1, 1, 0)
-    @test BSS(2, 2) === BSS{2, true, true}(2, 1, 0)
-    @test BSS(4, 8) === BSS{4, false, true}(8, 2, 0)
-    @test BSS(8, 13) === BSS{8, false, false}(13, 2, 5)
+    @test BSS(1, 0) === BSS{1, false, true}(0, 0)
+    @test BSS(0, 0) === BSS{0, true, true}(0, 0)
+    @test BSS(1, 1) === BSS{1, true, true}(1, 1)
+    @test BSS(2, 2) === BSS{2, true, true}(2, 1)
+    @test BSS(4, 8) === BSS{4, false, true}(8, 2)
+    @test BSS(8, 13) === BSS{8, false, false}(13, 2)
     @test_throws ArgumentError BSS(3, 2)
 end
 
@@ -87,12 +88,71 @@ end
             @inferred prepare_jacobian(identity, AutoSimpleFiniteDiff(; chunksize = 4), x)
         ) isa DI.PushforwardJacobianPrep{<:Any, BSS{4, false, false}}
         @test (@inferred jacobian(identity, AutoSimpleFiniteDiff(), x)) isa StaticMatrix
-        # multiple batches are assembled with `mapreduce(hcat, ...)`, which changes the
-        # static size at every step
-        @test_broken (
-            @inferred jacobian(identity, AutoSimpleFiniteDiff(; chunksize = 4), x)
-        ) isa StaticMatrix
     end
+
+    # multiple batches must be concatenated without losing static sizes or inference
+    f(x) = vcat(vec(x), vec(x) .^ 2)  # non-square Jacobian
+    function f!(y, x)
+        y[1:length(x)] .= vec(x)
+        y[(length(x) + 1):end] .= vec(x) .^ 2
+        return nothing
+    end
+    g(x) = sum(abs2, x) * sum(x)  # non-diagonal Hessian
+    has_type(J, x) = x isa StaticArray ? J isa Union{SArray, MArray} : J isa Matrix
+    # without preparation, the batch size is only inferred for static arrays
+    function inferred_jacobian(f_or_f!y, backend, x)
+        x isa StaticArray && @inferred jacobian(f_or_f!y..., backend, x)
+        prep = prepare_jacobian(f_or_f!y..., backend, x)
+        return @inferred jacobian(f_or_f!y..., prep, backend, x)
+    end
+    function inferred_hessian(f, backend, x)
+        x isa StaticArray && @inferred hessian(f, backend, x)
+        prep = prepare_hessian(f, backend, x)
+        return @inferred hessian(f, prep, backend, x)
+    end
+    @testset "$(typeof(x))" for x in (
+            @SVector(rand(6)),
+            @SMatrix(rand(2, 3)),
+            @MVector(rand(6)),
+            rand(6),
+            @SVector(rand(ComplexF64, 6)),
+        )
+        y = x isa StaticArray ? MVector{12, eltype(x)}(undef) : similar(x, 12)
+        J_ref = jacobian(f, AutoSimpleFiniteDiff(), Array(x))
+        # B = 1, aligned, unaligned and single batch use different methods
+        @testset "Pushforward, chunksize $chunksize" for chunksize in (1, 3, 4, 6)
+            backend = AutoSimpleFiniteDiff(; chunksize)
+            J = inferred_jacobian((f,), backend, x)
+            @test has_type(J, x)
+            @test J ≈ J_ref
+            J = inferred_jacobian((f!, y), backend, x)
+            @test has_type(J, x)
+            @test J ≈ J_ref
+        end
+        @testset "Pullback, chunksize $chunksize" for chunksize in (1, 4, 5, 12)
+            backend = DI.AutoReverseFromPrimitive(AutoSimpleFiniteDiff(; chunksize))
+            J = inferred_jacobian((f,), backend, x)
+            @test has_type(J, x)
+            @test J ≈ J_ref
+            J = inferred_jacobian((f!, y), backend, x)
+            @test has_type(J, x)
+            @test J ≈ J_ref
+        end
+        if eltype(x) <: Real
+            H_ref = 2 * (sum(x) * I + (vec(x) .+ vec(x)'))
+            @testset "Hessian, chunksize $chunksize" for chunksize in (1, 3, 4, 6)
+                backend = SecondOrder(
+                    AutoSimpleFiniteDiff(; chunksize), AutoSimpleFiniteDiff()
+                )
+                H = inferred_hessian(g, backend, x)
+                @test has_type(H, x)
+                @test H ≈ H_ref rtol = 1.0e-4
+            end
+        end
+    end
+    @test_throws ArgumentError("Cannot concatenate zero batches") jacobian(
+        identity, AutoSimpleFiniteDiff(; chunksize = 2), @SVector(zeros(0))
+    )
 end
 
 @testset "Thresholding" begin
