@@ -198,14 +198,19 @@ end
             logging = LOGGING,
         )
         @testset "Type stability (broken)" for scen in filter(inplace_hessian, multibatch_scenarios)
-            # the inner pullback-based gradient fails to infer in `hessian!`
-            (; f, x, res1, res2, prep_args) = deepcopy(scen)
-            prep = prepare_hessian(f, reverse_backend, prep_args.x)
+            (; f, x, res1, res2, contexts, prep_args) = deepcopy(scen)
+            prep = prepare_hessian(f, reverse_backend, prep_args.x, prep_args.contexts...)
             JET.@test_opt broken = true hessian!(
-                f, DIT.mysimilar(res2), prep, reverse_backend, x
+                f, DIT.mysimilar(res2), prep, reverse_backend, x, contexts...
             )
             JET.@test_opt broken = true value_gradient_and_hessian!(
-                f, DIT.mysimilar(res1), DIT.mysimilar(res2), prep, reverse_backend, x
+                f,
+                DIT.mysimilar(res1),
+                DIT.mysimilar(res2),
+                prep,
+                reverse_backend,
+                x,
+                contexts...,
             )
         end
     end

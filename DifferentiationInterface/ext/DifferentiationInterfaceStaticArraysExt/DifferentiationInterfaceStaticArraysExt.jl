@@ -4,7 +4,7 @@ using ADTypes: AutoForwardDiff, AutoEnzyme
 import DifferentiationInterface as DI
 using StaticArrays: SArray, Size, SOneTo, StaticArray, similar_type
 
-# a flat vector of the same kind (e.g. `MVector` for an `MMatrix`) can be concatenated without heap allocations
+# a flat vector of the same kind (e.g. `MVector` for an `MMatrix`) keeps concatenated blocks `SArray`s or `MArray`s
 DI.vec_block(a::StaticArray) = similar_type(a, Size(length(a)))(a)
 
 function DI.stack_vec_col(t::NTuple{B, <:StaticArray}) where {B}
