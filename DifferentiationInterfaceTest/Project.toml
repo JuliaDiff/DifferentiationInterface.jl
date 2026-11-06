@@ -26,9 +26,6 @@ JLArrays = "27aeb0d3-9eb9-45fb-866b-73c2ecf80fcb"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
-[sources]
-DifferentiationInterface = {path = "../DifferentiationInterface"}
-
 [extensions]
 DifferentiationInterfaceTestChairmarksExt = "Chairmarks"
 DifferentiationInterfaceTestComponentArraysExt = "ComponentArrays"
