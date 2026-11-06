@@ -229,7 +229,7 @@ function DI.hvp!(
     )
 end
 
-function DI.gradient_and_hvp(
+function DI.value_gradient_and_hvp(
         f,
         prep::ZygoteHVPPrep,
         backend::AutoZygote,
@@ -238,12 +238,12 @@ function DI.gradient_and_hvp(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    return DI.gradient_and_hvp(
+    return DI.value_gradient_and_hvp(
         f, prep.fd_prep, DI.SecondOrder(AutoForwardDiff(), backend), x, tx, contexts...
     )
 end
 
-function DI.gradient_and_hvp!(
+function DI.value_gradient_and_hvp!(
         f,
         grad,
         tg::NTuple,
@@ -254,7 +254,7 @@ function DI.gradient_and_hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    return DI.gradient_and_hvp!(
+    return DI.value_gradient_and_hvp!(
         f,
         grad,
         tg,

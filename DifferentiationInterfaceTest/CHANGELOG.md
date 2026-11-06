@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.11.0...main)
 
+### Changed
+
+- Test `value_gradient_and_hvp(!)` instead of the deprecated `gradient_and_hvp(!)`, which requires DifferentiationInterface v0.7.22
+
 ## [0.11.0](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterfaceTest-v0.10.4...DifferentiationInterfaceTest-v0.11.0)
 
 ### Changed

@@ -10,7 +10,7 @@ for op in ALL_OPS
     elseif op == :hessian
         "value_gradient_and_"
     elseif op == :hvp
-        "gradient_and_"
+        "value_gradient_and_"
     else
         "value_and_"
     end

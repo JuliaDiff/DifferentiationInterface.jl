@@ -90,17 +90,48 @@ function hvp!(
 end
 
 """
+    value_gradient_and_hvp(f, [prep,] backend, x, tx, [contexts...]) -> (y, grad, tg)
+
+Compute the value, the gradient and the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`.
+
+$(docstring_preparation_hint("hvp"; same_point = true))
+"""
+function value_gradient_and_hvp(
+        f::F, backend::AbstractADType, x, tx, contexts::Vararg{Context, C}
+    ) where {F, C}
+    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return value_gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+end
+
+"""
+    value_gradient_and_hvp!(f, grad, tg, [prep,] backend, x, tx, [contexts...]) -> (y, grad, tg)
+
+Compute the value, the gradient and the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`, overwriting `grad` and `tg`.
+
+$(docstring_preparation_hint("hvp"; same_point = true))
+"""
+function value_gradient_and_hvp!(
+        f::F, grad, tg, backend::AbstractADType, x, tx, contexts::Vararg{Context, C}
+    ) where {F, C}
+    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
+    return value_gradient_and_hvp!(f, grad, tg, prep, backend, x, tx, contexts...)
+end
+
+"""
     gradient_and_hvp(f, [prep,] backend, x, tx, [contexts...]) -> (grad, tg)
 
 Compute the gradient and the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`.
 
-$(docstring_preparation_hint("hvp"; same_point = true))
+!!! warning "Deprecated"
+
+    Use [`value_gradient_and_hvp`](@ref) instead.
 """
-function gradient_and_hvp(
-        f::F, backend::AbstractADType, x, tx, contexts::Vararg{Context, C}
-    ) where {F, C}
-    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
-    return gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+function gradient_and_hvp(f::F, args::Vararg{Any, N}) where {F, N}
+    Base.depwarn(
+        "`gradient_and_hvp` is deprecated, use `value_gradient_and_hvp` instead.",
+        :gradient_and_hvp,
+    )
+    return Base.tail(value_gradient_and_hvp(f, args...))
 end
 
 """
@@ -108,13 +139,16 @@ end
 
 Compute the gradient and the Hessian-vector product of `f` at point `x` with a tuple of tangents `tx`, overwriting `grad` and `tg`.
 
-$(docstring_preparation_hint("hvp"; same_point = true))
+!!! warning "Deprecated"
+
+    Use [`value_gradient_and_hvp!`](@ref) instead.
 """
-function gradient_and_hvp!(
-        f::F, grad, tg, backend::AbstractADType, x, tx, contexts::Vararg{Context, C}
-    ) where {F, C}
-    prep = prepare_hvp_nokwarg(Val(true), f, backend, x, tx, contexts...)
-    return gradient_and_hvp!(f, grad, tg, prep, backend, x, tx, contexts...)
+function gradient_and_hvp!(f::F, args::Vararg{Any, N}) where {F, N}
+    Base.depwarn(
+        "`gradient_and_hvp!` is deprecated, use `value_gradient_and_hvp!` instead.",
+        :gradient_and_hvp!,
+    )
+    return Base.tail(value_gradient_and_hvp!(f, args...))
 end
 
 ## Preparation
@@ -409,7 +443,7 @@ function _hvp_aux!(
     )
 end
 
-function gradient_and_hvp(
+function value_gradient_and_hvp(
         f::F,
         prep::ForwardOverAnythingHVPPrep,
         backend::AbstractADType,
@@ -427,12 +461,14 @@ function gradient_and_hvp(
         Constant(rewrap),
         contexts...,
     )
-    return value_and_pushforward(
+    y = f(x, map(unwrap, contexts)...)
+    grad, tg = value_and_pushforward(
         shuffled_gradient, outer_pushforward_prep, outer(backend), x, tx, new_contexts...
     )
+    return y, grad, tg
 end
 
-function gradient_and_hvp!(
+function value_gradient_and_hvp!(
         f::F,
         grad,
         tg::NTuple,
@@ -443,9 +479,11 @@ function gradient_and_hvp!(
         contexts::Vararg{Context, C},
     ) where {F, C}
     check_prep(f, prep, backend, x, tx, contexts...)
-    return _gradient_and_hvp_aux!(
+    y = f(x, map(unwrap, contexts)...)
+    _gradient_and_hvp_aux!(
         inplace_support(outer(backend)), f, grad, tg, prep, backend, x, tx, contexts...
     )
+    return y, grad, tg
 end
 
 function _gradient_and_hvp_aux!(
@@ -604,7 +642,7 @@ function hvp!(
     return tg
 end
 
-function gradient_and_hvp(
+function value_gradient_and_hvp(
         f::F,
         prep::ReverseOverForwardHVPPrep,
         backend::AbstractADType,
@@ -614,11 +652,11 @@ function gradient_and_hvp(
     ) where {F, C}
     check_prep(f, prep, backend, x, tx, contexts...)
     tg = hvp(f, prep, backend, x, tx, contexts...)
-    grad = gradient(f, prep.gradient_prep, inner(backend), x, contexts...)
-    return grad, tg
+    y, grad = value_and_gradient(f, prep.gradient_prep, inner(backend), x, contexts...)
+    return y, grad, tg
 end
 
-function gradient_and_hvp!(
+function value_gradient_and_hvp!(
         f::F,
         grad,
         tg::NTuple,
@@ -630,8 +668,8 @@ function gradient_and_hvp!(
     ) where {F, C}
     check_prep(f, prep, backend, x, tx, contexts...)
     hvp!(f, tg, prep, backend, x, tx, contexts...)
-    gradient!(f, grad, prep.gradient_prep, inner(backend), x, contexts...)
-    return grad, tg
+    y, _ = value_and_gradient!(f, grad, prep.gradient_prep, inner(backend), x, contexts...)
+    return y, grad, tg
 end
 
 ## Reverse over reverse
@@ -762,7 +800,7 @@ function _hvp_aux!(
     )
 end
 
-function gradient_and_hvp(
+function value_gradient_and_hvp(
         f::F,
         prep::ReverseOverReverseHVPPrep,
         backend::AbstractADType,
@@ -776,12 +814,14 @@ function gradient_and_hvp(
     new_contexts = (
         FunctionContext(f), Constant(inner(backend)), Constant(rewrap), contexts...,
     )
-    return value_and_pullback(
+    y = f(x, map(unwrap, contexts)...)
+    grad, tg = value_and_pullback(
         shuffled_gradient, outer_pullback_prep, outer(backend), x, tx, new_contexts...
     )
+    return y, grad, tg
 end
 
-function gradient_and_hvp!(
+function value_gradient_and_hvp!(
         f::F,
         grad,
         tg::NTuple,
@@ -792,9 +832,11 @@ function gradient_and_hvp!(
         contexts::Vararg{Context, C},
     ) where {F, C}
     check_prep(f, prep, backend, x, tx, contexts...)
-    return _gradient_and_hvp_aux!(
+    y = f(x, map(unwrap, contexts)...)
+    _gradient_and_hvp_aux!(
         inplace_support(outer(backend)), f, grad, tg, prep, backend, x, tx, contexts...
     )
+    return y, grad, tg
 end
 
 function _gradient_and_hvp_aux!(

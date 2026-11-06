@@ -599,7 +599,7 @@ function DI.hvp!(
     return tg
 end
 
-function DI.gradient_and_hvp(
+function DI.value_gradient_and_hvp(
         f,
         prep::FastDifferentiationHVPPrep,
         backend::AutoFastDifferentiation,
@@ -609,11 +609,11 @@ function DI.gradient_and_hvp(
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     tg = DI.hvp(f, prep, backend, x, tx, contexts...)
-    grad = DI.gradient(f, prep.gradient_prep, backend, x, contexts...)
-    return grad, tg
+    y, grad = DI.value_and_gradient(f, prep.gradient_prep, backend, x, contexts...)
+    return y, grad, tg
 end
 
-function DI.gradient_and_hvp!(
+function DI.value_gradient_and_hvp!(
         f,
         grad,
         tg::NTuple,
@@ -625,8 +625,8 @@ function DI.gradient_and_hvp!(
     ) where {C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     DI.hvp!(f, tg, prep, backend, x, tx, contexts...)
-    DI.gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
-    return grad, tg
+    y, _ = DI.value_and_gradient!(f, grad, prep.gradient_prep, backend, x, contexts...)
+    return y, grad, tg
 end
 
 ## Hessian

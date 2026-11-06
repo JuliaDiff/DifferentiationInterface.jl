@@ -94,6 +94,8 @@ prepare_hvp
 prepare_hvp_same_point
 hvp
 hvp!
+value_gradient_and_hvp
+value_gradient_and_hvp!
 gradient_and_hvp
 gradient_and_hvp!
 ```

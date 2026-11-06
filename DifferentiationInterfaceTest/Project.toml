@@ -26,6 +26,9 @@ JLArrays = "27aeb0d3-9eb9-45fb-866b-73c2ecf80fcb"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
+[sources]
+DifferentiationInterface = {path = "../DifferentiationInterface"}
+
 [extensions]
 DifferentiationInterfaceTestChairmarksExt = "Chairmarks"
 DifferentiationInterfaceTestComponentArraysExt = "ComponentArrays"
@@ -39,7 +42,7 @@ AllocCheck = "0.2"
 Chairmarks = "1.2.1"
 ComponentArrays = "0.15"
 DataAPI = "1.16.0"
-DifferentiationInterface = "0.7.7"
+DifferentiationInterface = "0.7.22"
 DocStringExtensions = "0.8,0.9"
 ForwardDiff = "0.10.36,1"
 JET = "0.9,0.10,0.11,0.12"
