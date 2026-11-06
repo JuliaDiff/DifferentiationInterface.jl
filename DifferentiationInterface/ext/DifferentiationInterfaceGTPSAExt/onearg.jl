@@ -609,7 +609,7 @@ function DI.hvp!(
     return tg
 end
 
-function DI.gradient_and_hvp(
+function DI.value_gradient_and_hvp(
         f,
         prep::GTPSAOneArgHVPPrep,
         backend::AutoGTPSA{D},
@@ -619,7 +619,7 @@ function DI.gradient_and_hvp(
     ) where {D, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     grad = similar(x, eltype(prep.hess))
-    DI.value_gradient_and_hessian!(
+    y, _, _ = DI.value_gradient_and_hessian!(
         f, grad, prep.hess, prep.hessprep, backend, x, contexts...
     )
     tg = map(tx) do dx
@@ -634,10 +634,10 @@ function DI.gradient_and_hvp(
         end
         return dg
     end
-    return grad, tg
+    return y, grad, tg
 end
 
-function DI.gradient_and_hvp!(
+function DI.value_gradient_and_hvp!(
         f,
         grad,
         tg,
@@ -648,7 +648,7 @@ function DI.gradient_and_hvp!(
         contexts::Vararg{DI.Constant, C},
     ) where {D, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    DI.value_gradient_and_hessian!(
+    y, _, _ = DI.value_gradient_and_hessian!(
         f, grad, prep.hess, prep.hessprep, backend, x, contexts...
     )
     for b in eachindex(tg, tx)
@@ -662,5 +662,5 @@ function DI.gradient_and_hvp!(
             j += 1
         end
     end
-    return grad, tg
+    return y, grad, tg
 end

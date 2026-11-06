@@ -13,7 +13,7 @@ function DI.prepare_hvp_nokwarg(
     return prep
 end
 
-function DI.gradient_and_hvp(
+function DI.value_gradient_and_hvp(
         f::F,
         prep::MooncakeHVPPrep{Y},
         backend::AutoMooncakeForwardOverReverse,
@@ -24,19 +24,19 @@ function DI.gradient_and_hvp(
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     dx = only(tx)
     if isempty(contexts)
-        _, new_g, new_dg = value_and_hvp!!(
+        y, new_g, new_dg = value_and_hvp!!(
             prep.cache, f, (dx,), x
         )
     else
         dall = (dx, map(zero_tangent_unwrap, contexts)...)
-        _, (new_g,), (new_dg,) = value_and_hvp!!(
+        y, (new_g,), (new_dg,) = value_and_hvp!!(
             prep.cache, f, dall, x, map(DI.unwrap, contexts)...
         )
     end
-    return _copy_output(new_g), (_copy_output(new_dg),)
+    return y, _copy_output(new_g), (_copy_output(new_dg),)
 end
 
-function DI.gradient_and_hvp(
+function DI.value_gradient_and_hvp(
         f::F,
         prep::MooncakeHVPPrep{Y},
         backend::AutoMooncakeForwardOverReverse,
@@ -45,25 +45,25 @@ function DI.gradient_and_hvp(
         contexts::Vararg{DI.Context, C},
     ) where {F, Y, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    gs_and_tg = map(tx) do dx
+    ys_gs_and_tg = map(tx) do dx
         if isempty(contexts)
-            _, new_g, new_dg = value_and_hvp!!(
+            y, new_g, new_dg = value_and_hvp!!(
                 prep.cache, f, dx, x
             )
         else
             dall = (dx, map(zero_tangent_unwrap, contexts)...)
-            _, (new_g,), (new_dg,) = value_and_hvp!!(
+            y, (new_g,), (new_dg,) = value_and_hvp!!(
                 prep.cache, f, dall, x, map(DI.unwrap, contexts)...
             )
         end
-        _copy_output(new_g), _copy_output(new_dg)
+        y, _copy_output(new_g), _copy_output(new_dg)
     end
-    g = first(gs_and_tg[1])
-    tg = map(last, gs_and_tg)
-    return g, tg
+    y, g, _ = ys_gs_and_tg[1]
+    tg = map(last, ys_gs_and_tg)
+    return y, g, tg
 end
 
-function DI.gradient_and_hvp!(
+function DI.value_gradient_and_hvp!(
         f::F,
         g,
         tg::NTuple,
@@ -74,10 +74,10 @@ function DI.gradient_and_hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    new_g, new_tg = DI.gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+    y, new_g, new_tg = DI.value_gradient_and_hvp(f, prep, backend, x, tx, contexts...)
     copyto!(g, new_g)
     foreach(copyto!, tg, new_tg)
-    return g, tg
+    return y, g, tg
 end
 
 function DI.hvp(
@@ -89,7 +89,7 @@ function DI.hvp(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    return DI.gradient_and_hvp(f, prep, backend, x, tx, contexts...)[2]
+    return DI.value_gradient_and_hvp(f, prep, backend, x, tx, contexts...)[3]
 end
 
 function DI.hvp!(
@@ -102,7 +102,7 @@ function DI.hvp!(
         contexts::Vararg{DI.Context, C},
     ) where {F, C}
     DI.check_prep(f, prep, backend, x, tx, contexts...)
-    _, new_tg = DI.gradient_and_hvp(f, prep, backend, x, tx, contexts...)
+    _, _, new_tg = DI.value_gradient_and_hvp(f, prep, backend, x, tx, contexts...)
     foreach(copyto!, tg, new_tg)
     return tg
 end

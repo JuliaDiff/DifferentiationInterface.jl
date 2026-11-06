@@ -283,7 +283,7 @@ function DI.hvp!(
     return hvp!(tg, fc, x, tx, prep.cfg)
 end
 
-function DI.gradient_and_hvp(
+function DI.value_gradient_and_hvp(
         f,
         prep::HyperHessiansHVPPrep,
         backend::DI.AutoHyperHessians,
@@ -295,10 +295,10 @@ function DI.gradient_and_hvp(
     contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
     fc = DI.fix_tail(f, contexts_prepared...)
     res = hvp_gradient_value(fc, x, tx, prep.cfg)
-    return res.gradient, res.hvp
+    return res.value, res.gradient, res.hvp
 end
 
-function DI.gradient_and_hvp!(
+function DI.value_gradient_and_hvp!(
         f,
         grad,
         tg::NTuple,
@@ -311,8 +311,8 @@ function DI.gradient_and_hvp!(
     DI.check_prep(f, prep, backend, x, tx, contexts...)
     contexts_prepared = translate_prepared(contexts, prep.contexts_prepared)
     fc = DI.fix_tail(f, contexts_prepared...)
-    hvp_gradient_value!(tg, grad, fc, x, tx, prep.cfg)
-    return grad, tg
+    y = hvp_gradient_value!(tg, grad, fc, x, tx, prep.cfg)
+    return y, grad, tg
 end
 
 end

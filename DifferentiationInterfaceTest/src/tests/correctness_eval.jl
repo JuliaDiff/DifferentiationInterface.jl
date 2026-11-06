@@ -12,7 +12,7 @@ for op in ALL_OPS
     elseif op == :hessian
         "value_gradient_and_"
     elseif op == :hvp
-        "gradient_and_"
+        "value_gradient_and_"
     else
         "value_and_"
     end
@@ -766,12 +766,14 @@ for op in ALL_OPS
                 ((), (prep,), (prep_nostrict,), (prep_same,))
             end
             foreach(preptup_cands_val) do preptup_val
-                res1_out1_val, res2_out1_val = $val_and_op(
+                y_out1_val, res1_out1_val, res2_out1_val = $val_and_op(
                     f, preptup_val..., ba, x, t, contexts...
                 )
-                res1_out2_val, res2_out2_val = $val_and_op(
+                y_out2_val, res1_out2_val, res2_out2_val = $val_and_op(
                     f, preptup_val..., ba, x, t, contexts...
                 )
+                @test y_out1_val ≈ scen.y
+                @test y_out2_val ≈ scen.y
                 @test res1_out1_val ≈ scen.res1
                 @test res1_out2_val ≈ scen.res1
                 for b in eachindex(scen.res2)
@@ -826,12 +828,14 @@ for op in ALL_OPS
             foreach(preptup_cands_val) do preptup_val
                 res1_in1_val, res2_in1_val = mysimilar(res1), mysimilar(res2)
                 res1_in2_val, res2_in2_val = mysimilar(res1), mysimilar(res2)
-                res1_out1_val, res2_out1_val = $val_and_op!(
+                y_out1_val, res1_out1_val, res2_out1_val = $val_and_op!(
                     f, res1_in1_val, res2_in1_val, preptup_val..., ba, x, t, contexts...
                 )
-                res1_out2_val, res2_out2_val = $val_and_op!(
+                y_out2_val, res1_out2_val, res2_out2_val = $val_and_op!(
                     f, res1_in2_val, res2_in2_val, preptup_val..., ba, x, t, contexts...
                 )
+                @test y_out1_val ≈ scen.y
+                @test y_out2_val ≈ scen.y
                 @test res1_in1_val === res1_out1_val
                 @test res1_in2_val === res1_out2_val
                 @test res1_out1_val ≈ scen.res1

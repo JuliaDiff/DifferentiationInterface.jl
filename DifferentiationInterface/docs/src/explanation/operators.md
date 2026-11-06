@@ -60,7 +60,7 @@ Several variants of each operator are defined:
 | [`jacobian`](@ref)          | [`jacobian!`](@ref)          | [`value_and_jacobian`](@ref)                     | [`value_and_jacobian!`](@ref)                     |
 | [`pushforward`](@ref)       | [`pushforward!`](@ref)       | [`value_and_pushforward`](@ref)                  | [`value_and_pushforward!`](@ref)                  |
 | [`pullback`](@ref)          | [`pullback!`](@ref)          | [`value_and_pullback`](@ref)                     | [`value_and_pullback!`](@ref)                     |
-| [`hvp`](@ref)               | [`hvp!`](@ref)               | [`gradient_and_hvp`](@ref)                       | [`gradient_and_hvp!`](@ref)                       |
+| [`hvp`](@ref)               | [`hvp!`](@ref)               | [`value_gradient_and_hvp`](@ref)                 | [`value_gradient_and_hvp!`](@ref)                 |
 
 ## Mutation and signatures
 

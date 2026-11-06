@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/JuliaDiff/DifferentiationInterface.jl/compare/DifferentiationInterface-v0.7.21...main)
 
+### Added
+
+- New operators `value_gradient_and_hvp` and `value_gradient_and_hvp!`, which also return the primal value ([#1086](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1086))
+
+### Deprecated
+
+- `gradient_and_hvp` and `gradient_and_hvp!` are deprecated in favor of `value_gradient_and_hvp` and `value_gradient_and_hvp!` ([#1086](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1086))
+
 ### Fixed
 
 - Speed up `pick_batchsize` when the batch size is only known at run time ([#1076](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1076))
