@@ -6,7 +6,7 @@ using DifferentiationInterface, DifferentiationInterfaceTest
 import DifferentiationInterface as DI
 import DifferentiationInterfaceTest as DIT
 using ForwardDiff: ForwardDiff
-using StaticArrays: StaticArrays, @SVector
+using StaticArrays: StaticArrays, @MVector, @SMatrix, @SVector, StaticMatrix
 using JLArrays: JLArrays
 using Test
 import JET, Chairmarks
@@ -93,6 +93,53 @@ end
                 AutoForwardDiff(; chunksize = 5), @SVector(rand(7))
             )
         ) isa DI.BatchSizeSettings{5}
+    end
+
+    @testset "Static Jacobian with multiple batches" begin
+        f(x) = vcat(vec(x), vec(x) .^ 2)  # non-square Jacobian
+        function f!(y, x)
+            y[1:length(x)] .= vec(x)
+            y[(length(x) + 1):end] .= vec(x) .^ 2
+            return nothing
+        end
+        # a plain `AutoForwardDiff` calls `ForwardDiff.jacobian` and skips the batch assembly
+        @testset "$(typeof(x))" for x in (@SVector(rand(6)), @SMatrix(rand(2, 3)), @MVector(rand(6)))
+            y = StaticArrays.MVector{12, Float64}(undef)
+            J_ref = jacobian(f, AutoForwardDiff(), Array(x))
+            # B = 1, aligned, unaligned and single batch use different methods
+            @testset "Pushforward, chunksize $chunksize" for chunksize in (1, 3, 4, 6)
+                backend = DI.AutoForwardFromPrimitive(AutoForwardDiff(; chunksize))
+                J = @inferred jacobian(f, backend, x)
+                @test J isa StaticMatrix
+                @test J ≈ J_ref
+                J = @inferred jacobian(f!, y, backend, x)
+                @test J isa StaticMatrix
+                @test J ≈ J_ref
+            end
+            @testset "Pullback, chunksize $chunksize" for chunksize in (1, 4, 5, 12)
+                backend = DI.AutoReverseFromPrimitive(AutoForwardDiff(; chunksize))
+                J = @inferred jacobian(f, backend, x)
+                @test J isa StaticMatrix
+                @test J ≈ J_ref
+                J = @inferred jacobian(f!, y, backend, x)
+                @test J isa StaticMatrix
+                @test J ≈ J_ref
+            end
+        end
+    end
+
+    @testset "Static Hessian with multiple batches" begin
+        f(x) = sum(abs2, x) * sum(x)  # non-diagonal Hessian
+        for x in (@SVector(rand(6)), @SMatrix(rand(2, 3)), @MVector(rand(6)))
+            H_ref = hessian(f, AutoForwardDiff(), Array(x))
+            # B = 1, unaligned and single batch use different methods
+            @testset "Chunksize $chunksize" for chunksize in (1, 3, 4, 6)
+                backend = SecondOrder(DI.AutoSimpleFiniteDiff(; chunksize), AutoForwardDiff())
+                H = @inferred hessian(f, backend, x)
+                @test H isa StaticMatrix
+                @test H ≈ H_ref rtol = 1.0e-5
+            end
+        end
     end
 end
 

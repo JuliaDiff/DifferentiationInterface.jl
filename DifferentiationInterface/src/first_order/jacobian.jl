@@ -354,22 +354,16 @@ end
 
 function _jacobian_aux(
         f_or_f!y::FY,
-        prep::PushforwardJacobianPrep{SIG, <:BatchSizeSettings{B, true, aligned}},
+        prep::PushforwardJacobianPrep{SIG, <:BatchSizeSettings{B, true}},
         backend::AbstractADType,
         x,
         contexts::Vararg{Context, C},
-    ) where {FY, SIG, B, aligned, C}
-    (; batch_size_settings, batched_seeds, pushforward_prep) = prep
-    (; B_last) = batch_size_settings
+    ) where {FY, SIG, B, C}
+    (; batched_seeds, pushforward_prep) = prep
     dy_batch = pushforward(
         f_or_f!y..., pushforward_prep, backend, x, only(batched_seeds), contexts...
     )
-    block = stack_vec_col(dy_batch)
-    if aligned
-        return block
-    else
-        return block[:, 1:B_last]
-    end
+    return stack_vec_col(dy_batch)
 end
 
 function _jacobian_aux(
@@ -379,13 +373,13 @@ function _jacobian_aux(
         x,
         contexts::Vararg{Context, C},
     ) where {FY, SIG, C}
-    (; batched_seeds, seed_example, pushforward_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, pushforward_prep) = prep
 
     pushforward_prep_same = prepare_pushforward_same_point(
         f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
     )
 
-    jac = stack(eachindex(batched_seeds); dims = 2) do a
+    return stack_batches_col(batch_size_settings, seed_example) do a
         dy = only(
             pushforward(
                 f_or_f!y...,
@@ -396,26 +390,24 @@ function _jacobian_aux(
                 contexts...,
             )
         )
-        return vec(dy)
+        return vec_block(dy)
     end
-    return jac
 end
 
 function _jacobian_aux(
         f_or_f!y::FY,
-        prep::PushforwardJacobianPrep{SIG, <:BatchSizeSettings{B, false, aligned}},
+        prep::PushforwardJacobianPrep{SIG, <:BatchSizeSettings{B, false}},
         backend::AbstractADType,
         x,
         contexts::Vararg{Context, C},
-    ) where {FY, SIG, B, aligned, C}
+    ) where {FY, SIG, B, C}
     (; batch_size_settings, batched_seeds, seed_example, pushforward_prep) = prep
-    (; A, B_last) = batch_size_settings
 
     pushforward_prep_same = prepare_pushforward_same_point(
         f_or_f!y..., pushforward_prep, backend, x, seed_example, contexts...
     )
 
-    jac = mapreduce(hcat, eachindex(batched_seeds)) do a
+    return stack_batches_col(batch_size_settings, seed_example) do a
         dy_batch = pushforward(
             f_or_f!y...,
             pushforward_prep_same,
@@ -424,37 +416,25 @@ function _jacobian_aux(
             batched_seeds[a],
             contexts...,
         )
-        block = stack_vec_col(dy_batch)
-        if !aligned && a == A
-            return block[:, 1:B_last]
-        else
-            return block
-        end
+        return stack_vec_col(dy_batch)
     end
-    return jac
 end
 
 function _jacobian_aux(
         f_or_f!y::FY,
-        prep::PullbackJacobianPrep{SIG, <:BatchSizeSettings{B, true, aligned}},
+        prep::PullbackJacobianPrep{SIG, <:BatchSizeSettings{B, true}},
         backend::AbstractADType,
         x,
         contexts::Vararg{Context, C},
-    ) where {FY, SIG, B, aligned, C}
-    (; batch_size_settings, batched_seeds, pullback_prep) = prep
-    (; B_last) = batch_size_settings
+    ) where {FY, SIG, B, C}
+    (; batched_seeds, pullback_prep) = prep
     dx_batch = pullback(
         f_or_f!y..., pullback_prep, backend, x, only(batched_seeds), contexts...
     )
     if eltype(x) <: Complex
         dx_batch = map(conj, dx_batch)
     end
-    block = stack_vec_row(dx_batch)
-    if aligned
-        return block
-    else
-        return block[1:B_last, :]
-    end
+    return stack_vec_row(dx_batch)
 end
 
 function _jacobian_aux(
@@ -464,56 +444,49 @@ function _jacobian_aux(
         x,
         contexts::Vararg{Context, C},
     ) where {FY, SIG, C}
-    (; batched_seeds, seed_example, pullback_prep) = prep
+    (; batch_size_settings, batched_seeds, seed_example, pullback_prep) = prep
 
     pullback_prep_same = prepare_pullback_same_point(
         f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
     )
 
-    jac = stack(eachindex(batched_seeds); dims = 1) do a
+    return stack_batches_row(batch_size_settings, seed_example) do a
         dx = only(
             pullback(
                 f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
             )
         )
+        # each block is a row of the Jacobian
         if eltype(x) <: Complex
-            return map(conj, vec(dx))
+            return transpose(map(conj, vec_block(dx)))
         else
-            return vec(dx)
+            return transpose(vec_block(dx))
         end
     end
-    return jac
 end
 
 function _jacobian_aux(
         f_or_f!y::FY,
-        prep::PullbackJacobianPrep{SIG, <:BatchSizeSettings{B, false, aligned}},
+        prep::PullbackJacobianPrep{SIG, <:BatchSizeSettings{B, false}},
         backend::AbstractADType,
         x,
         contexts::Vararg{Context, C},
-    ) where {FY, SIG, B, aligned, C}
+    ) where {FY, SIG, B, C}
     (; batch_size_settings, batched_seeds, seed_example, pullback_prep) = prep
-    (; A, B_last) = batch_size_settings
 
     pullback_prep_same = prepare_pullback_same_point(
         f_or_f!y..., pullback_prep, backend, x, seed_example, contexts...
     )
 
-    jac = mapreduce(vcat, eachindex(batched_seeds)) do a
+    return stack_batches_row(batch_size_settings, seed_example) do a
         dx_batch = pullback(
             f_or_f!y..., pullback_prep_same, backend, x, batched_seeds[a], contexts...
         )
         if eltype(x) <: Complex
             dx_batch = map(conj, dx_batch)
         end
-        block = stack_vec_row(dx_batch)
-        if !aligned && a == A
-            return block[1:B_last, :]
-        else
-            return block
-        end
+        return stack_vec_row(dx_batch)
     end
-    return jac
 end
 
 function _jacobian_aux!(
