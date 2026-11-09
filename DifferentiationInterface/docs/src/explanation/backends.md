@@ -14,6 +14,7 @@ We support the following dense backend choices from [ADTypes.jl](https://github.
 - [`AutoGTPSA`](@extref ADTypes.AutoGTPSA)
 - [`AutoHyperHessians`](@extref ADTypes.AutoHyperHessians)
 - [`AutoMooncake`](@extref ADTypes.AutoMooncake) and [`AutoMooncakeForward`](@extref ADTypes.AutoMooncake) (the latter is experimental)
+- [`AutoPiste`](@extref ADTypes.AutoPiste)
 - [`AutoPolyesterForwardDiff`](@extref ADTypes.AutoPolyesterForwardDiff)
 - [`AutoReverseDiff`](@extref ADTypes.AutoReverseDiff)
 - [`AutoSymbolics`](@extref ADTypes.AutoSymbolics)
@@ -52,6 +53,8 @@ In practice, many AD backends have custom implementations for high-level operato
     | `AutoHyperHessians`        | ❌    | ❌    | ❌     | ❌      | ❌     | ✅      | ✅     | ✅      |
     | `AutoMooncake`             | ❌    | ✅    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
     | `AutoMooncakeForward`      | ✅    | ❌    | ❌     | ❌      | ❌     | ❌      | ❌     | ❌      |
+    | `AutoPiste` (forward)      | ✅    | ❌    | ❌     | ✅      | ❌     | ❌      | ❌     | ❌      |
+    | `AutoPiste` (reverse)      | ❌    | ✅    | ❌     | ✅      | ❌     | ❌      | ❌     | ❌      |
     | `AutoPolyesterForwardDiff` | 🔀    | ❌    | 🔀     | ✅      | ✅     | 🔀      | 🔀     | 🔀      |
     | `AutoReverseDiff`          | ❌    | 🔀    | ❌     | ✅      | ✅     | ✅      | ❌     | ❌      |
     | `AutoSymbolics`            | ✅    | ❌    | ✅     | ✅      | ✅     | ✅      | ✅     | ✅      |
@@ -74,6 +77,8 @@ Moreover, each context type is supported by a specific subset of backends:
 | `AutoHyperHessians`        | ✅                  | ✅               |
 | `AutoMooncake`             | ✅                  | ✅               |
 | `AutoMooncakeForward`      | ✅                  | ✅               |
+| `AutoPiste` (forward)      | ✅                  | ✅               |
+| `AutoPiste` (reverse)      | ✅                  | ✅               |
 | `AutoPolyesterForwardDiff` | ✅                  | ✅               |
 | `AutoReverseDiff`          | ✅                  | ❌               |
 | `AutoSymbolics`            | ✅                  | ✅               |
@@ -196,6 +201,13 @@ For all operators, preparation generates an [executable function](https://docs.s
 ### Mooncake
 
 For `pullback`, preparation [builds the reverse rule](https://chalk-lab.github.io/Mooncake.jl/stable/understanding_mooncake/rule_system/) of the function.
+
+### Piste
+
+In forward mode, `pushforward` propagates `Piste.Dual` numbers carrying a whole batch of tangents, and `gradient` (for a `Vector` input) calls Piste's own chunked driver, with its workspace allocated during preparation.
+In reverse mode, `pullback` and `gradient` record the function on a `Piste.Tape` and sweep it backwards, reusing a workspace allocated during preparation.
+
+Piste is designed to survive `juliac --trim`, and prepared `gradient` calls through DifferentiationInterface do too, provided that the `chunksize` of a forward-mode backend is set explicitly.
 
 ### Tracker
 

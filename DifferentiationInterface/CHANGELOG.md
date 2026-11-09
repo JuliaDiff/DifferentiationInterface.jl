@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for [Piste.jl](https://github.com/EvoArt/Piste.jl) with `AutoPiste`, in forward and reverse mode
 - New operators `value_gradient_and_hvp` and `value_gradient_and_hvp!`, which also return the primal value ([#1086](https://github.com/JuliaDiff/DifferentiationInterface.jl/pull/1086))
 
 ### Deprecated
